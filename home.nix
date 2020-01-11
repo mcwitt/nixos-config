@@ -58,5 +58,43 @@
              + " --abbrev-commit --date=relative --show-notes=*";
       };
     };
+
+    neovim = {
+      enable = true;
+      vimAlias = true;
+      withPython3 = true;
+      plugins = with pkgs.vimPlugins; [
+        ctrlp
+        syntastic
+        tagbar
+        vim-airline
+        vim-colors-solarized
+        vim-fugitive
+        vim-gitgutter
+        vim-surround
+        youcompleteme
+      ];
+      extraConfig = ''
+        set expandtab
+        set nojoinspaces
+        set background=dark
+
+        " fd returns to normal mode
+        inoremap fd <esc>
+
+        colorscheme solarized
+
+        " { Syntastic
+        set statusline+=%#warningmsg#
+        set statusline+=%{SyntasticStatuslineFlag()}
+        set statusline+=%*
+
+        let g:syntastic_always_populate_loc_list = 1
+        let g:syntastic_auto_loc_list = 1
+        let g:syntastic_check_on_open = 1
+        let g:syntastic_check_on_wq = 0
+        " } Syntastic
+      '';
+    };
   };
 }
