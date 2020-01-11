@@ -4,8 +4,6 @@
   home.stateVersion = "19.09";
 
   programs = {
-    home-manager.enable = true;
-
     fzf = {
       enable = true;
       enableZshIntegration = true;
@@ -96,5 +94,7 @@
         " } Syntastic
       '';
     };
+
+    home-manager.enable = true;
   };
 }
