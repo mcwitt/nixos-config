@@ -6,7 +6,10 @@
   programs = {
     home-manager.enable = true;
 
-    fzf.enable = true;
+    fzf = {
+      enable = true;
+      enableZshIntegration = true;
+    };
 
     zsh = {
       enable = true;

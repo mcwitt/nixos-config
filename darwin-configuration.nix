@@ -13,17 +13,7 @@
   # services.nix-daemon.enable = true;
   # nix.package = pkgs.nix;
 
-  # Create /etc/bashrc that loads the nix-darwin environment.
-  programs.bash.enable = true;
-
-  programs.zsh = {
-    enable = true;
-    enableFzfCompletion = true;
-    enableFzfGit = true;
-    enableFzfHistory = true;
-    enableSyntaxHighlighting = true;
-  };
-  # programs.fish.enable = true;
+  programs.zsh.enable = true;
 
   # Used for backwards compatibility, please read the changelog before changing.
   # $ darwin-rebuild changelog
