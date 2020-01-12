@@ -74,12 +74,15 @@
       ];
       extraConfig = ''
         set expandtab
+        set shiftwidth=2
+        set softtabstop=2
         set nojoinspaces
-        set background=dark
 
         " fd returns to normal mode
         inoremap fd <esc>
 
+        " Solarized theme
+        set background=dark
         colorscheme solarized
 
         " { Syntastic
