@@ -3,15 +3,18 @@
 {
   environment.systemPackages = with pkgs;
     [ gawk
+      ghc
       git
       gnupg
       jq
       imagemagick
       openssh
       openssl
+      pandoc
       python3
       ripgrep
       rsync
+      tree
       vim
       watch
       wget
