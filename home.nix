@@ -4,10 +4,14 @@ let home_directory = builtins.getEnv "HOME";
 in {
   home.stateVersion = "19.09";
 
+  nixpkgs.config.allowUnfree = true;
+
   home.packages = with pkgs;
     [ gitAndTools.git-sync
       ghc
       stack
+      (import ./python.nix pkgs)
+      pipenv
     ];
 
   programs = {
