@@ -1,8 +1,20 @@
 { config, pkgs, ... }:
 
 {
-  environment.systemPackages =
-    [ pkgs.vim
+  environment.systemPackages = with pkgs;
+    [ gawk
+      git
+      gnupg
+      jq
+      imagemagick
+      openssh
+      openssl
+      python3
+      ripgrep
+      rsync
+      vim
+      watch
+      wget
     ];
 
   environment.darwinConfig = "$HOME/.config/nixpkgs/darwin-configuration.nix";
