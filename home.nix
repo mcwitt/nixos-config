@@ -35,6 +35,8 @@ in {
         ll = "ls -l";
         ls = "ls -G";
         rm = "rm -i";
+
+        gw = "git w";
       };
 
       sessionVariables = {
