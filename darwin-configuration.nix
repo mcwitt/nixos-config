@@ -19,6 +19,8 @@
 
   environment.darwinConfig = "$HOME/.config/nixpkgs/darwin-configuration.nix";
 
+  environment.shells = with pkgs; [ bashInteractive zsh ];
+
   # Auto upgrade nix package and the daemon service.
   # services.nix-daemon.enable = true;
   # nix.package = pkgs.nix;
