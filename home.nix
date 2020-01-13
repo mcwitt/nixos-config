@@ -1,12 +1,13 @@
 { config, pkgs, ... }:
 
-{
+let home_directory = builtins.getEnv "HOME";
+in {
   home.stateVersion = "19.09";
 
   programs = {
     password-store = {
       enable = true;
-      settings = { PASSWORD_STORE_DIR = "$HOME/.password-store/"; };
+      settings = { PASSWORD_STORE_DIR = "${home_directory}/.password-store/"; };
     };
 
     fzf = {
