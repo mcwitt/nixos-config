@@ -5,7 +5,7 @@ in {
   home.stateVersion = "19.09";
 
   home.packages = with pkgs;
-    [ pkgs.gitAndTools.git-sync
+    [ gitAndTools.git-sync
       ghc
       stack
     ];
