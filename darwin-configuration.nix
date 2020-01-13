@@ -2,7 +2,8 @@
 
 {
   environment.systemPackages = with pkgs;
-    [ direnv
+    [ aspell
+      direnv
       emacs
       gawk
       git
