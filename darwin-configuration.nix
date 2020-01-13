@@ -2,7 +2,8 @@
 
 {
   environment.systemPackages = with pkgs;
-    [ gawk
+    [ emacs
+      gawk
       ghc
       git
       gnupg
@@ -14,6 +15,7 @@
       python3
       ripgrep
       rsync
+      texlive.combined.scheme-full
       tree
       vim
       watch
