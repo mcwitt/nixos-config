@@ -4,7 +4,6 @@
   environment.systemPackages = with pkgs;
     [ emacs
       gawk
-      ghc
       git
       gnupg
       jq

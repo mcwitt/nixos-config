@@ -4,7 +4,11 @@ let home_directory = builtins.getEnv "HOME";
 in {
   home.stateVersion = "19.09";
 
-  home.packages = [ pkgs.gitAndTools.git-sync ];
+  home.packages = with pkgs;
+    [ pkgs.gitAndTools.git-sync
+      ghc
+      stack
+    ];
 
   programs = {
     password-store = {
