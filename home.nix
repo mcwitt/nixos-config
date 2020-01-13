@@ -37,6 +37,11 @@ in {
         rm = "rm -i";
       };
 
+      sessionVariables = {
+        EDITOR = pkgs.neovim;
+        ALTERNATE_EDITOR = pkgs.vim;
+      };
+
       initExtra = ''
         setopt HIST_IGNORE_SPACE
 
