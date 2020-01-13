@@ -62,6 +62,7 @@ in {
         co = "checkout";
         ri = "rebase --interactive";
         su = "submodule update --init --recursive";
+        w  = "status -sb";
         l  = "log --graph --pretty=format:'%Cred%h%Creset"
              + " —%Cblue%d%Creset %s %Cgreen(%cr)%Creset'"
              + " --abbrev-commit --date=relative --show-notes=*";
