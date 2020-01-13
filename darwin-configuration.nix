@@ -45,6 +45,12 @@
   # $ darwin-rebuild changelog
   system.stateVersion = 4;
 
+  system.defaults.dock = {
+    autohide = true;
+    launchanim = false;
+    orientation = "left";
+  };
+
   nix.maxJobs = 8;
   nix.buildCores = 0;
 }
