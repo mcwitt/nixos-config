@@ -38,6 +38,7 @@ in {
         ls = "ls -G";
         rm = "rm -i";
 
+        gl = "git l";
         gw = "git w";
       };
 
