@@ -3,24 +3,37 @@
 {
   environment.systemPackages = with pkgs;
     [ aspell
+      coreutils
       direnv
       emacs
+      fzf
       gawk
       git
       gnupg
+      gnugrep
+      gnumake
+      gnused
+      gnutar
+      gzip
       jq
       imagemagick
       openssh
       openssl
       pandoc
+      perl
+      python27
       python3
       ripgrep
       rsync
+      ruby
       texlive.combined.scheme-full
+      time
       tree
+      unzip
       vim
       watch
       wget
+      xz
     ];
 
   environment.darwinConfig = "$HOME/.config/nixpkgs/darwin-configuration.nix";
