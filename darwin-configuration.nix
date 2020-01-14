@@ -21,7 +21,6 @@
       openssl
       pandoc
       perl
-      python27
       python3
       ripgrep
       rsync
