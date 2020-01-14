@@ -53,6 +53,10 @@ in {
         ALTERNATE_EDITOR = pkgs.vim;
       };
 
+      envExtra = ''
+        eval "$(${pkgs.direnv}/bin/direnv hook zsh)"
+      '';
+
       initExtra = ''
         setopt HIST_IGNORE_SPACE
 
