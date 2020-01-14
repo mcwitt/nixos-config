@@ -8,9 +8,7 @@ in {
 
   home.packages = with pkgs;
     [ gitAndTools.git-sync
-      ghc
       stack
-      (import ./python.nix pkgs)
       pipenv
     ];
 
