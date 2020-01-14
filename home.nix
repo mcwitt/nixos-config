@@ -43,7 +43,7 @@ in {
       shellAliases = {
         l = "ls -alh";
         ll = "ls -l";
-        ls = "ls -G";
+        ls = "ls --color=auto";
         rm = "rm -i";
 
         gl = "git l";
