@@ -17,6 +17,7 @@
       gzip
       jq
       imagemagick
+      less
       openssh
       openssl
       pandoc
