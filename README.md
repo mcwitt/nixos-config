@@ -1,6 +1,6 @@
 # Nix configuration files
 
-Personal Nix configurations and modules, inspired by [jwiegly's configuration][jwiegley-nix-config].
+Personal Nix configurations and modules, inspired by [jwiegley's configuration][jwiegley-nix-config].
 
 ## Config files
 
@@ -8,9 +8,9 @@ Personal Nix configurations and modules, inspired by [jwiegly's configuration][j
 - `darwin-configuration.nix`: [nix-darwin][] configuration. This is
   similar to `configuration.nix` on NixOS and provides declarative
   configuration for macOS. Symlinked into `~/.config/nixpkgs/`.
-- `home.nix`: [home-manager][] configuration. This is used for
-  declarative specification of user-specific configuration
-  (e.g. "dotfiles"). Symlinked into `~/.config/nixpkgs`.
+- `home.nix`: [home-manager][] configuration. This is for
+  user-specific configuration (e.g. "dotfiles"). Symlinked into
+  `~/.config/nixpkgs`.
 
 ## Modules
 
