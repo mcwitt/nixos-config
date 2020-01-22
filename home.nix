@@ -89,7 +89,6 @@ in {
         syntastic
         tagbar
         vim-airline
-        vim-colors-solarized
         vim-fugitive
         vim-gitgutter
         vim-surround
@@ -103,10 +102,6 @@ in {
 
       " fd returns to normal mode
       inoremap fd <esc>
-
-      " Solarized theme
-      set background=dark
-      colorscheme solarized
 
       " { Syntastic
       set statusline+=%#warningmsg#
