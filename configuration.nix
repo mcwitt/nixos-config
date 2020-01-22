@@ -25,12 +25,12 @@
     wlp4s0.useDHCP = true;
   };
 
-  # Select internationalisation properties.
-  i18n = {
-    consoleFont = "ter-u28n";
-    consoleKeyMap = "us";
-    consolePackages = [ pkgs.terminus_font ];
-    defaultLocale = "en_US.UTF-8";
+  i18n.defaultLocale = "en_US.UTF-8";
+
+  console = {
+    font = "ter-u28n";
+    keyMap = "us";
+    packages = [ pkgs.terminus_font ];
   };
 
   time.timeZone = "America/Los_Angeles";
@@ -55,7 +55,7 @@
   services.xserver = {
     enable = true;
     videoDrivers = [ "nvidia" ];
-    windowManager.default = "xmonad";
+    displayManager.defaultSession = "none+xmonad";
     windowManager.xmonad = {
       enable = true;
       enableContribAndExtras = true;
