@@ -5,6 +5,7 @@
     coreutils
     direnv
     emacs
+    firefox
     fzf
     gawk
     git
@@ -31,6 +32,7 @@
     tree
     unzip
     vim
+    w3m
     watch
     wget
     xz

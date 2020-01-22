@@ -43,6 +43,7 @@
   fonts.fontconfig.dpi = 196;
 
   environment.systemPackages = with pkgs; [
+    chromium
     dmenu
     haskellPackages.xmobar
     termite
