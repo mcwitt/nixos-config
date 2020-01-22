@@ -49,6 +49,8 @@
     termite
   ];
 
+  programs.zsh.enable = true;
+
   services.openssh.enable = true;
   services.redshift.enable = true;  # color temperature adjuster
 
@@ -82,6 +84,7 @@
   users.users.matt = {
     isNormalUser = true;
     extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
+    shell = pkgs.zsh;
   };
 
   # This value determines the NixOS release with which your system is to be
