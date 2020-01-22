@@ -50,6 +50,7 @@
   ];
 
   programs.zsh.enable = true;
+  programs.gnupg.agent.enable = true;
 
   services.openssh.enable = true;
   services.redshift.enable = true;  # color temperature adjuster
