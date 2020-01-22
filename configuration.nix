@@ -28,7 +28,7 @@
   i18n.defaultLocale = "en_US.UTF-8";
 
   console = {
-    font = "ter-u28n";
+    font = "ter-u16n";
     keyMap = "us";
     packages = [ pkgs.terminus_font ];
   };
@@ -40,7 +40,7 @@
     longitude = 122.42;
   };
 
-  fonts.fontconfig.dpi = 196;
+  fonts.fontconfig.dpi = 140;
 
   environment.systemPackages = with pkgs; [
     chromium
