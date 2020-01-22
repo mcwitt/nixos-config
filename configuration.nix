@@ -45,6 +45,7 @@
   environment.systemPackages = with pkgs; [
     chromium
     dmenu
+    firefox
     haskellPackages.xmobar
     signal-desktop
     termite

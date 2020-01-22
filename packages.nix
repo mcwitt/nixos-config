@@ -5,7 +5,6 @@
     coreutils
     direnv
     emacs
-    firefox
     fzf
     gawk
     git
