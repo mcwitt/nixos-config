@@ -36,18 +36,22 @@
 
   services.openssh.enable = true;
   services.redshift.enable = true;  # color temperature adjuster
-  services.xserver.windowManager.xmonad = {
-    enable = true;
-    enableContribAndExtras = true;
-    config = ''
-      import XMonad
-      import XMonad.Hooks.DynamicLog
 
-      main = xmonad =<< xmobar def
-      { terminal = "${pkgs.termite}"
-        , modMask  = mod4Mask
-      }
-    '';
+  services.xserver = {
+    enable = true;
+    windowManager.xmonad = {
+      enable = true;
+      enableContribAndExtras = true;
+      config = ''
+        import XMonad
+        import XMonad.Hooks.DynamicLog
+
+        main = xmonad =<< xmobar def
+          { terminal = "${pkgs.termite}"
+          , modMask  = mod4Mask
+          }
+      '';
+    };
   };
 
   users.users.matt = {
