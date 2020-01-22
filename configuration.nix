@@ -25,6 +25,14 @@
     wlp4s0.useDHCP = true;
   };
 
+  # Select internationalisation properties.
+  i18n = {
+    consoleFont = "ter-u28n";
+    consoleKeyMap = "us";
+    consolePackages = [ pkgs.terminus_font ];
+    defaultLocale = "en_US.UTF-8";
+  };
+
   time.timeZone = "America/Los_Angeles";
 
   location = {
@@ -32,9 +40,12 @@
     longitude = 122.42;
   };
 
+  fonts.fontconfig.dpi = 196;
+
   environment.systemPackages = with pkgs; [
     dmenu
     haskellPackages.xmobar
+    termite
   ];
 
   services.openssh.enable = true;
@@ -42,6 +53,8 @@
 
   services.xserver = {
     enable = true;
+    videoDrivers = [ "nvidia" ];
+    windowManager.default = "xmonad";
     windowManager.xmonad = {
       enable = true;
       enableContribAndExtras = true;
@@ -50,11 +63,19 @@
         import XMonad.Hooks.DynamicLog
 
         main = xmonad =<< xmobar def
-          { terminal = "${pkgs.termite}"
+          { terminal = "termite"
           , modMask  = mod4Mask
           }
       '';
     };
+    xrandrHeads = [
+      { primary = true; output = "DP-4"; }
+      { monitorConfig = ''
+          Option "Rotate" "left"
+        '';
+        output = "DP-2";
+      }
+    ];
   };
 
   users.users.matt = {
