@@ -54,6 +54,11 @@
   programs.zsh.enable = true;
   programs.gnupg.agent.enable = true;
 
+  programs.tmux = {
+    enable = true;
+    keyMode = "vi";
+  };
+
   services.openssh.enable = true;
   services.redshift.enable = true;  # color temperature adjuster
 
