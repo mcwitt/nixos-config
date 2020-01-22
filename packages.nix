@@ -14,7 +14,6 @@
     gnused
     gnutar
     gzip
-    home-manager
     imagemagick
     jq
     less
