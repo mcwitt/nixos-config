@@ -25,6 +25,7 @@
     ripgrep
     rsync
     ruby
+    rxvt_unicode
     texlive.combined.scheme-full
     time
     tree

@@ -10,6 +10,12 @@ in {
       pipenv
     ];
 
+  programs.urxvt = {
+    enable = true;
+    fonts = [ "xft:Source Code Pro:size=10" ];
+    scroll.bar.enable = false;
+  };
+
   programs.password-store = {
     enable = true;
     settings = { PASSWORD_STORE_DIR = "${homeDir}/.password-store/"; };

@@ -48,7 +48,6 @@
     firefox
     haskellPackages.xmobar
     signal-desktop
-    termite
   ];
 
   programs.zsh.enable = true;
@@ -74,7 +73,7 @@
         import XMonad.Hooks.DynamicLog
 
         main = xmonad =<< xmobar def
-          { terminal = "termite"
+          { terminal = "urxvt"
           , modMask  = mod4Mask
           }
       '';
