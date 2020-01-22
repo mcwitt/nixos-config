@@ -46,6 +46,7 @@
     chromium
     dmenu
     haskellPackages.xmobar
+    signal-desktop
     termite
   ];
 
