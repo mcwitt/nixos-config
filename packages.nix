@@ -29,6 +29,7 @@
     ruby
     texlive.combined.scheme-full
     time
+    tmux
     tree
     unzip
     vim
