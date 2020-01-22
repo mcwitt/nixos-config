@@ -8,14 +8,14 @@
     fzf
     gawk
     git
-    gnupg
     gnugrep
     gnumake
+    gnupg
     gnused
     gnutar
     gzip
-    jq
     imagemagick
+    jq
     less
     openssh
     openssl
