@@ -54,6 +54,7 @@ in {
     sessionVariables = {
       EDITOR = pkgs.neovim;
       ALTERNATE_EDITOR = pkgs.vim;
+      ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE = "fg=10";  # fix invisible hints
     };
 
     envExtra = ''
