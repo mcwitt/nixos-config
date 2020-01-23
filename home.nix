@@ -10,6 +10,8 @@ in {
       pipenv
     ];
 
+  programs.emacs.enable = true;
+
   programs.urxvt = {
     enable = true;
     fonts = [ "xft:Source Code Pro:size=10" ];
@@ -46,6 +48,9 @@ in {
       ll = "ls -l";
       ls = "ls --color=auto";
       rm = "rm -i";
+
+      emacs = "${pkgs.emacs}/bin/emacsclient --create-frame";
+      ec = "${pkgs.emacs}/bin/emacsclient";
 
       gl = "git l";
       gw = "git w";
@@ -125,6 +130,8 @@ in {
 
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
+
+  services.emacs.enable = true;
 
   xresources.extraConfig = builtins.readFile (
     pkgs.fetchFromGitHub {
