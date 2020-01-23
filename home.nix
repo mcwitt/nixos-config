@@ -131,8 +131,6 @@ in {
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
 
-  services.emacs.enable = true;
-
   xresources.extraConfig = builtins.readFile (
     pkgs.fetchFromGitHub {
       owner = "altercation";

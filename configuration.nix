@@ -60,6 +60,7 @@
 
   services.openssh.enable = true;
   services.redshift.enable = true;  # color temperature adjuster
+  services.emacs.enable = true;
 
   services.xserver = {
     enable = true;
