@@ -125,6 +125,15 @@ in {
 # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
 
+  xresources.extraConfig = builtins.readFile (
+    pkgs.fetchFromGitHub {
+      owner = "altercation";
+      repo = "solarized";
+      rev = "62f656a02f93c5190a8753159e34b385588d5ff3";
+      sha256 = "0001mz5v3a8zvi3gzmxhi3yrsb6hs7qf6i497arsngnvj2cwn61d";
+    } + "/xresources/solarized"
+  );
+
 # This value determines the Home Manager release that your
 # configuration is compatible with. This helps avoid breakage
 # when a new Home Manager release introduces backwards
