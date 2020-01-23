@@ -44,16 +44,16 @@ in {
     };
 
     shellAliases = {
-      l = "ls -alh";
-      ll = "ls -l";
-      ls = "ls --color=auto";
-      rm = "rm -i";
+      l     = "${pkgs.coreutils}/bin/ls --color=auto -alh";
+      ll    = "${pkgs.coreutils}/bin/ls --color=auto -l";
+      ls    = "${pkgs.coreutils}/bin/ls --color=auto";
+      rm    = "${pkgs.coreutils}/bin/rm -i";
 
       emacs = "${pkgs.emacs}/bin/emacsclient --create-frame";
-      ec = "${pkgs.emacs}/bin/emacsclient";
+      ec    = "${pkgs.emacs}/bin/emacsclient";
 
-      gl = "git l";
-      gw = "git w";
+      gl    = "${pkgs.git}/bin/git l";
+      gw    = "${pkgs.git}/bin/git w";
     };
 
     sessionVariables = {
