@@ -57,8 +57,8 @@ in {
     };
 
     sessionVariables = {
-      EDITOR = pkgs.neovim;
-      ALTERNATE_EDITOR = pkgs.vim;
+      EDITOR = "${pkgs.neovim}/bin/nvim";
+      ALTERNATE_EDITOR = "${pkgs.vim}/bin/vim";
       ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE = "fg=10";  # fix invisible hints
     };
 
