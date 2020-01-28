@@ -2,6 +2,7 @@
 
 { environment.systemPackages = with pkgs; [
     aspell
+    aspellDicts.en
     coreutils
     direnv
     emacs
