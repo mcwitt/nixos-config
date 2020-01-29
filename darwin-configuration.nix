@@ -8,31 +8,39 @@
     shells = with pkgs; [ bashInteractive zsh ];
   };
 
-  # Auto upgrade nix package and the daemon service.
-  # services.nix-daemon.enable = true;
-  # nix.package = pkgs.nix;
+  nix = {
+    maxJobs = 8;
+    buildCores = 0;
 
-  programs.zsh.enable = true;
-
-  programs.tmux = {
-    enable = true;
-    enableSensible = true;
-    enableVim = true;
+    # Auto upgrade nix package and the daemon service.
+    # services.nix-daemon.enable = true;
+    # package = pkgs.nix;
   };
 
-  services.emacs.enable = true;
-  services.postgresql.enable = true;
+  programs = {
+    zsh.enable = true;
+
+    tmux = {
+      enable = true;
+      enableSensible = true;
+      enableVim = true;
+    };
+  };
+
+  services = {
+    emacs.enable = true;
+    postgresql.enable = true;
+  };
 
   # Used for backwards compatibility, please read the changelog before changing.
   # $ darwin-rebuild changelog
-  system.stateVersion = 4;
+  system = {
+    stateVersion = 4;
 
-  system.defaults.dock = {
-    autohide = true;
-    launchanim = false;
-    orientation = "left";
+    defaults.dock = {
+      autohide = true;
+      launchanim = false;
+      orientation = "left";
+    };
   };
-
-  nix.maxJobs = 8;
-  nix.buildCores = 0;
 }

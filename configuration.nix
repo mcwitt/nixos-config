@@ -1,46 +1,24 @@
 { pkgs, ... }:
 
 {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-      ./fonts.nix
-      ./packages.nix
-      ./secret/wireless.nix
-    ];
+  imports = [
+    ./hardware-configuration.nix
+    ./fonts.nix
+    ./packages.nix
+    ./secret/wireless.nix
+  ];
 
   # Use the systemd-boot EFI boot loader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-
-  networking.hostName = "golem";
-  networking.wireless.enable = true;
-
-  # The global useDHCP flag is deprecated, therefore explicitly set to false here.
-  # Per-interface useDHCP will be mandatory in the future, so this generated config
-  # replicates the default behaviour.
-  networking.useDHCP = false;
-  networking.interfaces = {
-    enp0s31f6.useDHCP = true;
-    wlp4s0.useDHCP = true;
+  boot.loader = {
+    systemd-boot.enable = true;
+    efi.canTouchEfiVariables = true;
   };
-
-  i18n.defaultLocale = "en_US.UTF-8";
 
   console = {
     font = "ter-u16n";
     keyMap = "us";
     packages = [ pkgs.terminus_font ];
   };
-
-  time.timeZone = "America/Los_Angeles";
-
-  location = {
-    latitude = 37.77;
-    longitude = 122.42;
-  };
-
-  fonts.fontconfig.dpi = 140;
 
   environment.systemPackages = with pkgs; [
     chromium
@@ -50,50 +28,79 @@
     signal-desktop
   ];
 
-  programs.zsh.enable = true;
-  programs.gnupg.agent.enable = true;
+  fonts.fontconfig.dpi = 140;
 
-  programs.tmux = {
-    enable = true;
-    keyMode = "vi";
-  };
+  programs = {
+    zsh.enable = true;
+    gnupg.agent.enable = true;
 
-  services.locate.enable = true;
-  services.openssh.enable = true;
-  services.redshift.enable = true;  # color temperature adjuster
-  services.emacs.enable = true;
-
-  services.xserver = {
-    enable = true;
-    videoDrivers = [ "nvidia" ];
-    displayManager.defaultSession = "none+xmonad";
-    windowManager.xmonad = {
+    tmux = {
       enable = true;
-      enableContribAndExtras = true;
-      config = ''
-        import XMonad
-        import XMonad.Hooks.DynamicLog
-
-        main = xmonad =<< xmobar def
-          { terminal = "urxvt"
-          , modMask  = mod4Mask
-          }
-      '';
+      keyMode = "vi";
     };
-    xrandrHeads = [
-      { primary = true; output = "DP-4"; }
-      { monitorConfig = ''
-          Option "Rotate" "left"
-        '';
-        output = "DP-2";
-      }
-    ];
   };
 
-  users.users.matt = {
-    isNormalUser = true;
-    extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
-    shell = pkgs.zsh;
+  i18n.defaultLocale = "en_US.UTF-8";
+
+  location = {
+    latitude = 37.77;
+    longitude = 122.42;
+  };
+
+  networking = {
+    hostName = "golem";
+    wireless.enable = true;
+
+    # The global useDHCP flag is deprecated, therefore explicitly set to false here.
+    # Per-interface useDHCP will be mandatory in the future, so this generated config
+    # replicates the default behaviour.
+    useDHCP = false;
+    interfaces = {
+      enp0s31f6.useDHCP = true;
+      wlp4s0.useDHCP = true;
+    };
+  };
+
+  nix.trustedUsers = [ "root" "@wheel" "matt" ];
+
+  nixpkgs.config.allowUnfree = true;
+
+  services = {
+    emacs.enable = true;
+    locate.enable = true;
+    openssh.enable = true;
+    redshift.enable = true; # color temperature adjuster
+
+    xserver = {
+      enable = true;
+      videoDrivers = [ "nvidia" ];
+      displayManager.defaultSession = "none+xmonad";
+      windowManager.xmonad = {
+        enable = true;
+        enableContribAndExtras = true;
+        config = ''
+          import XMonad
+          import XMonad.Hooks.DynamicLog
+
+          main = xmonad =<< xmobar def
+            { terminal = "urxvt"
+            , modMask  = mod4Mask
+            }
+        '';
+      };
+      xrandrHeads = [
+        {
+          primary = true;
+          output = "DP-4";
+        }
+        {
+          monitorConfig = ''
+            Option "Rotate" "left"
+          '';
+          output = "DP-2";
+        }
+      ];
+    };
   };
 
   # This value determines the NixOS release with which your system is to be
@@ -102,5 +109,11 @@
   # should.
   system.stateVersion = "19.09"; # Did you read the comment?
 
-  nixpkgs.config.allowUnfree = true;
+  time.timeZone = "America/Los_Angeles";
+
+  users.users.matt = {
+    isNormalUser = true;
+    extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
+    shell = pkgs.zsh;
+  };
 }
