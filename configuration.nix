@@ -58,6 +58,7 @@
     keyMode = "vi";
   };
 
+  services.locate.enable = true;
   services.openssh.enable = true;
   services.redshift.enable = true;  # color temperature adjuster
   services.emacs.enable = true;
