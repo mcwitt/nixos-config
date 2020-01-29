@@ -10,8 +10,6 @@ in {
       pipenv
     ];
 
-  programs.emacs.enable = true;
-
   programs.urxvt = {
     enable = true;
     fonts = [ "xft:Source Code Pro:size=10" ];
