@@ -20,6 +20,11 @@ in {
 
   programs = {
 
+    emacs = {
+      enable = true;
+      extraPackages = import ./emacs-packages.nix;
+    };
+
     fzf = {
       enable = true;
       enableZshIntegration = true;
@@ -113,7 +118,6 @@ in {
         ls = "${pkgs.coreutils}/bin/ls --color=auto";
         rm = "${pkgs.coreutils}/bin/rm -i";
 
-        emacs = "${pkgs.emacs}/bin/emacsclient --create-frame";
         ec = "${pkgs.emacs}/bin/emacsclient";
 
         gl = "${pkgs.git}/bin/git l";
