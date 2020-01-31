@@ -7,6 +7,7 @@
     coreutils
     direnv
     emacs
+    feh
     fzf
     gawk
     git
