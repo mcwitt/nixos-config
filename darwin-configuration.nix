@@ -32,9 +32,9 @@
     postgresql.enable = true;
   };
 
-  # Used for backwards compatibility, please read the changelog before changing.
-  # $ darwin-rebuild changelog
   system = {
+    # Used for backwards compatibility, please read the changelog before changing.
+    # $ darwin-rebuild changelog
     stateVersion = 4;
 
     defaults.dock = {
