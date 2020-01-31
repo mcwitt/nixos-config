@@ -83,8 +83,10 @@
           import XMonad.Hooks.DynamicLog
 
           main = xmonad =<< xmobar def
-            { terminal = "urxvt"
-            , modMask  = mod4Mask
+            { borderWidth        = 3
+            , focusedBorderColor = "#859900"
+            , modMask            = mod4Mask
+            , terminal           = "urxvt"
             }
         '';
       };
