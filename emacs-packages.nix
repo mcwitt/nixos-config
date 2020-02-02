@@ -3,6 +3,7 @@ with epkgs; [
   browse-at-remote
   cdlatex
   company
+  company-lsp
   company-restclient
   counsel
   counsel-projectile
@@ -18,11 +19,18 @@ with epkgs; [
   flycheck
   general
   gist
+  haskell-mode
   hl-todo
+  intero
   ivy
   json-mode
   jupyter
   logview
+  lsp-haskell
+  lsp-ivy
+  lsp-mode
+  lsp-treemacs
+  lsp-ui
   magit
   markdown-mode
   nix-mode
