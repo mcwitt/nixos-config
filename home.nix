@@ -16,7 +16,10 @@ in {
     stateVersion = "19.09";
   };
 
-  nixpkgs.config.allowUnfree = true;
+  nixpkgs = {
+    config.allowUnfree = true;
+    overlays = [ (import ./emacs-overlay) ];
+  };
 
   programs = {
 
