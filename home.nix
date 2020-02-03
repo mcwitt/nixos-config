@@ -38,6 +38,7 @@ in {
       userName = "Matt Wittmann";
       userEmail = "mcwitt@gmail.com";
       aliases = {
+        b = "branch --color -v";
         ca = "commit --amend";
         co = "checkout";
         ri = "rebase --interactive";
@@ -123,6 +124,7 @@ in {
 
         ec = "${pkgs.emacs}/bin/emacsclient";
 
+        gb = "${pkgs.git}/bin/git b";
         gl = "${pkgs.git}/bin/git l";
         gw = "${pkgs.git}/bin/git w";
         git = "${pkgs.gitAndTools.hub}/bin/hub";
