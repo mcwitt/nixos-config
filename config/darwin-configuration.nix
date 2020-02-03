@@ -1,7 +1,7 @@
 { config, pkgs, ... }:
 
 {
-  imports = [ ./fonts.nix ./packages.nix ];
+  imports = [ ../modules/fonts.nix ../modules/packages.nix ];
 
   environment = {
     darwinConfig = "$HOME/.config/nixpkgs/darwin-configuration.nix";

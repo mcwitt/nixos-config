@@ -3,9 +3,9 @@
 {
   imports = [
     ./hardware-configuration.nix
-    ./fonts.nix
-    ./packages.nix
-    ./secret/wireless.nix
+    ../modules/secret/wireless.nix
+    ../modules/fonts.nix
+    ../modules/packages.nix
   ];
 
   # Use the systemd-boot EFI boot loader.
