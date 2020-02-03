@@ -2,6 +2,7 @@
 
 let homeDir = builtins.getEnv "HOME";
 in {
+  imports = [ ../modules/emacs-packages.nix ];
   home = {
     packages = with pkgs; [ gitAndTools.git-sync gitAndTools.hub stack pipenv ];
 
@@ -18,15 +19,11 @@ in {
 
   nixpkgs = {
     config.allowUnfree = true;
-    overlays = [ (import ./emacs-overlay) ];
+    overlays = [ (import ../overlays/emacs-overlay) ];
   };
 
   programs = {
-
-    emacs = {
-      enable = true;
-      extraPackages = import ./emacs-packages.nix;
-    };
+    emacs.enable = true;
 
     fzf = {
       enable = true;
