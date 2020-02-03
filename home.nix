@@ -3,7 +3,7 @@
 let homeDir = builtins.getEnv "HOME";
 in {
   home = {
-    packages = with pkgs; [ gitAndTools.git-sync stack pipenv ];
+    packages = with pkgs; [ gitAndTools.git-sync gitAndTools.hub stack pipenv ];
 
     # This value determines the Home Manager release that your
     # configuration is compatible with. This helps avoid breakage
@@ -125,6 +125,7 @@ in {
 
         gl = "${pkgs.git}/bin/git l";
         gw = "${pkgs.git}/bin/git w";
+        git = "${pkgs.gitAndTools.hub}/bin/hub";
       };
 
       sessionVariables = {
