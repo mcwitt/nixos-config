@@ -19,6 +19,7 @@
     gzip
     imagemagick
     jq
+    killall
     less
     openssh
     openssl
