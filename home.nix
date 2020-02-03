@@ -123,6 +123,7 @@ in {
         rm = "${pkgs.coreutils}/bin/rm -i";
 
         ec = "${pkgs.emacs}/bin/emacsclient";
+        emacs = "${pkgs.emacs}/bin/emacsclient --create-frame";
 
         gb = "${pkgs.git}/bin/git b";
         gl = "${pkgs.git}/bin/git l";
@@ -151,6 +152,8 @@ in {
       '';
     };
   };
+
+  services.emacs.enable = true;
 
   xresources.extraConfig = builtins.readFile (pkgs.fetchFromGitHub {
     owner = "altercation";
