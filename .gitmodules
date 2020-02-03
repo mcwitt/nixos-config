@@ -4,3 +4,6 @@
 [submodule "home-manager"]
 	path = home-manager
 	url = git@github.com:mcwitt/home-manager.git
+[submodule "nix-darwin"]
+	path = nix-darwin
+	url = git@github.com:mcwitt/nix-darwin.git
