@@ -18,13 +18,18 @@
   };
 
   programs = {
-    zsh.enable = true;
+    gnupg = {
+      enable = true;
+      agent.enable = true;
+    };
 
     tmux = {
       enable = true;
       enableSensible = true;
       enableVim = true;
     };
+
+    zsh.enable = true;
   };
 
   services = {

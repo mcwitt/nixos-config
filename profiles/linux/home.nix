@@ -6,5 +6,8 @@
     emacs = "${pkgs.emacs}/bin/emacsclient --create-frame";
   };
 
-  services.emacs.enable = true;
+  services = {
+    emacs.enable = true;
+    gpg-agent.enable = true;
+  };
 }
