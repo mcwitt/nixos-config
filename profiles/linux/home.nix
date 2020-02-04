@@ -9,6 +9,8 @@
   services = {
     emacs.enable = true;
     gpg-agent.enable = true;
+    password-store-sync.enable = true;
+
     random-background = {
       enable = true;
       imageDirectory = "%h/.background-images";

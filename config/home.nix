@@ -1,6 +1,8 @@
 { config, pkgs, ... }:
 
-let homeDir = builtins.getEnv "HOME";
+let
+  homeDir = builtins.getEnv "HOME";
+  passwordStoreDir = "${homeDir}/.password-store/";
 in {
   imports = [ ../modules/emacs-packages.nix ];
   home = {
@@ -89,7 +91,9 @@ in {
 
     password-store = {
       enable = true;
-      settings = { PASSWORD_STORE_DIR = "${homeDir}/.password-store/"; };
+      package =
+        pkgs.pass.withExtensions (exts: with exts; [ pass-otp pass-update ]);
+      settings = { PASSWORD_STORE_DIR = passwordStoreDir; };
     };
 
     urxvt = {
@@ -142,6 +146,13 @@ in {
         bindkey fd vi-cmd-mode
         bindkey -M vicmd 'k' history-substring-search-up
         bindkey -M vicmd 'j' history-substring-search-down
+
+        fpass() {
+          ${pkgs.pass}/bin/pass --clip $( \
+            ${pkgs.findutils}/bin/find ${passwordStoreDir} -iname '*.gpg' | \
+            ${pkgs.gnused}/bin/sed "s,${passwordStoreDir}\(.*\)\.gpg,\1," | \
+            ${pkgs.fzf}/bin/fzf --no-multi)
+        }
       '';
     };
   };
