@@ -98,6 +98,12 @@ in {
 
     urxvt = {
       enable = true;
+      extraConfig = {
+        # clickable URLs
+        perl-ext-common = "default,matcher";
+        url-launcher = "${pkgs.xdg_utils}/bin/xdg-open";
+        "matcher.button" = 1;
+      };
       fonts = [ "xft:Fira Code:size=10" ];
       scroll.bar.enable = false;
     };
