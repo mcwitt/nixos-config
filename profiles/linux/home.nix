@@ -8,7 +8,13 @@
 
   services = {
     emacs.enable = true;
-    gpg-agent.enable = true;
+
+    gpg-agent = {
+      enable = true;
+      defaultCacheTtl = 14400; # 4 hours
+      maxCacheTtl = 14400;
+    };
+
     password-store-sync.enable = true;
 
     random-background = {
