@@ -1,6 +1,7 @@
 {
   programs.emacs.extraPackages = epkgs:
     with epkgs; [
+      auctex
       browse-at-remote
       cdlatex
       company
