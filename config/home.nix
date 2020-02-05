@@ -154,10 +154,11 @@ in {
         bindkey -M vicmd 'j' history-substring-search-down
 
         fpass() {
-          ${pkgs.pass}/bin/pass --clip $( \
-            ${pkgs.findutils}/bin/find ${passwordStoreDir} -iname '*.gpg' | \
-            ${pkgs.gnused}/bin/sed "s,${passwordStoreDir}\(.*\)\.gpg,\1," | \
-            ${pkgs.fzf}/bin/fzf --no-multi)
+          local p
+          p=$(${pkgs.findutils}/bin/find ${passwordStoreDir} -iname '*.gpg' \
+            | ${pkgs.gnused}/bin/sed "s,${passwordStoreDir}\(.*\)\.gpg,\1," \
+            | ${pkgs.fzf}/bin/fzf --no-multi)                               \
+            && ${pkgs.pass}/bin/pass --clip $p
         }
       '';
     };
