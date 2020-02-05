@@ -40,6 +40,20 @@
     };
   };
 
+  hardware.printers = rec {
+    ensureDefaultPrinter = "Brother_HL-L2340D_series";
+    ensurePrinters = [{
+      deviceUri =
+        "dnssd://Brother%20HL-L2340D%20series._ipp._tcp.local/?uuid=e3248000-80ce-11db-8000-40490f90f0a2";
+      model = "drv:///brlaser.drv/brl2340d.ppd";
+      name = ensureDefaultPrinter;
+      ppdOptions = {
+        Duplex = "DuplexNoTumble";
+        PageSize = "A4";
+      };
+    }];
+  };
+
   i18n.defaultLocale = "en_US.UTF-8";
 
   location = {
@@ -66,9 +80,20 @@
   nixpkgs.config.allowUnfree = true;
 
   services = {
+    avahi = {
+      enable = true;
+      nssmdns = true;
+    };
+
     emacs.enable = true;
     locate.enable = true;
     openssh.enable = true;
+
+    printing = {
+      enable = true;
+      drivers = [ pkgs.brlaser ];
+    };
+
     redshift.enable = true; # color temperature adjuster
 
     xserver = {
