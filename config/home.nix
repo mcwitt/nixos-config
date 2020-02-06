@@ -4,7 +4,7 @@ let
   homeDir = builtins.getEnv "HOME";
   passwordStoreDir = "${homeDir}/.password-store/";
 in {
-  imports = [ ../modules/emacs-packages.nix ];
+  imports = [ ../modules/emacs.nix ];
   home = {
     packages = with pkgs; [ gitAndTools.git-sync gitAndTools.hub stack pipenv ];
 
