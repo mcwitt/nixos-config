@@ -21,11 +21,13 @@ in {
 
   nixpkgs = {
     config.allowUnfree = true;
-    overlays = map import [
-      ../overlays/emacs-overlay
-      ../overlays/gitignore.nix
-      ../overlays/dotfiles.nix
-    ];
+
+    overlays = let path = ../overlays;
+    in with builtins;
+    map (n: import (path + ("/" + n))) (filter (n:
+      match ".*\\.nix" n != null
+      || pathExists (path + ("/" + n + "/default.nix")))
+      (attrNames (readDir path)));
   };
 
   programs = {
