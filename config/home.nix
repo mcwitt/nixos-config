@@ -173,7 +173,11 @@ in {
 
   xdg = {
     enable = true;
-    configFile.emacs.source = "${pkgs.mcwitt-dotfiles}/root/emacs.d/";
+
+    configFile.emacs = {
+      source = "${pkgs.mcwitt-dotfiles}/root/emacs.d/";
+      recursive = true;
+    };
   };
 
   xresources.extraConfig = builtins.readFile (pkgs.fetchFromGitHub {
