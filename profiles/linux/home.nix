@@ -8,7 +8,7 @@
     emacs = "${pkgs.emacs}/bin/emacsclient --create-frame";
   };
 
-  xdg.configFile.xmobar.source = "${pkgs.mcwitt-dotfiles}/root/config/xmobar/";
+  xdg.configFile.xmobar.source = "${pkgs.mcwitt-dotfiles}/config/xmobar/";
 
   services = {
     emacs.enable = true;

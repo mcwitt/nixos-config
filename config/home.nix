@@ -175,7 +175,7 @@ in {
     enable = true;
 
     configFile.emacs = {
-      source = "${pkgs.mcwitt-dotfiles}/root/emacs.d/";
+      source = "${pkgs.mcwitt-dotfiles}/emacs.d/";
       recursive = true;
     };
   };
