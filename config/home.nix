@@ -171,14 +171,7 @@ in {
     };
   };
 
-  xdg = {
-    enable = true;
-
-    configFile.emacs = {
-      source = "${pkgs.mcwitt-dotfiles}/emacs.d/";
-      recursive = true;
-    };
-  };
+  xdg.enable = true;
 
   xresources.extraConfig = builtins.readFile (pkgs.fetchFromGitHub {
     owner = "altercation";
