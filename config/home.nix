@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 let
   homeDir = builtins.getEnv "HOME";
@@ -21,7 +21,8 @@ in {
 
   nixpkgs = {
     config.allowUnfree = true;
-    overlays = [ (import ../overlays/emacs-overlay) ];
+    overlays =
+      map import [ ../overlays/emacs-overlay ../overlays/gitignore.nix ];
   };
 
   programs = {
@@ -47,6 +48,7 @@ in {
           + " —%Cblue%d%Creset %s %Cgreen(%cr)%Creset'"
           + " --abbrev-commit --date=relative --show-notes=*";
       };
+      ignores = lib.concatMap pkgs.ghGitIgnore [ "Global/Emacs" "Global/Vim" ];
     };
 
     # Let Home Manager install and manage itself.
