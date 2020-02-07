@@ -166,6 +166,8 @@ in {
     };
   };
 
+  xdg.enable = true;
+
   xresources.extraConfig = builtins.readFile (pkgs.fetchFromGitHub {
     owner = "altercation";
     repo = "solarized";
