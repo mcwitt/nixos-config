@@ -21,8 +21,11 @@ in {
 
   nixpkgs = {
     config.allowUnfree = true;
-    overlays =
-      map import [ ../overlays/emacs-overlay ../overlays/gitignore.nix ];
+    overlays = map import [
+      ../overlays/emacs-overlay
+      ../overlays/gitignore.nix
+      ../overlays/dotfiles.nix
+    ];
   };
 
   programs = {
@@ -166,7 +169,10 @@ in {
     };
   };
 
-  xdg.enable = true;
+  xdg = {
+    enable = true;
+    configFile.emacs.source = "${pkgs.mcwitt-dotfiles}/root/emacs.d/";
+  };
 
   xresources.extraConfig = builtins.readFile (pkgs.fetchFromGitHub {
     owner = "altercation";
