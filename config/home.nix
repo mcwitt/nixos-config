@@ -53,7 +53,7 @@ in {
           + " —%Cblue%d%Creset %s %Cgreen(%cr)%Creset'"
           + " --abbrev-commit --date=relative --show-notes=*";
       };
-      ignores = lib.concatMap pkgs.ghGitIgnore [ "Global/Emacs" "Global/Vim" ];
+      ignores = lib.concatMap pkgs.ghGitIgnoreLines [ "Global/Emacs" "Global/Vim" ];
     };
 
     # Let Home Manager install and manage itself.

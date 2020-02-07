@@ -1,7 +1,7 @@
 { pkgs, ... }: {
   imports = [ ../../config/home.nix ];
 
-  programs.git.ignores = pkgs.ghGitIgnore "Global/Linux";
+  programs.git.ignores = pkgs.ghGitIgnoreLines "Global/Linux";
 
   programs.zsh.shellAliases = {
     ec = "${pkgs.emacs}/bin/emacsclient";
