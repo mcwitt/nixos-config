@@ -89,6 +89,11 @@
     locate.enable = true;
     openssh.enable = true;
 
+    nixosManual = {
+      showManual = true;
+      ttyNumber = 8;
+    };
+
     printing = {
       enable = true;
       drivers = [ pkgs.brlaser ];
