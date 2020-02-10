@@ -23,7 +23,6 @@
     less
     openssh
     openssl
-    pandoc
     perl
     python3
     ripgrep
