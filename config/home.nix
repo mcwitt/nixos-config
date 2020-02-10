@@ -6,7 +6,13 @@ let
 in {
   imports = [ ../modules/emacs.nix ];
   home = {
-    packages = with pkgs; [ gitAndTools.git-sync gitAndTools.hub stack pipenv ];
+    packages = with pkgs; [
+      gitAndTools.git-sync
+      gitAndTools.hub
+      scripts
+      stack
+      pipenv
+    ];
 
     # This value determines the Home Manager release that your
     # configuration is compatible with. This helps avoid breakage
@@ -151,7 +157,6 @@ in {
 
       envExtra = ''
         eval "$(${pkgs.direnv}/bin/direnv hook zsh)"
-        export GITHUB_TOKEN=$(${pkgs.pass}/bin/pass www/api.github.com | head -n 1)
       '';
 
       initExtra = ''
