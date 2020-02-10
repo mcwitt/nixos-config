@@ -49,6 +49,7 @@
       org-plus-contrib
       ox-gfm
       pdf-tools
+      proof-general
       pinentry
       projectile
       restclient
