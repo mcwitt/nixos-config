@@ -161,6 +161,8 @@ in {
         setopt HIST_IGNORE_SPACE
         source ${pkgs.zsh-syntax-highlighting}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
         source ${pkgs.zsh-history-substring-search}/share/zsh-history-substring-search/zsh-history-substring-search.zsh
+        source ${pkgs.zsh-git-prompt}/share/zsh-git-prompt/zshrc.sh
+        PROMPT='%B%(?..[%?] )%b%n@%U%m%u$(git_super_status) %# '
         bindkey fd vi-cmd-mode
         bindkey -M vicmd 'k' history-substring-search-up
         bindkey -M vicmd 'j' history-substring-search-down
