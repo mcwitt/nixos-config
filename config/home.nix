@@ -53,7 +53,8 @@ in {
           + " —%Cblue%d%Creset %s %Cgreen(%cr)%Creset'"
           + " --abbrev-commit --date=relative --show-notes=*";
       };
-      ignores = lib.concatMap pkgs.ghGitIgnoreLines [ "Global/Emacs" "Global/Vim" ];
+      ignores =
+        lib.concatMap pkgs.ghGitIgnoreLines [ "Global/Emacs" "Global/Vim" ];
     };
 
     # Let Home Manager install and manage itself.
@@ -139,6 +140,7 @@ in {
         gl = "${pkgs.git}/bin/git l";
         gw = "${pkgs.git}/bin/git w";
         git = "${pkgs.gitAndTools.hub}/bin/hub";
+        clip = "${pkgs.scripts}/bin/pass-clip";
       };
 
       sessionVariables = {
@@ -159,14 +161,6 @@ in {
         bindkey fd vi-cmd-mode
         bindkey -M vicmd 'k' history-substring-search-up
         bindkey -M vicmd 'j' history-substring-search-down
-
-        fpass() {
-          local p
-          p=$(${pkgs.findutils}/bin/find ${passwordStoreDir} -iname '*.gpg' \
-            | ${pkgs.gnused}/bin/sed "s,${passwordStoreDir}\(.*\)\.gpg,\1," \
-            | ${pkgs.fzf}/bin/fzf --no-multi)                               \
-            && ${pkgs.pass}/bin/pass --clip $p
-        }
       '';
     };
   };
