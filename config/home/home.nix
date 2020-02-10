@@ -4,7 +4,7 @@ let
   homeDir = builtins.getEnv "HOME";
   passwordStoreDir = "${homeDir}/.password-store/";
 in {
-  imports = [ ../modules/emacs.nix ];
+  imports = [ ./emacs.nix ];
   home = {
     packages = with pkgs; [
       signal-desktop
