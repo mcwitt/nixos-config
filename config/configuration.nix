@@ -3,7 +3,7 @@
 {
   imports = [
     ./hardware-configuration.nix
-    ../modules/secret/wireless.nix
+    ./secret/wireless.nix
     ../modules/fonts.nix
     ../modules/packages.nix
   ];

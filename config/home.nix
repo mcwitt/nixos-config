@@ -7,13 +7,15 @@ in {
   imports = [ ../modules/emacs.nix ];
   home = {
     packages = with pkgs; [
-      gitAndTools.git-sync
-      gitAndTools.hub
       signal-desktop
       scripts
       stack
       pipenv
-    ];
+    ] ++ (with pkgs.gitAndTools; [
+      git-crypt
+      git-sync
+      hub
+    ]);
 
     # This value determines the Home Manager release that your
     # configuration is compatible with. This helps avoid breakage
