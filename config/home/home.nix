@@ -31,7 +31,7 @@ in {
   nixpkgs = {
     config.allowUnfree = true;
 
-    overlays = let path = ../overlays;
+    overlays = let path = ../../overlays;
     in with builtins;
     map (n: import (path + ("/" + n))) (filter (n:
       match ".*\\.nix" n != null

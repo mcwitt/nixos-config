@@ -1,5 +1,5 @@
 { pkgs, ... }: {
-  imports = [ ../../config/home.nix ];
+  imports = [ ../../home.nix ];
 
   programs.git.ignores = pkgs.ghGitIgnoreLines "Global/Linux";
 
