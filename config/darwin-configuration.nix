@@ -18,10 +18,7 @@
   };
 
   programs = {
-    gnupg = {
-      enable = true;
-      agent.enable = true;
-    };
+    gnupg.agent.enable = true;
 
     tmux = {
       enable = true;
