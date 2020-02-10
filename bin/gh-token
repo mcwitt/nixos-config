@@ -1,4 +1,3 @@
 #!/bin/bash
 
 export GITHUB_TOKEN=$(pass www/api.github.com | head -n 1)
-$SHELL
