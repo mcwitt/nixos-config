@@ -149,7 +149,7 @@ in {
 
       envExtra = ''
         eval "$(${pkgs.direnv}/bin/direnv hook zsh)"
-        export GITHUB_TOKEN=$(${pkgs.pass}/bin/pass api.github.com | head -n 1)
+        export GITHUB_TOKEN=$(${pkgs.pass}/bin/pass www/api.github.com | head -n 1)
       '';
 
       initExtra = ''
