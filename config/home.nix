@@ -38,6 +38,7 @@ in {
   };
 
   programs = {
+    browserpass.enable = true;
     chromium.enable = true;
     emacs.enable = true;
     firefox.enable = true;
