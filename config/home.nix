@@ -9,6 +9,7 @@ in {
     packages = with pkgs; [
       gitAndTools.git-sync
       gitAndTools.hub
+      signal-desktop
       scripts
       stack
       pipenv
@@ -37,7 +38,9 @@ in {
   };
 
   programs = {
+    chromium.enable = true;
     emacs.enable = true;
+    firefox.enable = true;
 
     fzf = {
       enable = true;
