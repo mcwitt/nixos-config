@@ -33,6 +33,12 @@ in {
   };
 
   programs = {
+
+    direnv = {
+      enable = true;
+      enableZshIntegration = true;
+    };
+
     emacs.enable = true;
 
     fzf = {
@@ -150,10 +156,6 @@ in {
         ALTERNATE_EDITOR = "${pkgs.vim}/bin/vim";
         ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE = "fg=10"; # fix invisible hints
       };
-
-      envExtra = ''
-        eval "$(${pkgs.direnv}/bin/direnv hook zsh)"
-      '';
 
       initExtra = ''
         setopt HIST_IGNORE_SPACE
