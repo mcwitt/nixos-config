@@ -1,11 +1,18 @@
 { pkgs, ... }: {
   imports = [ ../../home.nix ];
 
-  programs.git.ignores = pkgs.ghGitIgnoreLines "Global/Linux";
+  home.packages = [ pkgs.signal-desktop ];
 
-  programs.zsh.shellAliases = {
-    ec = "${pkgs.emacs}/bin/emacsclient";
-    emacs = "${pkgs.emacs}/bin/emacsclient --create-frame";
+  programs = {
+    browserpass.enable = true;
+    chromium.enable = true;
+    firefox.enable = true;
+    git.ignores = pkgs.ghGitIgnoreLines "Global/Linux";
+
+    zsh.shellAliases = {
+      ec = "${pkgs.emacs}/bin/emacsclient";
+      emacs = "${pkgs.emacs}/bin/emacsclient --create-frame";
+    };
   };
 
   xdg.configFile.xmobar.source = "${pkgs.mcwitt-dotfiles}/config/xmobar/";

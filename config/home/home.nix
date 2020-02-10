@@ -6,16 +6,9 @@ let
 in {
   imports = [ ./emacs.nix ];
   home = {
-    packages = with pkgs; [
-      signal-desktop
-      scripts
-      stack
-      pipenv
-    ] ++ (with pkgs.gitAndTools; [
-      git-crypt
-      git-sync
-      hub
-    ]);
+    packages = with pkgs;
+      [ scripts stack pipenv ]
+      ++ (with pkgs.gitAndTools; [ git-crypt git-sync hub ]);
 
     # This value determines the Home Manager release that your
     # configuration is compatible with. This helps avoid breakage
@@ -40,10 +33,7 @@ in {
   };
 
   programs = {
-    browserpass.enable = true;
-    chromium.enable = true;
     emacs.enable = true;
-    firefox.enable = true;
 
     fzf = {
       enable = true;
