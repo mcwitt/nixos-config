@@ -1,8 +1,6 @@
 { config, pkgs, lib, ... }:
 
-let
-  homeDir = builtins.getEnv "HOME";
-  passwordStoreDir = "${homeDir}/.password-store/";
+let homeDir = builtins.getEnv "HOME";
 in {
   imports = [ ./emacs.nix ];
   home = {
@@ -108,7 +106,7 @@ in {
       enable = true;
       package =
         pkgs.pass.withExtensions (exts: with exts; [ pass-otp pass-update ]);
-      settings = { PASSWORD_STORE_DIR = passwordStoreDir; };
+      settings = { PASSWORD_STORE_DIR = "${homeDir}/.password-store/"; };
     };
 
     readline = {
