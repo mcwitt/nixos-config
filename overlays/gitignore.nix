@@ -1,5 +1,5 @@
 self: super:
-with super.lib; rec {
+with super.lib; {
   ghGitIgnore = super.fetchFromGitHub {
     owner = "github";
     repo = "gitignore";
@@ -8,5 +8,5 @@ with super.lib; rec {
   };
 
   ghGitIgnoreLines = path:
-    splitString "\n" (builtins.readFile "${ghGitIgnore}/${path}.gitignore");
+    splitString "\n" (builtins.readFile "${self.ghGitIgnore}/${path}.gitignore");
 }
