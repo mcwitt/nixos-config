@@ -93,7 +93,6 @@ in {
         " fd returns to normal mode
         inoremap fd <esc>
 
-        " { Syntastic
         set statusline+=%#warningmsg#
         set statusline+=%{SyntasticStatuslineFlag()}
         set statusline+=%*
@@ -102,7 +101,6 @@ in {
         let g:syntastic_auto_loc_list = 1
         let g:syntastic_check_on_open = 1
         let g:syntastic_check_on_wq = 0
-        " }
       '';
     };
 
