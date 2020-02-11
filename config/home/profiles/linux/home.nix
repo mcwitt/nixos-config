@@ -4,7 +4,6 @@
   home.packages = [ pkgs.signal-desktop ];
 
   programs = {
-    browserpass.enable = true;
     chromium.enable = true;
     firefox.enable = true;
     git.ignores = pkgs.ghGitIgnoreLines "Global/Linux";

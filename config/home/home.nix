@@ -33,6 +33,7 @@ in {
   };
 
   programs = {
+    browserpass.enable = true;
 
     direnv = {
       enable = true;
