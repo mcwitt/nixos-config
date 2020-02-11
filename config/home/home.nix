@@ -113,6 +113,14 @@ in {
       settings = { PASSWORD_STORE_DIR = passwordStoreDir; };
     };
 
+    readline = {
+      enable = true;
+      extraConfig = ''
+        set editing-mode vi
+        set keymap vi
+      '';
+    };
+
     urxvt = {
       enable = true;
       extraConfig = {
