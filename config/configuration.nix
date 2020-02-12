@@ -37,6 +37,13 @@
     };
   };
 
+  hardware.bluetooth.enable = true;
+
+  hardware.pulseaudio = {
+    enable = true;
+    package = pkgs.pulseaudioFull;
+  };
+
   hardware.printers = rec {
     ensureDefaultPrinter = "Brother_HL-L2340D_series";
     ensurePrinters = [{
