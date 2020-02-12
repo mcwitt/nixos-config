@@ -3,9 +3,28 @@
 
   home.packages = [ pkgs.signal-desktop ];
 
+  nixpkgs.config.packageOverrides = pkgs: {
+    nur = import (builtins.fetchTarball
+      "https://github.com/nix-community/NUR/archive/master.tar.gz") {
+        inherit pkgs;
+      };
+  };
+
   programs = {
     chromium.enable = true;
-    firefox.enable = true;
+
+    firefox = {
+      enable = true;
+
+      extensions = with pkgs.nur.repos.rycee.firefox-addons; [
+        browserpass
+        https-everywhere
+        privacy-badger
+        ublock-origin
+        vimium
+      ];
+    };
+
     git.ignores = pkgs.ghGitIgnoreLines "Global/Linux";
 
     zsh.shellAliases = {
