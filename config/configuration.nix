@@ -20,10 +20,7 @@
     packages = [ pkgs.terminus_font ];
   };
 
-  environment.systemPackages = with pkgs; [
-    dmenu
-    haskellPackages.xmobar
-  ];
+  environment.systemPackages = with pkgs; [ dmenu haskellPackages.xmobar ];
 
   fonts.fontconfig.dpi = 140;
 
@@ -37,25 +34,27 @@
     };
   };
 
-  hardware.bluetooth.enable = true;
+  hardware = {
+    bluetooth.enable = true;
 
-  hardware.pulseaudio = {
-    enable = true;
-    package = pkgs.pulseaudioFull;
-  };
+    printers = rec {
+      ensureDefaultPrinter = "Brother_HL-L2340D_series";
+      ensurePrinters = [{
+        deviceUri =
+          "dnssd://Brother%20HL-L2340D%20series._ipp._tcp.local/?uuid=e3248000-80ce-11db-8000-40490f90f0a2";
+        model = "drv:///brlaser.drv/brl2340d.ppd";
+        name = ensureDefaultPrinter;
+        ppdOptions = {
+          Duplex = "DuplexNoTumble";
+          PageSize = "A4";
+        };
+      }];
+    };
 
-  hardware.printers = rec {
-    ensureDefaultPrinter = "Brother_HL-L2340D_series";
-    ensurePrinters = [{
-      deviceUri =
-        "dnssd://Brother%20HL-L2340D%20series._ipp._tcp.local/?uuid=e3248000-80ce-11db-8000-40490f90f0a2";
-      model = "drv:///brlaser.drv/brl2340d.ppd";
-      name = ensureDefaultPrinter;
-      ppdOptions = {
-        Duplex = "DuplexNoTumble";
-        PageSize = "A4";
-      };
-    }];
+    pulseaudio = {
+      enable = true;
+      package = pkgs.pulseaudioFull;
+    };
   };
 
   i18n.defaultLocale = "en_US.UTF-8";
