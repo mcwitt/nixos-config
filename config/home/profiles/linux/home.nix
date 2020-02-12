@@ -27,6 +27,9 @@
 
     git.ignores = pkgs.ghGitIgnoreLines "Global/Linux";
 
+    password-store.package =
+      pkgs.pass.withExtensions (exts: with exts; [ pass-update pass-otp ]);
+
     zsh.shellAliases = {
       ec = "${pkgs.emacs}/bin/emacsclient";
       emacs = "${pkgs.emacs}/bin/emacsclient --create-frame";
