@@ -89,7 +89,12 @@
     };
 
     emacs.enable = true;
-    locate.enable = true;
+
+    locate = {
+      enable = true;
+      interval = "hourly";
+    };
+
     openssh.enable = true;
 
     nixosManual = {
