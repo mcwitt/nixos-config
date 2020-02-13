@@ -104,8 +104,6 @@ in {
 
     password-store = {
       enable = true;
-      package = lib.mkOptionDefault
-        (pkgs.pass.withExtensions (exts: [ exts.pass-update ]));
       settings = { PASSWORD_STORE_DIR = "${homeDir}/.password-store/"; };
     };
 
