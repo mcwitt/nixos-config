@@ -19,6 +19,8 @@
       deft
       dhall-mode
       direnv
+      erc-hl-nicks
+      erc-image
       evil
       evil-escape
       evil-magit
