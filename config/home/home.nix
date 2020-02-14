@@ -62,6 +62,10 @@ in {
       };
       ignores =
         lib.concatMap pkgs.ghGitIgnoreLines [ "Global/Emacs" "Global/Vim" ];
+      signing = {
+        key = "A79A94078DF3DB5B";
+        signByDefault = true;
+      };
     };
 
     # Let Home Manager install and manage itself.
