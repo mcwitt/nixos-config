@@ -37,6 +37,7 @@
     w3m
     watch
     wget
+    xclip
     xz
   ];
 }
