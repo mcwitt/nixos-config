@@ -1,5 +1,5 @@
 { pkgs, ... }: {
-  imports = [ ../../home.nix ];
+  imports = [ ../../home.nix ./org-notes-sync.nix ];
 
   home.packages = [ pkgs.signal-desktop ];
 
@@ -45,6 +45,12 @@
       enable = true;
       defaultCacheTtl = 14400; # 4 hours
       maxCacheTtl = 14400;
+    };
+
+    org-notes-sync = {
+      enable = true;
+      repoPath = "${builtins.getEnv "HOME"}/src/org-notes/";
+      frequency = "*:0/5";
     };
 
     password-store-sync.enable = true;
