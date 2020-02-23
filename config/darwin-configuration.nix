@@ -45,4 +45,6 @@
       orientation = "left";
     };
   };
+
+  users.users.matt.shell = pkgs.zsh;
 }
