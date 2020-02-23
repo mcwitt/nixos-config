@@ -1,5 +1,5 @@
 { pkgs, ... }: {
-  imports = [ ../../home.nix ./org-notes-sync.nix ];
+  imports = [ ../../home.nix ./emacs.nix ./org-notes-sync.nix ];
 
   home.packages = [ pkgs.signal-desktop ];
 

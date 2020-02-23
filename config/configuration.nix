@@ -88,8 +88,6 @@
       nssmdns = true;
     };
 
-    emacs.enable = true;
-
     locate = {
       enable = true;
       interval = "hourly";
