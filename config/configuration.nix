@@ -32,6 +32,7 @@
 
   hardware = {
     bluetooth.enable = true;
+    opengl.driSupport32Bit = true;
 
     printers = rec {
       ensureDefaultPrinter = "Brother_HL-L2340D_series";
@@ -163,7 +164,12 @@
 
   users.users.matt = {
     isNormalUser = true;
-    extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
+    extraGroups = [ "wheel" "docker" ];
     shell = pkgs.zsh;
+  };
+
+  virtualisation.docker = {
+    enable = true;
+    enableNvidia = true;
   };
 }
