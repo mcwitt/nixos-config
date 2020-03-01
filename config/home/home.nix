@@ -5,7 +5,7 @@ in {
   imports = [ ./emacs.nix ];
   home = {
     packages = with pkgs;
-      [ pandoc pipenv scripts shellcheck stack ]
+      [ pandoc scripts shellcheck stack ]
       ++ (with pkgs.gitAndTools; [ git-crypt git-sync hub ]);
 
     # This value determines the Home Manager release that your
