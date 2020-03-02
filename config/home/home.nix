@@ -5,8 +5,10 @@ in {
   imports = [ ./emacs.nix ];
   home = {
     packages = with pkgs;
-      [ pandoc scripts shellcheck stack ]
-      ++ (with pkgs.gitAndTools; [ git-crypt git-sync hub ]);
+      [ graphviz nixfmt pandoc scripts shellcheck stack ]
+      ++ (with haskellPackages; [ brittany hlint ])
+      ++ (with python37Packages; [ black ])
+      ++ (with gitAndTools; [ git-crypt git-sync hub ]);
 
     # This value determines the Home Manager release that your
     # configuration is compatible with. This helps avoid breakage
