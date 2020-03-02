@@ -5,7 +5,7 @@ in {
   imports = [ ./emacs.nix ];
   home = {
     packages = with pkgs;
-      [ graphviz nixfmt pandoc scripts shellcheck stack ]
+      [ graphviz haskellEnv nixfmt pandoc scripts shellcheck stack ]
       ++ (with haskellPackages; [ brittany hlint ])
       ++ (with python37Packages; [ black ])
       ++ (with gitAndTools; [ git-crypt git-sync hub ]);
