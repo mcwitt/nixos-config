@@ -8,5 +8,6 @@ with super.lib; {
   };
 
   ghGitIgnoreLines = path:
-    splitString "\n" (builtins.readFile "${self.ghGitIgnore}/${path}.gitignore");
+    splitString "\n"
+    (builtins.readFile "${self.ghGitIgnore}/${path}.gitignore");
 }

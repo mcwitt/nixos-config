@@ -31,6 +31,7 @@
         evil-surround
         exec-path-from-shell
         flycheck
+        format-all
         general
         gist
         haskell-mode
