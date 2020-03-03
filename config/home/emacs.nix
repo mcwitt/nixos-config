@@ -1,4 +1,19 @@
-{ pkgs, ... }: {
+{ pkgs, ... }:
+let
+  fetchEmacsOverlay =
+    { owner ? "nix-community", repo ? "emacs-overlay", rev, sha256 }:
+    builtins.fetchTarball {
+      url = "https://github.com/${owner}/${repo}/archive/${rev}.tar.gz";
+      sha256 = sha256;
+    };
+in {
+
+  nixpkgs.overlays = [
+    (import (fetchEmacsOverlay {
+      rev = "4b89b7d5476ccf8ccdd31abb9d2d18267488e26a";
+      sha256 = "1vni79i5pvkil12iafmf65q1chrkm6cv3xcy9kvpry59nrlxw2hx";
+    }))
+  ];
 
   home.file.".emacs.d" = {
     source = "${pkgs.mcwitt-dotfiles}/emacs.d/";
