@@ -9,6 +9,8 @@ let
 in {
 
   nixpkgs.overlays = [
+    # NOTE: using `pkgs.fetchFromGitHub` here results in infinite recursion;
+    # hence the definition of `fetchEmacsOverlay`
     (import (fetchEmacsOverlay {
       rev = "4b89b7d5476ccf8ccdd31abb9d2d18267488e26a";
       sha256 = "1vni79i5pvkil12iafmf65q1chrkm6cv3xcy9kvpry59nrlxw2hx";
