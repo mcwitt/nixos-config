@@ -20,6 +20,7 @@
     jq
     killall
     less
+    nodejs
     openssh
     openssl
     perl
