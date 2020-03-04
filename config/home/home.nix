@@ -5,9 +5,17 @@ in {
   imports = [ ./emacs.nix ];
   home = {
     packages = with pkgs;
-      [ graphviz haskellEnv nixfmt pandoc scripts shellcheck stack ]
-      ++ (with haskellPackages; [ brittany hlint ])
-      ++ (with python37Packages; [ black ])
+      [
+        nodePackages.prettier
+        python37Packages.black
+        graphviz
+        haskellEnv
+        nixfmt
+        pandoc
+        scripts
+        shellcheck
+        stack
+      ] ++ (with haskellPackages; [ brittany hlint ])
       ++ (with gitAndTools; [ git-crypt git-sync hub ]);
 
     # This value determines the Home Manager release that your
