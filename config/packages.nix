@@ -20,6 +20,7 @@
     jq
     killall
     less
+    lsof
     nodejs
     openssh
     openssl
