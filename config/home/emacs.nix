@@ -27,6 +27,7 @@ in {
 
     extraPackages = epkgs:
       with epkgs; [
+        anki-editor
         auctex
         browse-at-remote
         cdlatex

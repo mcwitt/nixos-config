@@ -1,7 +1,7 @@
 { pkgs, ... }: {
   imports = [ ../../home.nix ./emacs.nix ./org-notes-sync.nix ];
 
-  home.packages = [ pkgs.signal-desktop ];
+  home.packages = with pkgs; [ anki signal-desktop ];
 
   nixpkgs.config.packageOverrides = pkgs: {
     nur = import (builtins.fetchTarball
