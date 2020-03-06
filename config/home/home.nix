@@ -61,6 +61,7 @@ in {
         b = "branch --color -v";
         ca = "commit --amend";
         co = "checkout";
+        ds = "diff --staged";
         ri = "rebase --interactive";
         su = "submodule update --init --recursive";
         w = "status -sb";
@@ -160,6 +161,8 @@ in {
         ls = "${pkgs.coreutils}/bin/ls --color=auto";
         rm = "${pkgs.coreutils}/bin/rm -i";
         gb = "${pkgs.git}/bin/git b";
+        gd = "${pkgs.git}/bin/git diff";
+        gds = "${pkgs.git}/bin/git ds";
         gl = "${pkgs.git}/bin/git l";
         gw = "${pkgs.git}/bin/git w";
         git = "${pkgs.gitAndTools.hub}/bin/hub";
