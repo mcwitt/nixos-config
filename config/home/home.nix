@@ -160,12 +160,13 @@ in {
         ll = "${pkgs.coreutils}/bin/ls --color=auto -l";
         ls = "${pkgs.coreutils}/bin/ls --color=auto";
         rm = "${pkgs.coreutils}/bin/rm -i";
+        git = "${pkgs.gitAndTools.hub}/bin/hub";
+        g = "${pkgs.gitAndTools.hub}/bin/hub";
         gb = "${pkgs.git}/bin/git b";
         gd = "${pkgs.git}/bin/git diff";
         gds = "${pkgs.git}/bin/git ds";
         gl = "${pkgs.git}/bin/git l";
         gw = "${pkgs.git}/bin/git w";
-        git = "${pkgs.gitAndTools.hub}/bin/hub";
         clip = "${pkgs.scripts}/bin/pass-clip";
       };
 
