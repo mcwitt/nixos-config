@@ -11,10 +11,7 @@
   nix = {
     maxJobs = 8;
     buildCores = 0;
-
-    # Auto upgrade nix package and the daemon service.
-    # services.nix-daemon.enable = true;
-    # package = pkgs.nix;
+    package = pkgs.nix;
   };
 
   programs = {
@@ -32,6 +29,7 @@
   services = {
     emacs.enable = true;
     postgresql.enable = true;
+    nix-daemon.enable = true;
   };
 
   system = {
