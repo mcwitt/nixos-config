@@ -1,5 +1,5 @@
 { pkgs, ... }: {
-  imports = [ ../../home.nix ./emacs.nix ./org-notes-sync.nix ];
+  imports = [ ../../home.nix ./org-notes-sync.nix ];
 
   home.packages = with pkgs; [ anki signal-desktop ];
 
@@ -31,16 +31,14 @@
       pkgs.pass.withExtensions (exts: with exts; [ pass-update pass-otp ]);
 
     zsh.shellAliases = {
-      ec = "${pkgs.emacs}/bin/emacsclient";
-      emacs = "${pkgs.emacs}/bin/emacsclient --create-frame";
+      ec = "${pkgs.emacsEnv}/bin/emacsclient";
+      emacs = "${pkgs.emacsEnv}/bin/emacsclient --create-frame";
     };
   };
 
   xdg.configFile.xmobar.source = "${pkgs.mcwitt-dotfiles}/config/xmobar/";
 
   services = {
-    emacs.enable = true;
-
     gpg-agent = {
       enable = true;
       defaultCacheTtl = 14400; # 4 hours

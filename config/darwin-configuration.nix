@@ -27,7 +27,12 @@
   };
 
   services = {
-    emacs.enable = true;
+
+    emacs = {
+      enable = true;
+      package = pkgs.emacsEnv;
+    };
+
     postgresql.enable = true;
     nix-daemon.enable = true;
   };

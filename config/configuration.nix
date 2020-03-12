@@ -88,6 +88,14 @@
       nssmdns = true;
     };
 
+    # TODO: move Emacs service config back to home-manager when
+    # https://github.com/NixOS/nixpkgs/issues/66706
+    # is fixed
+    emacs = {
+      enable = true;
+      package = pkgs.emacsEnv;
+    };
+
     locate = {
       enable = true;
       interval = "hourly";
