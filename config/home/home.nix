@@ -6,17 +6,17 @@ in {
   home = {
     packages = with pkgs;
       [
-        nodePackages.prettier
-        python37Packages.black
         graphviz
         haskellEnv
         nixfmt
+        nodePackages.prettier
         pandoc
+        python37Packages.black
         scripts
         shellcheck
         stack
-      ] ++ (with haskellPackages; [ brittany hlint ])
-      ++ (with gitAndTools; [ git-crypt git-sync hub ]);
+      ] ++ (with gitAndTools; [ git-crypt git-sync hub ])
+      ++ (with haskellPackages; [ brittany hlint ]);
 
     # This value determines the Home Manager release that your
     # configuration is compatible with. This helps avoid breakage
