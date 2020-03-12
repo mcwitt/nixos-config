@@ -1,12 +1,8 @@
 { pkgs, ... }:
 
 {
-  imports = [
-    ./hardware-configuration.nix
-    ./secret/wireless.nix
-    ./fonts.nix
-    ./packages.nix
-  ];
+  imports =
+    [ ./hardware-configuration.nix ./fonts.nix ./packages.nix ./secrets.nix ];
 
   # Use the systemd-boot EFI boot loader.
   boot.loader = {

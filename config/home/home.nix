@@ -2,6 +2,7 @@
 
 let homeDir = builtins.getEnv "HOME";
 in {
+  imports = [ ./secrets.nix ];
   home = {
     packages = with pkgs;
       [
@@ -75,6 +76,7 @@ in {
         key = "A79A94078DF3DB5B";
         signByDefault = true;
       };
+      extraConfig.gitHub.user = "mcwitt";
     };
 
     # Let Home Manager install and manage itself.
