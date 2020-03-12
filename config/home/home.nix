@@ -2,10 +2,10 @@
 
 let homeDir = builtins.getEnv "HOME";
 in {
-  imports = [ ./emacs.nix ];
   home = {
     packages = with pkgs;
       [
+        emacsEnv
         graphviz
         haskellEnv
         nixfmt
@@ -17,6 +17,11 @@ in {
         stack
       ] ++ (with gitAndTools; [ git-crypt git-sync hub ])
       ++ (with haskellPackages; [ brittany hlint ]);
+
+    file.".emacs.d" = {
+      source = "${pkgs.mcwitt-dotfiles}/emacs.d/";
+      recursive = true;
+    };
 
     # This value determines the Home Manager release that your
     # configuration is compatible with. This helps avoid breakage
