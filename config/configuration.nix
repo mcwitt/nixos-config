@@ -76,8 +76,8 @@
 
   nix.trustedUsers = [ "root" "@wheel" "matt" ];
 
-  nixpkgs.config = {
-    allowUnfree = true;
+  nixpkgs = {
+    config.allowUnfree = true;
     overlays = (import ./utils.nix).importOverlaysDir ../overlays;
   };
 
