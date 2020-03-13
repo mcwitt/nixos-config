@@ -16,6 +16,7 @@
     gnused
     gnutar
     gzip
+    htop
     imagemagick
     jq
     killall
