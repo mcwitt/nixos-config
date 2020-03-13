@@ -169,7 +169,6 @@ in {
         gds = "${pkgs.git}/bin/git ds";
         gl = "${pkgs.git}/bin/git l";
         gw = "${pkgs.git}/bin/git w";
-        clip = "${pkgs.scripts}/bin/pass-clip";
         ec = "${pkgs.emacsEnv}/bin/emacsclient";
         emacs = "${pkgs.emacsEnv}/bin/emacsclient --create-frame";
       };

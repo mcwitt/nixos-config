@@ -1,6 +1,0 @@
-#!/bin/bash
-
-p=$(find "$PASSWORD_STORE_DIR" -iname '*.gpg'          \
-        | sed "s,${PASSWORD_STORE_DIR}\(.*\)\.gpg,\1," \
-        | fzf --no-multi --query "$1")                 \
-    && pass --clip "$p"
