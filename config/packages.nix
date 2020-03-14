@@ -5,7 +5,7 @@
     (aspellWithDicts (ds: [ ds.en ]))
     coreutils
     direnv
-    emacs
+    emacsEnv
     feh
     fzf
     gawk
