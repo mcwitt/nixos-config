@@ -38,7 +38,6 @@
       package = pkgs.emacsEnv;
     };
 
-    postgresql.enable = true;
     nix-daemon.enable = true;
   };
 
