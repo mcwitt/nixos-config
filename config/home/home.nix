@@ -5,10 +5,15 @@ in {
   imports = [ ./secrets.nix ];
   home = {
     packages = with pkgs;
-      [
+      let
+        hie = (all-hies.selection {
+          selector = p: { inherit (p) ghc865 ghc843; };
+        });
+      in [
         emacsEnv
         graphviz
         haskellEnv
+        hie
         nixfmt
         nodePackages.prettier
         pandoc

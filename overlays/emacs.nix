@@ -41,7 +41,6 @@ in {
       gist
       haskell-mode
       hl-todo
-      intero
       ivy
       json-mode
       jupyter
