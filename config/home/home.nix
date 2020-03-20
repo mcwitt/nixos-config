@@ -7,9 +7,9 @@ in {
     packages = with pkgs;
       [
         emacsEnv
+        ghcide.ghcide-ghc865
         graphviz
         haskellEnv
-        haskell-ide-engine
         nixfmt
         nodePackages.prettier
         pandoc
