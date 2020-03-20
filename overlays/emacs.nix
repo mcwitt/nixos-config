@@ -1,17 +1,6 @@
 self: super:
-let
-  emacsOverlay = (import (super.fetchFromGitHub {
-    owner = "nix-community";
-    repo = "emacs-overlay";
-    rev = "4b89b7d5476ccf8ccdd31abb9d2d18267488e26a";
-    sha256 = "1vni79i5pvkil12iafmf65q1chrkm6cv3xcy9kvpry59nrlxw2hx";
-  }));
-
-  emacsWithPackages = (self.emacsPackagesGen self.emacs).emacsWithPackages;
-
+let emacsWithPackages = (self.emacsPackagesGen self.emacs).emacsWithPackages;
 in {
-  nixpkgs.overlays = [ emacsOverlay ];
-
   emacsEnv = emacsWithPackages (epkgs:
     with epkgs; [
       anki-editor
