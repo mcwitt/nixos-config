@@ -7,7 +7,7 @@ in {
     packages = with pkgs;
       [
         emacsEnv
-        ghcide.ghcide-ghc865
+        ghcide
         graphviz
         haskellEnv
         nixfmt
