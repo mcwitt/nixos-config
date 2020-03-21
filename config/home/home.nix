@@ -2,14 +2,12 @@
 
 let homeDir = builtins.getEnv "HOME";
 in {
-  imports = [ ./secrets.nix ];
+  imports = [ ./haskell.nix ./secrets.nix ];
   home = {
     packages = with pkgs;
       [
         emacsEnv
-        ghcide
         graphviz
-        haskellEnv
         nixfmt
         nodePackages.prettier
         pandoc
@@ -17,8 +15,7 @@ in {
         scripts
         shellcheck
         stack
-      ] ++ (with gitAndTools; [ git-crypt git-sync hub ])
-      ++ (with haskellPackages; [ brittany hlint ]);
+      ] ++ (with gitAndTools; [ git-crypt git-sync hub ]);
 
     file.".emacs.d" = {
       source = "${pkgs.mcwitt-dotfiles}/emacs.d/";
