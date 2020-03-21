@@ -16,8 +16,10 @@ in {
       deft
       dhall-mode
       direnv
+      doom-themes
       erc-hl-nicks
       erc-image
+      esup
       evil
       evil-escape
       evil-magit
