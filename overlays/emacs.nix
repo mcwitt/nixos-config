@@ -3,6 +3,7 @@ let emacsWithPackages = (self.emacsPackagesGen self.emacs).emacsWithPackages;
 in {
   emacsEnv = emacsWithPackages (epkgs:
     with epkgs; [
+      all-the-icons
       anki-editor
       auctex
       browse-at-remote
