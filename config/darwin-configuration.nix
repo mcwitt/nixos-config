@@ -8,6 +8,8 @@
     shells = with pkgs; [ bashInteractive zsh ];
   };
 
+  fonts.enableFontDir = true;
+
   nix = {
     maxJobs = 8;
     buildCores = 0;
