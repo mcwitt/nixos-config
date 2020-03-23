@@ -8,6 +8,7 @@ in {
       [
         emacsEnv
         graphviz
+        jupyterlabEnv
         nixfmt
         nodePackages.prettier
         pandoc
