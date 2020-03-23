@@ -2,13 +2,12 @@
 
 let homeDir = builtins.getEnv "HOME";
 in {
-  imports = [ ./haskell.nix ./secrets.nix ];
+  imports = [ ./haskell.nix ./jupyterlab.nix ./secrets.nix ];
   home = {
     packages = with pkgs;
       [
         emacsEnv
         graphviz
-        jupyterlabEnv
         nixfmt
         nodePackages.prettier
         pandoc

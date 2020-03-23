@@ -1,16 +1,17 @@
-self: super:
+{ pkgs, ... }:
 let
   jupyterWithRepo = builtins.fetchGit {
     url = "https://github.com/tweag/jupyterWith";
     rev = "7a6716f0c0a5538691a2f71a9f12b066bce7d55c";
   };
 
+  # allowUnfree needed for MKL
   jupyter = import jupyterWithRepo { config.allowUnfree = true; };
 
-  # import nixpkgs revision used by jupyterWith
+  # nixpkgs revision used by jupyterWith
   pkgs = import "${jupyterWithRepo}/nix/nixpkgs.nix" { };
 
-  iPython = jupyter.kernels.iPythonWith {
+  ipython = jupyter.kernels.iPythonWith {
     name = "python";
     packages = ps:
       with ps; [
@@ -35,7 +36,7 @@ let
       ];
   };
 
-  iHaskell = jupyter.kernels.iHaskellWith {
+  ihaskell = jupyter.kernels.iHaskellWith {
     name = "haskell";
     packages = ps:
       with ps; [
@@ -59,14 +60,16 @@ let
   };
 
   jupyterlab = jupyter.jupyterlabWith {
-    kernels = [ iPython iHaskell ];
+    kernels = [ ipython ihaskell ];
     directory = jupyter.mkDirectoryWith {
       extensions = [ "jupyterlab_vim" "jupyterlab-ihaskell" ];
     };
   };
 
+  jupyterlabEnv =
+    pkgs.python3.buildEnv.override { extraLibs = [ jupyterlab ]; };
+
 in {
-  jupyterlabEnv = pkgs.python3.buildEnv.override {
-    extraLibs = [ jupyterlab pkgs.python3Packages.jupyter_client ];
-  };
+  home.packages = [ jupyterlabEnv ];
+  programs.zsh.envExtra = jupyterlab.env.shellHook;
 }
