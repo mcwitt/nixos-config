@@ -2,7 +2,7 @@
 
 let homeDir = builtins.getEnv "HOME";
 in {
-  imports = [ ./haskell.nix ./jupyterlab.nix ./secrets.nix ];
+  imports = [ ./R.nix ./haskell.nix ./jupyterlab.nix ./secrets.nix ];
   home = {
     packages = with pkgs;
       [
@@ -12,7 +12,6 @@ in {
         nodePackages.prettier
         pandoc
         python37Packages.black
-        rEnv
         scripts
         shellcheck
         stack
