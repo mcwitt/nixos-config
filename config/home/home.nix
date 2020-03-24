@@ -12,6 +12,7 @@ in {
         nodePackages.prettier
         pandoc
         python37Packages.black
+        rEnv
         scripts
         shellcheck
         stack

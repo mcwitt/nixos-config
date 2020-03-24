@@ -21,6 +21,7 @@ in {
       erc-hl-nicks
       erc-image
       esup
+      ess
       evil
       evil-escape
       evil-magit
