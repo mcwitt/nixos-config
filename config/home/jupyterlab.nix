@@ -1,15 +1,15 @@
 { pkgs, ... }:
 let
-  jupyterWithRepo = builtins.fetchGit {
+  jupyterwithRepo = builtins.fetchGit {
     url = "https://github.com/tweag/jupyterWith";
     rev = "7a6716f0c0a5538691a2f71a9f12b066bce7d55c";
   };
 
   # allowUnfree needed for MKL
-  jupyter = import jupyterWithRepo { config.allowUnfree = true; };
+  jupyter = import jupyterwithRepo { config.allowUnfree = true; };
 
   # nixpkgs revision used by jupyterWith
-  pkgs = import "${jupyterWithRepo}/nix/nixpkgs.nix" { };
+  pkgs = import "${jupyterwithRepo}/nix/nixpkgs.nix" { };
 
   ipython = jupyter.kernels.iPythonWith {
     name = "python";
@@ -17,22 +17,26 @@ let
       with ps; [
         altair
         beautifulsoup4
+        boto
         matplotlib
         numpy
         pandas
         patsy
         psycopg2
-        # pyro
+        # pyro-ppl
         pillow
-        # pytorch
+        pytorch
         pyyaml
         requests
         scikitlearn
         scipy
         seaborn
-        # spacy
+        spacy
         statsmodels
         # tensorflow-bin
+        # (tensorflow-probability.override { tensorflow = tensorflow-bin; })
+        torchvision
+        typing
       ];
   };
 
@@ -41,12 +45,15 @@ let
     packages = ps:
       with ps; [
         aeson
+        # algebraic-graphs
         array
+        cassava
         containers
         fgl
         formatting
         heaps
         hvega
+        # ihaskell-hvega
         lens
         monad-loops
         mtl
@@ -71,5 +78,7 @@ let
 
 in {
   home.packages = [ jupyterlabEnv ];
+
+  # needed to set JUPYTER_PATH and JUPYTERLAB
   programs.zsh.envExtra = jupyterlab.env.shellHook;
 }
