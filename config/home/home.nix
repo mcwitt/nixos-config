@@ -9,6 +9,7 @@ in {
         emacsEnv
         graphviz
         nixfmt
+        nix-prefetch-git
         nodePackages.prettier
         pandoc
         python37Packages.black

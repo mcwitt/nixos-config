@@ -32,5 +32,5 @@ in {
     # 8.6.5, but the 8.6 branch is unmaintained in nixpkgs and some
     # packages fail to build. Live with the mismatch for now.
     ghcide.ghcide-ghc865
-  ] ++ (with haskellPackages; [ brittany hlint ]);
+  ] ++ (with haskellPackages; [ brittany cabal-install cabal2nix hlint ]);
 }
