@@ -40,6 +40,8 @@
       maxCacheTtl = 14400;
     };
 
+    lorri.enable = true;
+
     org-notes-sync = {
       enable = true;
       repoPath = "${builtins.getEnv "HOME"}/src/org-notes/";
