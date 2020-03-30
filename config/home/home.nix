@@ -93,7 +93,7 @@ in {
         vim-fugitive
         vim-gitgutter
         vim-surround
-        youcompleteme
+        YouCompleteMe
       ];
 
       extraConfig = ''
