@@ -143,13 +143,13 @@
       xrandrHeads = [
         {
           primary = true;
-          output = "DP-2";
+          output = "DP-4";
         }
         {
           monitorConfig = ''
             Option "Rotate" "left"
           '';
-          output = "DP-4";
+          output = "DP-2";
         }
       ];
     };
