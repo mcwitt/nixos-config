@@ -16,7 +16,13 @@ in {
         scripts
         shellcheck
         stack
-      ] ++ (with gitAndTools; [ git-annex git-crypt git-sync hub ]);
+      ] ++ (with gitAndTools; [
+        git-annex
+        git-crypt
+        git-remote-gcrypt
+        git-sync
+        hub
+      ]);
 
     file.".emacs.d" = {
       source = "${pkgs.mcwitt-dotfiles}/emacs.d/";
