@@ -2,7 +2,7 @@ self: super: {
   mcwitt-dotfiles = (super.fetchFromGitHub {
     owner = "mcwitt";
     repo = "dotfiles";
-    rev = "b4d99d68a5a49c577cc50028acc681b71e517de0";
-    sha256 = "18nab8in4y12kcbsaq8a2ck3q6g3g8w9xvgf2jfj2brx2fqqjqp9";
+    rev = "30b3dbdf9c08885b7a466e94b1f3d87b44ab96da";
+    sha256 = "0wxh0rqizh06lnrsrp3gcwmkryqxghd7q82cp15ijv1adrmqqyfi";
   });
 }
