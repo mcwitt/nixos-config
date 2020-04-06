@@ -33,6 +33,7 @@ in {
       general
       gist
       haskell-mode
+      haskell-snippets
       hl-todo
       ivy
       json-mode
