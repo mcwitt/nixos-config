@@ -31,8 +31,6 @@
       pkgs.pass.withExtensions (exts: with exts; [ pass-update pass-otp ]);
   };
 
-  xdg.configFile.xmobar.source = "${pkgs.mcwitt-dotfiles}/config/xmobar/";
-
   services = {
     gpg-agent = {
       enable = true;
@@ -53,6 +51,25 @@
     random-background = {
       enable = true;
       imageDirectory = "%h/.background-images";
+    };
+  };
+
+  xdg = {
+    configFile.xmobar.source = "${pkgs.mcwitt-dotfiles}/config/xmobar/";
+
+    mimeApps = {
+      enable = true;
+
+      defaultApplications = {
+        "application/pdf" = [ "org.pwmt.zathura.desktop" ];
+
+        "text/html" = [ "firefox.desktop" ];
+        "x-scheme-handler/http" = [ "firefox.desktop" ];
+        "x-scheme-handler/https" = [ "firefox.desktop" ];
+        "x-scheme-handler/ftp" = [ "firefox.desktop" ];
+        "x-scheme-handler/about" = [ "firefox.desktop" ];
+        "x-scheme-handler/unknown" = [ "firefox.desktop" ];
+      };
     };
   };
 }
