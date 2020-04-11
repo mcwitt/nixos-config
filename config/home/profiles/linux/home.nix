@@ -1,7 +1,7 @@
 { pkgs, ... }: {
   imports = [ ../../home.nix ./org-notes-sync.nix ];
 
-  home.packages = with pkgs; [ anki signal-desktop ];
+  home.packages = with pkgs; [ anki signal-desktop zathura ];
 
   nixpkgs.config.packageOverrides = pkgs: {
     nur = import (builtins.fetchTarball
@@ -61,7 +61,8 @@
       enable = true;
 
       defaultApplications = {
-        "application/pdf" = [ "org.pwmt.zathura.desktop" ];
+        "application/pdf" =
+          [ "${pkgs.zathura}/share/applications/org.pwmt.zathura.desktop" ];
 
         "text/html" = [ "firefox.desktop" ];
         "x-scheme-handler/http" = [ "firefox.desktop" ];

@@ -41,6 +41,5 @@
     wget
     xclip
     xz
-    zathura
   ];
 }
