@@ -20,8 +20,8 @@ in {
       doom-themes
       erc-hl-nicks
       erc-image
-      esup
       ess
+      esup
       evil
       evil-escape
       evil-magit
@@ -49,13 +49,14 @@ in {
       nix-mode
       nlinum-relative
       ob-restclient
+      org-evil
       org-noter
       org-plus-contrib
       ox-gfm
       pdf-tools
-      proof-general
       pinentry
       projectile
+      proof-general
       restclient
       ripgrep
       smartparens
