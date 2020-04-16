@@ -28,6 +28,7 @@ in {
       evil-smartparens
       evil-surround
       exec-path-from-shell
+      fira-code-mode
       flycheck
       format-all
       general
