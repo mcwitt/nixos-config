@@ -58,6 +58,7 @@ in {
       pinentry
       projectile
       proof-general
+      rainbow-delimiters
       restclient
       ripgrep
       smartparens
