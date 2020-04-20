@@ -24,6 +24,7 @@ in {
       ess
       esup
       evil
+      evil-collection
       evil-escape
       evil-magit
       evil-smartparens
