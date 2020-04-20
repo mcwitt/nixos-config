@@ -4,11 +4,13 @@ in {
   emacsEnv = emacsWithPackages (epkgs:
     with epkgs; [
       all-the-icons
+      anaconda-mode
       anki-editor
       auctex
       browse-at-remote
       cdlatex
       company
+      company-anaconda
       company-lsp
       company-restclient
       counsel
@@ -60,6 +62,7 @@ in {
       pinentry
       projectile
       proof-general
+      pyenv-mode
       rainbow-delimiters
       restclient
       ripgrep
