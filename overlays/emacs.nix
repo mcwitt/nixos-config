@@ -15,6 +15,7 @@ in {
       counsel-projectile
       counsel-tramp
       deft
+      delight
       dhall-mode
       direnv
       doom-themes
