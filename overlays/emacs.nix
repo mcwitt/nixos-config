@@ -57,6 +57,7 @@ in {
       org-evil
       org-noter
       org-plus-contrib
+      org-pomodoro
       ox-gfm
       pdf-tools
       pinentry
