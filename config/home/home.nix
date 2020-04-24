@@ -2,7 +2,8 @@
 
 let homeDir = builtins.getEnv "HOME";
 in {
-  imports = [ ./R.nix ./haskell.nix ./jupyterlab.nix ./secrets.nix ];
+  imports =
+    [ ./R.nix ./haskell.nix ./scala.nix ./jupyterlab.nix ./secrets.nix ];
   home = {
     packages = with pkgs;
       [

@@ -16,6 +16,7 @@ in {
       counsel
       counsel-projectile
       counsel-tramp
+      dap-mode
       deft
       delight
       dhall-mode
@@ -61,12 +62,15 @@ in {
       ox-gfm
       pdf-tools
       pinentry
+      posframe
       projectile
       proof-general
       pyenv-mode
       rainbow-delimiters
       restclient
       ripgrep
+      sbt-mode
+      scala-mode
       smartparens
       sql-indent
       treemacs
