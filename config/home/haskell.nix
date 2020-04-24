@@ -24,5 +24,11 @@ let
 
 in {
   home.packages = [ ghcEnv ghcide.ghcide-ghc865 ]
-    ++ (with pkgs.haskellPackages; [ brittany cabal-install cabal2nix hlint ]);
+    ++ (with pkgs.haskellPackages; [
+      brittany
+      cabal-install
+      cabal2nix
+      hlint
+      ormolu
+    ]);
 }
