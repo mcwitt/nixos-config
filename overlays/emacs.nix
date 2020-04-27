@@ -54,9 +54,11 @@ in {
       lsp-ui
       magit
       markdown-mode
+      mixed-pitch
       nix-mode
       nlinum-relative
       ob-restclient
+      org-bullets
       org-evil
       org-noter
       org-plus-contrib
