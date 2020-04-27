@@ -12,6 +12,7 @@ in {
       company
       company-anaconda
       company-lsp
+      company-org-roam
       company-restclient
       counsel
       counsel-projectile
@@ -42,6 +43,7 @@ in {
       haskell-snippets
       hl-todo
       ivy
+      ivy-bibtex
       json-mode
       jupyter
       logview
@@ -59,6 +61,9 @@ in {
       org-noter
       org-plus-contrib
       org-pomodoro
+      org-ref
+      org-roam
+      org-roam-bibtex
       ox-gfm
       pdf-tools
       pinentry
