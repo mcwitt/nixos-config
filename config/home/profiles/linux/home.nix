@@ -25,7 +25,7 @@
       ];
     };
 
-    git.ignores = pkgs.ghGitIgnoreLines "Global/Linux";
+    git.ignores = pkgs.mypkgs.gitignore.ghGitIgnoreLines "Global/Linux";
 
     password-store.package =
       pkgs.pass.withExtensions (exts: with exts; [ pass-update pass-otp ]);
@@ -55,7 +55,7 @@
   };
 
   xdg = {
-    configFile.xmobar.source = "${pkgs.mcwitt-dotfiles}/config/xmobar/";
+    configFile.xmobar.source = "${pkgs.mypkgs.dotfiles}/config/xmobar/";
 
     mimeApps = {
       enable = true;

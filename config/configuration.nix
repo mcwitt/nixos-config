@@ -93,7 +93,7 @@
     # is fixed
     emacs = {
       enable = true;
-      package = pkgs.emacsEnv;
+      package = pkgs.mypkgs.emacs;
     };
 
     locate = {

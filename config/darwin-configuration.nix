@@ -37,7 +37,7 @@
 
     emacs = {
       enable = true;
-      package = pkgs.emacsEnv;
+      package = pkgs.mypkgs.emacs;
     };
 
     nix-daemon.enable = true;

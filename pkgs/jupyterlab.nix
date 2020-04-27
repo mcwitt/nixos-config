@@ -1,4 +1,4 @@
-self: super:
+{ directory ? "./jupyterlab" }:
 let
   jupyterwithRepo = builtins.fetchGit {
     url = "https://github.com/tweag/jupyterWith";
@@ -66,11 +66,11 @@ let
       ];
   };
 
+in jupyter.jupyterlabWith {
+  kernels = [ ipython ihaskell ];
+  inherit directory;
+} // {
   # Inherit 'pkgs' so downstream derivations can access the nixpkgs
   # revision used by jupyterWith
-  mkJupyterlab = args: jupyter.jupyterlabWith args // { inherit pkgs; };
-
-in {
-  jupyterlab =
-    super.makeOverridable mkJupyterlab { kernels = [ ipython ihaskell ]; };
+  inherit pkgs;
 }

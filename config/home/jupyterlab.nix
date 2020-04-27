@@ -1,5 +1,5 @@
 { pkgs, ... }:
-with pkgs;
+with { inherit (pkgs.mypkgs) jupyterlab; };
 let
   # Use 'jupyterlab.pkgs' to derive Python env; ensures consistency
   # with jupyterWith

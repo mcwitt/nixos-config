@@ -7,14 +7,12 @@ in {
   home = {
     packages = with pkgs;
       [
-        emacsEnv
         graphviz
         nixfmt
         nix-prefetch-git
         nodePackages.prettier
         pandoc
         python37Packages.black
-        scripts
         shellcheck
         stack
       ] ++ (with gitAndTools; [
@@ -23,10 +21,10 @@ in {
         git-remote-gcrypt
         git-sync
         hub
-      ]);
+      ]) ++ (with mypkgs; [ emacs scripts ]);
 
     file.".emacs.d" = {
-      source = "${pkgs.mcwitt-dotfiles}/emacs.d/";
+      source = "${pkgs.mypkgs.dotfiles}/emacs.d/";
       recursive = true;
     };
 
@@ -76,8 +74,10 @@ in {
           + " —%Cblue%d%Creset %s %Cgreen(%cr)%Creset'"
           + " --abbrev-commit --date=relative --show-notes=*";
       };
-      ignores =
-        lib.concatMap pkgs.ghGitIgnoreLines [ "Global/Emacs" "Global/Vim" ];
+      ignores = lib.concatMap pkgs.mypkgs.gitignore.ghGitIgnoreLines [
+        "Global/Emacs"
+        "Global/Vim"
+      ];
       signing = {
         key = "A79A94078DF3DB5B";
         signByDefault = true;
@@ -175,12 +175,12 @@ in {
         gds = "${pkgs.git}/bin/git ds";
         gl = "${pkgs.git}/bin/git l";
         gw = "${pkgs.git}/bin/git w";
-        ec = "${pkgs.emacsEnv}/bin/emacsclient";
-        emacs = "${pkgs.emacsEnv}/bin/emacsclient --create-frame";
+        ec = "${pkgs.mypkgs.emacs}/bin/emacsclient --tty";
+        emacs = "${pkgs.mypkgs.emacs}/bin/emacsclient --create-frame";
       };
 
       sessionVariables = {
-        EDITOR = "${pkgs.emacsEnv}/bin/emacsclient";
+        EDITOR = "${pkgs.mypkgs.emacs}/bin/emacsclient --tty";
         ALTERNATE_EDITOR = "${pkgs.vim}/bin/vim";
         ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE = "fg=10"; # fix invisible hints
       };
