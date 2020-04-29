@@ -65,6 +65,7 @@ in emacsWithPackages (epkgs:
     org-ref
     org-roam
     org-roam-bibtex
+    org-variable-pitch
     ox-gfm
     pdf-tools
     pinentry
