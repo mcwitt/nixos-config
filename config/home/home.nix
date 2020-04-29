@@ -34,6 +34,11 @@ in {
       recursive = true;
     };
 
+    sessionVariables = {
+      EDITOR = "${pkgs.mypkgs.emacs}/bin/emacsclient --tty";
+      ALTERNATE_EDITOR = "${pkgs.vim}/bin/vim";
+    };
+
     # This value determines the Home Manager release that your
     # configuration is compatible with. This helps avoid breakage
     # when a new Home Manager release introduces backwards
@@ -185,11 +190,8 @@ in {
         emacs = "${pkgs.mypkgs.emacs}/bin/emacsclient --create-frame";
       };
 
-      sessionVariables = {
-        EDITOR = "${pkgs.mypkgs.emacs}/bin/emacsclient --tty";
-        ALTERNATE_EDITOR = "${pkgs.vim}/bin/vim";
-        ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE = "fg=10"; # fix invisible hints
-      };
+      # fix invisible hints
+      sessionVariables.ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE = "fg=10";
 
       initExtra = ''
         setopt HIST_IGNORE_SPACE

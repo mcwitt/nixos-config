@@ -5,5 +5,6 @@ in {
   home.file.".npmrc".text = ''
     prefix=${prefix}
   '';
-  programs.zsh.sessionVariables = { PATH = "${prefix}/bin:$PATH"; };
+
+  home.sessionVariables = { PATH = "${prefix}/bin:$PATH"; };
 }
