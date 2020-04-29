@@ -27,7 +27,7 @@ in {
         git-remote-gcrypt
         git-sync
         hub
-      ]) ++ (with mypkgs; [ emacs scripts ]);
+      ]) ++ (with mypkgs; [ scripts ]);
 
     file.".emacs.d" = {
       source = "${pkgs.mypkgs.dotfiles}/emacs.d/";
