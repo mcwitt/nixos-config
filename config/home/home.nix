@@ -155,7 +155,7 @@ in {
         url-launcher = "${pkgs.xdg_utils}/bin/xdg-open";
         "matcher.button" = 1;
       };
-      fonts = [ "xft:Fira Code:size=10" ];
+      fonts = [ "xft:Fira Code:size=11" ];
       scroll.bar.enable = false;
     };
 
