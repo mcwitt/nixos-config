@@ -1,7 +1,7 @@
 { stdenv }:
 stdenv.mkDerivation {
   name = "scripts";
-  src = ../bin;
+  src = ./bin;
   dontBuild = true;
   installPhase = ''
     mkdir -p $out/bin

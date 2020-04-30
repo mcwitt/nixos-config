@@ -5,6 +5,6 @@ with super; {
     emacs = callPackage ./emacs.nix { };
     gitignore = callPackage ./gitignore.nix { };
     jupyterlab = callPackage ./jupyterlab { };
-    scripts = callPackage ./scripts.nix { };
+    scripts = callPackage ./scripts { };
   };
 }
