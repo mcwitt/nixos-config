@@ -67,6 +67,7 @@ let
       org-roam
       org-roam-bibtex
       org-variable-pitch
+      ormolu
       ox-gfm
       pdf-tools
       pinentry
@@ -75,6 +76,7 @@ let
       proof-general
       pyenv-mode
       rainbow-delimiters
+      reformatter
       restclient
       ripgrep
       sbt-mode
