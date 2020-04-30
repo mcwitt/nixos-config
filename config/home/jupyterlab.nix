@@ -1,3 +1,8 @@
+# NOTE: This is a bit of a hack to make JupyterLab available in the
+# user environment. JupyterWith seems to be designed for
+# project-specific JupyterLab environments defined in a local
+# `shell.nix`.
+
 { pkgs, ... }:
 with { inherit (pkgs.mypkgs) jupyterlab; };
 let
