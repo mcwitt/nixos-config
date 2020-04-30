@@ -17,9 +17,12 @@ in jupyter.kernels.iHaskellWith {
       fgl
       formatting
       heaps
+      histogram-fill
+      hmatrix
       hvega
       ihaskell-hvega
       lens
+      linear
       monad-bayes
       monad-loops
       mtl
