@@ -123,7 +123,7 @@
 
         main = xmonad =<< xmobar def
           { borderWidth        = 5
-          , normalBorderColor  = "#000000"
+          , normalBorderColor  = "#073642"
           , focusedBorderColor = "#859900"
           , layoutHook         = myLayoutHook
           , modMask            = mod4Mask
