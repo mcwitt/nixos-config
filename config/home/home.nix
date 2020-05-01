@@ -147,18 +147,6 @@ in {
       '';
     };
 
-    urxvt = {
-      enable = true;
-      extraConfig = {
-        # clickable URLs
-        perl-ext-common = "default,matcher";
-        url-launcher = "${pkgs.xdg_utils}/bin/xdg-open";
-        "matcher.button" = 1;
-      };
-      fonts = [ "xft:Fira Code:size=11" ];
-      scroll.bar.enable = false;
-    };
-
     zsh = {
       enable = true;
       enableCompletion = false;
@@ -205,20 +193,5 @@ in {
         bindkey -M vicmd 'j' history-substring-search-down
       '';
     };
-  };
-
-  xdg.enable = true;
-
-  xresources.extraConfig = builtins.readFile (pkgs.fetchFromGitHub {
-    owner = "altercation";
-    repo = "solarized";
-    rev = "62f656a02f93c5190a8753159e34b385588d5ff3";
-    sha256 = "0001mz5v3a8zvi3gzmxhi3yrsb6hs7qf6i497arsngnvj2cwn61d";
-  } + "/xresources/solarized");
-
-  xsession.pointerCursor = {
-    package = pkgs.vanilla-dmz;
-    name = "Vanilla-DMZ";
-    size = 48;
   };
 }

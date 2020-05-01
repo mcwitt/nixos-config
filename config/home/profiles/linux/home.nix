@@ -35,6 +35,18 @@
 
     password-store.package =
       pkgs.pass.withExtensions (exts: with exts; [ pass-update pass-otp ]);
+
+    urxvt = {
+      enable = true;
+      extraConfig = {
+        # clickable URLs
+        perl-ext-common = "default,matcher";
+        url-launcher = "${pkgs.xdg_utils}/bin/xdg-open";
+        "matcher.button" = 1;
+      };
+      fonts = [ "xft:Fira Code:size=11" ];
+      scroll.bar.enable = false;
+    };
   };
 
   services = {
@@ -61,6 +73,7 @@
   };
 
   xdg = {
+    enable = true;
     configFile.xmobar.source = "${pkgs.mypkgs.dotfiles}/config/xmobar/";
 
     mimeApps = {
@@ -80,8 +93,21 @@
     };
   };
 
+  xresources.extraConfig = builtins.readFile (pkgs.fetchFromGitHub {
+    owner = "altercation";
+    repo = "solarized";
+    rev = "62f656a02f93c5190a8753159e34b385588d5ff3";
+    sha256 = "0001mz5v3a8zvi3gzmxhi3yrsb6hs7qf6i497arsngnvj2cwn61d";
+  } + "/xresources/solarized");
+
   xsession = {
     enable = true;
+
+    pointerCursor = {
+      package = pkgs.vanilla-dmz;
+      name = "Vanilla-DMZ";
+      size = 48;
+    };
 
     windowManager.xmonad = {
       enable = true;
