@@ -108,6 +108,7 @@
     xserver = {
       enable = true;
       videoDrivers = [ "nvidia" ];
+      desktopManager.xterm.enable = true;
 
       xrandrHeads = [
         {
