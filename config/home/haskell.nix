@@ -16,7 +16,7 @@ let
     ]);
 
 in {
-  home.packages = [ ghcEnv pkgs.ghcide.ghcide-ghc865 ]
+  home.packages = [ ghcEnv pkgs.ghcide.ghcide-ghc865 pkgs.stylish-cabal ]
     ++ (with pkgs.haskellPackages; [
       brittany
       cabal-install
