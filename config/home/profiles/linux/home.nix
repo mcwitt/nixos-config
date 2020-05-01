@@ -1,7 +1,13 @@
 { pkgs, ... }: {
   imports = [ ../../home.nix ./emacs.nix ./org-notes-sync.nix ];
 
-  home.packages = with pkgs; [ anki signal-desktop zathura ];
+  home.packages = with pkgs; [
+    anki
+    dmenu
+    haskellPackages.xmobar
+    signal-desktop
+    zathura
+  ];
 
   nixpkgs.config.packageOverrides = pkgs: {
     nur = import (builtins.fetchTarball
@@ -71,6 +77,33 @@
         "x-scheme-handler/about" = [ "firefox.desktop" ];
         "x-scheme-handler/unknown" = [ "firefox.desktop" ];
       };
+    };
+  };
+
+  xsession = {
+    enable = true;
+
+    windowManager.xmonad = {
+      enable = true;
+      enableContribAndExtras = true;
+
+      config = pkgs.writeText "xmonad.hs" ''
+        import XMonad
+        import XMonad.Hooks.DynamicLog
+        import XMonad.Layout.NoBorders
+
+        -- modify default layout hook with 'smartBorders'
+        myLayoutHook = smartBorders $ layoutHook def
+
+        main = xmonad =<< xmobar def
+          { borderWidth        = 5
+          , normalBorderColor  = "#000000"
+          , focusedBorderColor = "#859900"
+          , layoutHook         = myLayoutHook
+          , modMask            = mod4Mask
+          , terminal           = "urxvt"
+          }
+      '';
     };
   };
 }

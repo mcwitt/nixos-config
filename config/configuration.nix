@@ -16,8 +16,6 @@
     packages = [ pkgs.terminus_font ];
   };
 
-  environment.systemPackages = with pkgs; [ dmenu haskellPackages.xmobar ];
-
   fonts.fontconfig.dpi = 140;
 
   programs = {
@@ -110,28 +108,7 @@
     xserver = {
       enable = true;
       videoDrivers = [ "nvidia" ];
-      displayManager.defaultSession = "none+xmonad";
-      windowManager.xmonad = {
-        enable = true;
-        enableContribAndExtras = true;
-        config = ''
-          import XMonad
-          import XMonad.Hooks.DynamicLog
-          import XMonad.Layout.NoBorders
 
-          -- modify default layout hook with 'smartBorders'
-          myLayoutHook = smartBorders $ layoutHook def
-
-          main = xmonad =<< xmobar def
-            { borderWidth        = 5
-            , normalBorderColor  = "#000000"
-            , focusedBorderColor = "#859900"
-            , layoutHook         = myLayoutHook
-            , modMask            = mod4Mask
-            , terminal           = "urxvt"
-            }
-        '';
-      };
       xrandrHeads = [
         {
           primary = true;
