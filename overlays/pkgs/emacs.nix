@@ -73,7 +73,6 @@ let
       pinentry
       posframe
       projectile
-      proof-general
       pyenv-mode
       rainbow-delimiters
       reformatter
