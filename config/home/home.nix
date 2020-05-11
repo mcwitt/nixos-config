@@ -16,6 +16,7 @@ in {
         graphviz
         nixfmt
         nix-prefetch-git
+        nix-prefetch-github
         nodePackages.prettier
         pandoc
         python37Packages.black
