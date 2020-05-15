@@ -16,12 +16,12 @@ let
     ]);
 
 in {
-  home.packages = [ ghcEnv pkgs.ghcide.ghcide-ghc865 pkgs.stylish-cabal ]
-    ++ (with pkgs.haskellPackages; [
-      brittany
-      cabal-install
-      cabal2nix
-      hlint
-      ormolu
-    ]);
+  home.packages = [ ghcEnv pkgs.stylish-cabal ] ++ (with pkgs.haskellPackages; [
+    brittany
+    cabal-install
+    cabal2nix
+    ghcide
+    hlint
+    ormolu
+  ]);
 }
