@@ -3,6 +3,7 @@ let
   mkEmacsWithPackages = (emacsPackagesGen emacs).emacsWithPackages;
   emacsWithPackages = mkEmacsWithPackages (epkgs:
     with epkgs; [
+      agda2-mode
       all-the-icons
       anaconda-mode
       anki-editor
