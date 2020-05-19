@@ -5,9 +5,9 @@ in {
   imports = [
     ./R.nix
     ./haskell.nix
-    ./scala.nix
     ./jupyterlab.nix
     ./npm.nix
+    ./scala.nix
     ./secrets.nix
   ];
   home = {
