@@ -15,7 +15,7 @@ let
     };
   };
 
-  jupyter = import src { pkgs = pkgs; };
+  jupyter = import src { inherit pkgs; };
 
   ipython = import ./ipython.nix { inherit pkgs jupyter; };
   ihaskell = import ./ihaskell { inherit pkgs jupyter; };
