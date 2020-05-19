@@ -5,8 +5,8 @@ in {
   imports = [
     ./R.nix
     ./haskell.nix
-    ./jupyterlab.nix
     ./npm.nix
+    ./python.nix
     ./scala.nix
     ./secrets.nix
   ];
@@ -19,7 +19,6 @@ in {
         nix-prefetch-github
         nodePackages.prettier
         pandoc
-        python37Packages.black
         shellcheck
         stack
       ] ++ (with gitAndTools; [
