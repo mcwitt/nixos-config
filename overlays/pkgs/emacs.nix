@@ -37,6 +37,7 @@ let
       exec-path-from-shell
       fira-code-mode
       flycheck
+      flycheck-haskell
       format-all
       general
       gist
