@@ -1,4 +1,4 @@
-{ pkgs, config, ... }: {
+{ pkgs, config, lib, ... }: {
 
   home.sessionVariables.EDITOR =
     "${config.programs.emacs.package}/bin/emacsclient --tty";
@@ -6,12 +6,13 @@
   programs = {
     emacs = {
       enable = true;
-      package = pkgs.mypkgs.emacs;
+      extraPackages = pkgs.mypkgs.emacsPackages;
     };
 
     zsh.shellAliases = {
-      ec = "${config.programs.emacs.package}/bin/emacsclient --tty";
-      emacs = "${config.programs.emacs.package}/bin/emacsclient --create-frame";
+      ec = lib.mkForce "${config.programs.emacs.package}/bin/emacsclient --tty";
+      emacs = lib.mkForce
+        "${config.programs.emacs.package}/bin/emacsclient --create-frame";
     };
   };
 
