@@ -169,6 +169,7 @@ in {
         rm = "${pkgs.coreutils}/bin/rm -i";
         git = "${pkgs.gitAndTools.hub}/bin/hub";
         g = "${pkgs.gitAndTools.hub}/bin/hub";
+        ga = "${pkgs.gitAndTools.git-annex}/bin/git-annex";
         gb = "${pkgs.git}/bin/git b";
         gd = "${pkgs.git}/bin/git d";
         gds = "${pkgs.git}/bin/git ds";
