@@ -20,6 +20,7 @@ in {
     brittany
     cabal-install
     cabal2nix
+    ghcid
     ghcide
     hlint
     ormolu
