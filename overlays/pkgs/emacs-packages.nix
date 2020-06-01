@@ -73,7 +73,6 @@ with epkgs; [
   pinentry
   posframe
   projectile
-  pyenv-mode
   rainbow-delimiters
   reformatter
   restclient
