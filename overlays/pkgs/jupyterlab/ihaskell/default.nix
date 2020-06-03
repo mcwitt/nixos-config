@@ -19,6 +19,7 @@ in jupyter.kernels.iHaskellWith {
       heaps
       histogram-fill
       hmatrix
+      hspec
       hvega
       ihaskell-hvega
       lens
