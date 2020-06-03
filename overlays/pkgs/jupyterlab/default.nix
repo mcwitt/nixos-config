@@ -3,8 +3,8 @@ let
   src = fetchFromGitHub {
     owner = "tweag";
     repo = "jupyterWith";
-    rev = "7a6716f0c0a5538691a2f71a9f12b066bce7d55c";
-    sha256 = "0q8g93if8k53ick13hrpzwbbc0ymkx87mzpa7dhkfyilj7vksa2g";
+    rev = "247764735993e604c1748751a95b68ab3e3ee5eb";
+    sha256 = "156gblkghjadjqc38vdvsm7i5aa74wkh8q71rm4gwyvcwi8c82fx";
   };
 
   # nixpkgs revision used by jupyterWith
