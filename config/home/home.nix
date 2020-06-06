@@ -14,6 +14,7 @@ in {
     packages = with pkgs;
       [
         graphviz
+        niv
         nixfmt
         nix-prefetch-git
         nix-prefetch-github
