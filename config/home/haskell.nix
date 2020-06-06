@@ -19,7 +19,6 @@ in {
   home.packages = [ ghcEnv pkgs.stylish-cabal ] ++ (with pkgs.haskellPackages; [
     brittany
     cabal-install
-    cabal2nix
     ghcid
     ghcide
     hlint
