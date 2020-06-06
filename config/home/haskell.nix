@@ -1,3 +1,5 @@
+# Global Haskell environment for experimentation and ad-hoc usage
+# (usually overridden by project-specific environment)
 { pkgs, ... }:
 let
   ghcEnv = pkgs.haskellPackages.ghcWithPackages (ps:
