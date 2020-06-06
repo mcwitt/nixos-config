@@ -20,7 +20,6 @@ in {
         nodePackages.prettier
         pandoc
         shellcheck
-        stack
       ] ++ (with gitAndTools; [
         git-annex
         git-crypt

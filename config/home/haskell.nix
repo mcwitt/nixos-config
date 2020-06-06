@@ -23,5 +23,6 @@ in {
     ghcide
     hlint
     ormolu
+    stack
   ]);
 }
