@@ -1,6 +1,6 @@
 { pkgs, jupyter, ... }:
 let
-  haskellPackages = pkgs.haskell.packages.ghc865.extend (self: hspkgs: {
+  haskellPackages = pkgs.haskell.packages.ghc883.extend (self: hspkgs: {
     monad-bayes = hspkgs.callPackage ./monad-bayes.nix { };
     inherit (hspkgs.callPackage ./hvega.nix { }) hvega ihaskell-hvega;
   });
