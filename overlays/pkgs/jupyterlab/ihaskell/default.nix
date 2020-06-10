@@ -30,6 +30,7 @@ in jupyter.kernels.iHaskellWith {
       parsec
       postgresql-simple
       req
+      singletons
       split
       statistics
       transformers
