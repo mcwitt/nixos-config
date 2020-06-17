@@ -2,6 +2,6 @@
 fetchFromGitHub {
   owner = "mcwitt";
   repo = "dotfiles";
-  rev = "a1fc8a72f111a808ae996b018a742952f81a5492";
-  sha256 = "098wrfc3j69sy2wl9myk765igl37cy5gvk6g66dh38695q9gp3zc";
+  rev = "41ba1fd4fcb1bd022146cdd00c025f5f1ccfe1e3";
+  sha256 = "1cbvc262d4bzh5g6jp7kbc7dbxfg383vymrj181r9c51mhambhw5";
 }
