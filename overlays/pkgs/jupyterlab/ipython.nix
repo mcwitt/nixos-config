@@ -1,8 +1,10 @@
-{ jupyter, ... }:
-jupyter.kernels.iPythonWith {
+{ pkgs, jupyter, ... }:
+let inherit (pkgs) lib stdenv;
+in jupyter.kernels.iPythonWith {
   name = "python";
   packages = ps:
-    with ps; [
+    with ps;
+    [
       altair
       beautifulsoup4
       boto
@@ -10,10 +12,8 @@ jupyter.kernels.iPythonWith {
       numpy
       pandas
       patsy
-      psycopg2
-      # pyro-ppl
       pillow
-      pytorch
+      psycopg2
       pyyaml
       requests
       scikitlearn
@@ -21,9 +21,12 @@ jupyter.kernels.iPythonWith {
       seaborn
       spacy
       statsmodels
-      # tensorflow-bin
-      # (tensorflow-probability.override { tensorflow = tensorflow-bin; })
-      torchvision
       typing
+    ] ++ lib.optionals (!stdenv.isDarwin) [
+      (tensorflow-probability.override { tensorflow = tensorflow-bin; })
+      pyro-ppl
+      pytorch
+      tensorflow-bin
+      torchvision
     ];
 }
