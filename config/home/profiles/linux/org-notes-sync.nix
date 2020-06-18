@@ -35,7 +35,7 @@ in {
         IOSchedulingClass = "idle";
         ExecStart = toString (pkgs.writeShellScript "org-notes-sync" ''
           cd ${cfg.repoPath} \
-          && ${pkgs.gitAndTools.git-sync}/bin/git-sync
+          && ${pkgs.gitAndTools.git-annex}/bin/git-annex sync
         '');
       };
     };

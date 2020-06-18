@@ -25,7 +25,6 @@ in {
         git-annex
         git-crypt
         git-remote-gcrypt
-        git-sync
         hub
       ]) ++ (with mypkgs; [ scripts ]);
 
