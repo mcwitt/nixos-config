@@ -5,7 +5,6 @@
     (aspellWithDicts (ds: [ ds.en ]))
     coreutils
     direnv
-    mypkgs.emacs
     feh
     fzf
     gawk
@@ -22,6 +21,7 @@
     killall
     less
     lsof
+    mypkgs.emacs
     nodejs
     openssh
     openssl
@@ -31,6 +31,7 @@
     rsync
     ruby
     rxvt_unicode
+    sqlite
     texlive.combined.scheme-full
     time
     tree
