@@ -92,7 +92,10 @@ in {
         key = "A79A94078DF3DB5B";
         signByDefault = true;
       };
-      extraConfig.gitHub.user = "mcwitt";
+      extraConfig = {
+        gitHub.user = "mcwitt";
+        pull.rebase = true;
+      };
     };
 
     # Let Home Manager install and manage itself.
