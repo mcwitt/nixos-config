@@ -84,6 +84,7 @@ in {
       gitHub.user = "mcwitt";
       pull.rebase = true;
     };
+    delta.enable = true;
   };
 
   # Let Home Manager install and manage itself.
