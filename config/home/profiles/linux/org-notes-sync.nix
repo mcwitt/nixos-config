@@ -3,7 +3,7 @@ with lib;
 let cfg = config.services.org-notes-sync;
 in {
   options.services.org-notes-sync = {
-    enable = mkEnableOption "org notes sync";
+    enable = mkEnableOption "org-notes sync";
     repoPath = mkOption {
       type = types.str;
       description = "Path of the local repository";
@@ -28,20 +28,25 @@ in {
 
   config = mkIf cfg.enable {
     systemd.user.services.org-notes-sync = {
-      Unit = { Description = "Org notes sync"; };
+      Unit = { Description = "Sync org-notes directory with remotes"; };
 
       Service = {
         CPUSchedulingPolicy = "idle";
         IOSchedulingClass = "idle";
+        Environment = let
+          paths = lib.makeBinPath
+            (with pkgs; [ findutils git gitAndTools.git-annex openssh ]);
+        in [ "PATH=${paths}" ];
         ExecStart = toString (pkgs.writeShellScript "org-notes-sync" ''
           cd ${cfg.repoPath} \
-          && ${pkgs.gitAndTools.git-annex}/bin/git-annex sync
+          && ${pkgs.gitAndTools.git-annex}/bin/git-annex add . \
+          && ${pkgs.gitAndTools.git-annex}/bin/git-annex sync --content
         '');
       };
     };
 
     systemd.user.timers.org-notes-sync = {
-      Unit = { Description = "Org notes periodic sync"; };
+      Unit = { Description = "Periodically sync org-notes directory"; };
 
       Timer = {
         Unit = "org-notes-sync.service";
