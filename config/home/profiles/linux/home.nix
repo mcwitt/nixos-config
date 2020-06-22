@@ -16,60 +16,56 @@
       };
   };
 
-  programs = {
-    chromium.enable = true;
+  programs.chromium.enable = true;
 
-    firefox = {
-      enable = true;
+  programs.firefox = {
+    enable = true;
 
-      extensions = with pkgs.nur.repos.rycee.firefox-addons; [
-        browserpass
-        https-everywhere
-        privacy-badger
-        ublock-origin
-        vimium
-      ];
-    };
-
-    git.ignores = pkgs.mypkgs.gitignore.ghGitIgnoreLines "Global/Linux";
-
-    password-store.package =
-      pkgs.pass.withExtensions (exts: with exts; [ pass-update pass-otp ]);
-
-    urxvt = {
-      enable = true;
-      extraConfig = {
-        # clickable URLs
-        perl-ext-common = "default,matcher";
-        url-launcher = "${pkgs.xdg_utils}/bin/xdg-open";
-        "matcher.button" = 1;
-      };
-      fonts = [ "xft:Fira Code:size=11" ];
-      scroll.bar.enable = false;
-    };
+    extensions = with pkgs.nur.repos.rycee.firefox-addons; [
+      browserpass
+      https-everywhere
+      privacy-badger
+      ublock-origin
+      vimium
+    ];
   };
 
-  services = {
-    gpg-agent = {
-      enable = true;
-      defaultCacheTtl = 14400; # 4 hours
-      maxCacheTtl = 14400;
+  programs.git.ignores = pkgs.mypkgs.gitignore.ghGitIgnoreLines "Global/Linux";
+
+  programs.password-store.package =
+    pkgs.pass.withExtensions (exts: with exts; [ pass-update pass-otp ]);
+
+  programs.urxvt = {
+    enable = true;
+    extraConfig = {
+      # clickable URLs
+      perl-ext-common = "default,matcher";
+      url-launcher = "${pkgs.xdg_utils}/bin/xdg-open";
+      "matcher.button" = 1;
     };
+    fonts = [ "xft:Fira Code:size=11" ];
+    scroll.bar.enable = false;
+  };
 
-    lorri.enable = true;
+  services.gpg-agent = {
+    enable = true;
+    defaultCacheTtl = 14400; # 4 hours
+    maxCacheTtl = 14400;
+  };
 
-    org-notes-sync = {
-      enable = true;
-      repoPath = "${builtins.getEnv "HOME"}/src/org-notes/";
-      frequency = "*:0/5";
-    };
+  services.lorri.enable = true;
 
-    password-store-sync.enable = true;
+  services.org-notes-sync = {
+    enable = true;
+    repoPath = "${builtins.getEnv "HOME"}/src/org-notes/";
+    frequency = "*:0/5";
+  };
 
-    random-background = {
-      enable = true;
-      imageDirectory = "%h/.background-images";
-    };
+  services.password-store-sync.enable = true;
+
+  services.random-background = {
+    enable = true;
+    imageDirectory = "%h/.background-images";
   };
 
   xdg = {

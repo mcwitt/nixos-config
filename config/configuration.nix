@@ -18,14 +18,12 @@
 
   fonts.fontconfig.dpi = 140;
 
-  programs = {
-    zsh.enable = true;
-    gnupg.agent.enable = true;
+  programs.zsh.enable = true;
+  programs.gnupg.agent.enable = true;
 
-    tmux = {
-      enable = true;
-      keyMode = "vi";
-    };
+  programs.tmux = {
+    enable = true;
+    keyMode = "vi";
   };
 
   hardware = {
@@ -80,49 +78,47 @@
     overlays = (import ./utils.nix).importOverlaysDir ../overlays;
   };
 
-  services = {
-    avahi = {
-      enable = true;
-      nssmdns = true;
-    };
+  services.avahi = {
+    enable = true;
+    nssmdns = true;
+  };
 
-    locate = {
-      enable = true;
-      interval = "hourly";
-    };
+  services.locate = {
+    enable = true;
+    interval = "hourly";
+  };
 
-    openssh.enable = true;
+  services.openssh.enable = true;
 
-    nixosManual = {
-      showManual = true;
-      ttyNumber = 8;
-    };
+  services.nixosManual = {
+    showManual = true;
+    ttyNumber = 8;
+  };
 
-    printing = {
-      enable = true;
-      drivers = [ pkgs.brlaser ];
-    };
+  services.printing = {
+    enable = true;
+    drivers = [ pkgs.brlaser ];
+  };
 
-    redshift.enable = true; # color temperature adjuster
+  services.redshift.enable = true; # color temperature adjuster
 
-    xserver = {
-      enable = true;
-      videoDrivers = [ "nvidia" ];
-      desktopManager.xterm.enable = true;
+  services.xserver = {
+    enable = true;
+    videoDrivers = [ "nvidia" ];
+    desktopManager.xterm.enable = true;
 
-      xrandrHeads = [
-        {
-          primary = true;
-          output = "DP-4";
-        }
-        {
-          monitorConfig = ''
-            Option "Rotate" "left"
-          '';
-          output = "DP-2";
-        }
-      ];
-    };
+    xrandrHeads = [
+      {
+        primary = true;
+        output = "DP-4";
+      }
+      {
+        monitorConfig = ''
+          Option "Rotate" "left"
+        '';
+        output = "DP-2";
+      }
+    ];
   };
 
   sound = {
