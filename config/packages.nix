@@ -6,6 +6,7 @@
     coreutils
     direnv
     feh
+    findutils
     fzf
     gawk
     git
