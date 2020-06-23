@@ -1,5 +1,5 @@
 { pkgs, ... }: {
-  imports = [ ../../home.nix ./emacs.nix ./org-notes-sync.nix ];
+  imports = [ ../../home.nix ./org-notes-sync.nix ];
 
   home.packages = with pkgs; [
     anki
@@ -17,6 +17,11 @@
   };
 
   programs.chromium.enable = true;
+
+  programs.emacs = {
+    enable = true;
+    extraPackages = pkgs.mypkgs.emacsPackages;
+  };
 
   programs.firefox = {
     enable = true;
@@ -46,6 +51,8 @@
     fonts = [ "xft:Fira Code:size=11" ];
     scroll.bar.enable = false;
   };
+
+  services.emacs.enable = true;
 
   services.gpg-agent = {
     enable = true;
