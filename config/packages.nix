@@ -22,7 +22,6 @@
     killall
     less
     lsof
-    mypkgs.emacs
     nodejs
     openssh
     openssl
