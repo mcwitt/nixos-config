@@ -6,7 +6,6 @@
     dmenu
     haskellPackages.xmobar
     signal-desktop
-    zathura
   ];
 
   nixpkgs.config.packageOverrides = pkgs: {
@@ -52,6 +51,8 @@
     scroll.bar.enable = false;
   };
 
+  programs.zathura.enable = true;
+
   services.emacs.enable = true;
 
   services.gpg-agent = {
@@ -83,9 +84,7 @@
       enable = true;
 
       defaultApplications = {
-        "application/pdf" =
-          [ "${pkgs.zathura}/share/applications/org.pwmt.zathura.desktop" ];
-
+        "application/pdf" = [ "org.pwmt.zathura.desktop" ];
         "text/html" = [ "firefox.desktop" ];
         "x-scheme-handler/http" = [ "firefox.desktop" ];
         "x-scheme-handler/https" = [ "firefox.desktop" ];
