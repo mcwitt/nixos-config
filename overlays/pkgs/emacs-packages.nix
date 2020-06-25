@@ -49,6 +49,7 @@ with epkgs; [
   logview
   lsp-haskell
   lsp-ivy
+  lsp-metals
   lsp-mode
   lsp-treemacs
   lsp-ui
