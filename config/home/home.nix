@@ -104,7 +104,6 @@ in {
       vim-surround
       YouCompleteMe
     ];
-
     extraConfig = ''
       set expandtab
       set shiftwidth=2
@@ -142,17 +141,14 @@ in {
     enable = true;
     enableCompletion = false;
     enableAutosuggestions = true;
-
     autocd = true;
     defaultKeymap = "viins";
-
     history = {
       size = 50000;
       save = 500000;
       ignoreDups = true;
       extended = true;
     };
-
     shellAliases = {
       l = "${pkgs.coreutils}/bin/ls --color=auto -alh";
       ll = "${pkgs.coreutils}/bin/ls --color=auto -l";

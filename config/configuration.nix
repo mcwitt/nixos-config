@@ -19,6 +19,7 @@
   fonts.fontconfig.dpi = 140;
 
   programs.zsh.enable = true;
+
   programs.gnupg.agent.enable = true;
 
   programs.tmux = {
@@ -29,7 +30,6 @@
   hardware = {
     bluetooth.enable = true;
     opengl.driSupport32Bit = true;
-
     printers = rec {
       ensureDefaultPrinter = "Brother_HL-L2340D_series";
       ensurePrinters = [{
@@ -60,11 +60,6 @@
   networking = {
     hostName = "golem";
     wireless.enable = true;
-
-    # The global useDHCP flag is deprecated, therefore explicitly set to false here.
-    # Per-interface useDHCP will be mandatory in the future, so this generated config
-    # replicates the default behaviour.
-    useDHCP = false;
     interfaces = {
       enp0s31f6.useDHCP = true;
       wlp4s0.useDHCP = true;
@@ -100,13 +95,13 @@
     drivers = [ pkgs.brlaser ];
   };
 
-  services.redshift.enable = true; # color temperature adjuster
+  # color temperature adjuster
+  services.redshift.enable = true;
 
   services.xserver = {
     enable = true;
     videoDrivers = [ "nvidia" ];
     desktopManager.xterm.enable = true;
-
     xrandrHeads = [
       {
         primary = true;
@@ -126,10 +121,6 @@
     mediaKeys.enable = true;
   };
 
-  # This value determines the NixOS release with which your system is to be
-  # compatible, in order to avoid breaking some software such as database
-  # servers. You should change this only after NixOS release notes say you
-  # should.
   system.stateVersion = "19.09"; # Did you read the comment?
 
   time.timeZone = "America/Los_Angeles";

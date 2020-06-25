@@ -26,7 +26,6 @@
 
   programs.firefox = {
     enable = true;
-
     extensions = with pkgs.nur.repos.rycee.firefox-addons; [
       browserpass
       https-everywhere
@@ -81,10 +80,8 @@
   xdg = {
     enable = true;
     configFile.xmobar.source = "${pkgs.mypkgs.dotfiles}/config/xmobar/";
-
     mimeApps = {
       enable = true;
-
       defaultApplications = {
         "application/pdf" = [ "org.pwmt.zathura.desktop" ];
         "text/html" = [ "firefox.desktop" ];

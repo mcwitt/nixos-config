@@ -21,38 +21,29 @@
     overlays = (import ./utils.nix).importOverlaysDir ../overlays;
   };
 
-  programs = {
-    gnupg.agent.enable = true;
+  programs.gnupg.agent.enable = true;
 
-    tmux = {
-      enable = true;
-      enableSensible = true;
-      enableVim = true;
-    };
-
-    zsh.enable = true;
+  programs.tmux = {
+    enable = true;
+    enableSensible = true;
+    enableVim = true;
   };
 
-  services = {
+  programs.zsh.enable = true;
 
-    emacs = {
-      enable = true;
-      package = pkgs.mypkgs.emacs;
-    };
-
-    nix-daemon.enable = true;
+  services.emacs = {
+    enable = true;
+    package = pkgs.mypkgs.emacs;
   };
 
-  system = {
-    # Used for backwards compatibility, please read the changelog before changing.
-    # $ darwin-rebuild changelog
-    stateVersion = 4;
+  services.nix-daemon.enable = true;
 
-    defaults.dock = {
-      autohide = true;
-      launchanim = false;
-      orientation = "left";
-    };
+  system.stateVersion = 4;
+
+  system.defaults.dock = {
+    autohide = true;
+    launchanim = false;
+    orientation = "left";
   };
 
   users.users.matt.shell = pkgs.zsh;
