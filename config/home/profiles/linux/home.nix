@@ -22,6 +22,8 @@
     extraPackages = pkgs.mypkgs.emacsPackages;
   };
 
+  programs.feh.enable = true;
+
   programs.firefox = {
     enable = true;
 

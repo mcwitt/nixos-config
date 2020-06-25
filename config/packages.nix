@@ -5,7 +5,6 @@
     (aspellWithDicts (ds: [ ds.en ]))
     coreutils
     direnv
-    feh
     findutils
     fzf
     gawk
