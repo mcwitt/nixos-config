@@ -1,10 +1,25 @@
-{ pkgs, ... }: {
+{ config, pkgs, ... }:
+
+let
+  orgProtocolDesktopItem = pkgs.makeDesktopItem rec {
+    name = "org-protocol";
+    desktopName = name;
+    mimeType = "x-scheme-handler/org-protocol";
+    exec = "${config.programs.emacs.finalPackage}/bin/emacsclient %u";
+    icon = "emacs";
+    type = "Application";
+    terminal = "false";
+    categories = "System";
+  };
+
+in {
   imports = [ ../../home.nix ./org-notes-sync.nix ];
 
   home.packages = with pkgs; [
     anki
     dmenu
     haskellPackages.xmobar
+    orgProtocolDesktopItem
     signal-desktop
   ];
 
@@ -33,6 +48,9 @@
       ublock-origin
       vimium
     ];
+    profiles.default.settings = {
+      "network.protocol-handler.expose.org-protocol" = true;
+    };
   };
 
   programs.git.ignores = pkgs.mypkgs.gitignore.ghGitIgnoreLines "Global/Linux";
@@ -54,7 +72,10 @@
 
   programs.zathura.enable = true;
 
-  services.emacs.enable = true;
+  services.emacs = {
+    enable = true;
+    client.enable = true;
+  };
 
   services.gpg-agent = {
     enable = true;
