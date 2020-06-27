@@ -137,6 +137,15 @@ in {
     '';
   };
 
+  programs.vscode = {
+    enable = true;
+    extensions = with pkgs.vscode-extensions; [
+      DigitalAssetHoldingsLLC.ghcide
+      justusadam.language-haskell
+      vscodevim.vim
+    ];
+  };
+
   programs.zsh = {
 
     enable = true;
