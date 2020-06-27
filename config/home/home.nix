@@ -144,6 +144,10 @@ in {
       justusadam.language-haskell
       vscodevim.vim
     ];
+    userSettings.vim.insertModeKeyBindings = [{
+      before = [ "f" "d" ];
+      after = [ "<Esc>" ];
+    }];
   };
 
   programs.zsh = {
