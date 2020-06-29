@@ -1,11 +1,6 @@
-{ fetchFromGitHub, directory ? "./jupyterlab" }:
+{ mypkgs, directory ? "./jupyterlab" }:
 let
-  src = fetchFromGitHub {
-    owner = "tweag";
-    repo = "jupyterWith";
-    rev = "247764735993e604c1748751a95b68ab3e3ee5eb";
-    sha256 = "156gblkghjadjqc38vdvsm7i5aa74wkh8q71rm4gwyvcwi8c82fx";
-  };
+  src = mypkgs.sources.jupyterWith;
 
   # nixpkgs revision used by jupyterWith
   pkgs = import "${src}/nix" {

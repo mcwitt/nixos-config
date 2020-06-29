@@ -23,13 +23,6 @@ in {
     signal-desktop
   ];
 
-  nixpkgs.config.packageOverrides = pkgs: {
-    nur = import (builtins.fetchTarball
-      "https://github.com/nix-community/NUR/archive/master.tar.gz") {
-        inherit pkgs;
-      };
-  };
-
   programs.chromium.enable = true;
 
   programs.emacs = {
@@ -134,12 +127,8 @@ in {
     };
   };
 
-  xresources.extraConfig = builtins.readFile (pkgs.fetchFromGitHub {
-    owner = "altercation";
-    repo = "solarized";
-    rev = "62f656a02f93c5190a8753159e34b385588d5ff3";
-    sha256 = "0001mz5v3a8zvi3gzmxhi3yrsb6hs7qf6i497arsngnvj2cwn61d";
-  } + "/xresources/solarized");
+  xresources.extraConfig =
+    builtins.readFile (pkgs.mypkgs.sources.solarized + "/xresources/solarized");
 
   xsession = {
     enable = true;
