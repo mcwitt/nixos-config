@@ -140,7 +140,7 @@ in {
   programs.vscode = {
     enable = true;
     extensions = with pkgs.vscode-extensions; [
-      DigitalAssetHoldingsLLC.ghcide
+      alanz.vscode-hie-server
       justusadam.language-haskell
       vscodevim.vim
     ];
