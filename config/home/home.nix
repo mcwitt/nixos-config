@@ -149,10 +149,13 @@ in {
         hieVariant = "ghcide";
         formattingProvider = "ormolu";
       };
-      vim.insertModeKeyBindings = [{
-        before = [ "f" "d" ];
-        after = [ "<Esc>" ];
-      }];
+      vim = {
+        hlsearch = true;
+        insertModeKeyBindings = [{
+          before = [ "f" "d" ];
+          after = [ "<Esc>" ];
+        }];
+      };
     };
   };
 
