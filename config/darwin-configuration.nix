@@ -10,6 +10,8 @@
 
   fonts.enableFontDir = true;
 
+  environment.systemPackages = [ pkgs.mypkgs.emacs ];
+
   nix = {
     maxJobs = 8;
     buildCores = 0;
