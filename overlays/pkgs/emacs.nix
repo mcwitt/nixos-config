@@ -1,2 +1,2 @@
-{ emacs, emacsPackagesGen, mypkgs }:
-(emacsPackagesGen emacs).emacsWithPackages mypkgs.emacsPackages
+{ emacsGit, emacsPackagesGen, mypkgs }:
+(emacsPackagesGen emacsGit).emacsWithPackages mypkgs.emacsPackages

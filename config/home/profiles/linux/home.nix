@@ -27,6 +27,7 @@ in {
 
   programs.emacs = {
     enable = true;
+    package = pkgs.emacsGit;
     extraPackages = pkgs.mypkgs.emacsPackages;
   };
 
