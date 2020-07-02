@@ -145,6 +145,8 @@ in {
       vscodevim.vim
     ];
     userSettings = {
+      update.mode = "none";
+      extensions.autoUpdate = false;
       languageServerHaskell = {
         hieVariant = "ghcide";
         formattingProvider = "ormolu";
