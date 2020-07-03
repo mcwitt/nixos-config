@@ -43,10 +43,10 @@
         "homepage": null,
         "owner": "mcwitt",
         "repo": "dotfiles",
-        "rev": "6bb56927e5ab226a081a58b46cd4233f08d9d464",
-        "sha256": "0lnnn3k1frvb0dj6d4a3ymhk8g29hm7ldfhabkxm95v13nihw7n8",
+        "rev": "78c5fb23fd3ad22e9cc5902808dcb4555593092a",
+        "sha256": "1y34n03p8msd8y0sns0kyn5v2gs7y32anms8zvdlkiigdhnkhsj1",
         "type": "tarball",
-        "url": "https://github.com/mcwitt/dotfiles/archive/6bb56927e5ab226a081a58b46cd4233f08d9d464.tar.gz",
+        "url": "https://github.com/mcwitt/dotfiles/archive/78c5fb23fd3ad22e9cc5902808dcb4555593092a.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "monad-bayes": {
