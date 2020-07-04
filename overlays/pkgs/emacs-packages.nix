@@ -10,7 +10,6 @@ with epkgs; [
   cdlatex
   company
   company-anaconda
-  company-lsp
   company-org-roam
   company-restclient
   counsel
