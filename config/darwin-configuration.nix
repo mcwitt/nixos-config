@@ -48,5 +48,7 @@
     orientation = "left";
   };
 
+  system.defaults.NSGlobalDomain.ApplePressAndHoldEnabled = false;
+
   users.users.matt.shell = pkgs.zsh;
 }
