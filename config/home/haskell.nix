@@ -8,6 +8,7 @@ let
       containers
       fgl
       heaps
+      hspec
       lens
       monad-loops
       mtl
