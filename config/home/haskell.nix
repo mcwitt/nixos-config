@@ -5,6 +5,7 @@ let
   ghcEnv = pkgs.haskellPackages.ghcWithPackages (ps:
     with ps; [
       array
+      checkers
       containers
       fgl
       heaps
