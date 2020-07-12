@@ -10,7 +10,7 @@
 
   fonts.enableFontDir = true;
 
-  environment.systemPackages = [ pkgs.mypkgs.emacs ];
+  environment.systemPackages = with pkgs; [ lorri mypkgs.emacs ];
 
   nix = {
     maxJobs = 8;

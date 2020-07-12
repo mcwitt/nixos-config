@@ -7,9 +7,11 @@ in {
 
   home.packages = with pkgs;
     [
+      cachix
       graphviz
       niv
       nixfmt
+      nix-info
       nix-prefetch-git
       nix-prefetch-github
       nodePackages.prettier
