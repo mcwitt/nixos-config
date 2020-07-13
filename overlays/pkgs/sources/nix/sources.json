@@ -17,10 +17,10 @@
         "homepage": "",
         "owner": "github",
         "repo": "gitignore",
-        "rev": "18aa6d83774d514da479d73a4beb864cd4220231",
-        "sha256": "1v3yfxx7nxhg18qv6p6ifjhf08agmy5f5lhbs2d5qj7w1giqhl3s",
+        "rev": "218a941be92679ce67d0484547e3e142b2f5f6f0",
+        "sha256": "1yal0x4mixq9rdj9v4v1597p20nvxrpbpwfp6rl4draf20kmdnl8",
         "type": "tarball",
-        "url": "https://github.com/github/gitignore/archive/18aa6d83774d514da479d73a4beb864cd4220231.tar.gz",
+        "url": "https://github.com/github/gitignore/archive/218a941be92679ce67d0484547e3e142b2f5f6f0.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "jupyterWith": {
@@ -29,10 +29,10 @@
         "homepage": "",
         "owner": "tweag",
         "repo": "jupyterWith",
-        "rev": "4614c6d4b762375a88362bf1804336fce69bc044",
-        "sha256": "007fp6vip2bfpg6qrp34wcipppjj19lqy2ahwsl9h91ymd70gz2c",
+        "rev": "69a1d5e544dd23fc64cef91249872e0048279bec",
+        "sha256": "14hmc2cryijb16xrfmcpm1n1xr3drrvmgsvhscmz2h979lfksdyl",
         "type": "tarball",
-        "url": "https://github.com/tweag/jupyterWith/archive/4614c6d4b762375a88362bf1804336fce69bc044.tar.gz",
+        "url": "https://github.com/tweag/jupyterWith/archive/69a1d5e544dd23fc64cef91249872e0048279bec.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz",
         "version": "247764735993e604c1748751a95b68ab3e3ee5eb"
     },
@@ -42,10 +42,10 @@
         "homepage": null,
         "owner": "mcwitt",
         "repo": "dotfiles",
-        "rev": "501f4d420be3ede4dec4f9ff826a40260b586894",
-        "sha256": "0alk2h4g9ag5dwjhbxhy7i84njd3vg8q9dl25nrccw2p23m1ygsy",
+        "rev": "7eb8bcec2a1b6581f58d89d29d8b862638f44f09",
+        "sha256": "0qv4wp6gkvznypnhh3yrbn34kayj1v6jynprmsnfvx50yfx5a7wv",
         "type": "tarball",
-        "url": "https://github.com/mcwitt/dotfiles/archive/501f4d420be3ede4dec4f9ff826a40260b586894.tar.gz",
+        "url": "https://github.com/mcwitt/dotfiles/archive/7eb8bcec2a1b6581f58d89d29d8b862638f44f09.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "niv": {
@@ -54,10 +54,10 @@
         "homepage": "https://github.com/nmattia/niv",
         "owner": "nmattia",
         "repo": "niv",
-        "rev": "f73bf8d584148677b01859677a63191c31911eae",
-        "sha256": "0jlmrx633jvqrqlyhlzpvdrnim128gc81q5psz2lpp2af8p8q9qs",
+        "rev": "c27f5a6c57de4495045450b6587d4a2c489851c8",
+        "sha256": "064lyr1661pk7hh7npgxsmk4cni9bc34hb2d6r76qp4cs2hcazim",
         "type": "tarball",
-        "url": "https://github.com/nmattia/niv/archive/f73bf8d584148677b01859677a63191c31911eae.tar.gz",
+        "url": "https://github.com/nmattia/niv/archive/c27f5a6c57de4495045450b6587d4a2c489851c8.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs": {
@@ -78,10 +78,10 @@
         "homepage": "",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "cb5480e61c03f689bc8d3ed137f4d8c514a67a53",
-        "sha256": "1mcwad9fyy2bm0x281s8rn6zhlf6afi3k1irb1w5631cf4db0gjd",
+        "rev": "8615121780cf08e7ed2f67ca24c642122a6a12c5",
+        "sha256": "1h9nmvipv4r7x1pdq77k9rpzzmvajcqdlq7vbfsiyrs78xzqwma3",
         "type": "tarball",
-        "url": "https://github.com/nix-community/NUR/archive/cb5480e61c03f689bc8d3ed137f4d8c514a67a53.tar.gz",
+        "url": "https://github.com/nix-community/NUR/archive/8615121780cf08e7ed2f67ca24c642122a6a12c5.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "solarized": {
