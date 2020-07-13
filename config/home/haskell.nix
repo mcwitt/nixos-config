@@ -20,8 +20,9 @@ let
     ]);
 
 in {
-  home.packages = [ ghcEnv pkgs.stylish-cabal ] ++ (with pkgs.haskellPackages; [
+  home.packages = [ ghcEnv ] ++ (with pkgs.haskellPackages; [
     brittany
+    cabal-fmt
     cabal-install
     ghcid
     ghcide
