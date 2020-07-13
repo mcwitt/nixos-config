@@ -23,19 +23,6 @@
         "url": "https://github.com/github/gitignore/archive/18aa6d83774d514da479d73a4beb864cd4220231.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
-    "hvega": {
-        "branch": "master",
-        "description": "Create Vega-Lite visualizations from Haskell.",
-        "homepage": null,
-        "owner": "DougBurke",
-        "repo": "hvega",
-        "rev": "58a6861a3ebecdfe2ade149c1bff3064341fee33",
-        "sha256": "1fmblbwr4mlymnjs4nlj3jqybwh5pjfzccsa496lz6k831n84bin",
-        "type": "tarball",
-        "url": "https://github.com/DougBurke/hvega/archive/58a6861a3ebecdfe2ade149c1bff3064341fee33.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz",
-        "version": "f132a5f87ee64c1f4095bf159fb5ca6221d0bad5"
-    },
     "jupyterWith": {
         "branch": "master",
         "description": "declarative and reproducible Jupyter environments - powered by Nix",
@@ -60,19 +47,6 @@
         "type": "tarball",
         "url": "https://github.com/mcwitt/dotfiles/archive/501f4d420be3ede4dec4f9ff826a40260b586894.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
-    "monad-bayes": {
-        "branch": "master",
-        "description": "A library for probabilistic programming in Haskell.",
-        "homepage": null,
-        "owner": "tweag",
-        "repo": "monad-bayes",
-        "rev": "a2d4bb33bce9b3907a9b2d6516fee30bae5883dd",
-        "sha256": "0f5kyjw66lvxp49sf25wl8v44ws1hcd3y7p7rizc2ipvb9gjvn9c",
-        "type": "tarball",
-        "url": "https://github.com/tweag/monad-bayes/archive/a2d4bb33bce9b3907a9b2d6516fee30bae5883dd.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz",
-        "version": "1c195314257b7f1ebc059079da85ac18f8fd4109"
     },
     "niv": {
         "branch": "master",

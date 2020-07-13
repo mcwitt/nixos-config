@@ -13,7 +13,7 @@ let
   jupyter = import src { inherit pkgs; };
 
   ipython = import ./ipython.nix { inherit pkgs jupyter; };
-  ihaskell = import ./ihaskell { inherit pkgs jupyter; };
+  ihaskell = import ./ihaskell.nix { inherit pkgs jupyter; };
 
 in jupyter.jupyterlabWith {
   kernels = [ ipython ihaskell ];

@@ -1,6 +1,5 @@
-{ pkgs, jupyter, ... }:
-let inherit (pkgs) lib stdenv;
-in jupyter.kernels.iPythonWith {
+{ pkgs, jupyter }:
+jupyter.kernels.iPythonWith {
   name = "python";
   packages = ps:
     with ps; [
