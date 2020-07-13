@@ -22,6 +22,7 @@ let
 in {
   home.packages = [ ghcEnv ] ++ (with pkgs.haskellPackages; [
     brittany
+    cabal-bounds
     cabal-fmt
     cabal-install
     ghcid
