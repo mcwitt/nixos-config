@@ -69,6 +69,7 @@ with epkgs; [
   org-variable-pitch
   ormolu
   ox-gfm
+  ox-pandoc
   pdf-tools
   pinentry
   posframe
