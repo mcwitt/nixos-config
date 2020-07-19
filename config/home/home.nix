@@ -9,11 +9,12 @@ in {
     [
       cachix
       graphviz
+      kaggle
       niv
-      nixfmt
       nix-info
       nix-prefetch-git
       nix-prefetch-github
+      nixfmt
       nodePackages.prettier
       pandoc
       shellcheck
