@@ -31,4 +31,14 @@ in {
     ormolu
     stack
   ]);
+  programs.vscode = {
+    extensions = with pkgs.vscode-extensions; [
+      alanz.vscode-hie-server
+      justusadam.language-haskell
+    ];
+    userSettings.languageServerHaskell = {
+      hieVariant = "ghcide";
+      formattingProvider = "ormolu";
+    };
+  };
 }

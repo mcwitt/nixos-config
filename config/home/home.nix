@@ -141,18 +141,10 @@ in {
 
   programs.vscode = {
     enable = true;
-    extensions = with pkgs.vscode-extensions; [
-      alanz.vscode-hie-server
-      justusadam.language-haskell
-      vscodevim.vim
-    ];
+    extensions = [ pkgs.vscode-extensions.vscodevim.vim ];
     userSettings = {
       update.mode = "none";
       extensions.autoUpdate = false;
-      languageServerHaskell = {
-        hieVariant = "ghcide";
-        formattingProvider = "ormolu";
-      };
       vim = {
         hlsearch = true;
         insertModeKeyBindings = [{
