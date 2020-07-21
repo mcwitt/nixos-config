@@ -8,6 +8,7 @@ in {
   home.packages = with pkgs;
     [
       cachix
+      dhall
       graphviz
       kaggle
       niv
@@ -15,6 +16,7 @@ in {
       nix-prefetch-git
       nix-prefetch-github
       nixfmt
+      nixops
       nodePackages.prettier
       pandoc
       shellcheck

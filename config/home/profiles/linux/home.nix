@@ -21,6 +21,9 @@ in {
     haskellPackages.xmobar
     orgProtocolDesktopItem
     signal-desktop
+    slack
+    steam
+    zoom-us
   ];
 
   programs.chromium.enable = true;
