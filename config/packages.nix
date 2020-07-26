@@ -5,6 +5,7 @@
     (aspellWithDicts (ds: [ ds.en ]))
     coreutils
     direnv
+    ffmpeg
     findutils
     fzf
     gawk
