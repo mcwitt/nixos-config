@@ -95,6 +95,8 @@ in {
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
 
+  programs.mpv.enable = true;
+
   programs.neovim = {
     enable = true;
     vimAlias = true;
