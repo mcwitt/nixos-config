@@ -14,6 +14,7 @@ let
       monad-loops
       mtl
       parsec
+      protolude
       split
       transformers
       vector
