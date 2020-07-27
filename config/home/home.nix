@@ -144,6 +144,11 @@ in {
     '';
   };
 
+  programs.starship = {
+    enable = true;
+    enableZshIntegration = true;
+  };
+
   programs.vscode = {
     enable = true;
     extensions = [ pkgs.vscode-extensions.vscodevim.vim ];
@@ -199,7 +204,6 @@ in {
       setopt HIST_IGNORE_SPACE
       source ${pkgs.zsh-syntax-highlighting}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
       source ${pkgs.zsh-history-substring-search}/share/zsh-history-substring-search/zsh-history-substring-search.zsh
-      source ${pkgs.zsh-git-prompt}/share/zsh-git-prompt/zshrc.sh
       PROMPT='%B%(?..[%?] )%b%n@%U%m%u$(git_super_status) %# '
       RPROMPT='%F{green}%~%f'
       bindkey fd vi-cmd-mode
