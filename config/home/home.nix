@@ -54,11 +54,13 @@ in {
 
   programs.direnv = {
     enable = true;
+    enableFishIntegration = true;
     enableZshIntegration = true;
   };
 
   programs.fzf = {
     enable = true;
+    enableFishIntegration = true;
     enableZshIntegration = true;
   };
 
@@ -148,6 +150,7 @@ in {
 
   programs.starship = {
     enable = true;
+    enableFishIntegration = true;
     enableZshIntegration = true;
   };
 
@@ -167,20 +170,8 @@ in {
     };
   };
 
-  programs.zsh = {
-
+  programs.fish = {
     enable = true;
-    enableCompletion = false;
-    enableAutosuggestions = true;
-    autocd = true;
-    defaultKeymap = "viins";
-
-    history = {
-      size = 50000;
-      save = 500000;
-      ignoreDups = true;
-      extended = true;
-    };
 
     shellAliases = {
       l = "${pkgs.coreutils}/bin/ls --color=auto -alh";
@@ -199,18 +190,16 @@ in {
       emacs = "${pkgs.mypkgs.emacs}/bin/emacsclient --create-frame";
     };
 
-    # fix invisible hints
-    sessionVariables.ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE = "fg=10";
+    functions = {
+      gitignore = "curl -sL https://www.gitignore.io/api/$argv";
+      fish_user_key_bindings = ''
+        fish_vi_key_bindings
+        bind -M insert -m default fd backward-char force-repaint
+      '';
+    };
 
-    initExtra = ''
-      setopt HIST_IGNORE_SPACE
-      source ${pkgs.zsh-syntax-highlighting}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-      source ${pkgs.zsh-history-substring-search}/share/zsh-history-substring-search/zsh-history-substring-search.zsh
-      PROMPT='%B%(?..[%?] )%b%n@%U%m%u$(git_super_status) %# '
-      RPROMPT='%F{green}%~%f'
-      bindkey fd vi-cmd-mode
-      bindkey -M vicmd 'k' history-substring-search-up
-      bindkey -M vicmd 'j' history-substring-search-down
+    interactiveShellInit = ''
+      set fish_key_bindings fish_user_key_bindings
     '';
   };
 }

@@ -9,8 +9,8 @@ let
 in {
   home.packages = [ python3Env ];
 
-  # HACK set JUPYTER_PATH and JUPYTERLAB in .zshenv
-  programs.zsh.envExtra = jupyterlab.env.shellHook;
+  # HACK set JUPYTER_PATH and JUPYTERLAB
+  programs.fish.loginShellInit = jupyterlab.env.shellHook;
 
   # HACK set JUPYTER_PATH and JUPYTERLAB for Emacs service,
   # which is run inside 'pkgs.runtimeShell'

@@ -5,12 +5,12 @@
 
   environment = {
     darwinConfig = "$HOME/.config/nixpkgs/darwin-configuration.nix";
-    shells = with pkgs; [ bashInteractive zsh ];
+    shells = with pkgs; [ bashInteractive fish zsh ];
   };
 
-  fonts.enableFontDir = true;
-
   environment.systemPackages = with pkgs; [ lorri mypkgs.emacs ];
+
+  fonts.enableFontDir = true;
 
   nix = {
     maxJobs = 8;
@@ -31,7 +31,7 @@
     enableVim = true;
   };
 
-  programs.zsh.enable = true;
+  programs.fish.enable = true;
 
   services.emacs = {
     enable = true;
@@ -49,6 +49,4 @@
   };
 
   system.defaults.NSGlobalDomain.ApplePressAndHoldEnabled = false;
-
-  users.users.matt.shell = pkgs.zsh;
 }

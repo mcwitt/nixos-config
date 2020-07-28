@@ -18,7 +18,7 @@
 
   fonts.fontconfig.dpi = 140;
 
-  programs.zsh.enable = true;
+  programs.fish.enable = true;
 
   programs.gnupg.agent.enable = true;
 
@@ -128,7 +128,7 @@
   users.users.matt = {
     isNormalUser = true;
     extraGroups = [ "wheel" "docker" ];
-    shell = pkgs.zsh;
+    shell = pkgs.fish;
   };
 
   virtualisation.docker = {

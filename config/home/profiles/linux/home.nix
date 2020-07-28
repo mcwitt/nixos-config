@@ -69,7 +69,7 @@ in {
 
   programs.zathura.enable = true;
 
-  programs.zsh.shellAliases.open = "${pkgs.xdg_utils}/bin/xdg-open";
+  programs.fish.shellAliases.open = "${pkgs.xdg_utils}/bin/xdg-open";
 
   services.emacs = {
     enable = true;
