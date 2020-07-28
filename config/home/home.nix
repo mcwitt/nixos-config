@@ -43,10 +43,12 @@ in {
   # changes in each release.
   home.stateVersion = "19.09";
 
-  nixpkgs = {
-    config.allowUnfree = true;
-    overlays = (import ../utils.nix).importOverlaysDir ../../overlays;
+  nixpkgs.config = {
+    allowBroken = true;
+    allowUnfree = true;
   };
+
+  nixpkgs.overlays = (import ../utils.nix).importOverlaysDir ../../overlays;
 
   programs.browserpass.enable = true;
 
