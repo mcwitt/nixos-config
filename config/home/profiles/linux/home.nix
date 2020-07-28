@@ -13,7 +13,7 @@ let
   };
 
 in {
-  imports = [ ../../home.nix ./org-notes-sync.nix ];
+  imports = [ ../../home.nix ./alacritty.nix ./org-notes-sync.nix ];
 
   home.packages = with pkgs; [
     anki
@@ -54,18 +54,6 @@ in {
 
   programs.password-store.package =
     pkgs.pass.withExtensions (exts: with exts; [ pass-update pass-otp ]);
-
-  programs.urxvt = {
-    enable = true;
-    extraConfig = {
-      # clickable URLs
-      perl-ext-common = "default,matcher";
-      url-launcher = "${pkgs.xdg_utils}/bin/xdg-open";
-      "matcher.button" = 1;
-    };
-    fonts = [ "xft:Fira Code:size=11" ];
-    scroll.bar.enable = false;
-  };
 
   programs.zathura.enable = true;
 
@@ -161,7 +149,7 @@ in {
           , focusedBorderColor = "#859900"
           , layoutHook         = myLayoutHook
           , modMask            = mod4Mask
-          , terminal           = "urxvt"
+          , terminal           = "alacritty"
           }
       '';
     };
