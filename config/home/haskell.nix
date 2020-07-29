@@ -11,7 +11,7 @@ in {
     cabal-fmt
     cabal-install
     ghcid
-    ghcide
+    haskell-language-server
     hlint
     ormolu
     stack
@@ -23,7 +23,7 @@ in {
       justusadam.language-haskell
     ];
     userSettings.languageServerHaskell = {
-      hieVariant = "ghcide";
+      hieVariant = "haskell-language-server";
       formattingProvider = "ormolu";
     };
   };
