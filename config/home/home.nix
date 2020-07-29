@@ -192,11 +192,11 @@ in {
     };
 
     functions = {
-      gitignore = "curl -sL https://www.gitignore.io/api/$argv";
       fish_user_key_bindings = ''
         fish_vi_key_bindings
         bind -M insert -m default fd backward-char force-repaint
       '';
+      gitignore = "curl -sL https://www.gitignore.io/api/$argv";
     };
 
     interactiveShellInit = ''
