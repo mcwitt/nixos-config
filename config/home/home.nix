@@ -1,6 +1,23 @@
 { config, pkgs, lib, ... }:
 
-let homeDir = builtins.getEnv "HOME";
+let
+  homeDir = builtins.getEnv "HOME";
+  shellAliases = {
+    l = "${pkgs.coreutils}/bin/ls --color=auto -alh";
+    ll = "${pkgs.coreutils}/bin/ls --color=auto -l";
+    ls = "${pkgs.coreutils}/bin/ls --color=auto";
+    rm = "${pkgs.coreutils}/bin/rm -i";
+    git = "${pkgs.gitAndTools.hub}/bin/hub";
+    g = "${pkgs.gitAndTools.hub}/bin/hub";
+    ga = "${pkgs.gitAndTools.git-annex}/bin/git-annex";
+    gb = "${pkgs.git}/bin/git b";
+    gd = "${pkgs.git}/bin/git d";
+    gds = "${pkgs.git}/bin/git ds";
+    gl = "${pkgs.git}/bin/git l";
+    gw = "${pkgs.git}/bin/git w";
+    ec = "${pkgs.mypkgs.emacs}/bin/emacsclient --tty";
+    emacs = "${pkgs.mypkgs.emacs}/bin/emacsclient --create-frame";
+  };
 in {
   imports =
     [ ./R.nix ./haskell.nix ./npm.nix ./python.nix ./scala.nix ./secrets.nix ];
@@ -56,6 +73,23 @@ in {
     enable = true;
     enableFishIntegration = true;
     enableZshIntegration = true;
+  };
+
+  programs.fish = {
+    enable = true;
+    inherit shellAliases;
+
+    functions = {
+      fish_user_key_bindings = ''
+        fish_vi_key_bindings
+        bind -M insert -m default fd backward-char force-repaint
+      '';
+      gitignore = "curl -sL https://www.gitignore.io/api/$argv";
+    };
+
+    interactiveShellInit = ''
+      set fish_key_bindings fish_user_key_bindings
+    '';
   };
 
   programs.fzf = {
@@ -171,36 +205,34 @@ in {
     };
   };
 
-  programs.fish = {
+  programs.zsh = {
     enable = true;
+    autocd = true;
+    defaultKeymap = "viins";
+    enableAutosuggestions = true;
+    enableCompletion = false;
 
-    shellAliases = {
-      l = "${pkgs.coreutils}/bin/ls --color=auto -alh";
-      ll = "${pkgs.coreutils}/bin/ls --color=auto -l";
-      ls = "${pkgs.coreutils}/bin/ls --color=auto";
-      rm = "${pkgs.coreutils}/bin/rm -i";
-      git = "${pkgs.gitAndTools.hub}/bin/hub";
-      g = "${pkgs.gitAndTools.hub}/bin/hub";
-      ga = "${pkgs.gitAndTools.git-annex}/bin/git-annex";
-      gb = "${pkgs.git}/bin/git b";
-      gd = "${pkgs.git}/bin/git d";
-      gds = "${pkgs.git}/bin/git ds";
-      gl = "${pkgs.git}/bin/git l";
-      gw = "${pkgs.git}/bin/git w";
-      ec = "${pkgs.mypkgs.emacs}/bin/emacsclient --tty";
-      emacs = "${pkgs.mypkgs.emacs}/bin/emacsclient --create-frame";
+    history = {
+      size = 50000;
+      save = 500000;
+      ignoreDups = true;
+      extended = true;
     };
 
-    functions = {
-      fish_user_key_bindings = ''
-        fish_vi_key_bindings
-        bind -M insert -m default fd backward-char force-repaint
-      '';
-      gitignore = "curl -sL https://www.gitignore.io/api/$argv";
-    };
+    inherit shellAliases;
 
-    interactiveShellInit = ''
-      set fish_key_bindings fish_user_key_bindings
+    # fix invisible hints
+    sessionVariables.ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE = "fg=10";
+
+    initExtra = ''
+      setopt HIST_IGNORE_SPACE
+      source ${pkgs.zsh-syntax-highlighting}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+      source ${pkgs.zsh-history-substring-search}/share/zsh-history-substring-search/zsh-history-substring-search.zsh
+      PROMPT='%B%(?..[%?] )%b%n@%U%m%u$(git_super_status) %# '
+      RPROMPT='%F{green}%~%f'
+      bindkey fd vi-cmd-mode
+      bindkey -M vicmd 'k' history-substring-search-up
+      bindkey -M vicmd 'j' history-substring-search-down
     '';
   };
 }
