@@ -5,7 +5,7 @@ let
   };
   # Use package set from 'jupyterlab.pkgs' for consistency with jupyterWith
   python3Env = jupyterlab.pkgs.python3.withPackages
-    (ps: with ps; [ black flake8 mypy jupyterlab ]);
+    (ps: (with ps; [ black flake8 mypy ]) ++ [ jupyterlab ]);
 in {
   home.packages = [ python3Env ];
 
