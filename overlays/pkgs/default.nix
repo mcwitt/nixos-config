@@ -1,6 +1,7 @@
 self: super:
-let
-  mypkgs = with { inherit (self) callPackage; }; {
+let inherit (self) callPackage;
+in {
+  mypkgs = {
     dotfiles = callPackage ./dotfiles.nix { };
     emacs = callPackage ./emacs.nix { };
     emacsPackages = callPackage ./emacs-packages.nix { };
@@ -10,4 +11,4 @@ let
     scripts = callPackage ./scripts { };
     sources = callPackage ./sources { };
   };
-in { inherit mypkgs; }
+}
