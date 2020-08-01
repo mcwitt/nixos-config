@@ -19,8 +19,15 @@ let
     emacs = "${pkgs.mypkgs.emacs}/bin/emacsclient --create-frame";
   };
 in {
-  imports =
-    [ ./R.nix ./haskell.nix ./npm.nix ./python.nix ./scala.nix ./secrets.nix ];
+  imports = [
+    ./R.nix
+    ./direnv.nix
+    ./haskell.nix
+    ./npm.nix
+    ./python.nix
+    ./scala.nix
+    ./secrets.nix
+  ];
 
   home.packages = with pkgs;
     [
@@ -68,12 +75,6 @@ in {
   nixpkgs.overlays = (import ../utils.nix).importOverlaysDir ../../overlays;
 
   programs.browserpass.enable = true;
-
-  programs.direnv = {
-    enable = true;
-    enableFishIntegration = true;
-    enableZshIntegration = true;
-  };
 
   programs.fish = {
     enable = true;
