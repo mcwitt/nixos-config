@@ -1,4 +1,4 @@
-{ ... }: {
+{ pkgs, ... }: {
   programs.alacritty = {
     enable = true;
 
@@ -50,4 +50,8 @@
       };
     };
   };
+
+  # work around "unknown terminal type" issue with ssh
+  programs.fish.shellAliases.ssh = "TERM=xterm-256color ${pkgs.openssh}/bin/ssh";
+  programs.zsh.shellAliases.ssh = "TERM=xterm-256color ${pkgs.openssh}/bin/ssh";
 }
