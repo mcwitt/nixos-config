@@ -18,7 +18,7 @@ in {
   home.packages = with pkgs; [
     anki
     dmenu
-    haskellPackages.xmobar
+    xmobar
     orgProtocolDesktopItem
     signal-desktop
     slack
