@@ -64,6 +64,8 @@ in {
     client.enable = true;
   };
 
+  services.flameshot.enable = true;
+
   services.gpg-agent = {
     enable = true;
     defaultCacheTtl = 14400; # 4 hours
