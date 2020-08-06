@@ -26,6 +26,7 @@
     nodejs
     openssh
     openssl
+    parallel
     perl
     python3
     ripgrep
