@@ -1,6 +1,7 @@
 { ... }:
 hsPkgs:
 with hsPkgs; [
+  MonadRandom
   aeson
   array
   cassava
