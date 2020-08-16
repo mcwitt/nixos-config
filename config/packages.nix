@@ -32,7 +32,6 @@
     ripgrep
     rsync
     ruby
-    rxvt_unicode
     sqlite
     texlive.combined.scheme-full
     time
