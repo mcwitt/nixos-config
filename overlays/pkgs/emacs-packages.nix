@@ -74,6 +74,7 @@ with epkgs; [
   pinentry
   posframe
   projectile
+  pyvenv
   rainbow-delimiters
   reformatter
   restclient
