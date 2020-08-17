@@ -73,10 +73,7 @@ in {
 
   programs.zsh.shellAliases = shellAliases;
 
-  services.emacs = {
-    enable = true;
-    client.enable = true;
-  };
+  services.emacs.enable = true;
 
   services.flameshot.enable = true;
 
