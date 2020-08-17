@@ -15,8 +15,8 @@ let
     gds = "${pkgs.git}/bin/git ds";
     gl = "${pkgs.git}/bin/git l";
     gw = "${pkgs.git}/bin/git w";
-    ec = "${pkgs.mypkgs.emacs}/bin/emacsclient --tty";
     emacs = "${pkgs.mypkgs.emacs}/bin/emacsclient --create-frame";
+    ec = "${pkgs.mypkgs.emacs}/bin/emacsclient --tty";
   };
 in {
   imports = [

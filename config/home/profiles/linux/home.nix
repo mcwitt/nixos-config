@@ -1,15 +1,25 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 let
+  emacs = config.programs.emacs.finalPackage;
+
   orgProtocolDesktopItem = pkgs.makeDesktopItem rec {
     name = "org-protocol";
     desktopName = name;
     mimeType = "x-scheme-handler/org-protocol";
-    exec = "${config.programs.emacs.finalPackage}/bin/emacsclient %u";
+    exec = "${emacs}/bin/emacsclient %u";
     icon = "emacs";
     type = "Application";
     terminal = "false";
     categories = "System";
+  };
+
+  shellAliases = {
+    # override aliases to use home-manager emacs
+    emacs = lib.mkForce "${emacs}/bin/emacsclient --create-frame";
+    ec = lib.mkForce "${emacs}/bin/emacsclient --tty";
+
+    open = "${pkgs.xdg_utils}/bin/xdg-open";
   };
 
 in {
@@ -25,6 +35,8 @@ in {
     steam
     zoom-us
   ];
+
+  home.sessionVariables.EDITOR = "${emacs}/bin/emacsclient --tty";
 
   programs.chromium.enable = true;
 
@@ -57,7 +69,9 @@ in {
 
   programs.zathura.enable = true;
 
-  programs.fish.shellAliases.open = "${pkgs.xdg_utils}/bin/xdg-open";
+  programs.fish.shellAliases = shellAliases;
+
+  programs.zsh.shellAliases = shellAliases;
 
   services.emacs = {
     enable = true;
