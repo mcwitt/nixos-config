@@ -85,11 +85,6 @@
 
   services.openssh.enable = true;
 
-  services.nixosManual = {
-    showManual = true;
-    ttyNumber = 8;
-  };
-
   services.printing = {
     enable = true;
     drivers = [ pkgs.brlaser ];
