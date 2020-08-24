@@ -44,6 +44,7 @@ in {
       nodePackages.prettier
       pandoc
       shellcheck
+      shfmt
     ] ++ (with gitAndTools; [ git-annex git-crypt git-remote-gcrypt hub ])
     ++ (with mypkgs; [ scripts ]);
 
