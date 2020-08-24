@@ -7,6 +7,7 @@
     coreutils
     direnv
     ffmpeg
+    file
     findutils
     fzf
     gawk
