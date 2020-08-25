@@ -28,11 +28,12 @@ in {
   home.packages = with pkgs; [
     anki
     dmenu
-    xmobar
+    factorio
     orgProtocolDesktopItem
     signal-desktop
     slack
     steam
+    xmobar
     zoom-us
   ];
 
