@@ -29,6 +29,7 @@ in {
     anki
     dmenu
     factorio
+    libnotify
     orgProtocolDesktopItem
     signal-desktop
     slack
@@ -73,6 +74,8 @@ in {
   programs.fish.shellAliases = shellAliases;
 
   programs.zsh.shellAliases = shellAliases;
+
+  services.dunst.enable = true;
 
   services.emacs.enable = true;
 
