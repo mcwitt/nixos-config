@@ -195,12 +195,13 @@ in {
     enable = true;
     extensions = [ pkgs.vscode-extensions.vscodevim.vim ];
     userSettings = {
+      update.mode = "none";
+      extensions.autoUpdate = false;
+      workbench.colorTheme = "Solarized Dark";
       editor = {
         fontFamily = "'Fira Code'";
         fontLigatures = true;
       };
-      update.mode = "none";
-      extensions.autoUpdate = false;
       vim = {
         hlsearch = true;
         insertModeKeyBindings = [{
