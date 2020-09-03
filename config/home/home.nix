@@ -195,6 +195,10 @@ in {
     enable = true;
     extensions = [ pkgs.vscode-extensions.vscodevim.vim ];
     userSettings = {
+      editor = {
+        fontFamily = "'Fira Code'";
+        fontLigatures = true;
+      };
       update.mode = "none";
       extensions.autoUpdate = false;
       vim = {
