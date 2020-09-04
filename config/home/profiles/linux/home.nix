@@ -36,6 +36,7 @@ in {
     steam
     xmobar
     zoom-us
+    zulip
   ];
 
   home.sessionVariables.EDITOR = "${emacs}/bin/emacsclient --tty";
