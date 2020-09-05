@@ -21,6 +21,7 @@ with epkgs; [
   dhall-mode
   direnv
   doom-themes
+  edit-indirect
   erc-hl-nicks
   erc-image
   ess

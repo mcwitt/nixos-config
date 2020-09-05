@@ -42,10 +42,10 @@
         "homepage": null,
         "owner": "mcwitt",
         "repo": "dotfiles",
-        "rev": "81a07da9f2ae3d588953650aa59d28899bedb9ed",
-        "sha256": "1mdnal9mflrm4vmimp3282i5200k3rljkxplh6jcpmrr4kvd23z4",
+        "rev": "c363a6359beef6fb2d80a257997069c677a9ef1e",
+        "sha256": "011h9rix3rmd6h3mxiaz5zr26ks4cvlnl32h89xqyzsbp1lwc4b7",
         "type": "tarball",
-        "url": "https://github.com/mcwitt/dotfiles/archive/81a07da9f2ae3d588953650aa59d28899bedb9ed.tar.gz",
+        "url": "https://github.com/mcwitt/dotfiles/archive/c363a6359beef6fb2d80a257997069c677a9ef1e.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "niv": {
