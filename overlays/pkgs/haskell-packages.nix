@@ -14,7 +14,6 @@ with hsPkgs; [
   hmatrix
   hspec
   hvega
-  ihaskell-hvega
   lens
   linear
   monad-bayes
