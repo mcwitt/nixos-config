@@ -2,7 +2,7 @@
 
 let
   ghcEnv =
-    pkgs.haskell.packages.ghc883.ghcWithHoogle pkgs.mypkgs.myHaskellPackages;
+    pkgs.haskellPackages.ghcWithHoogle pkgs.mypkgs.myHaskellPackages;
 
 in {
   home.packages = [ ghcEnv ] ++ (with pkgs.haskellPackages; [
