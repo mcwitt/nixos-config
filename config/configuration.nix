@@ -6,7 +6,6 @@
     ./hardware-configuration.nix
     ./fonts.nix
     ./packages.nix
-    ./secrets.nix
   ];
 
   # Use the systemd-boot EFI boot loader.
@@ -64,11 +63,7 @@
 
   networking = {
     hostName = "golem";
-    wireless.enable = true;
-    interfaces = {
-      enp0s31f6.useDHCP = true;
-      wlp4s0.useDHCP = true;
-    };
+    interfaces.enp0s31f6.useDHCP = true;
   };
 
   nix.trustedUsers = [ "root" "@wheel" "matt" ];
