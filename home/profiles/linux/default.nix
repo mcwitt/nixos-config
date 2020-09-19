@@ -23,7 +23,7 @@ let
   };
 
 in {
-  imports = [ ../../home.nix ./alacritty.nix ./org-notes-sync.nix ];
+  imports = [ ../.. ./alacritty.nix ./org-notes-sync.nix ];
 
   home.packages = with pkgs; [
     anki

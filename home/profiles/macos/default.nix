@@ -1,7 +1,7 @@
 { config, pkgs, ... }:
 let homeDir = builtins.getEnv "HOME";
 in {
-  imports = [ ../../home.nix ];
+  imports = [ ../.. ];
 
   # HACK fix for darwin/fish PATH ordering; see https://github.com/LnL7/nix-darwin/issues/122
   programs.fish.shellInit = ''

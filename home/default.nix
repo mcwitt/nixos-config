@@ -73,7 +73,7 @@ in {
     allowUnfree = true;
   };
 
-  nixpkgs.overlays = (import ../utils.nix).importOverlaysDir ../../overlays;
+  nixpkgs.overlays = (import ../utils.nix).importOverlaysDir ../overlays;
 
   programs.browserpass.enable = true;
 

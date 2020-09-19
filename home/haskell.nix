@@ -1,8 +1,6 @@
 { pkgs, ... }:
 
-let
-  ghcEnv =
-    pkgs.haskellPackages.ghcWithHoogle pkgs.mypkgs.myHaskellPackages;
+let ghcEnv = pkgs.haskellPackages.ghcWithHoogle pkgs.mypkgs.myHaskellPackages;
 
 in {
   home.packages = [ ghcEnv ] ++ (with pkgs.haskellPackages; [
