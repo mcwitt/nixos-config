@@ -7,33 +7,30 @@ Personal NixOS configurations and nixpkgs overlays.
 ### General
 
 1. If you are not on NixOS, ensure that the [Nix][nixos] package manager is installed.
-2. Clone this repo locally
+2. Clone this repo into `~/.config/nixpkgs`
 
     ``` sh
-    git clone git@github.com:mcwitt/nix-config.git
+    git clone git@github.com:mcwitt/nix-config.git ~/.config/nixpkgs
     ```
 
 3. Ensure [home-manager][] is installed.
-4. Symlink [config/home/home.nix](/config/home/home.nix) into `~/.config/nixpkgs/`
 
-    ``` sh
-    ln -s $(pwd)/nix-config/config/home/home.nix ~/.config/nixpkgs/home.nix
-    ```
+4. Edit `~/.config/nixpkgs/home.nix` to source the desired home-manager profile
 
-5. Build and switch to the home-manager configuration
+4. Build and switch to the home-manager configuration
 
     ``` sh
     home-manager switch
     ```
 
-6. Follow OS-specific instructions below
+5. Follow OS-specific instructions below
 
 ### NixOS
 
 1. Symlink [config/configuration.nix](/config/configuration.nix) into `/etc/nixos/`
 
     ``` sh
-    ln -s $(pwd)/nix-config/config/configuration.nix /etc/nixos/configuration.nix
+    ln -s ~/.config/nixpkgs/nixos/configuration.nix /etc/nixos/
     ```
 
 2. Build and switch to the NixOS configuration
@@ -42,33 +39,16 @@ Personal NixOS configurations and nixpkgs overlays.
     sudo nixos-rebuild switch
     ```
 
-### macOS
-
-1. Ensure [nix-darwin][] is installed.
-2. Symlink [config/darwin-configuration.nix](/config/darwin-configuration.nix) into `~/.config/nixpkgs/`
-
-    ``` sh
-    ln -s $(pwd)/nix-config/config/darwin-configuration.nix ~/.config/nixpkgs/darwin-configuration.nix
-    ```
-
-3. Build and switch to the nix-darwin configuration
-
-    ``` sh
-    darwin-rebuild switch
-    ```
-
 
 ## Description of contents
 
 ### Configuration modules
 
-- **`config/configuration.nix`**: [NixOS][nixos] configuration. Typically symlinked into `/etc/nixos/`.
+- **`configuration.nix`**: [NixOS][nixos] configuration. Typically symlinked into `/etc/nixos/`.
 
-- **`config/darwin-configuration.nix`**: [nix-darwin][] configuration. This is similar to `configuration.nix` on NixOS and provides declarative configuration for darwin. Typically symlinked into `~/.config/nixpkgs/`.
+- **`darwin-configuration.nix`**: [nix-darwin][] configuration. This is similar to `configuration.nix` on NixOS and provides declarative configuration for darwin. Typically symlinked into `~/.config/nixpkgs/`.
 
-- **`config/home/home.nix`**: [home-manager][] configuration. This is for user-specific configuration and dotfiles. Typically symlinked into `~/.config/nixpkgs`.
-
-`config/` also contains shared modules that are imported into multiple configurations (e.g. `config/packages.nix`).
+- **`home.nix`**: [home-manager][] configuration. This is for user-specific configuration and dotfiles. Typically symlinked into `~/.config/nixpkgs`.
 
 ### Overlays
 
