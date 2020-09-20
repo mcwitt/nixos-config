@@ -46,6 +46,7 @@
     autohide = true;
     launchanim = false;
     orientation = "left";
+    tilesize = 48;
   };
 
   system.defaults.NSGlobalDomain.ApplePressAndHoldEnabled = false;
