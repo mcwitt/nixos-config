@@ -5,10 +5,10 @@
         "homepage": "",
         "owner": "nix-community",
         "repo": "emacs-overlay",
-        "rev": "b54683faaa9f757b39cccc9644d85e03519b0b95",
-        "sha256": "0rjxbs5nyqj0hq0l34cpqqyxmr4sn40k867n2dsya9yn4y1y0lf9",
+        "rev": "cb83d07f3a4e6e09b055b0f9b05dbfe8a725905b",
+        "sha256": "0d20sh29mhwg935x4jfjkhnv58rrwzz2n5l8rnhd8q0x4yhjxv5f",
         "type": "tarball",
-        "url": "https://github.com/nix-community/emacs-overlay/archive/b54683faaa9f757b39cccc9644d85e03519b0b95.tar.gz",
+        "url": "https://github.com/nix-community/emacs-overlay/archive/cb83d07f3a4e6e09b055b0f9b05dbfe8a725905b.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "github-gitignore": {
@@ -29,10 +29,10 @@
         "homepage": "",
         "owner": "tweag",
         "repo": "jupyterWith",
-        "rev": "48bd88ac0acb4aaa841debe5fb201c297f374101",
-        "sha256": "0i9qa28dqc8n840jc0bccrnqfavfc6ck17137fr9wmacckvaznh4",
+        "rev": "c7bed60e5c23d92357adad37b47da4de030eb89a",
+        "sha256": "0waiyymnfvjq1jj7p19iwv854x3rham95zdr5ksvbs5ji7igxbvp",
         "type": "tarball",
-        "url": "https://github.com/tweag/jupyterWith/archive/48bd88ac0acb4aaa841debe5fb201c297f374101.tar.gz",
+        "url": "https://github.com/tweag/jupyterWith/archive/c7bed60e5c23d92357adad37b47da4de030eb89a.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz",
         "version": "247764735993e604c1748751a95b68ab3e3ee5eb"
     },
@@ -54,10 +54,10 @@
         "homepage": "https://github.com/nmattia/niv",
         "owner": "nmattia",
         "repo": "niv",
-        "rev": "dd13098d01eaa6be68237e7e38f96782b0480755",
-        "sha256": "1cfjdbsn0219fjzam1k7nqzkz8fb1ypab50rhyj026qbklqq2kvq",
+        "rev": "29ddaaf4e099c3ac0647f5b652469dfc79cd3b53",
+        "sha256": "1va6myp07gkspgxfch8z3rs9nyvys6jmgzkys6a2c4j09qxp1bs0",
         "type": "tarball",
-        "url": "https://github.com/nmattia/niv/archive/dd13098d01eaa6be68237e7e38f96782b0480755.tar.gz",
+        "url": "https://github.com/nmattia/niv/archive/29ddaaf4e099c3ac0647f5b652469dfc79cd3b53.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs": {
@@ -78,10 +78,10 @@
         "homepage": "",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "cef4d5a491388a63f42af92787fc38e0def48e96",
-        "sha256": "1gcsq4z4bh1c72s1ckxk95ind4n8iw0zlfbj17z6i61xdqq158a5",
+        "rev": "c9a925cac666c11be9a240973254c0fdfa2bf1b0",
+        "sha256": "1h97y53afwwrdmd0129gdk1w8hrq9ng7z31dih4wmb7fyhjc10s7",
         "type": "tarball",
-        "url": "https://github.com/nix-community/NUR/archive/cef4d5a491388a63f42af92787fc38e0def48e96.tar.gz",
+        "url": "https://github.com/nix-community/NUR/archive/c9a925cac666c11be9a240973254c0fdfa2bf1b0.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "solarized": {
