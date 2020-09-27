@@ -4,14 +4,14 @@ let
   inherit (self.vscode-utils) buildVscodeMarketplaceExtension;
 in {
   vscode-extensions = super.vscode-extensions // {
-    alanz.vscode-hie-server = buildVscodeMarketplaceExtension {
+    haskell.haskell = buildVscodeMarketplaceExtension {
       mktplcRef = {
-        name = "vscode-hie-server";
-        publisher = "alanz";
-        version = "0.0.40";
-        sha256 = "1cmlgidjma41s5zq5161gcxxmk5lfzcm8dvznls04y5l7q9b0gca";
+        name = "haskell";
+        publisher = "haskell";
+        version = "1.1.0";
+        sha256 = "1wg06lyk0qn9jd6gi007sg7v0z9z8gwq7x2449d4ihs9n3w5l0gb";
       };
-      meta = { license = stdenv.lib.licenses.mit; };
+      meta = with stdenv.lib; { license = licenses.mit; };
     };
   };
 }

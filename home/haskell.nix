@@ -16,7 +16,7 @@ in {
 
   programs.vscode = {
     extensions = with pkgs.vscode-extensions; [
-      alanz.vscode-hie-server
+      haskell.haskell
       justusadam.language-haskell
     ];
     userSettings.languageServerHaskell = {
