@@ -20,6 +20,7 @@ with epkgs; [
   delight
   dhall-mode
   direnv
+  dockerfile-mode
   doom-themes
   edit-indirect
   erc-hl-nicks
