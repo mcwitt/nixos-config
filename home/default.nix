@@ -3,10 +3,12 @@
 let
   homeDir = builtins.getEnv "HOME";
   shellAliases = {
+    cdr = ''cd "$(${pkgs.git}/bin/git rev-parse --show-toplevel)"'';
+    ec = "${pkgs.mypkgs.emacs}/bin/emacsclient --tty";
+    emacs = "${pkgs.mypkgs.emacs}/bin/emacsclient --create-frame";
     l = "${pkgs.coreutils}/bin/ls --color=auto -alh";
     ll = "${pkgs.coreutils}/bin/ls --color=auto -l";
     ls = "${pkgs.coreutils}/bin/ls --color=auto";
-    rm = "${pkgs.coreutils}/bin/rm -i";
     git = "${pkgs.gitAndTools.hub}/bin/hub";
     g = "${pkgs.gitAndTools.hub}/bin/hub";
     ga = "${pkgs.gitAndTools.git-annex}/bin/git-annex";
@@ -15,8 +17,7 @@ let
     gds = "${pkgs.git}/bin/git ds";
     gl = "${pkgs.git}/bin/git l";
     gw = "${pkgs.git}/bin/git w";
-    emacs = "${pkgs.mypkgs.emacs}/bin/emacsclient --create-frame";
-    ec = "${pkgs.mypkgs.emacs}/bin/emacsclient --tty";
+    rm = "${pkgs.coreutils}/bin/rm -i";
   };
 in {
   imports = [
@@ -79,7 +80,9 @@ in {
 
   programs.fish = {
     enable = true;
-    inherit shellAliases;
+    shellAliases = shellAliases // {
+      cdr = "cd (${pkgs.git}/bin/git rev-parse --show-toplevel)";
+    };
 
     functions = {
       fish_user_key_bindings = ''
@@ -110,6 +113,7 @@ in {
       co = "checkout";
       d = "diff HEAD";
       ds = "diff --staged";
+      exec = "!exec ";
       ri = "rebase --interactive";
       su = "submodule update --init --recursive";
       w = "status -sb";
