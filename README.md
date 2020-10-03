@@ -15,12 +15,18 @@ Personal NixOS configurations and nixpkgs overlays.
 
 3. Ensure [home-manager][] is installed.
 
-4. Edit `~/.config/nixpkgs/home.nix` to source the desired home-manager profile
+4. Symlink the desired home-manager configuration (and nix-darwin configuration, if on macOS)
+    ``` sh
+    cd ~/.config/nixpkgs
+    ln -s machines/mbp-2015/home.nix .
+    ln -s machines/mbp-2015/darwin-configuration.nix .  # only on macOS
+    ```
 
-4. Build and switch to the home-manager configuration
+4. Build and switch to the home-manager configuration (and nix-darwin configuration, if on macOS)
 
     ``` sh
     home-manager switch
+    darwin-rebuild switch  # only on macOS
     ```
 
 5. Follow OS-specific instructions below
