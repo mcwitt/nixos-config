@@ -9,6 +9,6 @@ in {
     jupyterlab = callPackage ./jupyterlab { };
     myHaskellPackages = callPackage ./haskell-packages.nix { };
     scripts = callPackage ./scripts { };
-    sources = callPackage ./sources { };
+    sources = import ../../nix/sources.nix;
   };
 }
