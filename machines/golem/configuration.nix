@@ -1,7 +1,9 @@
 { pkgs, ... }:
 
-{
+let sources = import ../../nix/sources.nix;
+in {
   imports = [
+    "${sources.nix-config-safegraph}/machines/golem/configuration.nix"
     /etc/nixos/hardware-configuration.nix
     ../../fonts.nix
     ../../packages.nix

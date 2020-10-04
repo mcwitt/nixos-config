@@ -60,6 +60,12 @@
         "url": "https://github.com/nmattia/niv/archive/29ddaaf4e099c3ac0647f5b652469dfc79cd3b53.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
+    "nix-config-safegraph": {
+        "branch": "master",
+        "repo": "git@github.com:mcwitt/nix-config-safegraph",
+        "rev": "a23bbb5f34cd195a9d320af8a9668e4f607fd78f",
+        "type": "git"
+    },
     "nixpkgs": {
         "branch": "nixos-19.09",
         "description": "A read-only mirror of NixOS/nixpkgs tracking the released channels. Send issues and PRs to",
