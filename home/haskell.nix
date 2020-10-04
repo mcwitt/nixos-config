@@ -9,7 +9,8 @@ in {
     cabal-fmt
     cabal-install
     ghcid
-    haskell-language-server
+    ghcide
+    hlint
     ormolu
     stack
   ]);
