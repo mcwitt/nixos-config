@@ -2,10 +2,10 @@
 
 {
   imports = [
+    /etc/nixos/hardware-configuration.nix
     ../../fonts.nix
     ../../packages.nix
     ./cuda.nix
-    ./hardware-configuration.nix
   ];
 
   # Use the systemd-boot EFI boot loader.
