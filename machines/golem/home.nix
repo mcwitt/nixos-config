@@ -41,7 +41,16 @@ in {
 
   home.sessionVariables.EDITOR = "${emacs}/bin/emacsclient --tty";
 
-  programs.chromium.enable = true;
+  programs.chromium = {
+    enable = true;
+    extensions = [
+      "naepdomgkenhinolocfifgehidddafch" # Browserpass
+      "gcbommkclmclpchllfjekcdonpmejbdp" # HTTPS Everywhere
+      "pkehgijcmpdhfbdbbnkijodmdjhbjlgp" # Privacy Badger
+      "cjpalhdlnbpafiamejdnhcphjbkeiagm" # uBlock Origin
+      "dbepggeogbaibhgnhhndojpepiihcmeb" # Vimium
+    ];
+  };
 
   programs.emacs = {
     enable = true;
