@@ -20,7 +20,7 @@
 
   nixpkgs = {
     config.allowUnfree = true;
-    overlays = (import ./utils.nix).importOverlaysDir ./overlays;
+    overlays = import ./overlays;
   };
 
   programs.gnupg.agent.enable = true;

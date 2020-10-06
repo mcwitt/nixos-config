@@ -1,7 +1,4 @@
-{ pkgs, ... }:
-
-let sources = import ./nix/sources.nix;
-in {
+{ pkgs, ... }: {
   imports = [ ./fonts.nix ./packages.nix ./cuda.nix ];
 
   # Use the systemd-boot EFI boot loader.
@@ -66,7 +63,7 @@ in {
 
   nixpkgs = {
     config.allowUnfree = true;
-    overlays = (import ./utils.nix).importOverlaysDir ./overlays;
+    overlays = import ./overlays;
   };
 
   services.avahi = {
