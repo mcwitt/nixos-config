@@ -11,6 +11,18 @@
         "url": "https://github.com/nix-community/emacs-overlay/archive/5a1e744baf9b19f9933c397831c6dc9135b2faab.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
+    "fish-kubectl-completions": {
+        "branch": "master",
+        "description": "kubectl completions for fish shell",
+        "homepage": "",
+        "owner": "evanlucas",
+        "repo": "fish-kubectl-completions",
+        "rev": "9a8383a0f4ed2315869b9fcd0f85039a323872a2",
+        "sha256": "0ilxkrgd5rlqgzhhhl9hmaklxxrn93di9w4wkmscyx6jz4fkgi40",
+        "type": "tarball",
+        "url": "https://github.com/evanlucas/fish-kubectl-completions/archive/9a8383a0f4ed2315869b9fcd0f85039a323872a2.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "github-gitignore": {
         "branch": "master",
         "description": "A collection of useful .gitignore templates",

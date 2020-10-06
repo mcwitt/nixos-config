@@ -24,6 +24,7 @@ in {
     ./R.nix
     ./direnv.nix
     ./haskell.nix
+    ./kubectl.nix
     ./npm.nix
     ./python.nix
     ./scala.nix
