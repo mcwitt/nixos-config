@@ -136,12 +136,12 @@ in {
         "image/x-portable-pixmap" = [ "feh.desktop" ];
         "image/x-tga" = [ "feh.desktop" ];
         "image/x-xbitmap" = [ "feh.desktop" ];
-        "text/html" = [ "firefox.desktop" ];
-        "x-scheme-handler/http" = [ "firefox.desktop" ];
-        "x-scheme-handler/https" = [ "firefox.desktop" ];
-        "x-scheme-handler/ftp" = [ "firefox.desktop" ];
-        "x-scheme-handler/about" = [ "firefox.desktop" ];
-        "x-scheme-handler/unknown" = [ "firefox.desktop" ];
+        "text/html" = [ "chromium-browser.desktop" ];
+        "x-scheme-handler/http" = [ "chromium-browser.desktop" ];
+        "x-scheme-handler/https" = [ "chromium-browser.desktop" ];
+        "x-scheme-handler/ftp" = [ "chromium-browser.desktop" ];
+        "x-scheme-handler/about" = [ "chromium-browser.desktop" ];
+        "x-scheme-handler/unknown" = [ "chromium-browser.desktop" ];
       };
     };
   };
