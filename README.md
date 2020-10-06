@@ -68,7 +68,7 @@ Personal NixOS configurations and nixpkgs overlays.
 
 ### Custom derivations
 
-Custom derivations are kept in [`overlays/overlays.d/pkgs`](`overlays/overlays.d/pkgs`). Each derivation should have a corresponding entry in [`overlays/overlays.d/pkgs/default.nix`](overlays/overlays.d/pkgs/default.nix); this ensures that it will be available from configuration modules via the attribute path `pkgs.mypkgs`.
+Custom derivations are kept in [`overlays/overlays.d/pkgs`](overlays/overlays.d/pkgs). Each derivation should have a corresponding entry in [`overlays/overlays.d/pkgs/default.nix`](overlays/overlays.d/pkgs/default.nix); this ensures that it will be available from configuration modules via the attribute path `pkgs.mypkgs`.
 
 [jwiegley-nix-config]: https://github.com/jwiegley/nix-config
 [nixos]: https://nixos.org
