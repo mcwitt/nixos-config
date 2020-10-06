@@ -1,7 +1,7 @@
 { config, pkgs, ... }:
 
 {
-  imports = [ ../../fonts.nix ../../packages.nix ];
+  imports = [ ./fonts.nix ./packages.nix ];
 
   environment = {
     darwinConfig = "$HOME/.config/nixpkgs/darwin-configuration.nix";
@@ -20,7 +20,7 @@
 
   nixpkgs = {
     config.allowUnfree = true;
-    overlays = (import ../../utils.nix).importOverlaysDir ../../overlays;
+    overlays = (import ./utils.nix).importOverlaysDir ./overlays;
   };
 
   programs.gnupg.agent.enable = true;

@@ -23,7 +23,7 @@ let
   };
 
 in {
-  imports = [ ../../home ./alacritty.nix ./org-notes-sync.nix ];
+  imports = [ ../../home.nix ./alacritty.nix ./org-notes-sync.nix ];
 
   home.packages = with pkgs; [
     anki
@@ -74,14 +74,14 @@ in {
     };
   };
 
+  programs.fish.shellAliases = shellAliases;
+
   programs.git.ignores = pkgs.mypkgs.gitignore.ghGitIgnoreLines "Global/Linux";
 
   programs.password-store.package =
     pkgs.pass.withExtensions (exts: with exts; [ pass-update pass-otp ]);
 
   programs.zathura.enable = true;
-
-  programs.fish.shellAliases = shellAliases;
 
   programs.zsh.shellAliases = shellAliases;
 
