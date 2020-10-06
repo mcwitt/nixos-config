@@ -47,6 +47,8 @@ with epkgs; [
   ivy-bibtex
   json-mode
   jupyter
+  kubernetes
+  kubernetes-evil
   logview
   lsp-haskell
   lsp-ivy
