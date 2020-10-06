@@ -38,9 +38,10 @@ in {
             (with pkgs; [ findutils git gitAndTools.git-annex openssh ]);
         in [ "PATH=${paths}" ];
         ExecStart = toString (pkgs.writeShellScript "org-notes-sync" ''
-          cd ${cfg.repoPath} \
-          && ${pkgs.gitAndTools.git-annex}/bin/git-annex add . \
-          && ${pkgs.gitAndTools.git-annex}/bin/git-annex sync --content
+          set -eo pipefail
+          cd ${cfg.repoPath}
+          ${pkgs.gitAndTools.git-annex}/bin/git-annex add .
+          ${pkgs.gitAndTools.git-annex}/bin/git-annex sync --content
         '');
       };
     };
