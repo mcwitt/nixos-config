@@ -93,6 +93,7 @@ with epkgs; [
   treemacs-icons-dired
   treemacs-magit
   treemacs-projectile
+  undo-tree
   use-package
   which-key
   yaml-mode
