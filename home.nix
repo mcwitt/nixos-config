@@ -33,7 +33,9 @@ in {
 
   home.packages = with pkgs;
     [
+      awscli2
       cachix
+      csvkit
       dhall
       graphviz
       kaggle

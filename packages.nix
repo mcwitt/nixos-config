@@ -17,6 +17,7 @@
     gnupg
     gnused
     gnutar
+    groff
     gzip
     htop
     imagemagick
