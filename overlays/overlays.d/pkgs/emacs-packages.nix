@@ -87,6 +87,7 @@ with epkgs; [
   scala-mode
   smartparens
   sql-indent
+  terraform-mode
   treemacs
   treemacs-evil
   treemacs-icons-dired
