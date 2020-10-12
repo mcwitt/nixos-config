@@ -40,6 +40,7 @@ with epkgs; [
   format-all
   general
   gist
+  go-mode
   haskell-mode
   haskell-snippets
   hl-todo
