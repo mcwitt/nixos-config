@@ -30,6 +30,7 @@
     openssl
     parallel
     perl
+    postgresql
     python3
     ripgrep
     rsync
