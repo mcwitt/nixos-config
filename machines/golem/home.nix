@@ -45,6 +45,7 @@ in {
     enable = true;
     extensions = [
       "naepdomgkenhinolocfifgehidddafch" # Browserpass
+      "eimadpbcbfnmbkopoojfekhnkhdbieeh" # Dark Reader
       "gcbommkclmclpchllfjekcdonpmejbdp" # HTTPS Everywhere
       "pkehgijcmpdhfbdbbnkijodmdjhbjlgp" # Privacy Badger
       "cjpalhdlnbpafiamejdnhcphjbkeiagm" # uBlock Origin
@@ -64,6 +65,7 @@ in {
     enable = true;
     extensions = with pkgs.nur.repos.rycee.firefox-addons; [
       browserpass
+      darkreader
       https-everywhere
       privacy-badger
       ublock-origin

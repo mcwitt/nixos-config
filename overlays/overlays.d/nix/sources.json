@@ -54,10 +54,10 @@
         "homepage": null,
         "owner": "mcwitt",
         "repo": "dotfiles",
-        "rev": "93e11f4cc1f634a4ff1a37eba5d9ef313f7300a4",
-        "sha256": "1djb28w1j4sb3nrpp8i6ilxr4m0lrcirazf97z7xmbcw5j5dbc71",
+        "rev": "91a3a84dd00de8307542d2a808bb750fe7602ab1",
+        "sha256": "0a5si45vm8ga28rl8q3lb1brpz5zxfrhzfr4zgqg697bnz1irzxi",
         "type": "tarball",
-        "url": "https://github.com/mcwitt/dotfiles/archive/93e11f4cc1f634a4ff1a37eba5d9ef313f7300a4.tar.gz",
+        "url": "https://github.com/mcwitt/dotfiles/archive/91a3a84dd00de8307542d2a808bb750fe7602ab1.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "niv": {
@@ -110,15 +110,15 @@
         "version": "62f656a02f93c5190a8753159e34b385588d5ff3"
     },
     "xmonad-config": {
-        "branch": "master",
+        "branch": "dev",
         "description": null,
         "homepage": "",
         "owner": "mcwitt",
         "repo": "xmonad-config",
-        "rev": "e0fb74f61accb6f16b90f24e296e36b2990a93ad",
-        "sha256": "0cqmdgkmyf0dc7j7dnxfp9rxfgc2dsqg50r0lsl8a6rd8aqkgmv3",
+        "rev": "dda4a911f422ae584b5bdb3b5add8d78686b7f1f",
+        "sha256": "0jqpkjq1wlrksfnysrr0pz7q7y8llw64rwncn4bc87d9fpc0my14",
         "type": "tarball",
-        "url": "https://github.com/mcwitt/xmonad-config/archive/e0fb74f61accb6f16b90f24e296e36b2990a93ad.tar.gz",
+        "url": "https://github.com/mcwitt/xmonad-config/archive/dda4a911f422ae584b5bdb3b5add8d78686b7f1f.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }
