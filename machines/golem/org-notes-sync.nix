@@ -39,6 +39,8 @@ in {
         in [ "PATH=${paths}" ];
         ExecStart = toString (pkgs.writeShellScript "org-notes-sync" ''
           set -eo pipefail
+          export AWS_ACCESS_KEY_ID=$(${pkgs.awscli2}/bin/aws configure get default.aws_access_key_id)
+          export AWS_SECRET_ACCESS_KEY=$(${pkgs.awscli2}/bin/aws configure get default.aws_secret_access_key)
           cd ${cfg.repoPath}
           ${pkgs.gitAndTools.git-annex}/bin/git-annex add .
           ${pkgs.gitAndTools.git-annex}/bin/git-annex sync --content
