@@ -48,6 +48,7 @@ in {
       nixops
       nodePackages.prettier
       pandoc
+      peek
       shellcheck
       shfmt
     ] ++ (with gitAndTools; [ git-annex git-crypt git-remote-gcrypt hub ])
