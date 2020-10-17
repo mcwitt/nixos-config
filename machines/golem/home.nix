@@ -31,6 +31,7 @@ in {
     factorio
     libnotify
     orgProtocolDesktopItem
+    peek
     signal-desktop
     slack
     steam
