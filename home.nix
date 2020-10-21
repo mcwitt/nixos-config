@@ -23,6 +23,7 @@ let
 in {
   imports = [
     ./R.nix
+    ./dhall.nix
     ./direnv.nix
     ./haskell.nix
     ./kubectl.nix
@@ -37,7 +38,6 @@ in {
       awscli2
       cachix
       csvkit
-      dhall
       graphviz
       kaggle
       niv
