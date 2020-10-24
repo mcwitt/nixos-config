@@ -46,6 +46,7 @@ with epkgs; [
   hl-todo
   ivy
   ivy-bibtex
+  ivy-pass
   json-mode
   jupyter
   kubernetes
@@ -75,6 +76,8 @@ with epkgs; [
   ormolu
   ox-gfm
   ox-pandoc
+  password-store
+  password-store-otp
   pdf-tools
   pinentry
   posframe
