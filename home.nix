@@ -135,6 +135,7 @@ in {
     };
     extraConfig = {
       gitHub.user = "mcwitt";
+      merge.conflictStyle = "diff3";
       pull.rebase = true;
     };
     delta.enable = true;
