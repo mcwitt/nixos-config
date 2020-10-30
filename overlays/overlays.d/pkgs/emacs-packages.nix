@@ -36,11 +36,13 @@ with epkgs; [
   exec-path-from-shell
   fira-code-mode
   flycheck
+  flycheck-gradle
   flycheck-haskell
   format-all
   general
   gist
   go-mode
+  groovy-mode
   haskell-mode
   haskell-snippets
   hl-todo
