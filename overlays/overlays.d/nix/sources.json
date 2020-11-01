@@ -110,15 +110,15 @@
         "version": "62f656a02f93c5190a8753159e34b385588d5ff3"
     },
     "xmonad-config": {
-        "branch": "dev",
+        "branch": "master",
         "description": null,
         "homepage": "",
         "owner": "mcwitt",
         "repo": "xmonad-config",
-        "rev": "dda4a911f422ae584b5bdb3b5add8d78686b7f1f",
-        "sha256": "0jqpkjq1wlrksfnysrr0pz7q7y8llw64rwncn4bc87d9fpc0my14",
+        "rev": "f7e55755db15a41de79a69e7aca1500523b10c1d",
+        "sha256": "1gqppysxgb8ykspsw047pzr6zadp4ypgyf7dpwxwg201xybjsw9s",
         "type": "tarball",
-        "url": "https://github.com/mcwitt/xmonad-config/archive/dda4a911f422ae584b5bdb3b5add8d78686b7f1f.tar.gz",
+        "url": "https://github.com/mcwitt/xmonad-config/archive/f7e55755db15a41de79a69e7aca1500523b10c1d.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }
