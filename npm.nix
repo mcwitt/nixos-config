@@ -1,6 +1,5 @@
-let
-  homeDir = builtins.getEnv "HOME";
-  prefix = "${homeDir}/.npm-global";
+{ config, ... }:
+let prefix = "${config.home.homeDirectory}/.npm-global";
 in {
   home.file.".npmrc".text = ''
     prefix=${prefix}

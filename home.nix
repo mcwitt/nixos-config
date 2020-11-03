@@ -1,7 +1,6 @@
 { config, pkgs, lib, ... }:
 
 let
-  homeDir = builtins.getEnv "HOME";
   shellAliases = {
     cdr = ''cd "$(${pkgs.git}/bin/git rev-parse --show-toplevel)"'';
     ec = "${pkgs.mypkgs.emacs}/bin/emacsclient --tty";
@@ -32,6 +31,11 @@ in {
     ./scala.nix
     ./secrets.nix
   ];
+
+  home = {
+    username = "matt";
+    homeDirectory = /home/matt;
+  };
 
   home.packages = with pkgs;
     [
@@ -64,15 +68,7 @@ in {
     ALTERNATE_EDITOR = "${pkgs.vim}/bin/vim";
   };
 
-  # This value determines the Home Manager release that your
-  # configuration is compatible with. This helps avoid breakage
-  # when a new Home Manager release introduces backwards
-  # incompatible changes.
-  #
-  # You can update Home Manager without changing this value. See
-  # the Home Manager release notes for a list of state version
-  # changes in each release.
-  home.stateVersion = "19.09";
+  home.stateVersion = "20.09";
 
   nixpkgs.config = {
     allowBroken = true;
@@ -183,7 +179,9 @@ in {
 
   programs.password-store = {
     enable = true;
-    settings = { PASSWORD_STORE_DIR = "${homeDir}/.password-store/"; };
+    settings = {
+      PASSWORD_STORE_DIR = "${config.home.homeDirectory}/.password-store/";
+    };
   };
 
   programs.readline = {
