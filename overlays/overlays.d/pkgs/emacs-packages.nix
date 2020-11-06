@@ -48,6 +48,7 @@ with epkgs; [
   hl-todo
   ivy
   ivy-bibtex
+  ivy-hydra
   ivy-pass
   json-mode
   jupyter
