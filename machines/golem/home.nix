@@ -1,5 +1,4 @@
 { config, pkgs, lib, ... }:
-
 let
   emacs = config.programs.emacs.finalPackage;
 
@@ -22,8 +21,9 @@ let
     open = "${pkgs.xdg_utils}/bin/xdg-open";
   };
 
-in {
-  imports = [ ../../home.nix ./alacritty.nix ./org-notes-sync.nix ];
+in
+{
+  imports = [ ./alacritty.nix ./org-notes-sync.nix ];
 
   home = {
     username = "matt";

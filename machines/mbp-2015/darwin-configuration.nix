@@ -1,1 +1,1 @@
-{ imports = [ ../../darwin-configuration.nix ]; }
+{ }
