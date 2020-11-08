@@ -32,11 +32,6 @@ in {
     ./secrets.nix
   ];
 
-  home = {
-    username = "matt";
-    homeDirectory = /home/matt;
-  };
-
   home.packages = with pkgs;
     [
       awscli2

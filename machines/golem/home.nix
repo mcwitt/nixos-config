@@ -25,6 +25,11 @@ let
 in {
   imports = [ ../../home.nix ./alacritty.nix ./org-notes-sync.nix ];
 
+  home = {
+    username = "matt";
+    homeDirectory = /home/matt;
+  };
+
   home.packages = with pkgs; [
     anki
     dmenu
