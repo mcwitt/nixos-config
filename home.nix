@@ -1,5 +1,4 @@
 { config, pkgs, lib, ... }:
-
 let
   shellAliases = {
     cdr = ''cd "$(${pkgs.git}/bin/git rev-parse --show-toplevel)"'';
@@ -19,7 +18,8 @@ let
     gw = "${pkgs.git}/bin/git w";
     rm = "${pkgs.coreutils}/bin/rm -i";
   };
-in {
+in
+{
   imports = [
     ./R.nix
     ./dhall.nix

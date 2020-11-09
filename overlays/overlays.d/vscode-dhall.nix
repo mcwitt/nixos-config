@@ -2,7 +2,8 @@ self: super:
 let
   inherit (super) stdenv;
   inherit (super.vscode-utils) buildVscodeMarketplaceExtension;
-in {
+in
+{
   vscode-extensions = super.vscode-extensions // {
     dhall.dhall-lang = buildVscodeMarketplaceExtension {
       mktplcRef = {

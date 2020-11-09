@@ -17,4 +17,5 @@ let
         xts
       ];
     };
-in { home.packages = [ rEnv ]; }
+in
+{ home.packages = [ rEnv ]; }

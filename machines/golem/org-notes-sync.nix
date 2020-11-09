@@ -1,7 +1,8 @@
 { config, lib, pkgs, ... }:
 with lib;
 let cfg = config.services.org-notes-sync;
-in {
+in
+{
   options.services.org-notes-sync = {
     enable = mkEnableOption "org-notes sync";
     repoPath = mkOption {
@@ -33,10 +34,12 @@ in {
       Service = {
         CPUSchedulingPolicy = "idle";
         IOSchedulingClass = "idle";
-        Environment = let
-          paths = lib.makeBinPath
-            (with pkgs; [ findutils git gitAndTools.git-annex openssh ]);
-        in [ "PATH=${paths}" ];
+        Environment =
+          let
+            paths = lib.makeBinPath
+              (with pkgs; [ findutils git gitAndTools.git-annex openssh ]);
+          in
+          [ "PATH=${paths}" ];
         ExecStart = toString (pkgs.writeShellScript "org-notes-sync" ''
           set -eo pipefail
           export AWS_ACCESS_KEY_ID=$(${pkgs.awscli2}/bin/aws configure get default.aws_access_key_id)

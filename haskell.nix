@@ -1,8 +1,8 @@
 { pkgs, ... }:
-
 let ghcEnv = pkgs.haskellPackages.ghcWithHoogle pkgs.mypkgs.myHaskellPackages;
 
-in {
+in
+{
   home.packages = [ ghcEnv ] ++ (with pkgs.haskellPackages; [
     brittany
     cabal-bounds

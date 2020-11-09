@@ -1,6 +1,7 @@
 { config, ... }:
 let prefix = "${config.home.homeDirectory}/.npm-global";
-in {
+in
+{
   home.file.".npmrc".text = ''
     prefix=${prefix}
   '';

@@ -15,10 +15,12 @@ let
   ipython = import ./ipython.nix { inherit pkgs jupyter; };
   ihaskell = import ./ihaskell.nix { inherit pkgs jupyter; };
 
-in jupyter.jupyterlabWith {
-  kernels = [ ipython ihaskell ];
-  inherit directory;
-} // {
+in
+jupyter.jupyterlabWith
+  {
+    kernels = [ ipython ihaskell ];
+    inherit directory;
+  } // {
   # Inherit 'pkgs' so downstream derivations can access the nixpkgs
   # revision used by jupyterWith
   inherit pkgs;
