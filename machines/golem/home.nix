@@ -86,9 +86,6 @@ in
 
   programs.git.ignores = pkgs.mypkgs.gitignore.ghGitIgnoreLines "Global/Linux";
 
-  programs.password-store.package =
-    pkgs.pass.withExtensions (exts: with exts; [ pass-update pass-otp ]);
-
   programs.zathura.enable = true;
 
   programs.zsh.shellAliases = shellAliases;
