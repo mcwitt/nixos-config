@@ -43,8 +43,8 @@ in {
       nix-info
       nix-prefetch-git
       nix-prefetch-github
-      nixfmt
       nixops
+      nixpkgs-fmt
       nodePackages.prettier
       pandoc
       python3Packages.sqlparse
