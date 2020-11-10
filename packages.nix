@@ -3,7 +3,6 @@
 {
   environment.systemPackages = with pkgs; [
     (aspellWithDicts (ds: [ ds.en ]))
-    bat
     coreutils
     direnv
     ffmpeg

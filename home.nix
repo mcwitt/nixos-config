@@ -35,6 +35,7 @@ in
   home.packages = with pkgs;
     [
       awscli2
+      bat
       cachix
       csvkit
       graphviz
@@ -50,7 +51,7 @@ in
       python3Packages.sqlparse
       shellcheck
       shfmt
-    ] ++ (with gitAndTools; [ git-annex git-crypt git-remote-gcrypt hub ])
+    ] ++ (with gitAndTools; [ delta git-annex git-crypt git-remote-gcrypt hub ])
     ++ (with mypkgs; [ scripts ]);
 
   home.file.".emacs.d" = {
