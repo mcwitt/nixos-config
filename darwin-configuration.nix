@@ -23,6 +23,8 @@
     overlays = import ./overlays;
   };
 
+  programs.bash.enable = true;
+
   programs.gnupg.agent.enable = true;
 
   programs.tmux = {
@@ -32,6 +34,8 @@
   };
 
   programs.fish.enable = true;
+
+  programs.zsh.enable = true;
 
   services.emacs = {
     enable = true;
