@@ -197,6 +197,11 @@ in
     settings.directory.fish_style_pwd_dir_length = 1;
   };
 
+  programs.tmux = {
+    enable = true;
+    keyMode = "vi";
+  };
+
   programs.vscode = {
     enable = true;
     extensions = [ pkgs.vscode-extensions.vscodevim.vim ];

@@ -19,11 +19,6 @@
 
   programs.gnupg.agent.enable = true;
 
-  programs.tmux = {
-    enable = true;
-    keyMode = "vi";
-  };
-
   hardware = {
     bluetooth.enable = true;
     opengl.driSupport32Bit = true;
