@@ -13,17 +13,16 @@ let
     categories = "System";
   };
 
-  shellAliases = {
-    # override aliases to use home-manager emacs
+in
+{
+  imports = [ ../../home.nix ./alacritty.nix ./org-notes-sync.nix ];
+
+  common.shellAliases = {
     emacs = lib.mkForce "${emacs}/bin/emacsclient --create-frame";
     ec = lib.mkForce "${emacs}/bin/emacsclient --tty";
-
     open = "${pkgs.xdg_utils}/bin/xdg-open";
   };
 
-in
-{
-  imports = [ ./alacritty.nix ./org-notes-sync.nix ];
 
   home = {
     username = "matt";
@@ -82,13 +81,9 @@ in
     };
   };
 
-  programs.fish.shellAliases = shellAliases;
-
   programs.git.ignores = pkgs.mypkgs.gitignore.ghGitIgnoreLines "Global/Linux";
 
   programs.zathura.enable = true;
-
-  programs.zsh.shellAliases = shellAliases;
 
   services.dunst.enable = true;
 

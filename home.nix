@@ -1,27 +1,8 @@
 { config, pkgs, lib, ... }:
-let
-  shellAliases = {
-    cdr = ''cd "$(${pkgs.git}/bin/git rev-parse --show-toplevel)"'';
-    ec = "${pkgs.mypkgs.emacs}/bin/emacsclient --tty";
-    emacs = "${pkgs.mypkgs.emacs}/bin/emacsclient --create-frame";
-    l = "${pkgs.coreutils}/bin/ls --color=auto -alh";
-    ll = "${pkgs.coreutils}/bin/ls --color=auto -l";
-    ls = "${pkgs.coreutils}/bin/ls --color=auto";
-    git = "${pkgs.gitAndTools.hub}/bin/hub";
-    g = "${pkgs.gitAndTools.hub}/bin/hub";
-    ga = "${pkgs.gitAndTools.git-annex}/bin/git-annex";
-    gb = "${pkgs.git}/bin/git b";
-    gca = "${pkgs.git}/bin/git ca";
-    gd = "${pkgs.git}/bin/git d";
-    gds = "${pkgs.git}/bin/git ds";
-    gl = "${pkgs.git}/bin/git l";
-    gw = "${pkgs.git}/bin/git w";
-    rm = "${pkgs.coreutils}/bin/rm -i";
-  };
-in
 {
   imports = [
     ./R.nix
+    ./common.nix
     ./dhall.nix
     ./direnv.nix
     ./haskell.nix
@@ -76,9 +57,7 @@ in
 
   programs.fish = {
     enable = true;
-    shellAliases = shellAliases // {
-      cdr = "cd (${pkgs.git}/bin/git rev-parse --show-toplevel)";
-    };
+    shellAliases.cdr = lib.mkForce "cd (${pkgs.git}/bin/git rev-parse --show-toplevel)";
 
     functions = {
       fish_user_key_bindings = ''
@@ -236,8 +215,6 @@ in
       extended = true;
     };
 
-    inherit shellAliases;
-
     # fix invisible hints
     sessionVariables.ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE = "fg=10";
 
@@ -251,5 +228,24 @@ in
       bindkey -M vicmd 'k' history-substring-search-up
       bindkey -M vicmd 'j' history-substring-search-down
     '';
+  };
+
+  common.shellAliases = {
+    cdr = ''cd "$(${pkgs.git}/bin/git rev-parse --show-toplevel)"'';
+    ec = "${pkgs.mypkgs.emacs}/bin/emacsclient --tty";
+    emacs = "${pkgs.mypkgs.emacs}/bin/emacsclient --create-frame";
+    l = "${pkgs.coreutils}/bin/ls --color=auto -alh";
+    ll = "${pkgs.coreutils}/bin/ls --color=auto -l";
+    ls = "${pkgs.coreutils}/bin/ls --color=auto";
+    git = "${pkgs.gitAndTools.hub}/bin/hub";
+    g = "${pkgs.gitAndTools.hub}/bin/hub";
+    ga = "${pkgs.gitAndTools.git-annex}/bin/git-annex";
+    gb = "${pkgs.git}/bin/git b";
+    gca = "${pkgs.git}/bin/git ca";
+    gd = "${pkgs.git}/bin/git d";
+    gds = "${pkgs.git}/bin/git ds";
+    gl = "${pkgs.git}/bin/git l";
+    gw = "${pkgs.git}/bin/git w";
+    rm = "${pkgs.coreutils}/bin/rm -i";
   };
 }
