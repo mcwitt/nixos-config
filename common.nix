@@ -8,9 +8,7 @@ in
     default = { };
     type = types.attrs;
     example = { rm = "${pkgs.coreutils}/bn/rm -i"; };
-    description = ''
-      Cross-shell aliases
-    '';
+    description = "Cross-shell aliases";
   };
 
   config = {

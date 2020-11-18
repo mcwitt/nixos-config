@@ -1,28 +1,8 @@
 { config, pkgs, lib, ... }:
-let
-  emacs = config.programs.emacs.finalPackage;
-
-  orgProtocolDesktopItem = pkgs.makeDesktopItem rec {
-    name = "org-protocol";
-    desktopName = name;
-    mimeType = "x-scheme-handler/org-protocol";
-    exec = "${emacs}/bin/emacsclient %u";
-    icon = "emacs";
-    type = "Application";
-    terminal = "false";
-    categories = "System";
-  };
-
-in
 {
-  imports = [ ../../home.nix ./alacritty.nix ./org-notes-sync.nix ];
+  imports = [ ../../home.nix ./alacritty.nix ./emacs.nix ./org-notes-sync.nix ];
 
-  common.shellAliases = {
-    emacs = lib.mkForce "${emacs}/bin/emacsclient --create-frame";
-    ec = lib.mkForce "${emacs}/bin/emacsclient --tty";
-    open = "${pkgs.xdg_utils}/bin/xdg-open";
-  };
-
+  common.shellAliases.open = "${pkgs.xdg_utils}/bin/xdg-open";
 
   home = {
     username = "matt";
@@ -34,7 +14,6 @@ in
     dmenu
     factorio
     libnotify
-    orgProtocolDesktopItem
     peek
     signal-desktop
     slack
@@ -43,8 +22,6 @@ in
     zoom-us
     zulip
   ];
-
-  home.sessionVariables.EDITOR = "${emacs}/bin/emacsclient --tty";
 
   programs.chromium = {
     enable = true;
@@ -56,12 +33,6 @@ in
       "cjpalhdlnbpafiamejdnhcphjbkeiagm" # uBlock Origin
       "dbepggeogbaibhgnhhndojpepiihcmeb" # Vimium
     ];
-  };
-
-  programs.emacs = {
-    enable = true;
-    package = pkgs.emacsGit;
-    extraPackages = pkgs.mypkgs.emacsPackages;
   };
 
   programs.feh.enable = true;
@@ -86,8 +57,6 @@ in
   programs.zathura.enable = true;
 
   services.dunst.enable = true;
-
-  services.emacs.enable = true;
 
   services.flameshot.enable = true;
 

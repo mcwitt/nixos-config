@@ -1,5 +1,4 @@
-{ config, pkgs, lib, ... }:
-{
+{ config, pkgs, lib, ... }: {
   imports = [
     ./R.nix
     ./common.nix
@@ -11,7 +10,13 @@
     ./python.nix
     ./scala.nix
     ./secrets.nix
+    ./user.nix
   ];
+
+  common.shellAliases = {
+    ec = "${pkgs.mypkgs.emacs}/bin/emacsclient --tty";
+    emacs = "${pkgs.mypkgs.emacs}/bin/emacsclient --create-frame";
+  };
 
   home.packages = with pkgs;
     [
@@ -34,15 +39,8 @@
     ] ++ (with gitAndTools; [ delta git-annex git-crypt git-remote-gcrypt hub ])
     ++ (with mypkgs; [ scripts ]);
 
-  home.file.".emacs.d" = {
-    source = "${pkgs.mypkgs.dotfiles}/emacs.d/";
-    recursive = true;
-  };
-
-  home.sessionVariables = {
-    EDITOR = "${pkgs.mypkgs.emacs}/bin/emacsclient --tty";
-    ALTERNATE_EDITOR = "${pkgs.vim}/bin/vim";
-  };
+  home.sessionVariables.EDITOR = "${pkgs.mypkgs.emacs}/bin/emacsclient --tty";
+  home.sessionVariables.ALTERNATE_EDITOR = "${pkgs.vim}/bin/vim";
 
   home.stateVersion = "20.09";
 
@@ -57,7 +55,8 @@
 
   programs.fish = {
     enable = true;
-    shellAliases.cdr = lib.mkForce "cd (${pkgs.git}/bin/git rev-parse --show-toplevel)";
+    shellAliases.cdr =
+      lib.mkForce "cd (${pkgs.git}/bin/git rev-parse --show-toplevel)";
 
     functions = {
       fish_user_key_bindings = ''
@@ -97,8 +96,8 @@
         + " --abbrev-commit --date=relative --show-notes=*";
     };
     ignores = lib.concatMap pkgs.mypkgs.gitignore.ghGitIgnoreLines [
-      "Global/Emacs"
       "Global/Vim"
+      "Global/Emacs"
     ];
     signing = {
       key = "A79A94078DF3DB5B";
@@ -232,8 +231,6 @@
 
   common.shellAliases = {
     cdr = ''cd "$(${pkgs.git}/bin/git rev-parse --show-toplevel)"'';
-    ec = "${pkgs.mypkgs.emacs}/bin/emacsclient --tty";
-    emacs = "${pkgs.mypkgs.emacs}/bin/emacsclient --create-frame";
     l = "${pkgs.coreutils}/bin/ls --color=auto -alh";
     ll = "${pkgs.coreutils}/bin/ls --color=auto -l";
     ls = "${pkgs.coreutils}/bin/ls --color=auto";
@@ -248,4 +245,11 @@
     gw = "${pkgs.git}/bin/git w";
     rm = "${pkgs.coreutils}/bin/rm -i";
   };
+
+  user.fullName = {
+    first = "Matt";
+    last = "Wittmann";
+  };
+
+  user.email = "mcwitt@gmail.com";
 }
