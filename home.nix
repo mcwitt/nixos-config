@@ -39,7 +39,6 @@ in
       cachix
       csvkit
       graphviz
-      kaggle
       niv
       nix-info
       nix-prefetch-git
