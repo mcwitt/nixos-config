@@ -877,12 +877,6 @@ in
         hook = [ "(lsp-mode . dap-mode)" "(lsp-mode . dap-ui-mode)" ];
       };
 
-      sql = {
-        enable = true;
-        bind."C-c s" = "sql-connect";
-        config = "(require 'sql-connections nil 'noerror)";
-      };
-
       agda2-mode = {
         enable = true;
         mode = [ ''"\\.l?agda\\'" "\\.lagda.md\\'"'' ];
