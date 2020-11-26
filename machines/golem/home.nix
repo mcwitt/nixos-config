@@ -2,7 +2,7 @@
 {
   imports = [ ../../home.nix ./alacritty.nix ./emacs.nix ./org-notes-sync.nix ];
 
-  common.shellAliases.open = "${pkgs.xdg_utils}/bin/xdg-open";
+  shell.aliases.open = "${pkgs.xdg_utils}/bin/xdg-open";
 
   home = {
     username = "matt";

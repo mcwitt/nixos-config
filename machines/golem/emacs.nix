@@ -18,7 +18,7 @@ in
 {
   imports = [ nurNoPkgs.repos.rycee.hmModules.emacs-init ];
 
-  common.shellAliases = {
+  shell.aliases = {
     ec = "${emacs}/bin/emacsclient --tty";
     emacs = "${emacs}/bin/emacsclient --create-frame";
   };
@@ -325,9 +325,6 @@ in
       reformatter = {
         enable = true;
         config = ''
-          (reformatter-define cabal-fmt
-              :program "cabal-fmt"
-              :lighter " CabalFmt")
           (reformatter-define nixpkgs-fmt
             :program "nixpkgs-fmt"
             :lighter " NixpkgsFmt")
@@ -424,41 +421,7 @@ in
 
       edit-indirect.enable = true;
 
-      haskell-mode = {
-        enable = true;
-        hook = [
-          "(haskell-mode . interactive-haskell-mode)"
-          "(haskell-mode . lsp)"
-        ];
-        bindLocal = {
-          haskell-mode-map."C-c C-h" = "haskell-hoogle-lookup-from-local";
-          haskell-cabal-mode-map."C-c C-f" = "cabal-fmt-buffer";
-        };
-        config = ''
-          (setq haskell-interactive-popup-errors nil)
-          (setq-default flycheck-disabled-checkers '(haskell-stack-ghc))
-        '';
-      };
-
-      flycheck-haskell = {
-        enable = true;
-        hook = [ "(haskell-mode . flycheck-haskell-setup)" ];
-      };
-
-      lsp-haskell = {
-        enable = true;
-        config = ''(setq lsp-haskell-server-path "haskell-language-server")'';
-      };
-
-      ormolu = {
-        enable = true;
-        hook = [ "(haskell-mode . ormolu-format-on-save-mode)" ];
-      };
-
-      fira-code-mode = {
-        enable = true;
-        hook = [ "haskell-mode" ];
-      };
+      fira-code-mode.enable = true;
 
       jupyter = {
         enable = true;
