@@ -322,15 +322,6 @@ in
         bind."C-c C-f" = "format-all-buffer";
       };
 
-      reformatter = {
-        enable = true;
-        config = ''
-          (reformatter-define nixpkgs-fmt
-            :program "nixpkgs-fmt"
-            :lighter " NixpkgsFmt")
-        '';
-      };
-
       magit.enable = true;
 
       evil-magit = {
@@ -448,11 +439,6 @@ in
       };
 
       yaml-mode.enable = true;
-
-      nix-mode = {
-        enable = true;
-        hook = [ "(nix-mode . nixpkgs-fmt-on-save-mode)" ];
-      };
 
       restclient.enable = true;
 

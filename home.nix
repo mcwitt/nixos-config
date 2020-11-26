@@ -3,6 +3,7 @@
     ./R.nix
     ./modules/shell.nix
     ./modules/languages/haskell.nix
+    ./modules/languages/nix.nix
     ./dhall.nix
     ./direnv.nix
     ./kubectl.nix
@@ -20,12 +21,7 @@
       cachix
       csvkit
       graphviz
-      niv
-      nix-info
-      nix-prefetch-git
-      nix-prefetch-github
       nixops
-      nixpkgs-fmt
       nodePackages.prettier
       pandoc
       python3Packages.sqlparse
@@ -228,7 +224,10 @@
     '';
   };
 
-  languages.haskell.enable = true;
+  languages = {
+    haskell.enable = true;
+    nix.enable = true;
+  };
 
   shell = {
     enable = true;
