@@ -1,12 +1,10 @@
 { config, pkgs, lib, ... }: {
   imports = [
     ./R.nix
-    ./modules/shell.nix
-    ./modules/languages/haskell.nix
-    ./modules/languages/nix.nix
     ./dhall.nix
     ./direnv.nix
     ./kubectl.nix
+    ./modules
     ./npm.nix
     ./python.nix
     ./scala.nix
