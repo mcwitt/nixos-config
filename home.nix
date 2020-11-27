@@ -1,6 +1,5 @@
 { config, pkgs, lib, ... }: {
   imports = [
-    ./R.nix
     ./direnv.nix
     ./emacs.nix
     ./kubectl.nix
@@ -219,6 +218,7 @@
   };
 
   languages = {
+    R.enable = true;
     dhall.enable = true;
     haskell.enable = true;
     nix.enable = true;

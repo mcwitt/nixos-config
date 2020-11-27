@@ -808,8 +808,6 @@ in
         enable = true;
         command = [ "esup" ];
       };
-
-      ess.enable = true;
     };
   };
 
