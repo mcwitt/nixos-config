@@ -6,7 +6,6 @@
     ./kubectl.nix
     ./modules
     ./npm.nix
-    ./scala.nix
     ./secrets.nix
     ./user.nix
   ];
@@ -225,6 +224,7 @@
     haskell.enable = true;
     nix.enable = true;
     python.enable = true;
+    scala.enable = true;
   };
 
   shell = {

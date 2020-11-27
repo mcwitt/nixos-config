@@ -1,1 +1,1 @@
-{ imports = [ ./haskell ./nix ./python ]; }
+{ imports = [ ./haskell ./nix ./python ./scala ]; }
