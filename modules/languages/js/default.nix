@@ -16,6 +16,9 @@ in
 
     home.sessionVariables = { PATH = "${prefix}/bin:$PATH"; };
 
-    programs.emacs.init.usePackage.js2-mode.enable = true;
+    programs.emacs.init.usePackage = {
+      js2-mode.enable = true;
+      web-mode.enable = true;
+    };
   };
 }
