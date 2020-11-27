@@ -35,19 +35,6 @@
         "url": "https://github.com/github/gitignore/archive/218a941be92679ce67d0484547e3e142b2f5f6f0.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
-    "jupyterWith": {
-        "branch": "master",
-        "description": "declarative and reproducible Jupyter environments - powered by Nix",
-        "homepage": "",
-        "owner": "tweag",
-        "repo": "jupyterWith",
-        "rev": "35eb565c6d00f3c61ef5e74e7e41870cfa3926f7",
-        "sha256": "15zpprs0blvlvbqapkyn92x6dpfa6va2xz25v24z67lqs96ii4jm",
-        "type": "tarball",
-        "url": "https://github.com/tweag/jupyterWith/archive/35eb565c6d00f3c61ef5e74e7e41870cfa3926f7.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz",
-        "version": "247764735993e604c1748751a95b68ab3e3ee5eb"
-    },
     "mcwitt-dotfiles": {
         "branch": "master",
         "description": null,

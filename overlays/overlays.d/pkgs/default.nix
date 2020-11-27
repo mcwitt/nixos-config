@@ -10,7 +10,6 @@ in
     emacs = callPackage ./emacs.nix { };
     emacsPackages = callPackage ./emacs-packages.nix { };
     gitignore = callPackage ./gitignore.nix { };
-    jupyterlab = callPackage ./jupyterlab { };
     myHaskellPackages = callPackage ./haskell-packages.nix { };
     scripts = callPackage ./scripts { };
   };
