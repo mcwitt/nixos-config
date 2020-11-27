@@ -18,8 +18,6 @@
       nixops
       pandoc
       python3Packages.sqlparse
-      shellcheck
-      shfmt
     ] ++ (with gitAndTools; [ delta git-annex git-crypt git-remote-gcrypt hub ])
     ++ (with mypkgs; [ scripts ]);
 
@@ -225,6 +223,7 @@
     nix.enable = true;
     python.enable = true;
     scala.enable = true;
+    shell.enable = true;
   };
 
   shell = {
