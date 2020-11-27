@@ -1,8 +1,25 @@
 { config, pkgs, lib, ... }:
+let
+  emacs = config.programs.emacs.finalPackage;
+  orgProtocolDesktopItem = pkgs.makeDesktopItem rec {
+    name = "org-protocol";
+    desktopName = name;
+    mimeType = "x-scheme-handler/org-protocol";
+    exec = "${emacs}/bin/emacsclient %u";
+    icon = "emacs";
+    type = "Application";
+    terminal = "false";
+    categories = "System";
+  };
+in
 {
   imports = [ ../../home.nix ../../modules ./alacritty.nix ];
 
-  shell.aliases.open = "${pkgs.xdg_utils}/bin/xdg-open";
+  shell.aliases = {
+    open = "${pkgs.xdg_utils}/bin/xdg-open";
+    ec = "${emacs}/bin/emacsclient --tty";
+    emacs = "${emacs}/bin/emacsclient --create-frame";
+  };
 
   home = {
     username = "matt";
@@ -14,6 +31,7 @@
     dmenu
     factorio
     libnotify
+    orgProtocolDesktopItem
     peek
     signal-desktop
     slack
@@ -22,6 +40,8 @@
     zoom-us
     zulip
   ];
+
+  home.sessionVariables.EDITOR = "${emacs}/bin/emacsclient --tty";
 
   programs.chromium = {
     enable = true;
@@ -57,6 +77,8 @@
   programs.zathura.enable = true;
 
   services.dunst.enable = true;
+
+  services.emacs.enable = true;
 
   services.flameshot.enable = true;
 

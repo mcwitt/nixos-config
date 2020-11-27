@@ -1,31 +1,8 @@
 { config, pkgs, lib, ... }:
-let
-  emacs = config.programs.emacs.finalPackage;
-  nurNoPkgs = import (import ./overlays/overlays.d/nix/sources.nix).nur { };
-
-  orgProtocolDesktopItem = pkgs.makeDesktopItem rec {
-    name = "org-protocol";
-    desktopName = name;
-    mimeType = "x-scheme-handler/org-protocol";
-    exec = "${emacs}/bin/emacsclient %u";
-    icon = "emacs";
-    type = "Application";
-    terminal = "false";
-    categories = "System";
-  };
-
+let nurNoPkgs = import (import ./overlays/overlays.d/nix/sources.nix).nur { };
 in
 {
   imports = [ nurNoPkgs.repos.rycee.hmModules.emacs-init ];
-
-  shell.aliases = {
-    ec = "${emacs}/bin/emacsclient --tty";
-    emacs = "${emacs}/bin/emacsclient --create-frame";
-  };
-
-  home.packages = [ orgProtocolDesktopItem ];
-
-  home.sessionVariables.EDITOR = "${emacs}/bin/emacsclient --tty";
 
   programs.emacs = {
     enable = true;

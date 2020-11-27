@@ -21,7 +21,7 @@
     ] ++ (with gitAndTools; [ delta git-annex git-crypt git-remote-gcrypt hub ])
     ++ (with mypkgs; [ scripts ]);
 
-  home.sessionVariables.EDITOR = "${config.programs.emacs.finalPackage}/bin/emacsclient --tty";
+  home.sessionVariables.EDITOR = "${config.programs.emacs.finalPackage}/bin/emacs";
   home.sessionVariables.ALTERNATE_EDITOR = "${pkgs.vim}/bin/vim";
 
   home.stateVersion = "20.09";
@@ -243,8 +243,6 @@
       gl = "${pkgs.git}/bin/git l";
       gw = "${pkgs.git}/bin/git w";
       rm = "${pkgs.coreutils}/bin/rm -i";
-      ec = "${config.programs.emacs.finalPackage}/bin/emacsclient --tty";
-      emacs = "${config.programs.emacs.finalPackage}/bin/emacsclient --create-frame";
     };
   };
 
