@@ -221,8 +221,8 @@
     R.enable = true;
     dhall.enable = true;
     haskell.enable = true;
+    js.enable = true;
     nix.enable = true;
-    node.enable = true;
     python.enable = true;
     scala.enable = true;
   };

@@ -1,11 +1,11 @@
 { config, lib, pkgs, ... }:
 with lib;
 let
-  cfg = config.languages.node;
+  cfg = config.languages.js;
   prefix = "${config.home.homeDirectory}/.npm-global";
 in
 {
-  options.languages.node.enable = mkEnableOption "Node language environment";
+  options.languages.js.enable = mkEnableOption "JS language environment";
 
   config = mkIf cfg.enable {
     home.packages = with pkgs; [ nodejs nodePackages.prettier ];
