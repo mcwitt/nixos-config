@@ -8,8 +8,6 @@
     shells = with pkgs; [ bashInteractive fish zsh ];
   };
 
-  environment.systemPackages = with pkgs; [ lorri mypkgs.emacs ];
-
   fonts.enableFontDir = true;
 
   nix = {
@@ -36,11 +34,6 @@
   programs.fish.enable = true;
 
   programs.zsh.enable = true;
-
-  services.emacs = {
-    enable = true;
-    package = pkgs.mypkgs.emacs;
-  };
 
   services.nix-daemon.enable = true;
 

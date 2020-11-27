@@ -2,6 +2,7 @@
   imports = [
     ./R.nix
     ./direnv.nix
+    ./emacs.nix
     ./kubectl.nix
     ./modules
     ./secrets.nix
@@ -23,7 +24,7 @@
     ] ++ (with gitAndTools; [ delta git-annex git-crypt git-remote-gcrypt hub ])
     ++ (with mypkgs; [ scripts ]);
 
-  home.sessionVariables.EDITOR = "${pkgs.mypkgs.emacs}/bin/emacsclient --tty";
+  home.sessionVariables.EDITOR = "${config.programs.emacs.finalPackage}/bin/emacsclient --tty";
   home.sessionVariables.ALTERNATE_EDITOR = "${pkgs.vim}/bin/vim";
 
   home.stateVersion = "20.09";
@@ -243,8 +244,8 @@
       gl = "${pkgs.git}/bin/git l";
       gw = "${pkgs.git}/bin/git w";
       rm = "${pkgs.coreutils}/bin/rm -i";
-      ec = "${pkgs.mypkgs.emacs}/bin/emacsclient --tty";
-      emacs = "${pkgs.mypkgs.emacs}/bin/emacsclient --create-frame";
+      ec = "${config.programs.emacs.finalPackage}/bin/emacsclient --tty";
+      emacs = "${config.programs.emacs.finalPackage}/bin/emacsclient --create-frame";
     };
   };
 

@@ -1,7 +1,7 @@
 { config, pkgs, lib, ... }:
 let
   emacs = config.programs.emacs.finalPackage;
-  nurNoPkgs = import (import ../../overlays/overlays.d/nix/sources.nix).nur { };
+  nurNoPkgs = import (import ./overlays/overlays.d/nix/sources.nix).nur { };
 
   orgProtocolDesktopItem = pkgs.makeDesktopItem rec {
     name = "org-protocol";
