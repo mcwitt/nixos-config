@@ -794,11 +794,6 @@ in
         hook = [ "(lsp-mode . dap-mode)" "(lsp-mode . dap-ui-mode)" ];
       };
 
-      agda2-mode = {
-        enable = true;
-        mode = [ ''"\\.l?agda\\'" "\\.lagda.md\\'"'' ];
-      };
-
       pinentry = {
         enable = true;
         config = "(pinentry-start)";
