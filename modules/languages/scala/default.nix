@@ -10,6 +10,8 @@ in
 
     programs.emacs.init.usePackage = {
 
+      lsp-metals.enable = true;
+
       sbt-mode = {
         enable = true;
         command = [ "sbt-start" "sbt-command" ];

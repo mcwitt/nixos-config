@@ -785,8 +785,6 @@ in
         after = [ "erc" ];
       };
 
-      lsp-metals.enable = true;
-
       posframe.enable = true;
 
       dap-mode = {
