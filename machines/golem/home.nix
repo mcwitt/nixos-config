@@ -1,6 +1,6 @@
 { config, pkgs, lib, ... }:
 {
-  imports = [ ../../home.nix ./alacritty.nix ./org-notes-sync.nix ];
+  imports = [ ../../home.nix ../../modules ./alacritty.nix ];
 
   shell.aliases.open = "${pkgs.xdg_utils}/bin/xdg-open";
 
