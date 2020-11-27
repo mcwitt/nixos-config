@@ -5,7 +5,6 @@
     ./direnv.nix
     ./kubectl.nix
     ./modules
-    ./npm.nix
     ./secrets.nix
     ./user.nix
   ];
@@ -18,7 +17,6 @@
       csvkit
       graphviz
       nixops
-      nodePackages.prettier
       pandoc
       python3Packages.sqlparse
       shellcheck
@@ -223,6 +221,7 @@
   languages = {
     haskell.enable = true;
     nix.enable = true;
+    node.enable = true;
     python.enable = true;
     scala.enable = true;
   };

@@ -24,7 +24,6 @@
     killall
     less
     lsof
-    nodejs
     openssh
     openssl
     parallel
