@@ -419,18 +419,6 @@ in
         bind = { "C-c j" = "jupyter-run-repl"; };
       };
 
-      anaconda-mode = {
-        enable = true;
-        hook = [ "python-mode" "(python-mode . anaconda-eldoc-mode)" ];
-      };
-
-      company-anaconda = {
-        enable = true;
-        config = "(add-to-list 'company-backends 'company-anaconda)";
-      };
-
-      pyvenv.enable = true;
-
       go-mode.enable = true;
 
       json-mode = {
