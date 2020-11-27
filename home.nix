@@ -4,7 +4,6 @@
     ./emacs.nix
     ./kubectl.nix
     ./modules
-    ./secrets.nix
     ./user.nix
   ];
 
