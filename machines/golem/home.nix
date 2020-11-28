@@ -1,16 +1,5 @@
 { config, pkgs, lib, ... }:
-let
-  emacs = config.programs.emacs.finalPackage;
-  orgProtocolDesktopItem = pkgs.makeDesktopItem rec {
-    name = "org-protocol";
-    desktopName = name;
-    mimeType = "x-scheme-handler/org-protocol";
-    exec = "${emacs}/bin/emacsclient %u";
-    icon = "emacs";
-    type = "Application";
-    terminal = "false";
-    categories = "System";
-  };
+let emacs = config.programs.emacs.finalPackage;
 in
 {
   imports = [ ../../home.nix ../../hm-modules ./alacritty.nix ];
@@ -31,7 +20,6 @@ in
     dmenu
     factorio
     libnotify
-    orgProtocolDesktopItem
     peek
     signal-desktop
     slack
@@ -54,6 +42,8 @@ in
       "dbepggeogbaibhgnhhndojpepiihcmeb" # Vimium
     ];
   };
+
+  programs.emacs.org-protocol.enable = true;
 
   programs.feh.enable = true;
 

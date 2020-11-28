@@ -1,1 +1,1 @@
-{ imports = [ ./languages ./services ./shell.nix ./tools ]; }
+{ imports = [ ./languages ./programs ./services ./shell.nix ./tools ]; }
