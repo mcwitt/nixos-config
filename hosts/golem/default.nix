@@ -1,5 +1,5 @@
 { pkgs, ... }: {
-  imports = [ ./nixos-modules ];
+  imports = [ ../../nixos-modules ];
 
   # Use the systemd-boot EFI boot loader.
   boot.loader = {
@@ -24,13 +24,27 @@
 
   programs.gnupg.agent.enable = true;
 
-  hardware = {
-    bluetooth.enable = true;
-    opengl.driSupport32Bit = true;
-    pulseaudio = {
-      enable = true;
-      package = pkgs.pulseaudioFull;
-    };
+  hardware.bluetooth.enable = true;
+
+  hardware.opengl.driSupport32Bit = true;
+
+  hardware.pulseaudio = {
+    enable = true;
+    package = pkgs.pulseaudioFull;
+  };
+
+  hardware.printers = rec {
+    ensureDefaultPrinter = "Brother_HL-L2340D_series";
+    ensurePrinters = [{
+      deviceUri =
+        "dnssd://Brother%20HL-L2340D%20series._ipp._tcp.local/?uuid=e3248000-80ce-11db-8000-40490f90f0a2";
+      model = "drv:///brlaser.drv/brl2340d.ppd";
+      name = ensureDefaultPrinter;
+      ppdOptions = {
+        Duplex = "DuplexNoTumble";
+        PageSize = "A4";
+      };
+    }];
   };
 
   i18n.defaultLocale = "en_US.UTF-8";
@@ -40,11 +54,16 @@
     longitude = 122.42;
   };
 
+  networking = {
+    hostName = "golem";
+    interfaces.enp0s31f6.useDHCP = true;
+  };
+
   nix.trustedUsers = [ "root" "@wheel" "matt" ];
 
   nixpkgs = {
     config.allowUnfree = true;
-    overlays = import ./overlays;
+    overlays = import ../../overlays;
   };
 
   services.avahi = {
@@ -59,8 +78,26 @@
 
   services.openssh.enable = true;
 
+  services.printing = {
+    enable = true;
+    drivers = [ pkgs.brlaser ];
+  };
+
   # color temperature adjuster
   services.redshift.enable = true;
+
+  services.xserver.xrandrHeads = [
+    {
+      primary = true;
+      output = "DP-4";
+    }
+    {
+      monitorConfig = ''
+        Option "Rotate" "left"
+      '';
+      output = "DP-2";
+    }
+  ];
 
   services.xserver = {
     enable = true;

@@ -1,7 +1,7 @@
 { pkgs, ... }:
 
 {
-  imports = [ ./fonts.nix ./packages.nix ];
+  imports = [ ../../nixos-modules ];
 
   environment = {
     darwinConfig = "$HOME/.config/nixpkgs/darwin-configuration.nix";
@@ -18,7 +18,7 @@
 
   nixpkgs = {
     config.allowUnfree = true;
-    overlays = import ./overlays;
+    overlays = import ../../overlays;
   };
 
   programs.bash.enable = true;
@@ -47,4 +47,6 @@
   };
 
   system.defaults.NSGlobalDomain.ApplePressAndHoldEnabled = false;
+
+  users.users.matt.shell = pkgs.zsh;
 }

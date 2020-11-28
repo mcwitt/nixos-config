@@ -1,1 +1,1 @@
-{ imports = [ ./default ./nixos-home ]; }
+{ imports = [ ./darwin-home ./default ./nixos-home ]; }
