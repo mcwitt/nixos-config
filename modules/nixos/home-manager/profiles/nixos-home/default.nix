@@ -26,7 +26,7 @@ in
 
     home.sessionVariables.EDITOR = "${emacs}/bin/emacsclient --tty";
 
-    profiles.default.enable = true;
+    profiles.base.enable = true;
 
     programs.chromium = {
       enable = true;
@@ -91,7 +91,7 @@ in
       imageDirectory = "%h/.background-images";
     };
 
-    shell.aliases = {
+    shells.aliases = {
       open = "${pkgs.xdg_utils}/bin/xdg-open";
       ec = "${emacs}/bin/emacsclient --tty";
       emacs = "${emacs}/bin/emacsclient --create-frame";

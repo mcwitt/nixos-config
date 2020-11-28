@@ -1,5 +1,5 @@
 { config, lib, pkgs, ... }: {
-  config = lib.mkIf config.profiles.default.enable {
+  config = lib.mkIf config.profiles.base.enable {
     programs.emacs.init = {
       enable = true;
       recommendedGcSettings = true;

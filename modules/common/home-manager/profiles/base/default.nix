@@ -1,11 +1,11 @@
 { config, pkgs, lib, ... }:
 with lib;
-let cfg = config.profiles.default;
+let cfg = config.profiles.base;
 in
 {
   imports = [ ./emacs.nix ];
 
-  options.profiles.default.enable = mkEnableOption "Default profile";
+  options.profiles.base.enable = mkEnableOption "Base profile";
 
   config = mkIf cfg.enable {
 
@@ -25,7 +25,7 @@ in
       allowUnfree = true;
     };
 
-    nixpkgs.overlays = import ../../../../overlays;
+    nixpkgs.overlays = import ../../../../../overlays;
 
     programs.browserpass.enable = true;
 
@@ -227,7 +227,7 @@ in
       shell.enable = true;
     };
 
-    shell.aliases = {
+    shells.aliases = {
       cdr = ''cd "$(${pkgs.git}/bin/git rev-parse --show-toplevel)"'';
       l = "${pkgs.coreutils}/bin/ls --color=auto -alh";
       ll = "${pkgs.coreutils}/bin/ls --color=auto -l";

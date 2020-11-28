@@ -1,7 +1,7 @@
 { pkgs, ... }:
 
 {
-  imports = [ <home-manager/nix-darwin> ../../modules/common ];
+  imports = [ <home-manager/nix-darwin> ];
 
   environment = {
     darwinConfig = "$HOME/.config/nixpkgs/darwin-configuration.nix";
@@ -11,7 +11,7 @@
   fonts.enableFontDir = true;
 
   home-manager.users.matt = _: {
-    imports = [ ../../modules/home-manager ];
+    imports = [ ../../modules/darwin/home-manager ];
     profiles.darwin-home.enable = true;
   };
 

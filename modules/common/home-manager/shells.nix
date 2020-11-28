@@ -1,9 +1,9 @@
 { config, lib, pkgs, ... }:
 with lib;
-let cfg = config.shell;
+let cfg = config.shells;
 in
 {
-  options.shell = {
+  options.shells = {
     aliases = mkOption {
       default = { };
       type = types.attrs;

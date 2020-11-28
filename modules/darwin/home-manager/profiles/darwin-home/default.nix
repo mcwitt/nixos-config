@@ -9,7 +9,7 @@ in
 
     home.packages = [ pkgs.lorri ];
 
-    profiles.default.enable = true;
+    profiles.base.enable = true;
 
     # HACK fix for darwin/fish PATH ordering; see https://github.com/LnL7/nix-darwin/issues/122
     programs.fish.shellInit = ''
