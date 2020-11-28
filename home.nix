@@ -1,5 +1,5 @@
 { config, pkgs, lib, ... }: {
-  imports = [ ./emacs.nix ./hm-modules ];
+  imports = [ ./hm-modules ];
 
   home.packages = with pkgs;
     [ bat cachix csvkit graphviz nixops pandoc python3Packages.sqlparse ]
@@ -27,6 +27,12 @@
     enableFishIntegration = true;
     enableNixDirenvIntegration = true;
     enableZshIntegration = true;
+  };
+
+  programs.emacs = {
+    enable = true;
+    baseConfig.enable = true;
+    package = pkgs.emacsGit;
   };
 
   programs.fish = {

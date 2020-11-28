@@ -1,1 +1,1 @@
-{ imports = [ ./org-protocol ]; }
+{ imports = [ ./base-config ./org-protocol ]; }
