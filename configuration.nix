@@ -1,5 +1,5 @@
 { pkgs, ... }: {
-  imports = [ ./fonts.nix ./packages.nix ./cuda.nix ];
+  imports = [ ./nixos-modules ];
 
   # Use the systemd-boot EFI boot loader.
   boot.loader = {
@@ -14,6 +14,11 @@
   };
 
   fonts.fontconfig.dpi = 140;
+
+  libraries.cuda = {
+    enable = true;
+    package = pkgs.cudatoolkit_10_2;
+  };
 
   programs.fish.enable = true;
 

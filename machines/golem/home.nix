@@ -13,7 +13,7 @@ let
   };
 in
 {
-  imports = [ ../../home.nix ../../modules ./alacritty.nix ];
+  imports = [ ../../home.nix ../../hm-modules ./alacritty.nix ];
 
   shell.aliases = {
     open = "${pkgs.xdg_utils}/bin/xdg-open";

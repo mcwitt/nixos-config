@@ -1,5 +1,4 @@
 { pkgs, ... }:
-
 {
   environment.systemPackages = with pkgs; [
     (aspellWithDicts (ds: [ ds.en ]))

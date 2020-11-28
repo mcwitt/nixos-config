@@ -1,5 +1,5 @@
 { config, pkgs, lib, ... }: {
-  imports = [ ./emacs.nix ./modules ];
+  imports = [ ./emacs.nix ./hm-modules ];
 
   home.packages = with pkgs;
     [ bat cachix csvkit graphviz nixops pandoc python3Packages.sqlparse ]
