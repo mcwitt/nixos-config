@@ -353,8 +353,6 @@
         lsp-treemacs = {
           enable = true;
           after = [ "lsp-mode" "treemacs" ];
-          config =
-            "(setq lsp-metals-treeview-show-when-views-received t)"; # XXX
         };
 
         latex = {
