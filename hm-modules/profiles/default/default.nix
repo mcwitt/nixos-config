@@ -220,6 +220,7 @@ in
       js.enable = true;
       nix.enable = true;
       python.enable = true;
+      rust.enable = true;
       scala.enable = true;
       shell.enable = true;
     };
