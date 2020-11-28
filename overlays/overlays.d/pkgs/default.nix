@@ -1,7 +1,7 @@
 self: super:
 let
   inherit (self) callPackage;
-  sources = import ../nix/sources.nix;
+  sources = import ../../../nix/sources.nix;
 in
 {
   mypkgs = {
