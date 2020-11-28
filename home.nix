@@ -224,23 +224,20 @@
     shell.enable = true;
   };
 
-  shell = {
-    enable = true;
-    aliases = {
-      cdr = ''cd "$(${pkgs.git}/bin/git rev-parse --show-toplevel)"'';
-      l = "${pkgs.coreutils}/bin/ls --color=auto -alh";
-      ll = "${pkgs.coreutils}/bin/ls --color=auto -l";
-      ls = "${pkgs.coreutils}/bin/ls --color=auto";
-      git = "${pkgs.gitAndTools.hub}/bin/hub";
-      g = "${pkgs.gitAndTools.hub}/bin/hub";
-      ga = "${pkgs.gitAndTools.git-annex}/bin/git-annex";
-      gb = "${pkgs.git}/bin/git b";
-      gca = "${pkgs.git}/bin/git ca";
-      gd = "${pkgs.git}/bin/git d";
-      gds = "${pkgs.git}/bin/git ds";
-      gl = "${pkgs.git}/bin/git l";
-      gw = "${pkgs.git}/bin/git w";
-      rm = "${pkgs.coreutils}/bin/rm -i";
-    };
+  shell.aliases = {
+    cdr = ''cd "$(${pkgs.git}/bin/git rev-parse --show-toplevel)"'';
+    l = "${pkgs.coreutils}/bin/ls --color=auto -alh";
+    ll = "${pkgs.coreutils}/bin/ls --color=auto -l";
+    ls = "${pkgs.coreutils}/bin/ls --color=auto";
+    git = "${pkgs.gitAndTools.hub}/bin/hub";
+    g = "${pkgs.gitAndTools.hub}/bin/hub";
+    ga = "${pkgs.gitAndTools.git-annex}/bin/git-annex";
+    gb = "${pkgs.git}/bin/git b";
+    gca = "${pkgs.git}/bin/git ca";
+    gd = "${pkgs.git}/bin/git d";
+    gds = "${pkgs.git}/bin/git ds";
+    gl = "${pkgs.git}/bin/git l";
+    gw = "${pkgs.git}/bin/git w";
+    rm = "${pkgs.coreutils}/bin/rm -i";
   };
 }
