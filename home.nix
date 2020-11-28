@@ -4,7 +4,6 @@
     ./emacs.nix
     ./kubectl.nix
     ./modules
-    ./user.nix
   ];
 
   home.packages = with pkgs;
@@ -244,11 +243,4 @@
       rm = "${pkgs.coreutils}/bin/rm -i";
     };
   };
-
-  user.fullName = {
-    first = "Matt";
-    last = "Wittmann";
-  };
-
-  user.email = "mcwitt@gmail.com";
 }

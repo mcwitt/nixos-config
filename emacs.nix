@@ -31,8 +31,8 @@ in
     prelude = ''
       (setq custom-file "~/.emacs.d/custom.el")
 
-      (setq user-full-name "${config.user.fullName.first} ${config.user.fullName.last}"
-            user-mail-address "${config.user.email}")
+      (setq user-full-name "Matt Wittmann"
+            user-mail-address "mcwitt@gmail.com")
 
       ;; Create backup files in system temp directory
       (setq backup-directory-alist
