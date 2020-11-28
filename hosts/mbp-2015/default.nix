@@ -1,7 +1,7 @@
 { pkgs, ... }:
 
 {
-  imports = [ ../../nixos-modules ];
+  imports = [ <home-manager/nix-darwin> ../../nixos-modules ];
 
   environment = {
     darwinConfig = "$HOME/.config/nixpkgs/darwin-configuration.nix";
@@ -9,6 +9,11 @@
   };
 
   fonts.enableFontDir = true;
+
+  home-manager.users.matt = _: {
+    imports = [ ../../hm-modules ];
+    profiles.darwin-home.enable = true;
+  };
 
   nix = {
     maxJobs = 8;
