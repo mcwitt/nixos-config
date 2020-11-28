@@ -3,9 +3,12 @@ with lib;
 let cfg = config.profiles.default;
 in
 {
+  imports = [ ./emacs.nix ];
+
   options.profiles.default.enable = mkEnableOption "Default profile";
 
   config = mkIf cfg.enable {
+
     home.packages = with pkgs;
       [ bat cachix csvkit graphviz nixops pandoc python3Packages.sqlparse ]
       ++ (with gitAndTools; [ delta git-annex git-crypt git-remote-gcrypt hub ])
@@ -36,7 +39,6 @@ in
 
     programs.emacs = {
       enable = true;
-      baseConfig.enable = true;
       package = pkgs.emacsGit;
     };
 

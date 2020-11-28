@@ -1,17 +1,5 @@
-{ config, lib, pkgs, ... }:
-with lib;
-let
-  cfg = config.programs.emacs.baseConfig;
-  nurNoPkgs =
-    import (import ../../../../overlays/overlays.d/nix/sources.nix).nur { };
-in
-{
-  imports = [ nurNoPkgs.repos.rycee.hmModules.emacs-init ];
-
-  options.programs.emacs.baseConfig.enable =
-    mkEnableOption "Base Emacs configuration";
-
-  config = mkIf cfg.enable {
+{ config, lib, pkgs, ... }: {
+  config = lib.mkIf config.profiles.default.enable {
     programs.emacs.init = {
       enable = true;
       recommendedGcSettings = true;
