@@ -1,23 +1,13 @@
 { config, pkgs, lib, ... }: {
-  imports = [
-    ./direnv.nix
-    ./emacs.nix
-    ./modules
-  ];
+  imports = [ ./emacs.nix ./modules ];
 
   home.packages = with pkgs;
-    [
-      bat
-      cachix
-      csvkit
-      graphviz
-      nixops
-      pandoc
-      python3Packages.sqlparse
-    ] ++ (with gitAndTools; [ delta git-annex git-crypt git-remote-gcrypt hub ])
+    [ bat cachix csvkit graphviz nixops pandoc python3Packages.sqlparse ]
+    ++ (with gitAndTools; [ delta git-annex git-crypt git-remote-gcrypt hub ])
     ++ (with mypkgs; [ scripts ]);
 
-  home.sessionVariables.EDITOR = "${config.programs.emacs.finalPackage}/bin/emacs";
+  home.sessionVariables.EDITOR =
+    "${config.programs.emacs.finalPackage}/bin/emacs";
   home.sessionVariables.ALTERNATE_EDITOR = "${pkgs.vim}/bin/vim";
 
   home.stateVersion = "20.09";
@@ -30,6 +20,14 @@
   nixpkgs.overlays = import ./overlays;
 
   programs.browserpass.enable = true;
+
+  programs.direnv = {
+    enable = true;
+    enableBashIntegration = true;
+    enableFishIntegration = true;
+    enableNixDirenvIntegration = true;
+    enableZshIntegration = true;
+  };
 
   programs.fish = {
     enable = true;
