@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ config, lib, pkgs, ... }:
 with lib;
 let
   cfg = config.programs.emacs.baseConfig;
@@ -16,7 +16,6 @@ in
       enable = true;
       recommendedGcSettings = true;
       earlyInit = ''
-        (add-to-list 'load-path "${pkgs.mypkgs.dotfiles}/emacs.d/elisp/")
         (menu-bar-mode -1)
         (scroll-bar-mode -1)
         (tool-bar-mode -1)
