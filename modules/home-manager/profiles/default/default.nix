@@ -25,7 +25,7 @@ in
       allowUnfree = true;
     };
 
-    nixpkgs.overlays = import ../../../overlays;
+    nixpkgs.overlays = import ../../../../overlays;
 
     programs.browserpass.enable = true;
 

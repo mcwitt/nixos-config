@@ -1,5 +1,5 @@
 { pkgs, ... }: {
-  imports = [ <home-manager/nixos> ../../nixos-modules ];
+  imports = [ <home-manager/nixos> ../../modules/common ../../modules/nixos ];
 
   # Use the systemd-boot EFI boot loader.
   boot.loader = {
@@ -48,7 +48,7 @@
   };
 
   home-manager.users.matt = _: {
-    imports = [ ../../hm-modules ];
+    imports = [ ../../modules/home-manager ];
     profiles.nixos-home.enable = true;
   };
 
