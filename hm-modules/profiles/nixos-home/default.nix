@@ -11,11 +11,6 @@ in
 
   config = mkIf cfg.enable {
 
-    home = {
-      username = "matt";
-      homeDirectory = /home/matt;
-    };
-
     home.packages = with pkgs; [
       anki
       dmenu

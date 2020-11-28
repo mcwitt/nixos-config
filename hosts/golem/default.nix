@@ -1,5 +1,5 @@
 { pkgs, ... }: {
-  imports = [ ../../nixos-modules ];
+  imports = [ <home-manager/nixos> ../../nixos-modules ];
 
   # Use the systemd-boot EFI boot loader.
   boot.loader = {
@@ -45,6 +45,11 @@
         PageSize = "A4";
       };
     }];
+  };
+
+  home-manager.users.matt = _: {
+    imports = [ ../../hm-modules ];
+    profiles.nixos-home.enable = true;
   };
 
   i18n.defaultLocale = "en_US.UTF-8";
