@@ -91,11 +91,7 @@ in
       imageDirectory = "%h/.background-images";
     };
 
-    shells.aliases = {
-      open = "${pkgs.xdg_utils}/bin/xdg-open";
-      ec = "${emacs}/bin/emacsclient --tty";
-      emacs = "${emacs}/bin/emacsclient --create-frame";
-    };
+    shells.aliases.open = "${pkgs.xdg_utils}/bin/xdg-open";
 
     xdg = {
       enable = true;
