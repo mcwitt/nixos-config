@@ -9,7 +9,6 @@ in
   config = mkIf cfg.enable {
     home.packages = with pkgs.haskellPackages; [
       brittany
-      cabal-bounds
       cabal-install
       ghcid
       hlint
