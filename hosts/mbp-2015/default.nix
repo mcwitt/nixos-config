@@ -1,7 +1,7 @@
 { pkgs, ... }:
 
 {
-  imports = [ <home-manager/nix-darwin> ];
+  imports = [ <home-manager/nix-darwin> ../../modules/common/nixos ];
 
   environment = {
     darwinConfig = "$HOME/.config/nixpkgs/darwin-configuration.nix";
