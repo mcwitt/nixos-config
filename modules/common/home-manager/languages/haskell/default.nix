@@ -1,45 +1,13 @@
 { config, lib, pkgs, ... }:
 with lib;
-let
-  cfg = config.languages.haskell;
-  ghcEnv = pkgs.haskellPackages.ghcWithHoogle (hspkgs:
-    with hspkgs; [
-      MonadRandom
-      aeson
-      array
-      cassava
-      checkers
-      containers
-      fgl
-      formatting
-      heaps
-      histogram-fill
-      hmatrix
-      hspec
-      hvega
-      lens
-      linear
-      monad-bayes
-      monad-loops
-      mtl
-      parsec
-      postgresql-simple
-      pretty-simple
-      protolude
-      req
-      singletons
-      split
-      statistics
-      transformers
-      vector
-    ]);
+let cfg = config.languages.haskell;
 in
 {
   options.languages.haskell.enable =
     mkEnableOption "Haskell language environment";
 
   config = mkIf cfg.enable {
-    home.packages = [ ghcEnv ] ++ (with pkgs.haskellPackages; [
+    home.packages = with pkgs.haskellPackages; [
       brittany
       cabal-bounds
       cabal-install
@@ -47,7 +15,7 @@ in
       hlint
       ormolu
       stack
-    ]);
+    ];
 
     programs.vscode = {
       extensions = with pkgs.vscode-extensions; [
