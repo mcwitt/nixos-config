@@ -1,1 +1,1 @@
-{ imports = [ ./nixos-home ]; }
+{ imports = [ ./base ]; }
