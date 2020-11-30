@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 with lib;
 let cfg = config.profiles.personal;
 in
@@ -8,7 +8,7 @@ in
 
   config = mkIf cfg.enable {
 
-    home.packages = [ graphviz nixops ];
+    home.packages = with pkgs; [ graphviz nixops ];
 
     languages = {
       R.enable = true;
@@ -22,10 +22,10 @@ in
       scala.enable = true;
       shell.enable = true;
     };
-  };
 
-  tools = {
-    aws.enable = true;
-    kubernetes.enable = true;
+    tools = {
+      aws.enable = true;
+      kubernetes.enable = true;
+    };
   };
 }
