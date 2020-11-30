@@ -380,7 +380,7 @@
       fira-code-mode.enable = true;
 
       jupyter = {
-        enable = true;
+        enable = false; # XXX Broken as of 2020-11-29
         bind = { "C-c j" = "jupyter-run-repl"; };
       };
 
