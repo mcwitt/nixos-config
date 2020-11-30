@@ -10,7 +10,7 @@
 
   fonts.enableFontDir = true;
 
-  home-manager.users.matt = _: {
+  home-manager.users.matt = {
     imports = [ ../../modules/darwin/home-manager ];
     profiles.darwin-home.enable = true;
   };

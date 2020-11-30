@@ -47,7 +47,7 @@
     }];
   };
 
-  home-manager.users.matt = _: {
+  home-manager.users.matt = {
     imports = [ ../../modules/nixos/home-manager ];
     profiles.nixos-home.enable = true;
   };
