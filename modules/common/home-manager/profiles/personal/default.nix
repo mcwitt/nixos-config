@@ -14,7 +14,7 @@ in
       R.enable = true;
       dhall.enable = true;
       haskell.enable = true;
-      idris.enable = true;
+      idris.enable = false; # XXX Broken as of 2020-11-29
       js.enable = true;
       nix.enable = true;
       python.enable = true;
