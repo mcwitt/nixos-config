@@ -1,8 +1,6 @@
 { config, pkgs, lib, ... }:
 with lib;
-let
-  cfg = config.profiles.nixos-home;
-  emacs = config.programs.emacs.finalPackage;
+let cfg = config.profiles.nixos-home;
 in
 {
   imports = [ ./alacritty.nix ];
@@ -24,7 +22,8 @@ in
       zulip
     ];
 
-    home.sessionVariables.EDITOR = "${emacs}/bin/emacsclient --tty";
+    home.sessionVariables.EDITOR =
+      "${config.programs.emacs.finalPackage}/bin/emacsclient --tty";
 
     programs.chromium = {
       enable = true;

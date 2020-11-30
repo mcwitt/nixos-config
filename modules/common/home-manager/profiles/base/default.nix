@@ -223,9 +223,7 @@
 
   shells.aliases = {
     cdr = ''cd "$(${pkgs.git}/bin/git rev-parse --show-toplevel)"'';
-    ec = "${config.programs.emacs.finalPackage}/bin/emacsclient --tty";
-    emacs =
-      "${config.programs.emacs.finalPackage}/bin/emacsclient --create-frame";
+    ec = "${config.programs.emacs.finalPackage}/bin/emacsclient --create-frame";
     l = "${pkgs.coreutils}/bin/ls --color=auto -alh";
     ll = "${pkgs.coreutils}/bin/ls --color=auto -l";
     ls = "${pkgs.coreutils}/bin/ls --color=auto";
