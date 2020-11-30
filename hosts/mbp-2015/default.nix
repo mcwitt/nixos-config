@@ -10,10 +10,7 @@
 
   fonts.enableFontDir = true;
 
-  home-manager.users.matt = {
-    imports = [ ../../modules/darwin/home-manager ];
-    profiles.darwin-home.enable = true;
-  };
+  home-manager.users.matt = ../../modules/darwin/home-manager;
 
   nix = {
     maxJobs = 8;

@@ -47,10 +47,7 @@
     }];
   };
 
-  home-manager.users.matt = {
-    imports = [ ../../modules/nixos/home-manager ];
-    profiles.nixos-home.enable = true;
-  };
+  home-manager.users.matt = ../../modules/nixos/home-manager;
 
   i18n.defaultLocale = "en_US.UTF-8";
 
