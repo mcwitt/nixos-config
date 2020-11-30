@@ -212,6 +212,7 @@
     R.enable = true;
     dhall.enable = true;
     haskell.enable = true;
+    idris.enable = true;
     js.enable = true;
     nix.enable = true;
     python.enable = true;
