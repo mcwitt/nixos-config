@@ -3,9 +3,9 @@
   imports = [ ./emacs.nix ];
 
   home.packages = with pkgs;
-    [ bat cachix csvkit graphviz nixops pandoc python3Packages.sqlparse ]
+    [ bat cachix pandoc ]
     ++ (with gitAndTools; [ delta git-annex git-crypt git-remote-gcrypt hub ])
-    ++ (with mypkgs; [ scripts ]);
+    ++ [ mypkgs.scripts ];
 
   home.sessionVariables.EDITOR =
     "${config.programs.emacs.finalPackage}/bin/emacs";
@@ -208,19 +208,6 @@
     '';
   };
 
-  languages = {
-    R.enable = true;
-    dhall.enable = true;
-    haskell.enable = true;
-    idris.enable = true;
-    js.enable = true;
-    nix.enable = true;
-    python.enable = true;
-    rust.enable = true;
-    scala.enable = true;
-    shell.enable = true;
-  };
-
   shells.aliases = {
     cdr = ''cd "$(${pkgs.git}/bin/git rev-parse --show-toplevel)"'';
     ec = "${config.programs.emacs.finalPackage}/bin/emacsclient --create-frame";
@@ -237,10 +224,5 @@
     gl = "${pkgs.git}/bin/git l";
     gw = "${pkgs.git}/bin/git w";
     rm = "${pkgs.coreutils}/bin/rm -i";
-  };
-
-  tools = {
-    aws.enable = true;
-    kubernetes.enable = true;
   };
 }
