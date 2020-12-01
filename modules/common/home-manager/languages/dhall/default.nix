@@ -1,14 +1,18 @@
 { config, lib, pkgs, ... }:
 with lib;
-let
-  cfg = config.languages.dhall;
+let cfg = config.languages.dhall;
 in
 {
   options.languages.dhall.enable = mkEnableOption "Dhall language environment";
 
   config = mkIf cfg.enable {
 
-    home.packages = with pkgs; [ dhall dhall-json dhall-lsp-server ];
+    home.packages = with pkgs; [
+      dhall
+      dhall-json
+      dhall-lsp-server
+      haskellPackages.dhall-yaml
+    ];
 
     programs.emacs.init.usePackage.dhall-mode = {
       enable = true;
