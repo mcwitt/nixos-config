@@ -319,6 +319,12 @@
         config = "(global-flycheck-mode t)";
       };
 
+      # needed by Flycheck
+      pkg-info = {
+        enable = true;
+        command = [ "pkg-info-version-info" ];
+      };
+
       lsp-mode = {
         enable = true;
         command = [ "lsp" ];
