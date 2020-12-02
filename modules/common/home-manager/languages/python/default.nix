@@ -20,6 +20,8 @@ in
         config = "(add-to-list 'company-backends 'company-anaconda)";
       };
 
+      format-all.hook = [ "(python-mode . format-all-mode)" ];
+
       pyvenv.enable = true;
     };
   };
