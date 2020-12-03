@@ -30,10 +30,7 @@ in
     programs.emacs.init.usePackage = {
       haskell-mode = {
         enable = true;
-        hook = [
-          "(haskell-mode . interactive-haskell-mode)"
-          "(haskell-mode . lsp)"
-        ];
+        hook = [ "(haskell-mode . interactive-haskell-mode)" ];
         bindLocal = {
           haskell-mode-map."C-c C-h" = "haskell-hoogle-lookup-from-local";
           haskell-cabal-mode-map."C-c C-f" = "cabal-fmt-buffer";
@@ -53,6 +50,13 @@ in
 
       lsp-haskell = {
         enable = true;
+        hook = [
+          ''
+            (haskell-mode . (lambda ()
+                              (direnv-update-environment)
+                              (lsp)))
+          ''
+        ];
         config = ''(setq lsp-haskell-server-path "haskell-language-server")'';
       };
 
