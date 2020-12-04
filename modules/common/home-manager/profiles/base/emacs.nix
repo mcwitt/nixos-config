@@ -761,7 +761,7 @@
 
       dap-mode = {
         enable = true;
-        hook = [ "(lsp-mode . dap-mode)" "(lsp-mode . dap-ui-mode)" ];
+        hook = [ "(lsp-mode . dap-mode)" ];
       };
 
       pinentry = {
