@@ -391,8 +391,6 @@
         bind = { "C-c j" = "jupyter-run-repl"; };
       };
 
-      go-mode.enable = true;
-
       json-mode = {
         enable = true;
         hook = [ "(json-mode . flycheck-mode)" ];
