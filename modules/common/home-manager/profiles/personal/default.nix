@@ -8,11 +8,10 @@ in
 
   config = mkIf cfg.enable {
 
-    home.packages = with pkgs; [ graphviz nixops ];
-
     languages = {
       R.enable = true;
       dhall.enable = true;
+      graphviz.enable = true;
       haskell.enable = true;
       idris.enable = false; # XXX Broken as of 2020-11-29
       js.enable = true;
