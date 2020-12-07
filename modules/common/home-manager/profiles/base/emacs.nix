@@ -640,7 +640,10 @@
             "C-c n f" = "org-roam-find-file";
             "C-c n g" = "org-roam-graph";
           };
-          org-mode-map."C-c n i" = "org-roam-insert";
+          org-mode-map = {
+            "C-c n i" = "org-roam-insert";
+            "C-c n I" = "org-roam-insert-immediate";
+          };
         };
         config = ''
           (setq org-roam-directory org-notes-notes-directory)
