@@ -11,6 +11,7 @@ in
     languages = {
       R.enable = true;
       dhall.enable = true;
+      go.enable = true;
       graphviz.enable = true;
       haskell.enable = true;
       idris.enable = false; # XXX Broken as of 2020-11-29

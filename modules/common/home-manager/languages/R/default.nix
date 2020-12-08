@@ -25,6 +25,10 @@ in
 
   config = mkIf cfg.enable {
     home.packages = [ rEnv ];
-    programs.emacs.init.usePackage.ess.enable = true;
+
+    programs.emacs.init.usePackage.ess = {
+      enable = true;
+      init = "(require 'ess-site)";
+    };
   };
 }

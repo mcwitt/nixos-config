@@ -6,6 +6,9 @@ in
   options.languages.idris.enable = mkEnableOption "Idris language environment";
 
   config = mkIf cfg.enable {
-    programs.emacs.init.usePackage.idris-mode.enable = true;
+    programs.emacs.init.usePackage.idris-mode = {
+      enable = true;
+      mode = [ ''"\\.idr\\'"'' ];
+    };
   };
 }

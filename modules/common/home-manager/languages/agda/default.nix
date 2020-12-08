@@ -9,7 +9,10 @@ in
 
     programs.emacs.init.usePackage.agda2-mode = {
       enable = true;
-      mode = [ ''"\\.l?agda\\'" "\\.lagda.md\\'"'' ];
+      mode = [
+        ''"\\.l?agda\\'"''
+        ''"\\.lagda.md\\'"''
+      ];
     };
   };
 }

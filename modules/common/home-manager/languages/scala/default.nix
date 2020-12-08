@@ -10,6 +10,8 @@ in
 
     programs.emacs.init.usePackage = {
 
+      fira-code-mode.hook = [ "scala-mode" ];
+
       lsp-metals.enable = true;
 
       lsp-treemacs.config = ''

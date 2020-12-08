@@ -348,6 +348,25 @@
         command = [ "lsp-ui-mode" ];
       };
 
+      posframe.enable = true;
+
+      dap-mode = {
+        enable = true;
+        hook = [ "(lsp-mode . dap-mode)" ];
+        config = "(dap-auto-configure-mode 1)";
+      };
+
+      dap-mouse = {
+        enable = true;
+        command = [ "dap-tooltip-mode" ];
+      };
+
+      dap-ui = {
+        enable = true;
+        hook = [ "(lsp-mode . dap-ui-mode)" ];
+        command = [ "dap-ui-mode" ];
+      };
+
       lsp-ivy = {
         enable = true;
         after = [ "lsp-mode" "ivy" ];
@@ -756,13 +775,6 @@
       erc-image = {
         enable = true;
         after = [ "erc" ];
-      };
-
-      posframe.enable = true;
-
-      dap-mode = {
-        enable = true;
-        hook = [ "(lsp-mode . dap-mode)" ];
       };
 
       pinentry = {

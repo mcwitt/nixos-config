@@ -13,6 +13,10 @@ in
 
       graphviz-dot-mode = {
         enable = true;
+        mode = [
+          ''"\\.dot\\'"''
+          ''"\\.gv\\'"''
+        ];
         init = ''(setq graphviz-dot-dot-program "${pkgs.graphviz}/bin/dot")'';
       };
 

@@ -32,7 +32,14 @@ in
 
       haskell-mode = {
         enable = true;
-        hook = [ "(haskell-mode . interactive-haskell-mode)" ];
+        mode = [
+          ''("\\.hs\\'" . haskell-mode)''
+          ''("\\.lhs\\'" . haskell-literate-mode)''
+        ];
+        hook = [
+          "(haskell-mode . interactive-haskell-mode)"
+          "(haskell-mode . subword-mode)"
+        ];
         bindLocal.haskell-mode-map."C-c C-h" = "haskell-hoogle-lookup-from-local";
         config = ''
           (setq haskell-interactive-popup-errors nil)
@@ -50,10 +57,7 @@ in
         hook = [ "(haskell-cabal-mode . cabal-fmt-on-save-mode)" ];
       };
 
-      fira-code-mode = {
-        enable = true;
-        hook = [ "haskell-mode" ];
-      };
+      fira-code-mode.hook = [ "haskell-mode" ];
 
       flycheck-haskell = {
         enable = true;

@@ -17,7 +17,11 @@ in
     programs.emacs.init.usePackage = {
       nix-mode = {
         enable = true;
-        hook = [ "(nix-mode . nixpkgs-fmt-on-save-mode)" ];
+        mode = [ ''"\\.nix\\'"'' ];
+        hook = [
+          "(nix-mode . nixpkgs-fmt-on-save-mode)"
+          "(nix-mode . subword-mode)"
+        ];
       };
 
       reformatter = {
