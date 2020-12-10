@@ -30,6 +30,11 @@ in
 
     programs.emacs.init.usePackage = {
 
+      direnv = {
+        enable = true;
+        command = [ "direnv-update-environment" ];
+      };
+
       haskell-mode = {
         enable = true;
         mode = [
