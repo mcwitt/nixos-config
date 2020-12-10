@@ -99,7 +99,6 @@
     delta.enable = true;
   };
 
-  # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
 
   programs.mpv.enable = true;
@@ -157,6 +156,7 @@
 
   programs.starship = {
     enable = true;
+    enableBashIntegration = true;
     enableFishIntegration = true;
     enableZshIntegration = true;
     settings.directory.fish_style_pwd_dir_length = 1;
