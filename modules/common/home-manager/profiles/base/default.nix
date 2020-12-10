@@ -3,9 +3,15 @@
   imports = [ ./emacs.nix ];
 
   home.packages = with pkgs;
-    [ bat cachix pandoc ]
-    ++ (with gitAndTools; [ delta git-annex git-crypt git-remote-gcrypt hub ])
-    ++ [ mypkgs.scripts ];
+    [ bat cachix mypkgs.scripts pandoc ]
+    ++ (with gitAndTools; [
+      delta
+      git-annex
+      git-crypt
+      git-remote-gcrypt
+      hub
+      pre-commit
+    ]);
 
   home.sessionVariables.EDITOR =
     "${config.programs.emacs.finalPackage}/bin/emacs";
