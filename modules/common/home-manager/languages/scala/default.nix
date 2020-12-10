@@ -36,7 +36,10 @@ in
       scala-mode = {
         enable = true;
         mode = [ ''"\\.s\\(cala\\|bt\\)$"'' ];
-        hook = [ "(scala-mode . lsp)" ];
+        hook = [
+          "(scala-mode . lsp)"
+          "(scala-mode . subword-mode)"
+        ];
       };
     };
 

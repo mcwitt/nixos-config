@@ -343,6 +343,11 @@
         '';
       };
 
+      lsp-modeline = {
+        enable = true;
+        command = [ "lsp-modeline-workspace-status-mode " ];
+      };
+
       lsp-ui = {
         enable = true;
         command = [ "lsp-ui-mode" ];
