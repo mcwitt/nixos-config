@@ -228,7 +228,7 @@
 
       counsel-projectile = {
         enable = true;
-        after = [ "counsel" "projectile" ];
+        after = [ "projectile" ];
         config = "(counsel-projectile-mode 1)";
       };
 
