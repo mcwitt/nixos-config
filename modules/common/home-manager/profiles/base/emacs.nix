@@ -180,6 +180,7 @@
 
       ivy = {
         enable = true;
+        bind."C-c C-r" = "ivy-resume";
         config = "(ivy-mode 1)";
       };
 
