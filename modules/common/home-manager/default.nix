@@ -1,1 +1,9 @@
-{ imports = [ ./languages ./profiles ./programs ./tools ./shells.nix ]; }
+{
+  imports = [
+    ./languages
+    ./profiles
+    ./programs
+    ./tools
+    ./shells.nix
+  ];
+}
