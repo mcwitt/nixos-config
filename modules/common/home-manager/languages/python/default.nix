@@ -7,8 +7,12 @@ in
     mkEnableOption "Python language environment";
 
   config = mkIf cfg.enable {
-    home.packages = with pkgs;
-      [ black mypy ] ++ (with python3Packages; [ flake8 virtualenv ]);
+    home.packages =
+      let
+        pythonEnv = pkgs.python38.withPackages
+          (ps: with ps; [ black flake8 mypy virtualenv ]);
+      in
+      [ pythonEnv ];
 
     programs.emacs.init.usePackage = {
       anaconda-mode = {
