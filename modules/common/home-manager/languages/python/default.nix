@@ -30,12 +30,7 @@ in
 
       dap-python.enable = true;
 
-      format-all = {
-        hook = [ "(python-mode . format-all-mode)" ];
-        config = ''
-          (add-to-list 'format-all-formatters '("Python" black))
-        '';
-      };
+      format-all.hook = [ "(python-mode . format-all-mode)" ];
 
       pyvenv.enable = true;
     };
