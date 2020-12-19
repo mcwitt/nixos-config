@@ -1,6 +1,6 @@
 { config, lib, pkgs, ... }: {
 
-  imports = [ ./emacs.nix ];
+  imports = [ ./emacs ];
 
   home.packages = with pkgs;
     [ bat cachix mypkgs.scripts pandoc ]
