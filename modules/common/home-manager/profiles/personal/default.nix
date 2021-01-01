@@ -23,6 +23,15 @@ in
       shell.enable = true;
     };
 
+    programs.git = {
+      userName = "Matt Wittmann";
+      userEmail = "mcwitt@gmail.com";
+      signing = {
+        key = "A79A94078DF3DB5B";
+        signByDefault = true;
+      };
+    };
+
     tools = {
       aws.enable = true;
       kubernetes.enable = true;

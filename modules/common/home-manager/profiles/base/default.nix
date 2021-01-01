@@ -67,8 +67,6 @@
 
   programs.git = {
     enable = true;
-    userName = "Matt Wittmann";
-    userEmail = "mcwitt@gmail.com";
     aliases = {
       b = "branch --color -v";
       ca = "commit --amend";
@@ -87,10 +85,6 @@
       "Global/Vim"
       "Global/Emacs"
     ];
-    signing = {
-      key = "A79A94078DF3DB5B";
-      signByDefault = true;
-    };
     extraConfig = {
       gitHub.user = "mcwitt";
       merge.conflictStyle = "diff3";
