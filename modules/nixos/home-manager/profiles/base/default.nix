@@ -130,7 +130,40 @@
     windowManager.xmonad = {
       enable = true;
       enableContribAndExtras = true;
-      config = "${pkgs.mypkgs.sources.xmonad-config}/xmonad.hs";
+      config = pkgs.writeText "xmonad.hs" ''
+        import qualified Data.Map as M
+        import XMonad
+        import XMonad.Actions.WindowBringer
+        import XMonad.Hooks.DynamicLog
+        import XMonad.Layout.NoBorders
+
+        -- modify default layout hook with 'smartBorders'
+        myLayoutHook = smartBorders $ layoutHook def
+
+        myKeys conf@(XConfig {XMonad.modMask = modm}) =
+          M.fromList
+            [ ((modm, xK_g), gotoMenu),
+              ((modm, xK_b), bringMenu),
+              ((modm, xK_y), spawn "${config.programs.emacs.finalPackage}/bin/emacsclient --create-frame"),
+              ((modm, xK_u), spawn "chromium-browser"),
+              ((modm, xK_s), spawn "${pkgs.lightdm}/bin/dm-tool switch-to-greeter")
+            ]
+
+        newKeys conf = myKeys conf `M.union` keys def conf
+
+        main =
+          xmonad
+            =<< xmobar
+              def
+                { borderWidth = 5,
+                  normalBorderColor = "#073642",
+                  focusedBorderColor = "#859900",
+                  layoutHook = myLayoutHook,
+                  modMask = mod4Mask,
+                  terminal = "alacritty",
+                  keys = newKeys
+                }
+      '';
     };
   };
 }

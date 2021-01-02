@@ -95,17 +95,5 @@
         "url": "https://github.com/altercation/solarized/archive/62f656a02f93c5190a8753159e34b385588d5ff3.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz",
         "version": "62f656a02f93c5190a8753159e34b385588d5ff3"
-    },
-    "xmonad-config": {
-        "branch": "master",
-        "description": null,
-        "homepage": "",
-        "owner": "mcwitt",
-        "repo": "xmonad-config",
-        "rev": "f7e55755db15a41de79a69e7aca1500523b10c1d",
-        "sha256": "1gqppysxgb8ykspsw047pzr6zadp4ypgyf7dpwxwg201xybjsw9s",
-        "type": "tarball",
-        "url": "https://github.com/mcwitt/xmonad-config/archive/f7e55755db15a41de79a69e7aca1500523b10c1d.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }
