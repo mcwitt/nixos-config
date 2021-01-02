@@ -17,8 +17,6 @@
   home.sessionVariables.EDITOR =
     "${config.programs.emacs.finalPackage}/bin/emacsclient --tty";
 
-  profiles.personal.enable = true;
-
   programs.chromium = {
     enable = true;
     extensions = [
