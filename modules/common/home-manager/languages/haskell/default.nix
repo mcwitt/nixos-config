@@ -10,6 +10,7 @@ in
     home.packages = with pkgs.haskellPackages; [
       brittany
       cabal-install
+      ghc
       ghcid
       haskell-language-server
       hlint
@@ -45,7 +46,8 @@ in
           "(haskell-mode . interactive-haskell-mode)"
           "(haskell-mode . subword-mode)"
         ];
-        bindLocal.haskell-mode-map."C-c C-h" = "haskell-hoogle-lookup-from-local";
+        bindLocal.haskell-mode-map."C-c C-h" =
+          "haskell-hoogle-lookup-from-local";
         config = ''
           (setq haskell-interactive-popup-errors nil)
           (setq-default flycheck-disabled-checkers '(haskell-stack-ghc))
