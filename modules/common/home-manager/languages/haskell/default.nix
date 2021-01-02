@@ -9,6 +9,7 @@ in
   config = mkIf cfg.enable {
     home.packages = with pkgs.haskellPackages; [
       brittany
+      cabal-fmt
       cabal-install
       ghc
       ghcid
