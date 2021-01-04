@@ -47,6 +47,11 @@
       command = [ "dap-ui-mode" ];
     };
 
+    lsp-headerline = {
+      enable = true;
+      command = [ "lsp-headerline-breadcrumb-mode" ];
+    };
+
     lsp-ivy = {
       enable = true;
       after = [ "lsp-mode" "ivy" ];
