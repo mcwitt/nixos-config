@@ -12,7 +12,16 @@ in
 
       fira-code-mode.hook = [ "scala-mode" ];
 
-      lsp-metals.enable = true;
+      lsp-metals = {
+        enable = true;
+        hook = [
+          ''
+            (scala-mode . (lambda ()
+                            (direnv-update-environment)
+                            (lsp)))
+          ''
+        ];
+      };
 
       lsp-treemacs.config = ''
         (setq lsp-metals-treeview-show-when-views-received t)
@@ -22,24 +31,18 @@ in
         enable = true;
         command = [ "sbt-start" "sbt-command" ];
         config = ''
-          ;; WORKAROUND: https://github.com/ensime/emacs-sbt-mode/issues/31
-          ;; allows using SPACE when in the minibuffer
+          ;; WORKAROUND: allows using SPACE when in the minibuffer
           (substitute-key-definition
            'minibuffer-complete-word
            'self-insert-command
            minibuffer-local-completion-map)
-          ;; sbt-supershell kills sbt-mode:  https://github.com/hvesalai/emacs-sbt-mode/issues/152
-          (setq sbt:program-options '("-Dsbt.supershell=false"))
         '';
       };
 
       scala-mode = {
         enable = true;
         mode = [ ''"\\.s\\(cala\\|bt\\)$"'' ];
-        hook = [
-          "(scala-mode . lsp)"
-          "(scala-mode . subword-mode)"
-        ];
+        hook = [ "(scala-mode . subword-mode)" ];
       };
     };
 
@@ -48,7 +51,6 @@ in
         scala-lang.scala
         scalameta.metals
       ];
-      userSettings.metals.javaHome = pkgs.jdk11_headless;
     };
   };
 }
