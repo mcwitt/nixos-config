@@ -36,10 +36,7 @@
     enableZshIntegration = true;
   };
 
-  programs.emacs = {
-    enable = true;
-    package = pkgs.emacsGit;
-  };
+  programs.emacs.enable = true;
 
   programs.fish = {
     enable = true;
