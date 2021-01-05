@@ -76,7 +76,7 @@
 
       direnv = {
         enable = true;
-        config = "(direnv-mode)";
+        command = [ "direnv-mode" "direnv-update-environment" ];
       };
 
       doom-themes = {
