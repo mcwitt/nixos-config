@@ -56,6 +56,14 @@
 
       all-the-icons.enable = true;
 
+      beacon = {
+        enable = true;
+        config = ''
+          (setq beacon-color "#b58900")
+          (beacon-mode 1)
+        '';
+      };
+
       browse-at-remote = {
         enable = true;
         command = [ "browse-at-remote" ];
