@@ -19,14 +19,25 @@
 
   programs.chromium = {
     enable = true;
-    extensions = [
-      "naepdomgkenhinolocfifgehidddafch" # Browserpass
-      "eimadpbcbfnmbkopoojfekhnkhdbieeh" # Dark Reader
-      "gcbommkclmclpchllfjekcdonpmejbdp" # HTTPS Everywhere
-      "pkehgijcmpdhfbdbbnkijodmdjhbjlgp" # Privacy Badger
-      "cjpalhdlnbpafiamejdnhcphjbkeiagm" # uBlock Origin
-      "dbepggeogbaibhgnhhndojpepiihcmeb" # Vimium
-    ];
+    extensions =
+      let
+        browserpass = "naepdomgkenhinolocfifgehidddafch";
+        dark-reader = "eimadpbcbfnmbkopoojfekhnkhdbieeh";
+        https-everywhere = "gcbommkclmclpchllfjekcdonpmejbdp";
+        link-to-text-fragment = "pbcodcjpfjdpcineamnnmbkkmkdpajjg";
+        privacy-badger = "pkehgijcmpdhfbdbbnkijodmdjhbjlgp";
+        ublock-origin = "cjpalhdlnbpafiamejdnhcphjbkeiagm";
+        vimium = "dbepggeogbaibhgnhhndojpepiihcmeb";
+      in
+      [
+        browserpass
+        dark-reader
+        https-everywhere
+        link-to-text-fragment
+        privacy-badger
+        ublock-origin
+        vimium
+      ];
   };
 
   programs.emacs.org-protocol.enable = true;
