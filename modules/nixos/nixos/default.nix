@@ -1,1 +1,1 @@
-{ imports = [ ../../common/nixos ./cuda.nix ]; }
+{ imports = [ ./cuda.nix ]; }

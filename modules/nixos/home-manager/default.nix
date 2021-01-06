@@ -1,1 +1,1 @@
-{ imports = [ ../../common/home-manager ./profiles ./services ]; }
+{ imports = [ ./profiles ./services ]; }
