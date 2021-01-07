@@ -2,8 +2,8 @@
   programs.emacs.init.usePackage = {
     lsp-mode = {
       enable = true;
-      command = [ "lsp" ];
       after = [ "company" "flycheck" ];
+      command = [ "lsp" ];
       hook = [
         "(lsp-mode . lsp-enable-which-key-integration)"
         "(lsp-mode . lsp-lens-mode)"
@@ -43,8 +43,8 @@
 
     dap-ui = {
       enable = true;
-      hook = [ "(lsp-mode . dap-ui-mode)" ];
       command = [ "dap-ui-mode" ];
+      hook = [ "(lsp-mode . dap-ui-mode)" ];
     };
 
     lsp-headerline = {
