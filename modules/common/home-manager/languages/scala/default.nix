@@ -12,6 +12,15 @@ in
 
       fira-code-mode.hook = [ "scala-mode" ];
 
+      groovy-mode = {
+        enable = true;
+        mode = [
+          ''"\\.gradle\\'"''
+          ''"\\.groovy\\'"''
+          ''"Jenkinsfile\\'"''
+        ];
+      };
+
       lsp-metals = {
         enable = true;
         hook = [
