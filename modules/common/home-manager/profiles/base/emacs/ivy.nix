@@ -17,6 +17,7 @@ with lib;
 
     ivy = {
       enable = true;
+      demand = true;
       bind."C-c C-r" = "ivy-resume";
       config = "(ivy-mode 1)";
     };
