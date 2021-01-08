@@ -245,10 +245,12 @@
 
       projectile = {
         enable = true;
+        command = [ "projectile-mode" ];
         bindKeyMap."C-c p" = "projectile-command-map";
         config = ''
-          (setq projectile-require-project-root nil)
-          (setq projectile-project-search-path '("~/src/"))
+          (setq projectile-enable-caching t
+                projectile-project-search-path '("~/src/")
+                projectile-require-project-root nil)
           (projectile-mode 1)
         '';
       };
