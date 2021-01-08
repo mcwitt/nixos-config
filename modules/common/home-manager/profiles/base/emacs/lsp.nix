@@ -13,7 +13,7 @@
       '';
       config = ''
         (setq lsp-diagnostics-provider :flycheck)
-        (setq lsp-file-watch-threshold 10000)
+        (setq lsp-file-watch-threshold 30000)
         (define-key lsp-mode-map (kbd "C-c l") lsp-command-map)
       '';
     };
