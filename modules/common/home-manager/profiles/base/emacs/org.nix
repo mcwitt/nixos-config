@@ -79,7 +79,7 @@ in
 
       cdlatex = {
         enable = true;
-        hook = [ "(org-mode . turn-on-cdlatex)" ];
+        command = [ "turn-on-cdlatex" ];
       };
 
       company-org-roam = {
