@@ -151,6 +151,7 @@ in
 
       org = {
         enable = true;
+        package = epkgs: epkgs.org-plus-contrib;
         bind = {
           "C-c o a" = "org-agenda";
           "C-c o c" = "org-capture";
