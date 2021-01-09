@@ -200,6 +200,8 @@
 
       logview.enable = true;
 
+      password-store.enable = true;
+
       magit.enable = true;
 
       markdown-mode = {
