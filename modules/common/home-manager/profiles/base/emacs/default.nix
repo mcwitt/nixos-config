@@ -50,6 +50,9 @@
 
       ;; Highlight end-of-line whitespace only in prog-mode
       (add-hook 'prog-mode-hook (lambda () (setq-local show-trailing-whitespace t)))
+
+      ;; Open URLs with Chromium
+      (setq browse-url-browser-function 'browse-url-chromium)
     '';
 
     usePackage = {
