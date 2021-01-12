@@ -26,6 +26,9 @@
     lsp-ui = {
       enable = true;
       command = [ "lsp-ui-mode" ];
+      config = ''
+        (setq lsp-ui-doc-position 'at-point)
+      '';
     };
 
     posframe.enable = true;
