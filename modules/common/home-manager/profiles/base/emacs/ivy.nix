@@ -3,6 +3,13 @@ with lib;
 {
   programs.emacs.init.usePackage = {
 
+    counsel = {
+      enable = true;
+      demand = true;
+      bind."C-x M-f" = "counsel-fzf";
+      config = "(counsel-mode 1)";
+    };
+
     counsel-projectile = {
       enable = true;
       after = [ "projectile" ];
