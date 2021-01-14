@@ -157,6 +157,10 @@
 
       flycheck = {
         enable = true;
+        bind = {
+          "M-n" = "flycheck-next-error";
+          "M-p" = "flycheck-previous-error";
+        };
         init = ''(setq ispell-program-name "aspell")'';
         config = "(global-flycheck-mode t)";
       };

@@ -42,8 +42,9 @@ in
           "(haskell-mode . interactive-haskell-mode)"
           "(haskell-mode . subword-mode)"
         ];
-        bindLocal.haskell-mode-map."C-c C-h" =
-          "haskell-hoogle-lookup-from-local";
+        bindLocal.haskell-mode-map = {
+          "C-c C-h" = "haskell-hoogle-lookup-from-local";
+        };
         config = ''
           (setq haskell-interactive-popup-errors nil)
           (setq-default flycheck-disabled-checkers '(haskell-stack-ghc))
@@ -76,7 +77,9 @@ in
                               (lsp)))
           ''
         ];
-        config = ''(setq lsp-haskell-server-path "haskell-language-server")'';
+        config = ''
+          (setq lsp-haskell-server-path "haskell-language-server")
+        '';
       };
 
       ormolu = {
