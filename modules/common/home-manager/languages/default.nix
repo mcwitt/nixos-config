@@ -6,6 +6,7 @@
     ./graphviz
     ./haskell
     ./idris
+    ./java
     ./js
     ./nix
     ./python
