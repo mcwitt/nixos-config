@@ -172,6 +172,15 @@
 
       gist.enable = true;
 
+      groovy-mode = {
+        enable = true;
+        mode = [
+          ''"\\.gradle\\'"''
+          ''"\\.groovy\\'"''
+          ''"Jenkinsfile\\'"''
+        ];
+      };
+
       hl-todo = {
         enable = true;
         hook = [ "(prog-mode . hl-todo-mode)" ];
