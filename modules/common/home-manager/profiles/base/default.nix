@@ -3,8 +3,7 @@
   imports = [ ./emacs ];
 
   home.packages = with pkgs;
-    [ bat cachix mypkgs.scripts pandoc ]
-    ++ (with gitAndTools; [
+    [ bat cachix mypkgs.scripts pandoc ] ++ (with gitAndTools; [
       delta
       git-annex
       git-crypt
@@ -13,8 +12,7 @@
       pre-commit
     ]);
 
-  home.sessionVariables.EDITOR =
-    "${config.programs.emacs.finalPackage}/bin/emacs";
+  home.sessionVariables.EDITOR = "${config.programs.emacs.finalPackage}/bin/emacsclient --tty";
   home.sessionVariables.ALTERNATE_EDITOR = "${pkgs.vim}/bin/vim";
 
   home.stateVersion = "20.09";

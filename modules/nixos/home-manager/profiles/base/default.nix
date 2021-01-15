@@ -14,9 +14,6 @@
     zulip
   ];
 
-  home.sessionVariables.EDITOR =
-    "${config.programs.emacs.finalPackage}/bin/emacsclient --tty";
-
   programs.chromium = {
     enable = true;
     extensions =
