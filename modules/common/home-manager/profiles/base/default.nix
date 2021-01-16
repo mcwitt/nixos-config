@@ -17,13 +17,6 @@
 
   home.stateVersion = "20.09";
 
-  nixpkgs.config = {
-    allowBroken = true;
-    allowUnfree = true;
-  };
-
-  nixpkgs.overlays = import ../../../../../overlays;
-
   programs.browserpass.enable = true;
 
   programs.direnv = {

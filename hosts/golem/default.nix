@@ -53,12 +53,15 @@
     }];
   };
 
-  home-manager.users.matt = {
-    imports = [
-      ../../modules/common/home-manager
-      ../../modules/nixos/home-manager
-    ];
-    profiles.personal.enable = true;
+  home-manager = {
+    useGlobalPkgs = true;
+    users.matt = { pkgs, ... }: {
+      imports = [
+        ../../modules/common/home-manager
+        ../../modules/nixos/home-manager
+      ];
+      profiles.personal.enable = true;
+    };
   };
 
   i18n.defaultLocale = "en_US.UTF-8";

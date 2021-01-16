@@ -13,11 +13,14 @@
 
   fonts.enableFontDir = true;
 
-  home-manager.users.matt = {
-    imports = [
-      ../../modules/common/home-manager
-      ../../modules/darwin/home-manager
-    ];
+  home-manager = {
+    useGlobalPkgs = true;
+    users.matt = {
+      imports = [
+        ../../modules/common/home-manager
+        ../../modules/darwin/home-manager
+      ];
+    };
   };
 
   nix = {

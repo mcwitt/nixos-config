@@ -19,7 +19,6 @@ in
       nvidia.modesetting.enable = true;
     };
 
-    nixpkgs.config.allowUnfree = true;
     services.xserver.videoDrivers = [ "nvidia" ];
   };
 }
