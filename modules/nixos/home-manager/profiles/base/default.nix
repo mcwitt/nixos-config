@@ -1,5 +1,5 @@
 { config, pkgs, ... }: {
-  imports = [ ./alacritty.nix ];
+  imports = [ ./alacritty.nix ./xmobar.nix ];
 
   home.packages = with pkgs; [
     anki
@@ -91,7 +91,6 @@
 
   xdg = {
     enable = true;
-    configFile.xmobar.source = "${pkgs.mypkgs.dotfiles}/config/xmobar/";
     mimeApps = {
       enable = true;
       defaultApplications = {

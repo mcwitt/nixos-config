@@ -5,10 +5,10 @@
         "homepage": "",
         "owner": "nix-community",
         "repo": "emacs-overlay",
-        "rev": "c835ee2d9d790af502e5ea41a965f4002d6f4590",
-        "sha256": "17zzplzpqw3i4pw492zs3y2m2rvbc4bf89akpg5js9l5wgka07vn",
+        "rev": "a2d279f5b2760ac7d684fc0b3dadef93fd445b26",
+        "sha256": "18nza7whllrvrvh67zamhwwpdzmzaanrskqqvnmnckcq9lpkcg20",
         "type": "tarball",
-        "url": "https://github.com/nix-community/emacs-overlay/archive/c835ee2d9d790af502e5ea41a965f4002d6f4590.tar.gz",
+        "url": "https://github.com/nix-community/emacs-overlay/archive/a2d279f5b2760ac7d684fc0b3dadef93fd445b26.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "fish-kubectl-completions": {
@@ -35,28 +35,16 @@
         "url": "https://github.com/github/gitignore/archive/218a941be92679ce67d0484547e3e142b2f5f6f0.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
-    "mcwitt-dotfiles": {
-        "branch": "master",
-        "description": null,
-        "homepage": null,
-        "owner": "mcwitt",
-        "repo": "dotfiles",
-        "rev": "cb5259341e05f7686d5d96164717daa887b67db3",
-        "sha256": "0jm0lcmd7np375pn055q97bps6hi93sbjvpmcbm4s0qw9x890n2h",
-        "type": "tarball",
-        "url": "https://github.com/mcwitt/dotfiles/archive/cb5259341e05f7686d5d96164717daa887b67db3.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
     "niv": {
         "branch": "master",
         "description": "Easy dependency management for Nix projects",
         "homepage": "https://github.com/nmattia/niv",
         "owner": "nmattia",
         "repo": "niv",
-        "rev": "62fcf7d0859628f1834d84a7a0706ace0223c27e",
-        "sha256": "06ghvcsarvi32awxvgdxivaji8fsdhv46p49as8xx8whwia9d3rh",
+        "rev": "3cd7914b2c4cff48927e11c216dadfab7d903fe5",
+        "sha256": "1agq4nvbhrylf2s77kb4xhh9k7xcwdwggq764k4jgsbs70py8cw3",
         "type": "tarball",
-        "url": "https://github.com/nmattia/niv/archive/62fcf7d0859628f1834d84a7a0706ace0223c27e.tar.gz",
+        "url": "https://github.com/nmattia/niv/archive/3cd7914b2c4cff48927e11c216dadfab7d903fe5.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs": {
@@ -77,10 +65,10 @@
         "homepage": "",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "d54fca4503dcde9628a24b123aa87b1e450eb3e3",
-        "sha256": "1m2v11vd4pnxx9dnm8x5068wsl9q65nk4fi9dnjanzbprb1dk1nr",
+        "rev": "9cf3f8a1808f192ca2c9177503b63936bf524b74",
+        "sha256": "1a0wca5mrg6b0rkimfmynv0yxldaws7nmhkizwshsh92wx5r3v7w",
         "type": "tarball",
-        "url": "https://github.com/nix-community/NUR/archive/d54fca4503dcde9628a24b123aa87b1e450eb3e3.tar.gz",
+        "url": "https://github.com/nix-community/NUR/archive/9cf3f8a1808f192ca2c9177503b63936bf524b74.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "solarized": {

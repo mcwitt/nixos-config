@@ -6,7 +6,6 @@ in
 {
   mypkgs = {
     inherit sources;
-    dotfiles = sources.mcwitt-dotfiles;
     gitignore = callPackage ./gitignore.nix { };
     scripts = callPackage ./scripts { };
   };
