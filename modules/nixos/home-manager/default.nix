@@ -1,1 +1,7 @@
-{ imports = [ ./profiles ./services ]; }
+{
+  imports = [
+    ./profiles
+    ./programs
+    ./services
+  ];
+}
