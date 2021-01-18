@@ -2,7 +2,7 @@
 {
   home.packages = [ pkgs.xmobar ];
 
-  xdg.configFile.xmobar.text = ''
+  xdg.configFile."xmobar/xmobarrc".text = ''
     Config {
 
        -- appearance
