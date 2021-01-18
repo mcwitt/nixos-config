@@ -151,6 +151,8 @@
     imageDirectory = "%h/.background-images";
   };
 
+  services.spotifyd.enable = true;
+
   services.stalonetray = {
     enable = true;
     config = {
