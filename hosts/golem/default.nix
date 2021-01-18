@@ -1,4 +1,11 @@
-{ pkgs, ... }: {
+{ pkgs, ... }:
+let
+  leftMonitorWidth = 3840;
+  rightMonitorWidth = 2160;
+  trayMaxIcons = 5;
+  statusBarHeight = 32;
+in
+{
   imports = [
     <home-manager/nixos>
     ../../modules/common/nixos
@@ -61,6 +68,30 @@
         ../../modules/nixos/home-manager
       ];
       profiles.personal.enable = true;
+
+      programs.xmobar = {
+        config = {
+          position = ''
+            Static
+              { xpos = 0
+              , ypos = 0
+              , width = ${toString (leftMonitorWidth - trayMaxIcons * statusBarHeight)}
+              , height = ${toString statusBarHeight}
+              }
+          '';
+          template = ''"%StdinReader% | %multicpu% | %coretemp% | %memory% | %dynnetwork% }{ %KSFO% | %date% |"'';
+        };
+      };
+
+      services.stalonetray = {
+        enable = true;
+        config = {
+          geometry = "${toString trayMaxIcons}x1-${toString rightMonitorWidth}+0";
+          icon_gravity = "NE";
+          icon_size = 28;
+          slot_size = statusBarHeight;
+        };
+      };
     };
   };
 
@@ -100,7 +131,6 @@
     drivers = [ pkgs.brlaser ];
   };
 
-  # color temperature adjuster
   services.redshift.enable = true;
 
   services.xserver.xrandrHeads = [

@@ -1,4 +1,5 @@
-{ config, pkgs, ... }: {
+{ config, lib, pkgs, ... }:
+{
   imports = [ ./alacritty.nix ];
 
   home.packages = with pkgs; [
@@ -106,15 +107,12 @@
         ''Run StdinReader''
       ];
     config = {
-      font = ''"xft:Bitstream Vera Sans Mono:size=10:bold:antialias=true"'';
+      font = ''"xft:Fira Code:size=11:bold:antialias=true"'';
       bgColor = ''"#002b36"'';
       fgColor = ''"#839496"'';
-      position = "Top";
-      border = "BottomB";
-      borderColor = ''"#839496"'';
       sepChar = ''"%"'';
       alignSep = ''"}{"'';
-      template = ''"%StdinReader% | %multicpu% | %coretemp% | %memory% | %dynnetwork% }{ %KSFO% | %date% "'';
+      template = lib.mkDefault ''"%StdinReader% | %multicpu% | %coretemp% | %memory% | %dynnetwork% }{ %KSFO% | %date% "'';
       lowerOnStart = true;
       hideOnStart = false;
       allDesktops = true;
@@ -151,6 +149,15 @@
   services.random-background = {
     enable = true;
     imageDirectory = "%h/.background-images";
+  };
+
+  services.stalonetray = {
+    enable = true;
+    config = {
+      background = "#002b36";
+      kludges = "force_icons_size";
+      transparent = false;
+    };
   };
 
   shells.aliases.open = "${pkgs.xdg_utils}/bin/xdg-open";
