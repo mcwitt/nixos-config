@@ -1,1 +1,6 @@
-{ imports = [ ./emacs ]; }
+{
+  imports = [
+    ./emacs
+    ./thefuck
+  ];
+}

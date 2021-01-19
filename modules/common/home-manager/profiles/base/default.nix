@@ -144,6 +144,13 @@
     settings.directory.fish_style_pwd_dir_length = 1;
   };
 
+  programs.thefuck = {
+    enable = true;
+    enableBashIntegration = true;
+    enableFishIntegration = true;
+    enableZshIntegration = true;
+  };
+
   programs.tmux = {
     enable = true;
     keyMode = "vi";
