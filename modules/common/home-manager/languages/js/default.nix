@@ -19,10 +19,7 @@ in
     programs.emacs.init.usePackage = {
       js2-mode = {
         enable = true;
-        mode = [
-          ''"\\.js\\'"''
-          ''"\\.json\\'"''
-        ];
+        mode = [ ''"\\.js\\'"'' ];
       };
 
       web-mode = {
