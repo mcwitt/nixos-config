@@ -167,6 +167,19 @@
         fontFamily = "'Fira Code'";
         fontLigatures = true;
       };
+      keybindings =
+        [
+          {
+            key = "alt+n";
+            command = "editor.action.marker.nextInFiles";
+            when = "editorFocus";
+          }
+          {
+            key = "alt+p";
+            command = "editor.action.marker.prevInFiles";
+            when = "editorFocus";
+          }
+        ];
       vim = {
         hlsearch = true;
         insertModeKeyBindings = [{
