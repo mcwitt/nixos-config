@@ -61,7 +61,7 @@
         leftMonitorWidth = 3840;
         rightMonitorWidth = 2160;
         trayMaxIcons = 5;
-        statusBarHeight = 32;
+        statusBarHeight = 36;
       in
       {
         imports = [
@@ -88,8 +88,9 @@
           enable = true;
           config = {
             geometry = "${toString trayMaxIcons}x1-${toString rightMonitorWidth}+0";
+            max_geometry = "${toString trayMaxIcons}x1";
             icon_gravity = "NE";
-            icon_size = 28;
+            icon_size = statusBarHeight * 7 / 8;
             slot_size = statusBarHeight;
           };
         };

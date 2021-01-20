@@ -106,20 +106,22 @@
         ''Run Date "<fc=#93a1a1>%F (%a) %T</fc>" "date" 10''
         ''Run StdinReader''
       ];
-    config = {
-      font = ''"xft:Fira Code:size=11:bold:antialias=true"'';
-      bgColor = ''"#002b36"'';
-      fgColor = ''"#839496"'';
-      sepChar = ''"%"'';
-      alignSep = ''"}{"'';
-      template = lib.mkDefault ''"%StdinReader% | %multicpu% | %coretemp% | %memory% | %dynnetwork% }{ %KSFO% | %date% "'';
-      lowerOnStart = true;
-      hideOnStart = false;
-      allDesktops = true;
-      overrideRedirect = true;
-      pickBroadest = false;
-      persistent = true;
-    };
+    config = let inherit (lib) mkDefault; in
+      {
+        position = mkDefault "Top";
+        font = mkDefault ''"xft:Fira Code:size=11:bold:antialias=true"'';
+        template = mkDefault ''"%StdinReader% | %multicpu% | %coretemp% | %memory% | %dynnetwork% }{ %KSFO% | %date% "'';
+        bgColor = ''"#002b36"'';
+        fgColor = ''"#839496"'';
+        sepChar = ''"%"'';
+        alignSep = ''"}{"'';
+        lowerOnStart = true;
+        hideOnStart = false;
+        allDesktops = true;
+        overrideRedirect = true;
+        pickBroadest = false;
+        persistent = true;
+      };
   };
 
   programs.zathura.enable = true;
