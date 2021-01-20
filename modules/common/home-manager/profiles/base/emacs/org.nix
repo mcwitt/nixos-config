@@ -9,6 +9,7 @@ in
       (defvar org-notes-gtd-directory (file-name-as-directory (concat org-notes-directory "gtd")))
       (defvar org-notes-gtd-inbox-file (concat org-notes-gtd-directory "inbox.org"))
       (defvar org-notes-gtd-projects-file (concat org-notes-gtd-directory "gtd.org"))
+      (defvar org-notes-gtd-habits-file (concat org-notes-gtd-directory "habits.org"))
       (defvar org-notes-gtd-someday-file (concat org-notes-gtd-directory "someday.org"))
       (defvar org-notes-flashcards-file (concat org-notes-gtd-directory "flash-cards.org"))
       (defvar org-notes-bookmarks-file (concat org-notes-directory "bookmarks.org"))
@@ -215,12 +216,17 @@ in
         enable = true;
         after = [ "org" ];
         config = ''
-          (setq org-agenda-files (list org-notes-gtd-directory))
+          (setq org-agenda-files
+                (list org-notes-gtd-inbox-file
+                      org-notes-gtd-projects-file
+                      org-notes-gtd-habits-file))
           (setq org-agenda-custom-commands
                 '(("i" "Inbox" alltodo "" ((org-agenda-files (list org-notes-gtd-inbox-file))))
                   ("p" "Projects" tags "LEVEL=2+PROJECT" ((org-agenda-files (list org-notes-gtd-projects-file))))
                   ("n" "Next tasks"  tags-todo "TODO=\"NEXT\"")))
-          (setq org-refile-targets '((org-agenda-files :maxlevel . 2)))
+          (setq org-refile-targets
+                (let '(targets (append (list org-notes-gtd-someday-file) org-agenda-files))
+                  `((,targets :maxlevel . 2))))
           (setq org-stuck-projects
                 '("LEVEL=2+PROJECT-TODO=DONE"
                   ("NEXT")
@@ -235,13 +241,9 @@ in
         after = [ "org" ];
         config = ''
           (setq org-capture-templates
-                '(("t" "Todo entry")
-                  ("tt" "Todo" entry
+                '(("t" "Todo" entry
                    (file org-notes-gtd-inbox-file)
                    "* TODO %?\n%U\n")
-                  ("tw" "Todo (work)" entry
-                   (file org-notes-gtd-inbox-file)
-                   "* TODO %? :@work:\n%U\n")
                   ("b" "Bookmark" entry
                    (file+headline org-notes-bookmarks-file "Bookmarks")
                    "* [[%^{url}][%?]]\n%U\n")
