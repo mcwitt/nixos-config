@@ -21,6 +21,7 @@ in
       rust.enable = true;
       scala.enable = true;
       shell.enable = true;
+      typescript.enable = true;
     };
 
     programs.git = {
