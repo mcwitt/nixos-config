@@ -13,7 +13,12 @@ in
       dhall.enable = true;
       go.enable = true;
       graphviz.enable = true;
-      haskell.enable = true;
+
+      haskell = {
+        enable = true;
+        extraPackages = ps: with ps; [ aeson lens lens-aeson ];
+      };
+
       idris.enable = false; # XXX Broken as of 2020-11-29
       js.enable = true;
       nix.enable = true;

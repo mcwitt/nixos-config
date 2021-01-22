@@ -3,15 +3,26 @@ with lib;
 let cfg = config.languages.haskell;
 in
 {
-  options.languages.haskell.enable =
-    mkEnableOption "Haskell language environment";
+  options.languages.haskell = {
+    enable = mkEnableOption "Haskell language environment";
+
+    extraPackages = mkOption {
+      default = self: [ ];
+      type = hm.types.selectorFunction;
+      defaultText = "hpkgs: []";
+      example = literalExample "hpkgs: [ hpkgs.aeson hpkgs.lens ]";
+      description = ''
+        Packages to install globally.
+      '';
+    };
+  };
 
   config = mkIf cfg.enable {
     home.packages = with pkgs.haskellPackages; [
       brittany
       cabal-fmt
       cabal-install
-      ghc
+      (ghcWithPackages cfg.extraPackages)
       ghcid
       haskell-language-server
       hlint
