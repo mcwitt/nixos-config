@@ -132,6 +132,8 @@
 
   services.flameshot.enable = true;
 
+  services.gnome-keyring.enable = true;
+
   services.gpg-agent = {
     enable = true;
     defaultCacheTtl = 14400; # 4 hours
