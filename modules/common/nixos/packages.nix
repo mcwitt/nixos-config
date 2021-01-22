@@ -4,6 +4,7 @@
     (aspellWithDicts (ds: [ ds.en ]))
     coreutils
     direnv
+    fd
     ffmpeg
     file
     findutils
