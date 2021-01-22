@@ -144,7 +144,7 @@
 
   services.org-notes-sync = {
     enable = true;
-    repoPath = "${builtins.getEnv "HOME"}/src/org-notes/";
+    repoPath = "${config.home.homeDirectory}/src/org-notes/";
     frequency = "*:0/5";
   };
 
