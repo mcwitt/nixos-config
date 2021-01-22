@@ -23,10 +23,6 @@ in
         ];
       };
 
-      lsp-treemacs.config = ''
-        (setq lsp-metals-treeview-show-when-views-received t)
-      '';
-
       sbt-mode = {
         enable = true;
         command = [ "sbt-start" "sbt-command" ];
