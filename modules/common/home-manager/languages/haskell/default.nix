@@ -15,6 +15,9 @@ in
         Packages to install globally.
       '';
     };
+
+    enableHoogle = mkEnableOption
+      "Install a local hoogle with docs for packages in extraPackages.";
   };
 
   config = mkIf cfg.enable {
@@ -22,7 +25,7 @@ in
       brittany
       cabal-fmt
       cabal-install
-      (ghcWithPackages cfg.extraPackages)
+      ((if cfg.enableHoogle then ghcWithHoogle else ghcWithPackages) cfg.extraPackages)
       ghcid
       haskell-language-server
       hlint
