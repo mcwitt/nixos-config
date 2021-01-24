@@ -2,6 +2,7 @@
   imports = [
     ./R
     ./dhall
+    ./elm
     ./go
     ./graphviz
     ./haskell

@@ -11,6 +11,7 @@ in
     languages = {
       R.enable = true;
       dhall.enable = true;
+      elm.enable = true;
       go.enable = true;
       graphviz.enable = true;
 
