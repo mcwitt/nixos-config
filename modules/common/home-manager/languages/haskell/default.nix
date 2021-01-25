@@ -33,17 +33,6 @@ in
       stack
     ];
 
-    programs.vscode = {
-      extensions = with pkgs.vscode-extensions; [
-        haskell.haskell
-        justusadam.language-haskell
-      ];
-      userSettings.languageServerHaskell = {
-        hieVariant = "haskell-language-server";
-        formattingProvider = "ormolu";
-      };
-    };
-
     programs.emacs.init.usePackage = {
 
       haskell-mode = {
@@ -108,6 +97,17 @@ in
               :program "cabal-fmt"
               :lighter " CabalFmt")
         '';
+      };
+    };
+
+    programs.vscode = {
+      extensions = with pkgs.vscode-extensions; [
+        haskell.haskell
+        justusadam.language-haskell
+      ];
+      userSettings.languageServerHaskell = {
+        hieVariant = "haskell-language-server";
+        formattingProvider = "ormolu";
       };
     };
   };
