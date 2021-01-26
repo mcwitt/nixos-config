@@ -2,7 +2,6 @@
   programs.emacs.init.usePackage = {
     lsp-mode = {
       enable = true;
-      after = [ "company" "flycheck" ];
       command = [ "lsp" ];
       hook = [
         "(lsp-mode . lsp-enable-which-key-integration)"
@@ -12,9 +11,7 @@
         (setq lsp-keymap-prefix "C-c l")
       '';
       config = ''
-        (setq lsp-diagnostics-provider :flycheck)
         (setq lsp-file-watch-threshold 30000)
-        (define-key lsp-mode-map (kbd "C-c l") lsp-command-map)
       '';
     };
 
@@ -57,14 +54,12 @@
 
     lsp-ivy = {
       enable = true;
-      after = [ "lsp-mode" "ivy" ];
-      command =
-        [ "lsp-ivy-workspace-symbol" "lsp-ivy-global-workspace-symbol" ];
+      command = [ "lsp-ivy-workspace-symbol" ];
     };
 
     lsp-treemacs = {
       enable = true;
-      after = [ "lsp-mode" "treemacs" ];
+      command = [ "lsp-treemacs-errors-list" ];
     };
   };
 }
