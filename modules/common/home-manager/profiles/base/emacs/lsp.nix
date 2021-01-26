@@ -1,35 +1,5 @@
 {
   programs.emacs.init.usePackage = {
-    lsp-mode = {
-      enable = true;
-      command = [ "lsp" ];
-      hook = [
-        "(lsp-mode . lsp-enable-which-key-integration)"
-        "(lsp-mode . lsp-lens-mode)"
-      ];
-      init = ''
-        (setq lsp-keymap-prefix "C-c l")
-      '';
-      config = ''
-        (setq lsp-file-watch-threshold 30000)
-      '';
-    };
-
-    lsp-modeline = {
-      enable = true;
-      command = [ "lsp-modeline-workspace-status-mode " ];
-    };
-
-    lsp-ui = {
-      enable = true;
-      command = [ "lsp-ui-mode" ];
-      config = ''
-        (setq lsp-ui-doc-position 'at-point)
-      '';
-    };
-
-    posframe.enable = true;
-
     dap-mode = {
       enable = true;
       hook = [ "(lsp-mode . dap-mode)" ];
@@ -57,9 +27,39 @@
       command = [ "lsp-ivy-workspace-symbol" ];
     };
 
+    lsp-mode = {
+      enable = true;
+      command = [ "lsp" ];
+      hook = [
+        "(lsp-mode . lsp-enable-which-key-integration)"
+        "(lsp-mode . lsp-lens-mode)"
+      ];
+      init = ''
+        (setq lsp-keymap-prefix "C-c l")
+      '';
+      config = ''
+        (setq lsp-file-watch-threshold 30000)
+      '';
+    };
+
+    lsp-modeline = {
+      enable = true;
+      command = [ "lsp-modeline-workspace-status-mode " ];
+    };
+
     lsp-treemacs = {
       enable = true;
       command = [ "lsp-treemacs-errors-list" ];
     };
+
+    lsp-ui = {
+      enable = true;
+      command = [ "lsp-ui-mode" ];
+      config = ''
+        (setq lsp-ui-doc-position 'at-point)
+      '';
+    };
+
+    posframe.enable = true;
   };
 }
