@@ -18,7 +18,6 @@ with lib;
 
     counsel-tramp = {
       enable = true;
-      after = [ "tramp" ];
       bind."C-c f" = "counsel-tramp";
     };
 
