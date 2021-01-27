@@ -53,6 +53,9 @@
 
       ;; Open URLs with Chromium
       (setq browse-url-browser-function 'browse-url-chromium)
+
+      ;; Use aspell for spellchecking
+      (setq ispell-program-name "aspell")
     '';
 
     usePackage = {
@@ -157,12 +160,16 @@
 
       flycheck = {
         enable = true;
+        demand = true;
         bind = {
           "M-n" = "flycheck-next-error";
           "M-p" = "flycheck-previous-error";
         };
-        init = ''(setq ispell-program-name "aspell")'';
-        config = "(global-flycheck-mode t)";
+        config = ''
+          (setq flycheck-check-syntax-automatically '(save idle-change new-line)
+                flycheck-idle-change-delay 0.5)
+          (global-flycheck-mode t)
+        '';
       };
 
       format-all = {
