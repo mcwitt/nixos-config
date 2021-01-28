@@ -24,6 +24,7 @@
     killall
     less
     lsof
+    ncdu
     openssh
     openssl
     parallel
