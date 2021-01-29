@@ -17,6 +17,8 @@
 
   home.stateVersion = "20.09";
 
+  languages.nix.enable = true;
+
   programs.browserpass.enable = true;
 
   programs.direnv = {
