@@ -128,7 +128,10 @@
 
   services.dunst.enable = true;
 
-  services.emacs.enable = true;
+  services.emacs = {
+    enable = true;
+    client.enable = true;
+  };
 
   services.flameshot.enable = true;
 
