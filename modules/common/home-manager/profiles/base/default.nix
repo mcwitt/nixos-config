@@ -3,7 +3,7 @@
   imports = [ ./emacs ];
 
   home.packages = with pkgs;
-    [ bat cachix mypkgs.scripts pandoc ] ++ (with gitAndTools; [
+    [ bat mypkgs.scripts pandoc ] ++ (with gitAndTools; [
       delta
       git-annex
       git-crypt

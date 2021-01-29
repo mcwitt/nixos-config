@@ -6,6 +6,7 @@ in
   options.languages.nix.enable = mkEnableOption "Nix language environment";
   config = mkIf cfg.enable {
     home.packages = with pkgs; [
+      cachix
       niv
       nix-info
       nix-prefetch-git
