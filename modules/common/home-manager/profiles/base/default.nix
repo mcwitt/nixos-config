@@ -3,7 +3,12 @@
   imports = [ ./emacs ];
 
   home.packages = with pkgs;
-    [ bat mypkgs.scripts pandoc ] ++ (with gitAndTools; [
+    [
+      bat
+      mypkgs.scripts
+      pandoc
+      proselint
+    ] ++ (with gitAndTools; [
       delta
       git-annex
       git-crypt
