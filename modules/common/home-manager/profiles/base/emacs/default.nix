@@ -1,4 +1,5 @@
 { config, lib, pkgs, ... }: {
+
   imports = [
     ./evil.nix
     ./ivy.nix
@@ -6,6 +7,7 @@
     ./org.nix
     ./treemacs.nix
   ];
+
   programs.emacs.init = {
     enable = true;
     recommendedGcSettings = true;
@@ -117,7 +119,7 @@
       erc = {
         enable = true;
         command = [ "erc" ];
-        bind."C-c e" = "erc-freenode";
+        bind = { "C-c e" = "erc-freenode"; };
         config = ''
           (setq erc-prompt-for-password nil) ; get login from ~/.authinfo.gpg
           (setq erc-hide-list '("JOIN" "PART" "QUIT"))
@@ -174,7 +176,7 @@
 
       format-all = {
         enable = true;
-        bind."C-c C-f" = "format-all-buffer";
+        bind = { "C-c C-f" = "format-all-buffer"; };
       };
 
       gist.enable = true;
@@ -195,7 +197,7 @@
 
       imenu = {
         enable = true;
-        bind."C-c i" = "imenu";
+        bind = { "C-c i" = "imenu"; };
       };
 
       json-mode = {

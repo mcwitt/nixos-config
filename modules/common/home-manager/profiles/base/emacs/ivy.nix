@@ -6,7 +6,7 @@ with lib;
     counsel = {
       enable = true;
       demand = true;
-      bind."C-x M-f" = "counsel-fzf";
+      bind = { "C-x M-f" = "counsel-fzf"; };
       config = "(counsel-mode 1)";
     };
 
@@ -18,13 +18,13 @@ with lib;
 
     counsel-tramp = {
       enable = true;
-      bind."C-c f" = "counsel-tramp";
+      bind = { "C-c f" = "counsel-tramp"; };
     };
 
     ivy = {
       enable = true;
       demand = true;
-      bind."C-c C-r" = "ivy-resume";
+      bind = { "C-c C-r" = "ivy-resume"; };
       config = "(ivy-mode 1)";
     };
 
@@ -35,12 +35,12 @@ with lib;
 
     ivy-bibtex = {
       enable = true;
-      bind."C-c r" = "ivy-bibtex";
+      bind = { "C-c r" = "ivy-bibtex"; };
     };
 
     ivy-pass = {
       enable = true;
-      bind."C-c w" = "ivy-pass";
+      bind = { "C-c w" = "ivy-pass"; };
     };
 
     org-ref.config = ''
@@ -53,7 +53,7 @@ with lib;
 
     swiper = {
       enable = true;
-      bind."C-s" = "swiper-isearch";
+      bind = { "C-s" = "swiper-isearch"; };
     };
   };
 }
