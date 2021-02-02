@@ -225,7 +225,13 @@
 
       password-store.enable = true;
 
-      magit.enable = true;
+      magit = {
+        enable = true;
+        bind = {
+          "C-x g" = "magit-status";
+          "C-x M-g" = "magit-dispatch";
+        };
+      };
 
       markdown-mode = {
         enable = true;
