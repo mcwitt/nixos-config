@@ -194,6 +194,7 @@
         "image/x-portable-pixmap" = [ "feh.desktop" ];
         "image/x-tga" = [ "feh.desktop" ];
         "image/x-xbitmap" = [ "feh.desktop" ];
+        "text/plain" = [ "emacsclient.desktop" ];
         "text/html" = [ "chromium-browser.desktop" ];
         "x-scheme-handler/http" = [ "chromium-browser.desktop" ];
         "x-scheme-handler/https" = [ "chromium-browser.desktop" ];
