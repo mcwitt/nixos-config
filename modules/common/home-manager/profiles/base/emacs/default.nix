@@ -161,6 +161,11 @@
         command = [ "esup" ];
       };
 
+      expand-region = {
+        enable = true;
+        bind = { "C-=" = "er/expand-region"; };
+      };
+
       fira-code-mode.enable = true;
 
       flycheck = {
