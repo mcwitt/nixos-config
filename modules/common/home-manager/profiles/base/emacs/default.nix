@@ -58,6 +58,9 @@
 
       ;; Use aspell for spellchecking
       (setq ispell-program-name "aspell")
+
+      ;; Make package archives unavailable (use Nix)
+      (setq package-archives nil)
     '';
 
     usePackage = {
