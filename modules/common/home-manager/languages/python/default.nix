@@ -47,8 +47,6 @@ in
 
         dap-python.enable = true;
 
-        format-all.hook = [ "(python-mode . format-all-mode)" ];
-
         pyvenv.enable = true;
       };
     };

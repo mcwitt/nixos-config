@@ -185,6 +185,7 @@
       format-all = {
         enable = true;
         bind = { "C-c C-f" = "format-all-buffer"; };
+        hook = [ "(prog-mode . format-all-mode)" ];
       };
 
       gist.enable = true;
