@@ -17,10 +17,14 @@ in
           ''"\\.dot\\'"''
           ''"\\.gv\\'"''
         ];
-        init = ''(setq graphviz-dot-dot-program "${pkgs.graphviz}/bin/dot")'';
+        init = ''
+          (setq graphviz-dot-dot-program "${pkgs.graphviz}/bin/dot")
+        '';
       };
 
-      org.config = "(require 'ob-dot)";
+      org.config = ''
+        (require 'ob-dot)
+      '';
     };
   };
 }

@@ -198,14 +198,7 @@ in
              (emacs-lisp . t)
              (jupyter . t)
              (latex . t)
-             (restclient . t)
-             (shell . t)
-             ${optionalString config.languages.graphviz.enable
-               "(dot . t)"}
-             ${optionalString config.languages.haskell.enable
-               "(haskell . t)"}
-             ${optionalString config.languages.R.enable
-               "(R . t)"}))
+             (restclient . t)))
 
           ;; Export settings
           (with-eval-after-load 'ox-latex
