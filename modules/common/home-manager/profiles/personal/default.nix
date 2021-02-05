@@ -23,6 +23,7 @@ in
 
       idris.enable = false; # XXX Broken as of 2020-11-29
       js.enable = true;
+      plantuml.enable = true;
       python.enable = true;
       rust.enable = true;
       scala.enable = true;

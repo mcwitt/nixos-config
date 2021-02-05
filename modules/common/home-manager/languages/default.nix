@@ -10,6 +10,7 @@
     ./java
     ./js
     ./nix
+    ./plantuml
     ./python
     ./rust
     ./scala
