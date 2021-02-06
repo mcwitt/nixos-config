@@ -21,7 +21,7 @@ in
         extraPackages = ps: with ps; [ aeson lens lens-aeson ];
       };
 
-      idris.enable = false; # XXX Broken as of 2020-11-29
+      idris.enable = true;
       js.enable = true;
       plantuml.enable = true;
       python.enable = true;
