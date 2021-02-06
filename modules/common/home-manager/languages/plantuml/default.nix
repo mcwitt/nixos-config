@@ -10,6 +10,7 @@ in
     programs.emacs.init.usePackage = {
 
       org.config = ''
+        (require 'ob-plantuml)
         (setq org-plantuml-exec-mode 'jar)
         (setq org-plantuml-jar-path "${pkgs.plantuml}/lib/plantuml.jar")
       '';
@@ -17,7 +18,6 @@ in
       plantuml-mode = {
         enable = true;
         mode = [ ''"\\.plantuml\\'"'' ];
-        init = "(require 'ob-plantuml)";
         config = ''
           (setq plantuml-jar-path "${pkgs.plantuml}/lib/plantuml.jar"
                 plantuml-default-exec-mode 'jar)

@@ -56,9 +56,6 @@
       ;; Open URLs with Chromium
       (setq browse-url-browser-function 'browse-url-chromium)
 
-      ;; Use aspell for spellchecking
-      (setq ispell-program-name "aspell")
-
       ;; Make package archives unavailable (use Nix)
       (setq package-archives nil)
     '';
@@ -126,6 +123,12 @@
         config = ''
           (setq erc-prompt-for-password nil) ; get login from ~/.authinfo.gpg
           (setq erc-hide-list '("JOIN" "PART" "QUIT"))
+
+          (add-to-list 'erc-modules 'autojoin)
+          (add-to-list 'erc-modules 'notifications)
+          (add-to-list 'erc-modules 'spelling)
+          (erc-update-modules)
+
           (setq erc-autojoin-channels-alist
                 '(("#emacs"
                    "#haskell"
@@ -134,10 +137,6 @@
                    "#python"
                    "freenode.net")))
           (setq erc-autojoin-timing 'ident)
-
-          (add-to-list 'erc-modules 'notifications)
-          (add-to-list 'erc-modules 'spelling)
-          (erc-update-modules)
 
           (defun erc-freenode ()
             "Connect to freenode with ERC."
@@ -207,6 +206,13 @@
       imenu = {
         enable = true;
         bind = { "C-c i" = "imenu"; };
+      };
+
+      ispell = {
+        enable = true;
+        config = ''
+          (setq ispell-program-name "aspell")
+        '';
       };
 
       json-mode = {
