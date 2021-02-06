@@ -98,14 +98,14 @@
     vimdiffAlias = true;
     withPython3 = true;
     plugins = with pkgs.vimPlugins; [
+      YouCompleteMe
+      airline
       ctrlp
+      fugitive
+      gitgutter
+      surround
       syntastic
       tagbar
-      vim-airline
-      vim-fugitive
-      vim-gitgutter
-      vim-surround
-      YouCompleteMe
     ];
     extraConfig = ''
       set expandtab
