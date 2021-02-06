@@ -29,5 +29,7 @@ in
         mode = [ ''"\\.idr\\'"'' ];
       };
     };
+
+    programs.neovim.plugins = [ pkgs.vimPlugins.idris2-vim ];
   };
 }
