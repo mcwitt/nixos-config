@@ -95,6 +95,7 @@
   programs.neovim = {
     enable = true;
     vimAlias = true;
+    vimdiffAlias = true;
     withPython3 = true;
     plugins = with pkgs.vimPlugins; [
       ctrlp
