@@ -161,6 +161,8 @@ in
           "C-c o l" = "org-store-link";
           "C-c o o" = "org-notes-gtd-open-projects";
           "C-c o s" = "org-notes-save-and-sync";
+        };
+        bindLocal.org-mode-map = {
           "C-c C-x l" = "org-toggle-link-display";
         };
         hook = [
@@ -264,7 +266,9 @@ in
       org-pomodoro = {
         enable = true;
         after = [ "org-agenda" ];
-        bindLocal.org-agenda-mode-map.p = "org-pomodoro";
+        bindLocal.org-agenda-mode-map = {
+          p = "org-pomodoro";
+        };
       };
 
       org-ref = {
@@ -307,7 +311,9 @@ in
       org-roam-bibtex = {
         enable = true;
         hook = [ "(org-roam-mode . org-roam-bibtex-mode)" ];
-        bindLocal.org-mode-map."C-c n a" = "org-note-actions";
+        bindLocal.org-mode-map = {
+          "C-c n a" = "org-note-actions";
+        };
       };
 
       org-superstar = {
