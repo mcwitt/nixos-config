@@ -90,6 +90,11 @@
         after = [ "company" "restclient" ];
       };
 
+      csv-mode = {
+        enable = true;
+        mode = [ ''"\\.[Cc][Ss][Vv]\\'"'' ];
+      };
+
       direnv = {
         enable = true;
         command = [ "direnv-mode" "direnv-update-environment" ];
