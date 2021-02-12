@@ -46,6 +46,15 @@ in
       config = "(global-evil-surround-mode)";
     };
 
+    csv-mode.hook = [
+      ''
+        (csv-mode . (lambda ()
+                      (evil-local-set-key 'normal
+                                          (kbd "TAB")
+                                          'csv-tab-command)))
+      ''
+    ];
+
     kubernetes-evil = {
       enable = usePackageCfg.kubernetes.enable;
       after = [ "kubernetes" "evil" ];

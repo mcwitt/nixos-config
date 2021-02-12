@@ -81,7 +81,9 @@
       company = {
         enable = true;
         command = [ "company-mode" "company-doc-buffer" "global-company-mode" ];
-        bindLocal.company-active-map.jk = "company-complete";
+        bindLocal.company-active-map = {
+          "jk" = "company-complete";
+        };
         config = "(global-company-mode)";
       };
 
@@ -93,6 +95,7 @@
       csv-mode = {
         enable = true;
         mode = [ ''"\\.[Cc][Ss][Vv]\\'"'' ];
+        hook = [ "(csv-mode . csv-align-mode)" ];
       };
 
       direnv = {
