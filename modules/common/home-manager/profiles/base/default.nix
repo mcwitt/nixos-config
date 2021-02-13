@@ -17,8 +17,12 @@
       pre-commit
     ]);
 
-  home.sessionVariables.EDITOR = "${config.programs.emacs.finalPackage}/bin/emacsclient --tty";
-  home.sessionVariables.ALTERNATE_EDITOR = "${pkgs.vim}/bin/vim";
+  home.sessionPath = [ "${config.home.homeDirectory}/.local/bin" ];
+
+  home.sessionVariables = {
+    EDITOR = "${config.programs.emacs.finalPackage}/bin/emacsclient --tty";
+    ALTERNATE_EDITOR = "${pkgs.vim}/bin/vim";
+  };
 
   home.stateVersion = "20.09";
 

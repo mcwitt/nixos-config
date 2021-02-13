@@ -14,7 +14,7 @@ in
       prefix=${prefix}
     '';
 
-    home.sessionVariables = { PATH = "${prefix}/bin:$PATH"; };
+    home.sessionPath = [ "${prefix}/bin" ];
 
     programs.emacs.init.usePackage = {
       js2-mode = {
