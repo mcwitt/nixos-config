@@ -103,6 +103,11 @@
         command = [ "direnv-mode" "direnv-update-environment" ];
       };
 
+      dockerfile-mode = {
+        enable = true;
+        mode = [ ''"Dockerfile\\'"'' ];
+      };
+
       doom-themes = {
         enable = true;
         config = ''
