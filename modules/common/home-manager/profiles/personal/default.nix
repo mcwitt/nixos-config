@@ -28,6 +28,7 @@ in
       rust.enable = true;
       scala.enable = true;
       shell.enable = true;
+      sql.enable = true;
       typescript.enable = true;
     };
 

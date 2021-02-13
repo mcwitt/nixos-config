@@ -15,6 +15,7 @@
     ./rust
     ./scala
     ./shell
+    ./sql
     ./typescript
   ];
 }
