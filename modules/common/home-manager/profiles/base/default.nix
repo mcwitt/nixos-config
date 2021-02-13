@@ -107,6 +107,7 @@
       ctrlp
       fugitive
       gitgutter
+      nvim-lightbulb
       surround
       syntastic
       tagbar
