@@ -29,7 +29,7 @@
 
     lsp-mode = {
       enable = true;
-      command = [ "lsp" ];
+      command = [ "lsp" "lsp-deferred" ];
       hook = [
         "(lsp-mode . lsp-enable-which-key-integration)"
         "(lsp-mode . lsp-lens-mode)"
@@ -38,6 +38,7 @@
         (setq lsp-keymap-prefix "C-c l")
       '';
       config = ''
+        (require 'lsp-diagnostics)
         (setq lsp-file-watch-threshold 30000)
         (define-key lsp-mode-map (kbd "C-c l") lsp-command-map)
       '';
