@@ -29,6 +29,7 @@ in
       scala.enable = true;
       shell.enable = true;
       sql.enable = true;
+      terraform.enable = true;
       typescript.enable = true;
     };
 

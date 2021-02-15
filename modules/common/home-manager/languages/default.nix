@@ -16,6 +16,7 @@
     ./scala
     ./shell
     ./sql
+    ./terraform
     ./typescript
   ];
 }
