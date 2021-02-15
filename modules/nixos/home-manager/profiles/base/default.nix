@@ -3,15 +3,10 @@
   imports = [ ./alacritty.nix ];
 
   home.packages = with pkgs; [
-    anki
     dmenu
     libnotify
     peek
     signal-desktop
-    slack
-    steam
-    zoom-us
-    zulip
   ];
 
   programs.chromium = {
