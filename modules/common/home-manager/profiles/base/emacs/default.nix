@@ -58,6 +58,8 @@
 
       ;; Make package archives unavailable (use Nix)
       (setq package-archives nil)
+
+      (package-initialize)
     '';
 
     usePackage = {
