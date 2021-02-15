@@ -80,9 +80,6 @@ in
                               (lsp)))
           ''
         ];
-        config = ''
-          (setq lsp-haskell-server-path "haskell-language-server")
-        '';
       };
 
       ormolu = {

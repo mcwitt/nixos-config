@@ -2,24 +2,7 @@
   programs.emacs.init.usePackage = {
     dap-mode = {
       enable = true;
-      hook = [ "(lsp-mode . dap-mode)" ];
-      config = "(dap-auto-configure-mode 1)";
-    };
-
-    dap-mouse = {
-      enable = true;
-      command = [ "dap-tooltip-mode" ];
-    };
-
-    dap-ui = {
-      enable = true;
-      command = [ "dap-ui-mode" ];
-      hook = [ "(lsp-mode . dap-ui-mode)" ];
-    };
-
-    lsp-headerline = {
-      enable = true;
-      command = [ "lsp-headerline-breadcrumb-mode" ];
+      after = [ "lsp-mode" ];
     };
 
     lsp-ivy = {
@@ -38,15 +21,9 @@
         (setq lsp-keymap-prefix "C-c l")
       '';
       config = ''
-        (require 'lsp-diagnostics)
-        (setq lsp-file-watch-threshold 30000)
         (define-key lsp-mode-map (kbd "C-c l") lsp-command-map)
+        (setq lsp-file-watch-threshold 100000)
       '';
-    };
-
-    lsp-modeline = {
-      enable = true;
-      command = [ "lsp-modeline-workspace-status-mode " ];
     };
 
     lsp-treemacs = {
@@ -61,7 +38,5 @@
         (setq lsp-ui-doc-position 'at-point)
       '';
     };
-
-    posframe.enable = true;
   };
 }
