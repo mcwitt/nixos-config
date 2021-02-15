@@ -59,6 +59,7 @@
       ;; Make package archives unavailable (use Nix)
       (setq package-archives nil)
 
+      ;; Activate packages (process <pkg>-autoloads.el files)
       (package-initialize)
     '';
 
