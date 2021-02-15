@@ -17,7 +17,7 @@ in
 
       haskell = {
         enable = true;
-        enableHoogle = true;
+        hoogle.enable = true;
         extraPackages = ps: with ps; [ aeson lens lens-aeson ];
       };
 

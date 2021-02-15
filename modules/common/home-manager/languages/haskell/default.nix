@@ -16,7 +16,7 @@ in
       '';
     };
 
-    enableHoogle = mkEnableOption
+    hoogle.enable = mkEnableOption
       "Install a local hoogle with docs for packages in extraPackages.";
   };
 
@@ -25,7 +25,7 @@ in
       brittany
       cabal-fmt
       cabal-install
-      ((if cfg.enableHoogle then ghcWithHoogle else ghcWithPackages) cfg.extraPackages)
+      ((if cfg.hoogle.enable then ghcWithHoogle else ghcWithPackages) cfg.extraPackages)
       ghcid
       haskell-language-server
       hlint
