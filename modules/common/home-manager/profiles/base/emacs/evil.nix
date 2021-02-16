@@ -25,6 +25,7 @@ in
     evil-escape = {
       enable = true;
       after = [ "evil" ];
+      diminish = [ "evil-escape-mode" ];
       init = ''(setq-default evil-escape-key-sequence "fd")'';
       config = "(evil-escape-mode)";
     };

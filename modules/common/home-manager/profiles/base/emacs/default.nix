@@ -67,8 +67,14 @@
 
       all-the-icons.enable = true;
 
+      autorevert = {
+        enable = true;
+        diminish = [ "auto-revert-mode" ];
+      };
+
       beacon = {
         enable = true;
+        diminish = [ "beacon-mode" ];
         config = ''
           (setq beacon-color "#b58900")
           (beacon-mode 1)
@@ -83,6 +89,7 @@
 
       company = {
         enable = true;
+        diminish = [ "company-mode" ];
         command = [ "company-mode" "company-doc-buffer" "global-company-mode" ];
         bindLocal.company-active-map = {
           "jk" = "company-complete";
@@ -131,6 +138,12 @@
       };
 
       edit-indirect.enable = true;
+
+      eldoc = {
+        enable = true;
+        diminish = [ "eldoc-mode" ];
+        command = [ "eldoc-mode" ];
+      };
 
       erc = {
         enable = true;
@@ -181,11 +194,16 @@
         bind = { "C-=" = "er/expand-region"; };
       };
 
-      fira-code-mode.enable = true;
+      fira-code-mode = {
+        enable = true;
+        diminish = [ "fira-code-mode" ];
+        command = [ "fira-code-mode" ];
+      };
 
       flycheck = {
         enable = true;
         demand = true;
+        diminish = [ "flycheck-mode" ];
         bind = {
           "M-n" = "flycheck-next-error";
           "M-p" = "flycheck-previous-error";
@@ -199,6 +217,7 @@
 
       format-all = {
         enable = true;
+        diminish = [ "format-all-mode" ];
         bind = { "C-c C-f" = "format-all-buffer"; };
         hook = [ "(prog-mode . format-all-mode)" ];
       };
@@ -331,15 +350,25 @@
         command = [ "ripgrep-regexp" ];
       };
 
-      smartparens.enable = true;
+      smartparens = {
+        enable = true;
+        diminish = [ "smartparens-mode" ];
+      };
+
+      subword = {
+        enable = true;
+        diminish = [ "subword-mode" ];
+      };
 
       undo-tree = {
         enable = true;
+        diminish = [ "undo-tree-mode" ];
         config = "(global-undo-tree-mode)";
       };
 
       which-key = {
         enable = true;
+        diminish = [ "which-key-mode" ];
         init = ''
           (setq which-key-separator " ")
           (setq which-key-prefix-prefix "+")
@@ -347,10 +376,14 @@
         config = "(which-key-mode 1)";
       };
 
-      yaml-mode.enable = true;
+      yaml-mode = {
+        enable = true;
+        mode = [ ''"\\.ya?ml\\'"'' ];
+      };
 
       yasnippet = {
         enable = true;
+        diminish = [ "yas-minor-mode" ];
         config = "(yas-global-mode 1)";
       };
 

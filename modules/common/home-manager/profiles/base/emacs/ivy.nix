@@ -6,6 +6,7 @@ with lib;
     counsel = {
       enable = true;
       demand = true;
+      diminish = [ "counsel-mode" ];
       bind = { "C-x M-f" = "counsel-fzf"; };
       config = "(counsel-mode 1)";
     };
@@ -24,6 +25,7 @@ with lib;
     ivy = {
       enable = true;
       demand = true;
+      diminish = [ "ivy-mode" ];
       bind = { "C-c C-r" = "ivy-resume"; };
       config = "(ivy-mode 1)";
     };

@@ -290,6 +290,7 @@ in
       org-roam = {
         enable = true;
         after = [ "org" ];
+        diminish = [ "org-roam-mode" ];
         hook = [ "(after-init . org-roam-mode)" ];
         bindLocal = {
           org-roam-mode-map = {
@@ -310,6 +311,7 @@ in
 
       org-roam-bibtex = {
         enable = true;
+        diminish = [ "org-roam-bibtex-mode" ];
         hook = [ "(org-roam-mode . org-roam-bibtex-mode)" ];
         bindLocal.org-mode-map = {
           "C-c n a" = "org-note-actions";
