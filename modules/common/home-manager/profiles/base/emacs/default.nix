@@ -379,6 +379,7 @@
       yaml-mode = {
         enable = true;
         mode = [ ''"\\.ya?ml\\'"'' ];
+        hook = [ "(yaml-mode . (lambda () (mixed-pitch-mode -1)))" ];
       };
 
       yasnippet = {
