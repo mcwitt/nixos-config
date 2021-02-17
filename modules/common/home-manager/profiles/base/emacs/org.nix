@@ -168,6 +168,7 @@ in
         hook = [
           "(org-mode . turn-on-visual-line-mode)"
           "(org-mode . turn-on-flyspell)"
+          "(org-mode . org-indent-mode)"
           "(after-save . org-notes-maybe-sync)"
           "(org-babel-after-execute . org-redisplay-inline-images)"
         ];
