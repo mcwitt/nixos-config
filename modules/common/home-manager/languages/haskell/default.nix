@@ -77,7 +77,7 @@ in
           ''
             (haskell-mode . (lambda ()
                               (direnv-update-environment)
-                              (lsp)))
+                              (lsp-deferred)))
           ''
         ];
       };

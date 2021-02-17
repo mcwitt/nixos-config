@@ -16,7 +16,7 @@ in
           ''
             (rust-mode . (lambda ()
                            (direnv-update-environment)
-                           (lsp)))
+                           (lsp-deferred)))
           ''
         ];
       };

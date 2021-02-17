@@ -24,7 +24,7 @@ in
           ''
             (elm-mode . (lambda ()
                           (direnv-update-environment)
-                          (lsp)))
+                          (lsp-deferred)))
           ''
         ];
       };

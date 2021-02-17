@@ -18,7 +18,7 @@ in
           ''
             (scala-mode . (lambda ()
                             (direnv-update-environment)
-                            (lsp)))
+                            (lsp-deferred)))
           ''
         ];
       };
