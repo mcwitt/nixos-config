@@ -130,6 +130,8 @@
 
   services.flameshot.enable = true;
 
+  services.gammastep.enable = true;
+
   services.gnome-keyring.enable = true;
 
   services.gpg-agent = {

@@ -84,6 +84,11 @@
           };
         };
 
+        services.gammastep = {
+          latitude = 37.8044;
+          longitude = -122.2712;
+        };
+
         services.stalonetray = {
           enable = true;
           config = {
@@ -100,8 +105,8 @@
   i18n.defaultLocale = "en_US.UTF-8";
 
   location = {
-    latitude = 37.77;
-    longitude = 122.42;
+    latitude = 37.8044;
+    longitude = -122.2712;
   };
 
   networking = {
@@ -132,8 +137,6 @@
     enable = true;
     drivers = [ pkgs.brlaser ];
   };
-
-  services.redshift.enable = true;
 
   services.xserver.xrandrHeads = [
     {
