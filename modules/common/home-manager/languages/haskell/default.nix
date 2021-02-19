@@ -61,7 +61,7 @@ in
 
       haskell-cabal = {
         enable = true;
-        hook = [ "(haskell-cabal-mode . cabal-fmt-on-save-mode)" ];
+        mode = [ ''("\\.cabal\\'" . haskell-cabal-mode)'' ];
       };
 
       fira-code-mode.hook = [ "haskell-mode" ];
@@ -92,7 +92,7 @@ in
       '';
 
       reformatter = {
-        enable = true;
+        hook = [ "(haskell-cabal-mode . cabal-fmt-on-save-mode)" ];
         config = ''
           (reformatter-define cabal-fmt
               :program "cabal-fmt"

@@ -19,14 +19,12 @@ in
       nix-mode = {
         enable = true;
         mode = [ ''"\\.nix\\'"'' ];
-        hook = [
-          "(nix-mode . nixpkgs-fmt-on-save-mode)"
-          "(nix-mode . subword-mode)"
-        ];
+        hook = [ "(nix-mode . subword-mode)" ];
       };
 
       reformatter = {
         enable = true;
+        hook = [ "(nix-mode . nixpkgs-fmt-on-save-mode)" ];
         config = ''
           (reformatter-define nixpkgs-fmt
             :program "nixpkgs-fmt"

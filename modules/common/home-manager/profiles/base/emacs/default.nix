@@ -343,6 +343,8 @@
         hook = [ "(prog-mode . rainbow-delimiters-mode)" ];
       };
 
+      reformatter.enable = true;
+
       restclient.enable = true;
 
       ripgrep = {
