@@ -83,12 +83,6 @@ in
         command = [ "turn-on-cdlatex" ];
       };
 
-      company-org-roam = {
-        enable = true;
-        after = [ "company" ];
-        config = "(add-to-list 'company-backends 'company-org-roam)";
-      };
-
       deft = {
         enable = true;
         after = [ "org" ];
