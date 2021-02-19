@@ -10,9 +10,18 @@ in
     home.packages =
       let
         pythonEnv = pkgs.python38.withPackages
-          (ps: with ps; [ black flake8 mypy setuptools virtualenv ]);
+          (ps: with ps; [
+            black
+            flake8
+            mypy
+            setuptools
+            virtualenv
+          ]);
       in
-      [ pythonEnv ];
+      [
+        pkgs.nodePackages.pyright
+        pythonEnv
+      ];
 
 
     programs.emacs.init.usePackage = {
@@ -33,6 +42,22 @@ in
       };
 
       dap-python.enable = true;
+
+      lsp-pyright = {
+        enable = true;
+        hook = [
+          ''
+            (python-mode . (lambda ()
+                              (require 'lsp-pyright)
+                              (lsp-deferred)))
+          ''
+        ];
+      };
+
+      python-mode = {
+        enable = true;
+        mode = [ ''"\\.py\\'"'' ];
+      };
 
       pyvenv.enable = true;
     };
