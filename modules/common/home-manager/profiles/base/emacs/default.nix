@@ -75,6 +75,14 @@
         diminish = [ "auto-revert-mode" ];
       };
 
+      ace-window = {
+        enable = true;
+        extraConfig = ''
+          :bind* (("C-c w" . ace-window)
+                  ("M-o" . ace-window))
+        '';
+      };
+
       avy = {
         enable = true;
         bind = {

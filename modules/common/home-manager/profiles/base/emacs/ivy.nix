@@ -49,7 +49,7 @@ with lib;
 
     ivy-pass = {
       enable = true;
-      bind = { "C-c w" = "ivy-pass"; };
+      command = [ "ivy-pass" ];
     };
 
     org-ref.config = ''
