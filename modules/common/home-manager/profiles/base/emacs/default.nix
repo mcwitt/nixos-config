@@ -75,6 +75,14 @@
         diminish = [ "auto-revert-mode" ];
       };
 
+      avy = {
+        enable = true;
+        bind = {
+          "C-:" = "avy-goto-char";
+          "M-g w" = "avy-goto-word-or-subword-1";
+        };
+      };
+
       beacon = {
         enable = true;
         diminish = [ "beacon-mode" ];
