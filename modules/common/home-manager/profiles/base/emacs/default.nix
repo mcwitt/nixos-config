@@ -67,6 +67,11 @@
 
       all-the-icons.enable = true;
 
+      all-the-icons-dired = {
+        enable = true;
+        hook = [ "(dired-mode . all-the-icons-dired-mode)" ];
+      };
+
       autorevert = {
         enable = true;
         diminish = [ "auto-revert-mode" ];
@@ -95,6 +100,15 @@
           "jk" = "company-complete";
         };
         config = "(global-company-mode)";
+      };
+
+      company-box = {
+        enable = true;
+        diminish = [ "company-box-mode" ];
+        hook = [ "(company-mode . company-box-mode)" ];
+        config = ''
+          (setq company-box-icons-alist 'company-box-icons-all-the-icons)
+        '';
       };
 
       company-restclient = {

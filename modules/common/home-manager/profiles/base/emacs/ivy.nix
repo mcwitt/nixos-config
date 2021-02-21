@@ -3,6 +3,12 @@ with lib;
 {
   programs.emacs.init.usePackage = {
 
+    all-the-icons-ivy = {
+      enable = true;
+      after = [ "ivy" ];
+      hook = [ "(after-init . all-the-icons-ivy-setup)" ];
+    };
+
     counsel = {
       enable = true;
       demand = true;
