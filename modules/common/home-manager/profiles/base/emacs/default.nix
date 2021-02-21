@@ -58,9 +58,6 @@
 
       ;; Make package archives unavailable (use Nix)
       (setq package-archives nil)
-
-      ;; Activate packages (process <pkg>-autoloads.el files)
-      (package-initialize)
     '';
 
     usePackage = {
@@ -69,6 +66,7 @@
 
       all-the-icons-dired = {
         enable = true;
+        command = [ "all-the-icons-dired-mode" ];
         hook = [ "(dired-mode . all-the-icons-dired-mode)" ];
       };
 

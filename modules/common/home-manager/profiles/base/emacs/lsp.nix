@@ -5,6 +5,26 @@
       after = [ "lsp-mode" ];
     };
 
+    dap-mouse = {
+      enable = true;
+      command = [ "dap-tooltip-mode" ];
+    };
+
+    dap-ui = {
+      enable = true;
+      command = [ "dap-ui-mode" ];
+    };
+
+    lsp-diagnostics = {
+      enable = true;
+      after = [ "lsp-mode" ];
+    };
+
+    lsp-headerline = {
+      enable = true;
+      command = [ "lsp-headerline-breadcrumb-mode" ];
+    };
+
     lsp-ivy = {
       enable = true;
       command = [ "lsp-ivy-workspace-symbol" ];
@@ -24,6 +44,11 @@
         (define-key lsp-mode-map (kbd "C-c l") lsp-command-map)
         (setq lsp-file-watch-threshold 100000)
       '';
+    };
+
+    lsp-modeline = {
+      enable = true;
+      command = [ "lsp-modeline-workspace-status-mode" ];
     };
 
     lsp-treemacs = {

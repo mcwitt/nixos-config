@@ -6,6 +6,7 @@ with lib;
     all-the-icons-ivy = {
       enable = true;
       after = [ "ivy" ];
+      command = [ "all-the-icons-ivy-setup" ];
       hook = [ "(after-init . all-the-icons-ivy-setup)" ];
     };
 
