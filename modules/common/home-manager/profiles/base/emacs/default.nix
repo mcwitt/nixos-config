@@ -318,20 +318,6 @@
         };
       };
 
-      markdown-mode = {
-        enable = true;
-        command = [ "markdown-mode" "gfm-mode" ];
-        hook = [
-          "(markdown-mode . turn-on-visual-line-mode)"
-          "(markdown-mode . turn-on-flyspell)"
-        ];
-        mode = [
-          ''("README\\.md\\'" . gfm-mode)''
-          ''("\\.md\\'" . markdown-mode)''
-          ''("\\.markdown\\'" . markdown-mode)''
-        ];
-      };
-
       mixed-pitch = {
         enable = true;
         hook = [ "(text-mode . mixed-pitch-mode)" ];

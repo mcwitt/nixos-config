@@ -327,8 +327,6 @@ in
         hook = [ "(org-mode . org-variable-pitch-minor-mode)" ];
       };
 
-      ox-gfm.enable = true;
-
       ox-pandoc.enable = true;
     };
   };

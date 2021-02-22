@@ -9,6 +9,7 @@
     ./idris
     ./java
     ./js
+    ./markdown
     ./nix
     ./plantuml
     ./python
