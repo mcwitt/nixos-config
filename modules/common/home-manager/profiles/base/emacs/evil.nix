@@ -30,11 +30,6 @@ in
       config = "(evil-escape-mode)";
     };
 
-    evil-magit = {
-      enable = usePackageCfg.evil.enable;
-      after = [ "evil" "magit" ];
-    };
-
     evil-smartparens = {
       enable = true;
       after = [ "evil" "smartparens" ];
