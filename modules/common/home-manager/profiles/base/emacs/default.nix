@@ -62,7 +62,12 @@
 
     usePackage = {
 
-      all-the-icons.enable = true;
+      all-the-icons = {
+        enable = true;
+        config = ''
+          (setq all-the-icons-spacer " ")
+        '';
+      };
 
       all-the-icons-dired = {
         enable = true;
