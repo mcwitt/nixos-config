@@ -250,6 +250,11 @@
         hook = [ "(prog-mode . format-all-mode)" ];
       };
 
+      forge = {
+        enable = true;
+        after = [ "magit" ];
+      };
+
       gist.enable = true;
 
       groovy-mode = {
