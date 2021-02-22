@@ -35,7 +35,6 @@
     rsync
     ruby
     sqlite
-    texlive.combined.scheme-full
     time
     tree
     unzip

@@ -23,6 +23,7 @@ in
 
       idris.enable = true;
       js.enable = true;
+      latex.enable = true;
       markdown.enable = true;
       plantuml.enable = true;
       python.enable = true;

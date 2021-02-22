@@ -298,14 +298,6 @@
         command = [ "kubernetes-overview" ];
       };
 
-      latex = {
-        enable = true;
-        package = epkgs: epkgs.auctex;
-        mode = [ ''("\\.tex\\'" . latex-mode)'' ];
-        config = ''
-          (add-to-list 'TeX-view-program-selection '(output-pdf "PDF Tools"))'';
-      };
-
       logview.enable = true;
 
       password-store.enable = true;

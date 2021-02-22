@@ -194,7 +194,6 @@ in
            '((calc . t)
              (emacs-lisp . t)
              (jupyter . t)
-             (latex . t)
              (restclient . t)))
 
           ;; Export settings
