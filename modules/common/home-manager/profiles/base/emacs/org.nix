@@ -253,9 +253,12 @@ in
         enable = true;
         after = [ "org" ];
         bindLocal.org-mode-map = {
-          s-Y = "org-download-screenshot";
-          s-y = "org-download-yank";
+          "M-s s" = "org-download-screenshot";
+          "M-s y" = "org-download-yank";
         };
+        config = ''
+          (setq org-download-screenshot-method "${pkgs.gnome3.gnome-screenshot}/bin/gnome-screenshot -a -f %s")
+        '';
       };
 
       org-pomodoro = {
