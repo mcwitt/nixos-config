@@ -42,7 +42,7 @@ in
 
       scala-mode = {
         enable = true;
-        mode = [ ''"\\.s\\(cala\\|bt\\)$"'' ];
+        mode = [ ''"\\.s\\(c\\|cala\\|bt\\)\\'"'' ];
         hook = [ "(scala-mode . subword-mode)" ];
       };
     };
