@@ -8,6 +8,8 @@
     ./treemacs.nix
   ];
 
+  programs.emacs.package = pkgs.emacsGcc;
+
   programs.emacs.init = {
 
     enable = true;
