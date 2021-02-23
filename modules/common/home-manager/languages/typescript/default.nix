@@ -12,15 +12,10 @@ in
     ];
 
     programs.emacs.init.usePackage = {
-
-      lsp-typescript = {
-        enable = true;
-        hook = [ "(typescript-mode . (lambda () (lsp-deferred)))" ];
-      };
-
       typescript-mode = {
         enable = true;
         mode = [ ''"\\.tsx?\\'"'' ];
+        hook = [ "(typescript-mode . (lambda () (lsp-deferred)))" ];
       };
     };
   };
