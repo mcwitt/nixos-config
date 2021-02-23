@@ -9,11 +9,13 @@ in
 
     programs.emacs.init.usePackage = {
 
-      org.config = ''
-        (require 'ob-plantuml)
-        (setq org-plantuml-exec-mode 'jar)
-        (setq org-plantuml-jar-path "${pkgs.plantuml}/lib/plantuml.jar")
-      '';
+      ob-plantuml = {
+        enable = true;
+        config = ''
+          (setq org-plantuml-exec-mode 'jar)
+          (setq org-plantuml-jar-path "${pkgs.plantuml}/lib/plantuml.jar")
+        '';
+      };
 
       plantuml-mode = {
         enable = true;
