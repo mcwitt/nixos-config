@@ -196,6 +196,9 @@ in
              (jupyter . t)
              (restclient . t)))
 
+          ;; Don't require confirmation to run code blocks
+          (setq org-confirm-babel-evaluate nil)
+
           ;; Export settings
           (with-eval-after-load 'ox-latex
             (setq org-latex-listings 'minted)
