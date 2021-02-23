@@ -378,6 +378,11 @@
         diminish = [ "subword-mode" ];
       };
 
+      string-inflection = {
+        enable = true;
+        bind = { "C-c C-u" = "string-inflection-all-cycle"; };
+      };
+
       undo-tree = {
         enable = true;
         diminish = [ "undo-tree-mode" ];

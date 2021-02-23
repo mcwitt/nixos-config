@@ -42,6 +42,8 @@ in
       config = "(global-evil-surround-mode)";
     };
 
+    evil-string-inflection.enable = usePackageCfg.string-inflection.enable;
+
     csv-mode.hook = [
       ''
         (csv-mode . (lambda ()
