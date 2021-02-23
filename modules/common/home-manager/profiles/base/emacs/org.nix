@@ -141,7 +141,7 @@ in
 
       ob-restclient = {
         enable = true;
-        after = [ "org-babel" "restclient" ];
+        after = [ "org" ];
       };
 
       org = {
