@@ -1,5 +1,10 @@
 {
+  programs.emacs.init.prelude = ''
+    (setq read-process-output-max (* 1024 1024)) ;; 1mb
+  '';
+
   programs.emacs.init.usePackage = {
+
     dap-mode = {
       enable = true;
       after = [ "lsp-mode" ];
