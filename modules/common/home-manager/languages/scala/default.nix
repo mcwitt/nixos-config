@@ -10,6 +10,17 @@ in
 
     programs.emacs.init.usePackage = {
 
+      ammonite-term-repl = {
+        enable = true;
+        after = [ "scala-mode" ];
+        hook = [
+          ''
+            (scala-mode . (lambda ()
+                            (ammonite-term-repl-minor-mode t)))
+          ''
+        ];
+      };
+
       fira-code-mode.hook = [ "scala-mode" ];
 
       lsp-metals = {
