@@ -256,7 +256,6 @@
     format-all = {
       enable = true;
       diminish = [ "format-all-mode" ];
-      bind = { "C-c C-f" = "format-all-buffer"; };
       hook = [ "(prog-mode . format-all-mode)" ];
     };
 
