@@ -16,10 +16,19 @@ in
     ];
 
     programs.emacs.init.usePackage = {
+
       nix-mode = {
         enable = true;
         mode = [ ''"\\.nix\\'"'' ];
         hook = [ "(nix-mode . subword-mode)" ];
+        bindLocal.nix-mode-map = {
+          "C-c C-z" = "nix-repl-show";
+        };
+      };
+
+      nix-repl = {
+        enable = true;
+        command = [ "nix-repl" "nix-repl-show" ];
       };
 
       reformatter = {
