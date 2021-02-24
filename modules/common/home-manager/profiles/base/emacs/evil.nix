@@ -67,9 +67,14 @@ in
       "C-w l" = "evil-window-right";
     };
 
-    org-evil = {
+    evil-org = {
       enable = true;
-      hook = [ "(org-mode . org-evil-mode)" ];
+      after = [ "org" ];
+      hook = [ "(org-mode . evil-org-mode)" ];
+      config = ''
+        (require 'evil-org-agenda)
+        (evil-org-agenda-set-keys)
+      '';
     };
 
     treemacs-evil = {
