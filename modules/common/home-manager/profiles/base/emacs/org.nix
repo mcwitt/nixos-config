@@ -265,7 +265,7 @@ in
 
       org-pomodoro = {
         enable = true;
-        after = [ "org-agenda" ];
+        after = [ "org" ];
         bindLocal.org-agenda-mode-map = {
           p = "org-pomodoro";
         };

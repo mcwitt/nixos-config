@@ -92,6 +92,7 @@ in
       '';
 
       reformatter = {
+        enable = true;
         hook = [ "(haskell-cabal-mode . cabal-fmt-on-save-mode)" ];
         config = ''
           (reformatter-define cabal-fmt

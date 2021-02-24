@@ -247,8 +247,8 @@
         "M-p" = "flycheck-previous-error";
       };
       config = ''
-        (setq flycheck-check-syntax-automatically '(save idle-change new-line)
-              flycheck-idle-change-delay 0.5)
+        (setq flycheck-check-syntax-automatically '(save idle-change new-line))
+        (setq flycheck-idle-change-delay 0.5)
         (global-flycheck-mode t)
       '';
     };
@@ -352,9 +352,9 @@
       command = [ "projectile-mode" ];
       bindKeyMap."C-c p" = "projectile-command-map";
       config = ''
-        (setq projectile-enable-caching t
-              projectile-project-search-path '("~/src/")
-              projectile-require-project-root nil)
+        (setq projectile-enable-caching t)
+        (setq projectile-project-search-path '("~/src/"))
+        (setq projectile-require-project-root nil)
         (projectile-mode 1)
       '';
     };
@@ -364,9 +364,10 @@
       hook = [ "(prog-mode . rainbow-delimiters-mode)" ];
     };
 
-    reformatter.enable = true;
-
-    restclient.enable = true;
+    restclient = {
+      enable = true;
+      command = [ "restclient-mode" ];
+    };
 
     ripgrep = {
       enable = true;
