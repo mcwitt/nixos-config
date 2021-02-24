@@ -3,20 +3,32 @@ with lib;
 let cfg = config.languages.python;
 in
 {
-  options.languages.python.enable =
-    mkEnableOption "Python language environment";
+  options.languages.python = {
+    enable = mkEnableOption "Python language environment";
+
+    extraPackages = mkOption {
+      default = self: [ ];
+      type = hm.types.selectorFunction;
+      defaultText = "pypkgs: []";
+      example = literalExample "pypkgs: with pypkgs; [ black pandas requests ]";
+      description = ''
+        Packages to install globally.
+      '';
+    };
+  };
 
   config = mkIf cfg.enable {
     home.packages =
       let
-        pythonEnv = pkgs.python38.withPackages
-          (ps: with ps; [
-            black
-            flake8
-            mypy
-            setuptools
-            virtualenv
-          ]);
+        pythonEnv = pkgs.python3.withPackages
+          (ps:
+            (with ps; [
+              black
+              flake8
+              mypy
+              setuptools
+              virtualenv
+            ]) ++ cfg.extraPackages ps);
       in
       [
         pkgs.nodePackages.pyright

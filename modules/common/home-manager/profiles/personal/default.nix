@@ -26,7 +26,12 @@ in
       latex.enable = true;
       markdown.enable = true;
       plantuml.enable = true;
-      python.enable = true;
+
+      python = {
+        enable = true;
+        extraPackages = ps: with ps; [ httpx pandas rich toolz ];
+      };
+
       rust.enable = true;
       scala.enable = true;
       shell.enable = true;
