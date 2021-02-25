@@ -37,6 +37,7 @@ in
 
 
     programs.emacs.init.usePackage = {
+
       anaconda-mode = {
         enable = true;
         hook = [
@@ -71,7 +72,10 @@ in
         mode = [ ''"\\.py\\'"'' ];
       };
 
-      pyvenv.enable = true;
+      pyvenv = {
+        enable = true;
+        command = [ "pyvenv-activate" ];
+      };
     };
   };
 }

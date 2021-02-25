@@ -21,17 +21,23 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.packages = with pkgs.haskellPackages; [
-      brittany
-      cabal-fmt
-      cabal-install
-      ((if cfg.hoogle.enable then ghcWithHoogle else ghcWithPackages) cfg.extraPackages)
-      ghcid
-      haskell-language-server
-      hlint
-      ormolu
-      stack
-    ];
+    home.packages =
+      let
+        ghcWithPackages' = with pkgs.haskellPackages; if cfg.hoogle.enable then ghcWithHoogle else ghcWithPackages;
+        ghcEnv = ghcWithPackages' cfg.extraPackages;
+      in
+      [ ghcEnv ] ++ (with pkgs.haskellPackages;
+      [
+        brittany
+        cabal-fmt
+        cabal-install
+        ghcEnv
+        ghcid
+        haskell-language-server
+        hlint
+        ormolu
+        stack
+      ]);
 
     programs.emacs.init.usePackage = {
 
