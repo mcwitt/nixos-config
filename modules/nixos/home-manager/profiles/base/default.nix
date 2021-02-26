@@ -74,8 +74,6 @@
     maxCacheTtl = 14400;
   };
 
-  services.lorri.enable = true;
-
   services.org-notes-sync = {
     enable = true;
     repoPath = "${config.home.homeDirectory}/src/org-notes/";
