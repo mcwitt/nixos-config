@@ -297,6 +297,7 @@
 
     json-mode = {
       enable = true;
+      mode = [ ''"\\.json\\'"'' ];
       hook = [ "(json-mode . flycheck-mode)" ];
     };
 
