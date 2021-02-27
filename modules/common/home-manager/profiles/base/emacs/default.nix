@@ -3,6 +3,7 @@
   imports = [
     ./evil.nix
     ./ivy.nix
+    ./jupyter.nix
     ./lsp.nix
     ./org.nix
     ./treemacs.nix
@@ -299,11 +300,6 @@
       enable = true;
       mode = [ ''"\\.json\\'"'' ];
       hook = [ "(json-mode . flycheck-mode)" ];
-    };
-
-    jupyter = {
-      enable = false; # XXX Broken as of 2020-11-29
-      bind = { "C-c j" = "jupyter-run-repl"; };
     };
 
     kubernetes = {
