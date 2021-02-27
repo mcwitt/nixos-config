@@ -194,6 +194,10 @@ in
              (jupyter . t)
              (restclient . t)))
 
+          (define-advice org-edit-src-exit (:before (&rest _args) format-src)
+            "Run `format-all-buffer' on exiting source blocks."
+            (format-all-buffer))
+
           ;; Don't require confirmation to run code blocks
           (setq org-confirm-babel-evaluate nil)
 
