@@ -147,11 +147,6 @@
       hook = [ "(csv-mode . csv-align-mode)" ];
     };
 
-    direnv = {
-      enable = true;
-      command = [ "direnv-mode" "direnv-update-environment" ];
-    };
-
     dockerfile-mode = {
       enable = true;
       mode = [ ''"Dockerfile\\'"'' ];
@@ -182,6 +177,17 @@
       enable = true;
       diminish = [ "eldoc-mode" ];
       command = [ "eldoc-mode" ];
+    };
+
+    envrc = {
+      enable = true;
+      demand = true;
+      bindLocal.envrc-mode-map = {
+        "C-c e" = "envrc-command-map";
+      };
+      config = ''
+        (envrc-global-mode)
+      '';
     };
 
     erc = {

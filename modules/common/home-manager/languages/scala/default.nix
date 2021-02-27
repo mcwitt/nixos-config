@@ -25,13 +25,7 @@ in
 
       lsp-metals = {
         enable = true;
-        hook = [
-          ''
-            (scala-mode . (lambda ()
-                            (direnv-update-environment)
-                            (lsp-deferred)))
-          ''
-        ];
+        hook = [ "(scala-mode . lsp-deferred)" ];
       };
 
       ob-ammonite = {

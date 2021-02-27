@@ -10,13 +10,7 @@ in
 
       lsp-java = {
         enable = true;
-        hook = [
-          ''
-            (java-mode . (lambda ()
-                           (direnv-update-environment)
-                           (lsp-deferred)))
-          ''
-        ];
+        hook = [ "(java-mode . lsp-deferred)" ];
       };
     };
   };

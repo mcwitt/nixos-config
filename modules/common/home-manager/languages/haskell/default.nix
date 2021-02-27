@@ -79,13 +79,7 @@ in
 
       lsp-haskell = {
         enable = true;
-        hook = [
-          ''
-            (haskell-mode . (lambda ()
-                              (direnv-update-environment)
-                              (lsp-deferred)))
-          ''
-        ];
+        hook = [ "(haskell-mode . lsp-deferred)" ];
       };
 
       ob-haskell = {
