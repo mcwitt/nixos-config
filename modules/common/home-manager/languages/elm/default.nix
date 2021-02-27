@@ -20,13 +20,7 @@ in
 
       lsp-elm = {
         enable = true;
-        hook = [
-          ''
-            (elm-mode . (lambda ()
-                          (direnv-update-environment)
-                          (lsp-deferred)))
-          ''
-        ];
+        hook = [ "(elm-mode . lsp-deferred)" ];
       };
     };
 

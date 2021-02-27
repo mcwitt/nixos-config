@@ -88,14 +88,15 @@ in
         ];
       };
 
+      ob-haskell = {
+        enable = true;
+        after = [ "org" ];
+      };
+
       ormolu = {
         enable = true;
         hook = [ "(haskell-mode . ormolu-format-on-save-mode)" ];
       };
-
-      org.config = ''
-        (require 'ob-haskell)
-      '';
 
       reformatter = {
         enable = true;

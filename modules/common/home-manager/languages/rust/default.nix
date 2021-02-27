@@ -12,13 +12,7 @@ in
     programs.emacs.init.usePackage = {
       rust-mode = {
         enable = true;
-        hook = [
-          ''
-            (rust-mode . (lambda ()
-                           (direnv-update-environment)
-                           (lsp-deferred)))
-          ''
-        ];
+        hook = [ "(rust-mode . lsp-deferred)" ];
       };
     };
   };

@@ -15,7 +15,7 @@ in
       typescript-mode = {
         enable = true;
         mode = [ ''"\\.tsx?\\'"'' ];
-        hook = [ "(typescript-mode . (lambda () (lsp-deferred)))" ];
+        hook = [ "(typescript-mode . lsp-deferred)" ];
       };
     };
   };

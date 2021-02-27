@@ -167,8 +167,6 @@ in
           "(org-babel-after-execute . org-redisplay-inline-images)"
         ];
         config = ''
-          (require 'git-sync)
-
           (setq org-hide-emphasis-markers t)
           (setq org-startup-indented t)
           (setq org-tags-column 0) ; don't try to align tags

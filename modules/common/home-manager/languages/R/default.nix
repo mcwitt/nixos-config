@@ -27,14 +27,16 @@ in
     home.packages = [ rEnv ];
 
     programs.emacs.init.usePackage = {
+
       ess = {
         enable = true;
         init = "(require 'ess-site)";
       };
 
-      org.config = ''
-        (require 'ob-R)
-      '';
+      ob-R = {
+        enable = true;
+        after = [ "org" ];
+      };
     };
   };
 }

@@ -22,9 +22,10 @@ in
         '';
       };
 
-      org.config = ''
-        (require 'ob-dot)
-      '';
+      ob-dot = {
+        enable = true;
+        after = [ "org" ];
+      };
     };
   };
 }

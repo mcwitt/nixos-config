@@ -20,9 +20,10 @@ in
           (add-to-list 'TeX-view-program-selection '(output-pdf "PDF Tools"))'';
       };
 
-      org.config = ''
-        (require 'ob-latex)
-      '';
+      ob-latex = {
+        enable = true;
+        after = [ "org" ];
+      };
     };
   };
 }
