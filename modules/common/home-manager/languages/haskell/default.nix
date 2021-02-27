@@ -50,6 +50,10 @@ in
         hook = [
           "(haskell-mode . interactive-haskell-mode)"
           "(haskell-mode . subword-mode)"
+          ''
+            (haskell-mode . (lambda ()
+                              (setq-local format-all-formatters '(("Haskell" ormolu)))))
+          ''
         ];
         bindLocal.haskell-mode-map = {
           "C-c C-h" = "haskell-hoogle-lookup-from-local";
@@ -85,11 +89,6 @@ in
       ob-haskell = {
         enable = true;
         after = [ "org" ];
-      };
-
-      ormolu = {
-        enable = true;
-        hook = [ "(haskell-mode . ormolu-format-on-save-mode)" ];
       };
 
       reformatter = {
