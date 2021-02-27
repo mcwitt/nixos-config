@@ -14,9 +14,17 @@ in
       haskellPackages.dhall-yaml
     ];
 
-    programs.emacs.init.usePackage.dhall-mode = {
-      enable = true;
-      mode = [ ''"\\.dhall\\'"'' ];
+    programs.emacs.init.usePackage = {
+
+      lsp-dhall = {
+        enable = true;
+        hook = [ "(dhall-mode . lsp-deferred)" ];
+      };
+
+      dhall-mode = {
+        enable = true;
+        mode = [ ''"\\.dhall\\'"'' ];
+      };
     };
 
     programs.vscode.extensions = with pkgs.vscode-extensions.dhall; [
