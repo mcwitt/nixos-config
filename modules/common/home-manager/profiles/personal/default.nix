@@ -29,7 +29,14 @@ in
 
       python = {
         enable = true;
-        extraPackages = ps: with ps; [ httpx pandas rich toolz ];
+        extraPackages = ps: with ps; [
+          httpx
+          jupyter
+          matplotlib
+          pandas
+          rich
+          toolz
+        ];
       };
 
       rust.enable = true;
