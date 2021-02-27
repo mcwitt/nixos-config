@@ -311,7 +311,11 @@
       command = [ "kubernetes-overview" ];
     };
 
-    logview.enable = true;
+    logview = {
+      enable = true;
+      command = [ "logview-mode" ];
+      mode = [ ''("\\.log\\(?:\\.[0-9]+\\)?\\'" . logview-mode)'' ];
+    };
 
     magit = {
       enable = true;
@@ -339,7 +343,9 @@
 
     pinentry = {
       enable = true;
-      config = "(pinentry-start)";
+      config = ''
+        (pinentry-start)
+      '';
     };
 
     # needed by Flycheck
@@ -415,7 +421,9 @@
     yasnippet = {
       enable = true;
       diminish = [ "yas-minor-mode" ];
-      config = "(yas-global-mode 1)";
+      config = ''
+        (yas-global-mode 1)
+      '';
     };
 
     yasnippet-snippets.enable = true;
