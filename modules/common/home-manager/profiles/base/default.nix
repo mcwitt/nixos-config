@@ -80,10 +80,10 @@
         + " —%Cblue%d%Creset %s %Cgreen(%cr)%Creset'"
         + " --abbrev-commit --date=relative --show-notes=*";
     };
-    ignores = lib.concatMap pkgs.mypkgs.gitignore.ghGitIgnoreLines [
+    ignores = (lib.concatMap pkgs.mypkgs.gitignore.ghGitIgnoreLines [
       "Global/Vim"
       "Global/Emacs"
-    ];
+    ]) ++ [ ".direnv/" ];
     extraConfig = {
       gitHub.user = "mcwitt";
       merge.conflictStyle = "diff3";
