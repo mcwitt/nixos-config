@@ -371,6 +371,25 @@
 
     solarized-theme = {
       enable = true;
+      demand = true;
+      init = ''
+        ;; Disable any enabled themes before loading
+        (defadvice load-theme (before theme-dont-propagate activate)
+          (mapcar #'disable-theme custom-enabled-themes))
+
+        (defvar my/theme-light 'solarized-light)
+        (defvar my/theme-dark 'solarized-dark)
+
+        (defun my/theme-toggle ()
+          "Toggle between light and dark themes."
+          (interactive)
+          (if (member my/theme-light custom-enabled-themes)
+              (load-theme my/theme-dark t)
+            (load-theme my/theme-light t)))
+      '';
+      bind = {
+        "C-c t" = "my/theme-toggle";
+      };
       config = ''
         (load-theme 'solarized-light t)
       '';
