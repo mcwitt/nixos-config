@@ -152,25 +152,6 @@
       mode = [ ''"Dockerfile\\'"'' ];
     };
 
-    doom-themes = {
-      enable = true;
-      config = ''
-        (setq doom-themes-enable-bold t)
-        (setq doom-themes-enable-italic t)
-        (load-theme 'doom-solarized-dark t)
-
-        (require 'doom-themes-ext-visual-bell)
-        (doom-themes-visual-bell-config)
-
-        (require 'doom-themes-ext-treemacs)
-        (doom-themes-treemacs-config)
-        (setq doom-themes-treemacs-theme "doom-colors")
-
-        (require 'doom-themes-ext-org)
-        (doom-themes-org-config)
-      '';
-    };
-
     edit-indirect.enable = true;
 
     eldoc = {
@@ -386,6 +367,13 @@
     smartparens = {
       enable = true;
       diminish = [ "smartparens-mode" ];
+    };
+
+    solarized-theme = {
+      enable = true;
+      config = ''
+        (load-theme 'solarized-light t)
+      '';
     };
 
     subword = {
