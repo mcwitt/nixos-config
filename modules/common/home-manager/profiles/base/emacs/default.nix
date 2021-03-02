@@ -9,7 +9,7 @@
     ./treemacs.nix
   ];
 
-  programs.emacs.package = pkgs.emacsGcc;
+  programs.emacs.package = lib.mkDefault pkgs.emacsGcc;
 
   programs.emacs.init = {
 

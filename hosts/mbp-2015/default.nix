@@ -20,6 +20,8 @@
         ../../modules/common/home-manager
         ../../modules/darwin/home-manager
       ];
+
+      programs.emacs.package = pkgs.emacs;
     };
   };
 
