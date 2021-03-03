@@ -19,6 +19,5 @@
     ./shell
     ./sql
     ./terraform
-    ./typescript
   ];
 }

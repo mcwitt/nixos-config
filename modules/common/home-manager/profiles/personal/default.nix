@@ -44,7 +44,6 @@ in
       shell.enable = true;
       sql.enable = true;
       terraform.enable = true;
-      typescript.enable = true;
     };
 
     programs.git = {
