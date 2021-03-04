@@ -5,8 +5,9 @@
   home.packages = with pkgs; [
     dmenu
     libnotify
-    peek
+    mplayer
     signal-desktop
+    xfce.thunar
   ];
 
   programs.chromium = {
