@@ -78,9 +78,12 @@ in
       };
     };
 
-    programs.vscode.extensions = with pkgs.vscode-extensions; [
-      ms-python.python
-      ms-python.vscode-pylance
-    ];
+    programs.vscode = {
+      extensions = with pkgs.vscode-extensions; [
+        ms-python.python
+        ms-python.vscode-pylance
+      ];
+      userSettings.python.languageServer = "Pylance";
+    };
   };
 }
