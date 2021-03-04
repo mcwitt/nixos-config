@@ -77,5 +77,10 @@ in
         command = [ "pyvenv-activate" ];
       };
     };
+
+    programs.vscode.extensions = with pkgs.vscode-extensions; [
+      ms-python.python
+      ms-python.vscode-pylance
+    ];
   };
 }
