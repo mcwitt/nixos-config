@@ -7,13 +7,40 @@ in
     {
       enable = mkEnableOption "xmobar status bar";
 
+      colors = {
+        good = mkOption {
+          type = types.str;
+          default = "#859900";
+        };
+        normal = mkOption {
+          type = types.str;
+          default = "#b58900";
+        };
+        alert = mkOption {
+          type = types.str;
+          default = "#dc322f";
+        };
+      };
+
       commands = mkOption
         {
           type = with types; listOf str;
           description = ''
             List of commands.
           '';
-          default = [ ];
+          default = [
+            ''Run StdinReader''
+            ''Run Date "<fc=#93a1a1>%F (%a) %T</fc>" "date" 10''
+            ''
+              Run DynNetwork     [ "--template" , "<dev>: <tx>kB/s|<rx>kB/s"
+                                 , "--Low"      , "1000"
+                                 , "--High"     , "5000"
+                                 , "--low"      , "${cfg.colors.good}"
+                                 , "--normal"   , "${cfg.colors.normal}"
+                                 , "--high"     , "${cfg.colors.alert}"
+                                 ] 10
+            ''
+          ];
           example =
             [
               ''Run Date "<fc=#93a1a1>%F (%a) %T</fc>" "date" 10''

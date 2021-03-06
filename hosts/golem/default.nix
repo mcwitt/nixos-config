@@ -71,6 +71,13 @@
         profiles.personal.enable = true;
 
         programs.xmobar = {
+          commands = [
+            ''
+              Run Weather "KSFO" [ "--template"
+                                 , "<skyCondition> | <fc=#268bd2><tempF></fc>°F | <fc=#268bd2><rh></fc>% | <fc=#268bd2><pressure></fc>hPa"
+                                 ] 36000
+            ''
+          ];
           config = {
             position = ''
               Static
@@ -89,15 +96,11 @@
           longitude = -122.2712;
         };
 
-        services.stalonetray = {
-          enable = true;
-          config = {
-            geometry = "${toString trayMaxIcons}x1-${toString rightMonitorWidth}+0";
-            max_geometry = "${toString trayMaxIcons}x1";
-            icon_gravity = "NE";
-            icon_size = statusBarHeight * 7 / 8;
-            slot_size = statusBarHeight;
-          };
+        services.stalonetray.config = {
+          geometry = "${toString trayMaxIcons}x1-${toString rightMonitorWidth}";
+          icon_gravity = "NE";
+          icon_size = statusBarHeight * 7 / 8;
+          slot_size = statusBarHeight;
         };
       };
   };

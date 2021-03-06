@@ -17,10 +17,10 @@
         "homepage": "",
         "owner": "nix-community",
         "repo": "emacs-overlay",
-        "rev": "a5aa1ba2c7dcc3a6c0ac2942fe293e7b2a9ddb51",
-        "sha256": "0swzhlwksncvjqkn2dw99sh1giixyajmixc1x9wx87d0w9dhsmsp",
+        "rev": "3c1b842db32910dd18d53085c0443ab9e2526c93",
+        "sha256": "1w5ifqhz9i1i69s3klv7l23nvpfh2chwbw0042axpgxcvf0f0hm8",
         "type": "tarball",
-        "url": "https://github.com/nix-community/emacs-overlay/archive/a5aa1ba2c7dcc3a6c0ac2942fe293e7b2a9ddb51.tar.gz",
+        "url": "https://github.com/nix-community/emacs-overlay/archive/3c1b842db32910dd18d53085c0443ab9e2526c93.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "fish-kubectl-completions": {
@@ -59,6 +59,18 @@
         "url": "https://github.com/nmattia/niv/archive/af958e8057f345ee1aca714c1247ef3ba1c15f5e.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
+    "nixos-hardware": {
+        "branch": "master",
+        "description": "A collection of NixOS modules covering hardware quirks.",
+        "homepage": "",
+        "owner": "NixOS",
+        "repo": "nixos-hardware",
+        "rev": "720d531b1cc0b4824d295bb38f3784aebf91a1a1",
+        "sha256": "1r3k7kvn0wjq9r3qyw1p52ngcsj9495xhlvlx8fzph2qw8wbb285",
+        "type": "tarball",
+        "url": "https://github.com/NixOS/nixos-hardware/archive/720d531b1cc0b4824d295bb38f3784aebf91a1a1.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "nixpkgs": {
         "branch": "nixos-19.09",
         "description": "A read-only mirror of NixOS/nixpkgs tracking the released channels. Send issues and PRs to",
@@ -77,10 +89,10 @@
         "homepage": "",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "7f226e82d0091eb8f12e305e0f2498743e0125e8",
-        "sha256": "0lbhla1dkfc5by35ln4r4fx4zs0xaj21d3y9n1a8a0clb1r8mh41",
+        "rev": "b5be6518b659792332adf63e56b605c9c6588b9a",
+        "sha256": "0yfwjxc1rmp557b49jcbff8qb49csj91rv9zg2f1s8yr8dkdwncx",
         "type": "tarball",
-        "url": "https://github.com/nix-community/NUR/archive/7f226e82d0091eb8f12e305e0f2498743e0125e8.tar.gz",
+        "url": "https://github.com/nix-community/NUR/archive/b5be6518b659792332adf63e56b605c9c6588b9a.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "solarized": {
