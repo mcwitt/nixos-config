@@ -375,7 +375,7 @@
       init = ''
         ;; Disable any enabled themes before loading
         (defadvice load-theme (before theme-dont-propagate activate)
-          (mapcar #'disable-theme custom-enabled-themes))
+          (mapc #'disable-theme custom-enabled-themes))
 
         (defvar my/theme-light 'solarized-light)
         (defvar my/theme-dark 'solarized-dark)
