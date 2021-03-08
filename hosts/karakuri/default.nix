@@ -25,6 +25,8 @@ in
 
   hardware.acpilight.enable = true;
 
+  hardware.bluetooth.enable = true;
+
   hardware.pulseaudio = {
     enable = true;
     package = pkgs.pulseaudioFull;
@@ -62,6 +64,8 @@ in
     enable = true;
     enableSSHSupport = true;
   };
+
+  services.blueman.enable = true;
 
   services.geoclue2 = {
     enable = true;

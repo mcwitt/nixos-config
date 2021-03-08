@@ -45,6 +45,8 @@ in
       };
     };
 
+  services.blueman-applet.enable = true;
+
   services.gammastep.provider = "geoclue2";
 
   services.stalonetray.config = {
