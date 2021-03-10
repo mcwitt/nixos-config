@@ -6,7 +6,6 @@
     ../../modules/nixos/nixos
   ];
 
-  # Use the systemd-boot EFI boot loader.
   boot.loader = {
     systemd-boot.enable = true;
     efi.canTouchEfiVariables = true;
@@ -20,20 +19,7 @@
 
   fonts.fontconfig.dpi = 140;
 
-  libraries.cuda = {
-    enable = true;
-    package = pkgs.cudatoolkit_10_2;
-  };
-
-  programs.fish.enable = true;
-
-  programs.gnupg.agent.enable = true;
-
   hardware.bluetooth.enable = true;
-
-  hardware.enableAllFirmware = true;
-
-  hardware.opengl.driSupport32Bit = true;
 
   hardware.pulseaudio = {
     enable = true;
@@ -54,6 +40,8 @@
     }];
   };
 
+  hardware.video.hidpi.enable = true;
+
   home-manager = {
     useGlobalPkgs = true;
     users.matt = {
@@ -62,7 +50,10 @@
     };
   };
 
-  i18n.defaultLocale = "en_US.UTF-8";
+  libraries.cuda = {
+    enable = true;
+    package = pkgs.cudatoolkit_10_2;
+  };
 
   location = {
     latitude = 37.8044;
@@ -71,24 +62,15 @@
 
   networking = {
     hostName = "golem";
+    useDHCP = false;
     interfaces.enp0s31f6.useDHCP = true;
   };
 
   nix.trustedUsers = [ "root" "@wheel" "matt" ];
 
-  nixpkgs = {
-    config.allowUnfree = true;
-    overlays = import ../../overlays;
-  };
-
   services.avahi = {
     enable = true;
     nssmdns = true;
-  };
-
-  services.locate = {
-    enable = true;
-    interval = "hourly";
   };
 
   services.openssh.enable = true;
@@ -96,6 +78,15 @@
   services.printing = {
     enable = true;
     drivers = [ pkgs.brlaser ];
+  };
+
+  services.xserver = {
+    enable = true;
+    videoDrivers = [ "nvidia" ];
+    desktopManager.xterm.enable = true;
+    displayManager.lightdm.greeters.gtk.extraConfig = "xft-dpi=180";
+    dpi = 180;
+    layout = "us";
   };
 
   services.xserver.xrandrHeads = [
@@ -110,12 +101,6 @@
       output = "DP-2";
     }
   ];
-
-  services.xserver = {
-    enable = true;
-    videoDrivers = [ "nvidia" ];
-    desktopManager.xterm.enable = true;
-  };
 
   sound = {
     enable = true;
@@ -132,8 +117,5 @@
     shell = pkgs.fish;
   };
 
-  virtualisation.docker = {
-    enable = true;
-    enableNvidia = true;
-  };
+  virtualisation.docker.enableNvidia = true;
 }

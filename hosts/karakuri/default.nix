@@ -42,27 +42,11 @@ in
     };
   };
 
-  i18n.defaultLocale = "en_US.UTF-8";
-
   networking = {
     hostName = "karakuri";
     wireless.enable = true;
     useDHCP = false;
     interfaces.wlp0s20f3.useDHCP = true;
-  };
-
-  nixpkgs = {
-    config.allowUnfree = true;
-    overlays = import ../../overlays;
-  };
-
-  programs.fish.enable = true;
-
-  programs.mtr.enable = true;
-
-  programs.gnupg.agent = {
-    enable = true;
-    enableSSHSupport = true;
   };
 
   services.blueman.enable = true;
