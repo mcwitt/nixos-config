@@ -1,11 +1,8 @@
 self: super:
-let
-  inherit (self) callPackage;
-  sources = import ../../../nix/sources.nix;
+let inherit (self) callPackage;
 in
 {
   mypkgs = {
-    inherit sources;
     gitignore = callPackage ./gitignore.nix { };
     scripts = callPackage ./scripts { };
   };

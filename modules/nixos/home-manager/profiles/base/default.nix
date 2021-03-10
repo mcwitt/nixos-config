@@ -1,4 +1,6 @@
 { config, lib, pkgs, ... }:
+let sources = import ../../../../../nix/sources.nix;
+in
 {
   imports = [ ./alacritty.nix ./xmonad.nix ];
 
@@ -135,8 +137,7 @@
     };
   };
 
-  xresources.extraConfig =
-    builtins.readFile (pkgs.mypkgs.sources.solarized + "/xresources/solarized");
+  xresources.extraConfig = builtins.readFile "${sources.solarized}/xresources/solarized";
 
   xsession = {
     enable = true;

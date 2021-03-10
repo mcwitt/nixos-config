@@ -1,5 +1,5 @@
 { lib, mypkgs }:
-let inherit (mypkgs) sources;
+let sources = import ../../../nix/sources.nix;
 in
 {
   ghGitIgnoreLines = path:

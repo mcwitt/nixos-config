@@ -1,6 +1,8 @@
 { config, lib, pkgs, ... }:
 with lib;
-let cfg = config.tools.kubernetes;
+let
+  cfg = config.tools.kubernetes;
+  sources = import ../../../../../nix/sources.nix;
 in
 {
   options.tools.kubernetes.enable =
@@ -9,6 +11,6 @@ in
   config = mkIf cfg.enable {
     home.packages = [ pkgs.kubectl ];
     xdg.configFile."fish/completions/kubectl.fish".source =
-      "${pkgs.mypkgs.sources.fish-kubectl-completions}/completions/kubectl.fish";
+      "${sources.fish-kubectl-completions}/completions/kubectl.fish";
   };
 }
