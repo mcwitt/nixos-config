@@ -26,8 +26,6 @@ in
               black
               flake8
               mypy
-              setuptools
-              virtualenv
             ]) ++ cfg.extraPackages ps);
       in
       [
