@@ -17,10 +17,10 @@
         "homepage": "",
         "owner": "nix-community",
         "repo": "emacs-overlay",
-        "rev": "3c1b842db32910dd18d53085c0443ab9e2526c93",
-        "sha256": "1w5ifqhz9i1i69s3klv7l23nvpfh2chwbw0042axpgxcvf0f0hm8",
+        "rev": "1b67b256be67f19fbdb1a92eda4794fc078f82b3",
+        "sha256": "0k0h0nz9kvp1dnnab9fsd72cksd8nd2nx7a909kashkl0m8s4i52",
         "type": "tarball",
-        "url": "https://github.com/nix-community/emacs-overlay/archive/3c1b842db32910dd18d53085c0443ab9e2526c93.tar.gz",
+        "url": "https://github.com/nix-community/emacs-overlay/archive/1b67b256be67f19fbdb1a92eda4794fc078f82b3.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "fish-kubectl-completions": {
@@ -65,10 +65,10 @@
         "homepage": "",
         "owner": "NixOS",
         "repo": "nixos-hardware",
-        "rev": "720d531b1cc0b4824d295bb38f3784aebf91a1a1",
-        "sha256": "1r3k7kvn0wjq9r3qyw1p52ngcsj9495xhlvlx8fzph2qw8wbb285",
+        "rev": "31f61b90ddb9257b94888ee17ccf96236e180c76",
+        "sha256": "0f1yis402d2p62v066vdqqyhwx07hpyijsplk362x9mgqd9wm9cf",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixos-hardware/archive/720d531b1cc0b4824d295bb38f3784aebf91a1a1.tar.gz",
+        "url": "https://github.com/NixOS/nixos-hardware/archive/31f61b90ddb9257b94888ee17ccf96236e180c76.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs": {
@@ -89,10 +89,10 @@
         "homepage": "",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "b5be6518b659792332adf63e56b605c9c6588b9a",
-        "sha256": "0yfwjxc1rmp557b49jcbff8qb49csj91rv9zg2f1s8yr8dkdwncx",
+        "rev": "67b9918e28646078f4674abd543ee25c14aa406b",
+        "sha256": "16ndaybqb256zb79zy4z563lamw93dyvl58cwvpzyxbadvh0mqqx",
         "type": "tarball",
-        "url": "https://github.com/nix-community/NUR/archive/b5be6518b659792332adf63e56b605c9c6588b9a.tar.gz",
+        "url": "https://github.com/nix-community/NUR/archive/67b9918e28646078f4674abd543ee25c14aa406b.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "solarized": {
