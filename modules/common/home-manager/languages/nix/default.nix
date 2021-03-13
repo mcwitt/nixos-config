@@ -30,16 +30,6 @@ in
         enable = true;
         command = [ "nix-repl" "nix-repl-show" ];
       };
-
-      reformatter = {
-        enable = true;
-        hook = [ "(nix-mode . nixpkgs-fmt-on-save-mode)" ];
-        config = ''
-          (reformatter-define nixpkgs-fmt
-            :program "nixpkgs-fmt"
-            :lighter " NixpkgsFmt")
-        '';
-      };
     };
   };
 }
