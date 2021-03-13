@@ -173,8 +173,7 @@
 
     erc = {
       enable = true;
-      command = [ "erc" ];
-      bind = { "C-c e" = "erc-freenode"; };
+      command = [ "erc" "my/erc-freenode" ];
       config = ''
         (setq erc-prompt-for-password nil) ; get login from ~/.authinfo.gpg
         (setq erc-hide-list '("JOIN" "PART" "QUIT"))
@@ -193,7 +192,7 @@
                  "freenode.net")))
         (setq erc-autojoin-timing 'ident)
 
-        (defun erc-freenode ()
+        (defun my/erc-freenode ()
           "Connect to freenode with ERC."
           (interactive)
           (erc :server "irc.freenode.net" :port 6667 :nick "mcwitt"))
