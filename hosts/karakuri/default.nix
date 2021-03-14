@@ -61,12 +61,19 @@ in
   services.xserver = {
     enable = true;
     desktopManager.xterm.enable = true;
-    displayManager.lightdm.greeters.gtk.extraConfig = "xft-dpi=320";
+
+    displayManager.lightdm.greeters.gtk = {
+      cursorTheme.size = 64;
+      extraConfig = "xft-dpi=320";
+    };
+
     dpi = 320;
     layout = "us";
+
     libinput = {
       enable = true;
       touchpad = {
+        accelSpeed = "0.5";
         disableWhileTyping = true;
         naturalScrolling = true;
       };

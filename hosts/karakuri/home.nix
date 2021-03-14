@@ -1,9 +1,5 @@
 { config, pkgs, ... }:
-let
-  displayWidth = 3840;
-  trayMaxIcons = 5;
-  statusBarHeight = 36;
-  dateWidth = 360;
+let statusBarHeight = 54;
 in
 {
   imports = [
@@ -15,9 +11,18 @@ in
     {
       commands = [
         ''
+          Run Cpu     [ "--Low"      , "50"
+                      , "--High"     , "85"
+                      , "--low"      , "${cfg.colors.good}"
+                      , "--normal"   , "${cfg.colors.normal}"
+                      , "--high"     , "${cfg.colors.alert}"
+                      , "--ppad"     , "3"
+                      ] 10
+        ''
+        ''
           Run Battery [ "--template" , "Batt: <acstatus>"
-                      , "--Low"      , "10"        -- units: %
-                      , "--High"     , "80"        -- units: %
+                      , "--Low"      , "10"
+                      , "--High"     , "80"
                       , "--low"      , "${cfg.colors.alert}"
                       , "--normal"   , "${cfg.colors.normal}"
                       , "--high"     , "${cfg.colors.good}"
@@ -26,9 +31,9 @@ in
                       -- discharging status
                       , "-o"  , "<left>% (<timeleft>)"
                       -- AC "on" status
-                      , "-O"  , "<fc=#dAA520>Charging</fc>"
+                      , "-O"  , "<fc=${cfg.colors.normal}>Charging</fc>"
                       -- charged status
-                      , "-i"  , "<fc=#006000>Charged</fc>"
+                      , "-i"  , "<fc=${cfg.colors.good}>Charged</fc>"
                       ] 50
         ''
       ];
@@ -38,11 +43,11 @@ in
           Static
             { xpos = 0
             , ypos = 0
-            , width = ${toString displayWidth}
+            , width = 3840
             , height = ${toString statusBarHeight}
             }
         '';
-        template = ''"%StdinReader% | %multicpu% | %memory% | %dynnetwork% }{ %battery% | %date% |"'';
+        template = ''"%StdinReader% | %cpu% | %memory% | %battery% | %dynnetwork% }{| %date%"'';
       };
     };
 
@@ -51,9 +56,11 @@ in
   services.gammastep.provider = "geoclue2";
 
   services.stalonetray.config = {
-    geometry = "${toString trayMaxIcons}x1-${toString dateWidth}";
+    geometry = "5x1-550";
     icon_gravity = "NE";
     icon_size = statusBarHeight * 7 / 8;
     slot_size = statusBarHeight;
   };
+
+  xsession.pointerCursor.size = 64;
 }

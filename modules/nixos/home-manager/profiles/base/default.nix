@@ -149,7 +149,7 @@ in
     pointerCursor = {
       package = pkgs.vanilla-dmz;
       name = "Vanilla-DMZ";
-      size = 48;
+      size = lib.mkDefault 48;
     };
   };
 }
