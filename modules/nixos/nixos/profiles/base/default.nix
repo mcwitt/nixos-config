@@ -15,6 +15,11 @@
     enableSSHSupport = true;
   };
 
+  services.avahi = {
+    enable = true;
+    nssmdns = true;
+  };
+
   services.locate = {
     enable = true;
     interval = "hourly";

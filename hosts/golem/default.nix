@@ -68,11 +68,6 @@
 
   nix.trustedUsers = [ "root" "@wheel" "matt" ];
 
-  services.avahi = {
-    enable = true;
-    nssmdns = true;
-  };
-
   services.openssh.enable = true;
 
   services.printing = {
