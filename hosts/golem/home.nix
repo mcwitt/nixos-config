@@ -1,9 +1,5 @@
 { pkgs, ... }:
-let
-  leftMonitorWidth = 3840;
-  rightMonitorWidth = 2160;
-  trayMaxIcons = 5;
-  statusBarHeight = 36;
+let statusBarHeight = 36;
 in
 {
   imports = [
@@ -12,23 +8,16 @@ in
   ];
 
   programs.xmobar = {
-    commands = [
-      ''
-        Run Weather "KSFO" [ "--template"
-                           , "<skyCondition> | <fc=#268bd2><tempF></fc>°F | <fc=#268bd2><rh></fc>% | <fc=#268bd2><pressure></fc>hPa"
-                           ] 36000
-      ''
-    ];
     config = {
       position = ''
         Static
           { xpos = 0
           , ypos = 0
-          , width = ${toString (leftMonitorWidth - trayMaxIcons * statusBarHeight)}
+          , width = 3840
           , height = ${toString statusBarHeight}
           }
       '';
-      template = ''"%StdinReader% | %multicpu% | %coretemp% | %memory% | %dynnetwork% }{ %KSFO% | %date% |"'';
+      template = ''"%StdinReader% | %multicpu% | %coretemp% | %memory% | %dynnetwork% }{| %date% "'';
     };
   };
 
@@ -38,7 +27,7 @@ in
   };
 
   services.stalonetray.config = {
-    geometry = "${toString trayMaxIcons}x1-${toString rightMonitorWidth}";
+    geometry = "5x1-2520";
     icon_gravity = "NE";
     icon_size = statusBarHeight * 7 / 8;
     slot_size = statusBarHeight;

@@ -3,6 +3,7 @@ let
   displayWidth = 3840;
   trayMaxIcons = 5;
   statusBarHeight = 36;
+  dateWidth = 360;
 in
 {
   imports = [
@@ -37,7 +38,7 @@ in
           Static
             { xpos = 0
             , ypos = 0
-            , width = ${toString (displayWidth - trayMaxIcons * statusBarHeight)}
+            , width = ${toString displayWidth}
             , height = ${toString statusBarHeight}
             }
         '';
@@ -50,7 +51,7 @@ in
   services.gammastep.provider = "geoclue2";
 
   services.stalonetray.config = {
-    geometry = "${toString trayMaxIcons}x1-0";
+    geometry = "${toString trayMaxIcons}x1-${toString dateWidth}";
     icon_gravity = "NE";
     icon_size = statusBarHeight * 7 / 8;
     slot_size = statusBarHeight;
