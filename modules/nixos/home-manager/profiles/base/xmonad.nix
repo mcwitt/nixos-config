@@ -6,41 +6,41 @@
       commands =
         [
           ''
-            Run DynNetwork     [ "--template" , "<dev>: <tx>kB/s|<rx>kB/s"
-                               , "--Low"      , "1000"
-                               , "--High"     , "5000"
-                               , "--low"      , "${cfg.colors.good}"
-                               , "--normal"   , "${cfg.colors.normal}"
-                               , "--high"     , "${cfg.colors.alert}"
-                               ] 10
+            Run DynNetwork [ "--template" , "<dev>: <tx>kB/s|<rx>kB/s"
+                           , "--Low"      , "1000"
+                           , "--High"     , "5000"
+                           , "--low"      , "${cfg.colors.good}"
+                           , "--normal"   , "${cfg.colors.normal}"
+                           , "--high"     , "${cfg.colors.alert}"
+                           ] 10
           ''
           ''
-            Run MultiCpu       [ "--template" , "Cpu: <total0>% <total1>% <total2>% <total3>% <total4>% <total5>% <total6>% <total7>%"
-                               , "--Low"      , "50"
-                               , "--High"     , "85"
-                               , "--low"      , "${cfg.colors.good}"
-                               , "--normal"   , "${cfg.colors.normal}"
-                               , "--high"     , "${cfg.colors.alert}"
-                               , "--ppad"     , "3"
-                               ] 10
+            Run MultiCpu   [ "--template" , "Cpu: <total0>% <total1>% <total2>% <total3>% <total4>% <total5>% <total6>% <total7>%"
+                           , "--Low"      , "50"
+                           , "--High"     , "85"
+                           , "--low"      , "${cfg.colors.good}"
+                           , "--normal"   , "${cfg.colors.normal}"
+                           , "--high"     , "${cfg.colors.alert}"
+                           , "--ppad"     , "3"
+                           ] 10
           ''
           ''
-            Run CoreTemp       [ "--template" , "Temp: <core0>°C <core1>°C <core2>°C <core3>°C"
-                               , "--Low"      , "70"
-                               , "--High"     , "80"
-                               , "--low"      , "${cfg.colors.good}"
-                               , "--normal"   , "${cfg.colors.normal}"
-                               , "--high"     , "${cfg.colors.alert}"
-                               ] 50
+            Run CoreTemp   [ "--template" , "Temp: <core0>°C <core1>°C <core2>°C <core3>°C"
+                           , "--Low"      , "70"
+                           , "--High"     , "80"
+                           , "--low"      , "${cfg.colors.good}"
+                           , "--normal"   , "${cfg.colors.normal}"
+                           , "--high"     , "${cfg.colors.alert}"
+                           ] 50
           ''
           ''
-            Run Memory         [ "--template" ,"Mem: <usedratio>%"
-                               , "--Low"      , "20"
-                               , "--High"     , "90"
-                               , "--low"      , "${cfg.colors.good}"
-                               , "--normal"   , "${cfg.colors.normal}"
-                               , "--high"     , "${cfg.colors.alert}"
-                               ] 10
+            Run Memory     [ "--template" ,"Mem: <usedratio>%"
+                           , "--Low"      , "20"
+                           , "--High"     , "90"
+                           , "--low"      , "${cfg.colors.good}"
+                           , "--normal"   , "${cfg.colors.normal}"
+                           , "--high"     , "${cfg.colors.alert}"
+                           ] 10
           ''
           ''Run Date "<fc=#93a1a1>%F (%a) %T</fc>" "date" 10''
           ''Run StdinReader''
