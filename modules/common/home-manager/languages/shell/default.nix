@@ -7,5 +7,10 @@ in
 
   config = mkIf cfg.enable {
     home.packages = with pkgs; [ shellcheck shfmt ];
+
+    programs.emacs.init.usePackage.ob-shell = {
+      enable = true;
+      after = [ "org" ];
+    };
   };
 }
