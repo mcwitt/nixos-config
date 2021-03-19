@@ -7,5 +7,10 @@ in
 
   config = mkIf cfg.enable {
     home.packages = with pkgs; [ pgcli pgformatter ];
+
+    programs.emacs.init.usePackage.ob-sql = {
+      enable = true;
+      after = [ "org" ];
+    };
   };
 }
