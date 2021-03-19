@@ -194,7 +194,7 @@ in
              (jupyter . t)
              (restclient . t)))
 
-          (advice-add 'org-edit-src-exit :before #'format-all-buffer)
+          (advice-add 'org-edit-src-exit :before (lambda () (ignore-errors (format-all-buffer))))
 
           ;; Don't require confirmation to run code blocks
           (setq org-confirm-babel-evaluate nil)
