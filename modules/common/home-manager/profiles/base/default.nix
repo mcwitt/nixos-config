@@ -8,6 +8,7 @@
       mypkgs.scripts
       pandoc
       proselint
+      yq
     ] ++ (with gitAndTools; [
       delta
       git-annex
