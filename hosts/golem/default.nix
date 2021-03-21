@@ -79,7 +79,10 @@
     enable = true;
     videoDrivers = [ "nvidia" ];
     desktopManager.xterm.enable = true;
-    displayManager.lightdm.greeters.gtk.extraConfig = "xft-dpi=180";
+    displayManager.lightdm.greeters.gtk = {
+      cursorTheme.size = 36;
+      extraConfig = "xft-dpi=180";
+    };
     dpi = 180;
     layout = "us";
   };
