@@ -6,6 +6,7 @@
     [
       bat
       mypkgs.scripts
+      nix-du
       pandoc
       proselint
       yq
