@@ -258,6 +258,9 @@ in
           "M-s s" = "org-download-screenshot";
           "M-s y" = "org-download-yank";
         };
+        config = mkIf (!pkgs.stdenv.isDarwin) ''
+          (setq org-download-screenshot-method "${pkgs.xfce.xfce4-screenshooter}/bin/xfce4-screenshooter --region --mouse --save %s")
+        '';
       };
 
       org-pomodoro = {
