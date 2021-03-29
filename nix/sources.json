@@ -1,16 +1,4 @@
 {
-    "all-hls": {
-        "branch": "master",
-        "description": null,
-        "homepage": "",
-        "owner": "masaeedu",
-        "repo": "all-hls",
-        "rev": "37444886677c0ec549bfc38e08e4ef34c9681d33",
-        "sha256": "107g8y1lm1ylr5rp07zjssl7nzy4l6jqd6pnsq9fkx00vccnbjsd",
-        "type": "tarball",
-        "url": "https://github.com/masaeedu/all-hls/archive/37444886677c0ec549bfc38e08e4ef34c9681d33.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
     "emacs-overlay": {
         "branch": "master",
         "description": "Bleeding edge emacs overlay [maintainer=@adisbladis] ",

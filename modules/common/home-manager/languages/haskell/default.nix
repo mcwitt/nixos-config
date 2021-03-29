@@ -1,8 +1,6 @@
 { config, lib, pkgs, ... }:
 with lib;
-let
-  cfg = config.languages.haskell;
-  sources = import ../../../../../nix/sources.nix;
+let cfg = config.languages.haskell;
 in
 {
   options.languages.haskell = {
@@ -25,12 +23,8 @@ in
   config = mkIf cfg.enable {
     home.packages =
       let
-        ghcVersion = "8.10.4";
-        ghcVersionStr = "ghc" + builtins.replaceStrings [ "." ] [ "" ] ghcVersion;
-        ghcWithPackages' = with pkgs.haskell.packages.${ghcVersionStr};
-          if cfg.hoogle.enable then ghcWithHoogle else ghcWithPackages;
+        ghcWithPackages' = with pkgs.haskellPackages; if cfg.hoogle.enable then ghcWithHoogle else ghcWithPackages;
         ghcEnv = ghcWithPackages' cfg.extraPackages;
-        hls = import sources.all-hls { version = "1.0.0"; ghc = ghcVersion; };
       in
       [ ghcEnv ] ++ (with pkgs.haskellPackages;
       [
@@ -39,7 +33,7 @@ in
         cabal-install
         ghcEnv
         ghcid
-        hls
+        haskell-language-server
         hlint
         ormolu
         stack
