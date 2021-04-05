@@ -18,7 +18,12 @@ in
       haskell = {
         enable = true;
         hoogle.enable = true;
-        extraPackages = ps: with ps; [ aeson lens lens-aeson ];
+        extraPackages = ps: with ps; [
+          aeson
+          lens
+          lens-aeson
+          pipes
+        ];
       };
 
       idris.enable = true;
