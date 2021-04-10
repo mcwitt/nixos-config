@@ -19,7 +19,10 @@
 
   fonts.fontconfig.dpi = 140;
 
-  hardware.bluetooth.enable = true;
+  hardware.bluetooth = {
+    enable = true;
+    settings = { General = { ControllerMode = "bredr"; }; };
+  };
 
   hardware.pulseaudio = {
     enable = true;
