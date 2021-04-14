@@ -62,7 +62,10 @@ in
 
   programs.zathura.enable = true;
 
-  services.dunst.enable = true;
+  services.dunst = {
+    enable = true;
+    settings.global.max_icon_size = 100;
+  };
 
   services.emacs = {
     enable = true;
