@@ -16,7 +16,10 @@ in
       elm-mode = {
         enable = true;
         mode = [ ''"\\.elm\\'"'' ];
+        hook = [ "(haskell-mode . subword-mode)" ];
       };
+
+      fira-code-mode.hook = [ "elm-mode" ];
 
       lsp-elm = {
         enable = true;
