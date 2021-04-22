@@ -48,8 +48,9 @@ in
       scala-mode = {
         enable = true;
         mode = [ ''"\\.s\\(c\\|cala\\|bt\\)\\'"'' ];
-        hook = [ "(scala-mode . subword-mode)" ];
       };
+
+      subword.hook = [ "(scala-mode . subword-mode)" ];
     };
 
     programs.vscode = {

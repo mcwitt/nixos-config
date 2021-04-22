@@ -49,7 +49,6 @@ in
         ];
         hook = [
           "(haskell-mode . interactive-haskell-mode)"
-          "(haskell-mode . subword-mode)"
           ''
             (haskell-mode . (lambda ()
                               (setq-local format-all-formatters '(("Haskell" ormolu)))))
@@ -100,6 +99,8 @@ in
               :lighter " CabalFmt")
         '';
       };
+
+      subword.hook = [ "(haskell-mode . subword-mode)" ];
     };
 
     programs.vscode = {

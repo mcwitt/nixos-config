@@ -16,7 +16,6 @@ in
       elm-mode = {
         enable = true;
         mode = [ ''"\\.elm\\'"'' ];
-        hook = [ "(haskell-mode . subword-mode)" ];
       };
 
       fira-code-mode.hook = [ "elm-mode" ];
@@ -25,6 +24,8 @@ in
         enable = true;
         hook = [ "(elm-mode . lsp-deferred)" ];
       };
+
+      subword.hook = [ "(elm-mode . subword-mode)" ];
     };
 
     programs.vscode.extensions = [ pkgs.vscode-extensions.elmtooling.elm-ls-vscode ];

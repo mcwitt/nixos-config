@@ -4,6 +4,7 @@ let cfg = config.languages.nix;
 in
 {
   options.languages.nix.enable = mkEnableOption "Nix language environment";
+
   config = mkIf cfg.enable {
     home.packages = with pkgs; [
       cachix
@@ -20,7 +21,6 @@ in
       nix-mode = {
         enable = true;
         mode = [ ''"\\.nix\\'"'' ];
-        hook = [ "(nix-mode . subword-mode)" ];
         bindLocal.nix-mode-map = {
           "C-c C-z" = "nix-repl-show";
         };
@@ -30,6 +30,8 @@ in
         enable = true;
         command = [ "nix-repl" "nix-repl-show" ];
       };
+
+      subword.hook = [ "(nix-mode . subword-mode)" ];
     };
   };
 }
