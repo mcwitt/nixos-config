@@ -96,6 +96,7 @@
 
     avy = {
       enable = true;
+      command = [ "avy-process" ];
       bind = {
         "C-:" = "avy-goto-char";
         "M-g w" = "avy-goto-word-or-subword-1";
