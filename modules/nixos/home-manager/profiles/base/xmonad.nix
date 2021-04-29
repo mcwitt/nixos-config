@@ -48,7 +48,7 @@
       config = let inherit (lib) mkDefault; in
         {
           position = mkDefault "Top";
-          font = mkDefault ''"xft:Fira Code:size=11:bold:antialias=true"'';
+          font = mkDefault ''"xft:Iosevka:size=12:bold:antialias=true"'';
           template = mkDefault ''"<fc=#d33682>%StdinReader%</fc> | %multicpu% | %coretemp% | %memory% | %dynnetwork% }{ %date% "'';
           bgColor = ''"#002b36"'';
           fgColor = ''"#839496"'';
