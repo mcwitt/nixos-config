@@ -5,7 +5,6 @@ in
   imports = [ ./alacritty.nix ./xmonad.nix ];
 
   home.packages = with pkgs; [
-    dmenu
     libnotify
     mplayer
     signal-desktop

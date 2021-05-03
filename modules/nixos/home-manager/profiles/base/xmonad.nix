@@ -67,21 +67,23 @@
     enable = true;
     enableContribAndExtras = true;
     config = lib.mkDefault (pkgs.writeText "xmonad.hs" ''
+      import Data.List (isInfixOf)
       import XMonad
       import XMonad.Actions.WindowBringer (bringMenu, gotoMenu)
-      import XMonad.Hooks.DynamicLog (xmobar)
+      import XMonad.Config.Desktop (desktopConfig)
+      import XMonad.Hooks.DynamicLog
+      import XMonad.Hooks.ManageDocks (avoidStruts, manageDocks)
       import XMonad.Layout.MultiToggle (Toggle (Toggle), mkToggle, single)
       import XMonad.Layout.NoBorders (smartBorders)
       import XMonad.Layout.Reflect (REFLECTX (REFLECTX))
+      import XMonad.Prompt
+      import XMonad.Prompt.Shell (shellPrompt)
       import XMonad.Util.EZConfig (additionalKeysP)
+      import XMonad.Util.Run (hPutStrLn, spawnPipe)
 
-      myLayoutHook =
-        mkToggle (single REFLECTX)
-          . smartBorders
-          $ layoutHook def
-
-      myKeys _ =
-        [ ("M-f", sendMessage $ Toggle REFLECTX),
+      myKeys =
+        [ ("M-p", shellPrompt myPromptConfig),
+          ("M-f", sendMessage $ Toggle REFLECTX),
           ("M-g", gotoMenu),
           ("M-b", bringMenu),
           ("M-y", spawn "${config.programs.emacs.finalPackage}/bin/emacsclient --create-frame"),
@@ -94,18 +96,47 @@
           ("<XF86AudioRaiseVolume>", spawn "amixer -q set Master 2%+")
         ]
 
-      myConfig =
-        def
-          { borderWidth = 5,
-            normalBorderColor = "#073642",
-            focusedBorderColor = "#859900",
-            layoutHook = myLayoutHook,
-            modMask = mod4Mask,
-            terminal = "alacritty"
-          }
-          `additionalKeysP` myKeys myConfig
+      myLayoutHook =
+        avoidStruts
+          . smartBorders
+          . mkToggle (single REFLECTX)
+          $ layoutHook def
 
-      main = xmobar myConfig >>= xmonad
+      myPromptConfig =
+        def
+          { position = Top,
+            promptBorderWidth = 0,
+            defaultText = "",
+            alwaysHighlight = True,
+            height = 36,
+            font = "xft:Iosevka:size=12:bold:antialias=true",
+            searchPredicate = isInfixOf
+          }
+
+      main = do
+        xmobarProc <- spawnPipe "${pkgs.xmobar}/bin/xmobar"
+        xmonad $
+          desktopConfig
+            { borderWidth = 5,
+              normalBorderColor = "#073642",
+              focusedBorderColor = "#859900",
+              layoutHook = myLayoutHook,
+              logHook =
+                dynamicLogWithPP
+                  xmobarPP
+                    { ppOutput = hPutStrLn xmobarProc,
+                      ppCurrent = xmobarColor "#859900" "" . wrap "[" "]",
+                      ppVisible = xmobarColor "#b58900" "" . wrap "(" ")",
+                      ppHidden = xmobarColor "#93a1a1" "" . wrap "*" "",
+                      ppSep = "<fc=#93a1a1> | </fc>",
+                      ppLayout = xmobarColor "#93a1a1" "",
+                      ppTitle = xmobarColor "#859900" "" . shorten 80
+                    },
+              manageHook = manageDocks,
+              modMask = mod4Mask,
+              terminal = "alacritty"
+            }
+            `additionalKeysP` myKeys
     '');
   };
 }
