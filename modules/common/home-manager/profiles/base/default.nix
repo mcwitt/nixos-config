@@ -175,6 +175,7 @@
   programs.vscode = {
     enable = true;
     extensions = [ pkgs.vscode-extensions.vscodevim.vim ];
+    package = pkgs.vscodium;
     userSettings = {
       update.mode = "none";
       extensions.autoUpdate = false;
