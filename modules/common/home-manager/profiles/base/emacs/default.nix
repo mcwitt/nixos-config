@@ -11,33 +11,6 @@
 
   programs.emacs.package = lib.mkDefault pkgs.emacsGcc;
 
-  programs.emacs.overrides = epkgs: _: {
-    # TODO: Remove when https://github.com/nix-community/emacs-overlay/issues/128 is resolved
-    mixed-pitch = epkgs.melpaPackages.mixed-pitch.overrideAttrs (attrs: {
-      src = pkgs.fetchFromGitLab {
-        owner = "jabranham";
-        repo = "mixed-pitch";
-        rev = "519e05f74825abf04b7d2e0e38ec040d013a125a";
-        sha256 = "1yf21gm4ziplmgx8yn7jqq45mwfiindbrman7fc5b9ifq78x9ryn";
-      };
-      meta = attrs.meta // {
-        broken = false;
-      };
-    });
-    # TODO: Remove when https://github.com/nix-community/emacs-overlay/issues/128 is resolved
-    python-mode = epkgs.melpaPackages.python-mode.overrideAttrs (attrs: {
-      src = pkgs.fetchFromGitLab {
-        owner = "python-mode-devs";
-        repo = "python-mode";
-        rev = "710ffadeb43136d400de0a4c9e4a94c8b7ff36f0";
-        sha256 = "1vym8nlpwv9ym7yixldjxp999b26a9pr4z0pka28fldxykfccwq0";
-      };
-      meta = attrs.meta // {
-        broken = false;
-      };
-    });
-  };
-
   programs.emacs.init = {
 
     enable = true;
