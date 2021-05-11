@@ -73,7 +73,11 @@ in
 
   services.flameshot.enable = true;
 
-  services.gammastep.enable = true;
+  services.gammastep = {
+    enable = true;
+    tray = true;
+    settings.general.brightness-night = 0.6;
+  };
 
   services.gnome-keyring.enable = true;
 
