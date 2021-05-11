@@ -86,7 +86,7 @@
           ("M-f", sendMessage $ Toggle REFLECTX),
           ("M-g", gotoMenu),
           ("M-b", bringMenu),
-          ("M-y", spawn "${config.programs.emacs.finalPackage}/bin/emacsclient --create-frame"),
+          ("M-y", spawn "${config.programs.emacs.finalPackage}/bin/emacsclient -c -n -e '(switch-to-buffer nil)'"),
           ("M-u", spawn "${config.programs.chromium.package}/bin/chromium-browser"),
           ("M-s", spawn "${pkgs.lightdm}/bin/dm-tool switch-to-greeter"),
           ("<XF86MonBrightnessUp>", spawn "xbacklight -inc 2"),

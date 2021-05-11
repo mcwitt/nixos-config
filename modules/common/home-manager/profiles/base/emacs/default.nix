@@ -282,6 +282,13 @@
       after = [ "magit" ];
     };
 
+    frames-only-mode = {
+      enable = true;
+      config = ''
+        (frames-only-mode 1)
+      '';
+    };
+
     gist.enable = true;
 
     groovy-mode = {
