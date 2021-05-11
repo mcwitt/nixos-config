@@ -63,7 +63,30 @@ in
 
   services.dunst = {
     enable = true;
-    settings.global.max_icon_size = 100;
+    settings = {
+      global = {
+        browser = "${config.programs.chromium.package}/bin/chromium-browser";
+        font = "Iosevka 12";
+        markup = "full";
+        max_icon_size = 100;
+        text_icon_padding = 10;
+      };
+      urgency_low = {
+        background = "#002b36";
+        foreground = "#93a1a1";
+        timeout = 5;
+      };
+      urgency_normal = {
+        background = "#002b36";
+        foreground = "#859900";
+        timeout = 10;
+      };
+      urgency_critical = {
+        background = "#002b36";
+        foreground = "#dc322f";
+        timeout = 20;
+      };
+    };
   };
 
   services.emacs = {
