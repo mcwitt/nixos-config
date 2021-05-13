@@ -102,8 +102,6 @@ in
     settings.general.brightness-night = 0.6;
   };
 
-  services.gnome-keyring.enable = true;
-
   services.gpg-agent = {
     enable = true;
     defaultCacheTtl = 14400; # 4 hours
@@ -115,6 +113,8 @@ in
     repoPath = "${config.home.homeDirectory}/src/org-notes/";
     frequency = "*:0/5";
   };
+
+  services.pass-secret-service.enable = true;
 
   services.password-store-sync.enable = true;
 
