@@ -23,7 +23,7 @@
   home.sessionPath = [ "${config.home.homeDirectory}/.local/bin" ];
 
   home.sessionVariables = {
-    EDITOR = "${config.programs.emacs.finalPackage}/bin/emacsclient --tty";
+    EDITOR = "${config.programs.emacs.finalPackage}/bin/emacsclient -c";
     ALTERNATE_EDITOR = "${pkgs.vim}/bin/vim";
   };
 
