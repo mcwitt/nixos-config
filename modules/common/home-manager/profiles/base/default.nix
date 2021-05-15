@@ -106,12 +106,12 @@
     withPython3 = true;
     plugins = with pkgs.vimPlugins; [
       YouCompleteMe
-      airline
-      ctrlp
-      fugitive
-      gitgutter
+      vim-airline
+      ctrlp-vim
+      vim-fugitive
+      vim-gitgutter
       nvim-lightbulb
-      surround
+      vim-surround
       syntastic
       tagbar
     ];
