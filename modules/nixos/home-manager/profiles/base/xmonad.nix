@@ -1,5 +1,7 @@
 { config, lib, pkgs, ... }:
 {
+  home.packages = [ pkgs.dmenu ];
+
   programs.xmobar = let cfg = config.programs.xmobar; in
     {
       enable = true;
@@ -70,9 +72,8 @@
       import Data.List (isInfixOf)
       import XMonad
       import XMonad.Actions.WindowBringer (bringMenu, gotoMenu)
-      import XMonad.Config.Desktop (desktopConfig)
       import XMonad.Hooks.DynamicLog
-      import XMonad.Hooks.ManageDocks (avoidStruts, manageDocks)
+      import XMonad.Hooks.ManageDocks (avoidStruts, docks, manageDocks)
       import XMonad.Layout.MultiToggle (Toggle (Toggle), mkToggle, single)
       import XMonad.Layout.NoBorders (smartBorders)
       import XMonad.Layout.Reflect (REFLECTX (REFLECTX))
@@ -115,8 +116,9 @@
 
       main = do
         xmobarProc <- spawnPipe "${pkgs.xmobar}/bin/xmobar"
-        xmonad $
-          desktopConfig
+        xmonad
+          . docks
+          $ def
             { borderWidth = 5,
               normalBorderColor = "#073642",
               focusedBorderColor = "#859900",
