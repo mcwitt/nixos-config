@@ -1,6 +1,7 @@
 { config, lib, pkgs, ... }: {
 
   imports = [
+    ./emoji.nix
     ./evil.nix
     ./ivy.nix
     ./jupyter.nix

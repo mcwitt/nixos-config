@@ -5,7 +5,10 @@
     fira-code
     fira-code-symbols
     iosevka
+    joypixels
     nerdfonts
     source-code-pro
   ];
+
+  nixpkgs.config.joypixels.acceptLicense = true;
 }

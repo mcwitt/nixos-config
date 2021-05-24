@@ -1,1 +1,4 @@
-{ imports = [ ./fonts.nix ./packages.nix ]; }
+{
+  imports = [ ./fonts.nix ./packages.nix ];
+  nixpkgs.config.allowUnfree = true;
+}
