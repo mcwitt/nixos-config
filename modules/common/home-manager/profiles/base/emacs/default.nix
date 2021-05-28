@@ -1,9 +1,9 @@
 { config, lib, pkgs, ... }: {
 
   imports = [
+    ./completion.nix
     ./emoji.nix
     ./evil.nix
-    ./ivy.nix
     ./jupyter.nix
     ./lsp.nix
     ./org.nix
@@ -116,7 +116,7 @@
     browse-at-remote = {
       enable = true;
       command = [ "browse-at-remote" ];
-      bind = { "C-c b" = "browse-at-remote"; };
+      bind = { "C-c B" = "browse-at-remote"; };
     };
 
     company = {

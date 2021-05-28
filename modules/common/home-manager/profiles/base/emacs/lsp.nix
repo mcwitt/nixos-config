@@ -30,11 +30,6 @@
       command = [ "lsp-headerline-breadcrumb-mode" ];
     };
 
-    lsp-ivy = {
-      enable = true;
-      command = [ "lsp-ivy-workspace-symbol" ];
-    };
-
     lsp-mode = {
       enable = true;
       command = [ "lsp" "lsp-deferred" ];
