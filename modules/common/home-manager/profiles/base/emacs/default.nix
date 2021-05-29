@@ -3,6 +3,7 @@
   imports = [
     ./completion.nix
     ./emoji.nix
+    ./erc.nix
     ./evil.nix
     ./jupyter.nix
     ./lsp.nix
@@ -171,44 +172,6 @@
       config = ''
         (envrc-global-mode)
       '';
-    };
-
-    erc = {
-      enable = true;
-      command = [ "erc" "my/erc-freenode" ];
-      config = ''
-        (setq erc-prompt-for-password nil) ; get login from ~/.authinfo.gpg
-        (setq erc-hide-list '("JOIN" "PART" "QUIT"))
-
-        (add-to-list 'erc-modules 'autojoin)
-        (add-to-list 'erc-modules 'notifications)
-        (add-to-list 'erc-modules 'spelling)
-        (erc-update-modules)
-
-        (setq erc-autojoin-channels-alist
-              '(("#emacs"
-                 "#haskell"
-                 "#nixos"
-                 "#org-mode"
-                 "#python"
-                 "freenode.net")))
-        (setq erc-autojoin-timing 'ident)
-
-        (defun my/erc-freenode ()
-          "Connect to freenode with ERC."
-          (interactive)
-          (erc :server "irc.freenode.net" :port 6667 :nick "mcwitt"))
-      '';
-    };
-
-    erc-hl-nicks = {
-      enable = true;
-      after = [ "erc" ];
-    };
-
-    erc-image = {
-      enable = true;
-      after = [ "erc" ];
     };
 
     esup = {
