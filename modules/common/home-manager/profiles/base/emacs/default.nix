@@ -367,11 +367,6 @@
       command = [ "restclient-mode" ];
     };
 
-    ripgrep = {
-      enable = true;
-      command = [ "ripgrep-regexp" ];
-    };
-
     smartparens = {
       enable = true;
       diminish = [ "smartparens-mode" ];
