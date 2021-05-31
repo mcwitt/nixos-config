@@ -282,6 +282,7 @@
     mixed-pitch = {
       enable = true;
       hook = [ "(text-mode . mixed-pitch-mode)" ];
+      diminish = [ "mixed-pitch-mode" ];
     };
 
     pdf-tools = {

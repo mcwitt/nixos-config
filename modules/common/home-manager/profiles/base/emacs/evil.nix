@@ -30,6 +30,7 @@ in
       enable = true;
       after = [ "evil" ];
       config = "(evil-collection-init)";
+      diminish = [ "evil-collection-unimpaired-mode" ];
     };
 
     evil-escape = {
