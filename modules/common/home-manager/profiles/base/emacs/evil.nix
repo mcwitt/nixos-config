@@ -4,6 +4,16 @@ let usePackageCfg = config.programs.emacs.init.usePackage;
 in
 {
   programs.emacs.init.usePackage = {
+
+    csv-mode.hook = [
+      ''
+        (csv-mode . (lambda ()
+                      (evil-local-set-key 'normal
+                                          (kbd "TAB")
+                                          'csv-tab-command)))
+      ''
+    ];
+
     evil = {
       enable = true;
       init = ''
@@ -30,6 +40,16 @@ in
       config = "(evil-escape-mode)";
     };
 
+    evil-org = {
+      enable = true;
+      after = [ "org" ];
+      hook = [ "(org-mode . evil-org-mode)" ];
+      config = ''
+        (require 'evil-org-agenda)
+        (evil-org-agenda-set-keys)
+      '';
+    };
+
     evil-smartparens = {
       enable = true;
       after = [ "evil" "smartparens" ];
@@ -44,15 +64,6 @@ in
 
     evil-string-inflection.enable = usePackageCfg.string-inflection.enable;
 
-    csv-mode.hook = [
-      ''
-        (csv-mode . (lambda ()
-                      (evil-local-set-key 'normal
-                                          (kbd "TAB")
-                                          'csv-tab-command)))
-      ''
-    ];
-
     kubernetes-evil = {
       enable = usePackageCfg.kubernetes.enable;
       after = [ "kubernetes" "evil" ];
@@ -65,16 +76,6 @@ in
       "C-d" = "evil-scroll-page-down";
       "C-w h" = "evil-window-left";
       "C-w l" = "evil-window-right";
-    };
-
-    evil-org = {
-      enable = true;
-      after = [ "org" ];
-      hook = [ "(org-mode . evil-org-mode)" ];
-      config = ''
-        (require 'evil-org-agenda)
-        (evil-org-agenda-set-keys)
-      '';
     };
 
     treemacs-evil = {
