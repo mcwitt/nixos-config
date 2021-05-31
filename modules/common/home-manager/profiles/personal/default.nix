@@ -20,9 +20,21 @@ in
         hoogle.enable = true;
         extraPackages = ps: with ps; [
           aeson
+          array
+          containers
           lens
           lens-aeson
-          pipes
+          monad-loops
+          mtl
+          optparse-generic
+          parsec
+          random-fu
+          rvar
+          safe
+          split
+          streaming
+          text
+          vector
         ];
       };
 
