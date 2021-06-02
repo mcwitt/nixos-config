@@ -1,27 +1,6 @@
 { config, lib, pkgs, ... }:
 with lib;
 {
-
-  programs.emacs.overrides = self: super: {
-    vertico = self.callPackage
-      ({ elpaBuild, emacs, fetchurl, lib }:
-        elpaBuild rec {
-          pname = "vertico";
-          ename = "vertico";
-          version = "0.11";
-          src = fetchurl {
-            url = "https://elpa.gnu.org/packages/vertico-${version}.tar";
-            sha256 = "0hzwddkac85i449173az8crlksj9ivrqf969r81kbr45ksgr1ij6";
-          };
-          packageRequires = [ emacs ];
-          meta = {
-            homepage = "https://elpa.gnu.org/packages/vertico.html";
-            license = lib.licenses.free;
-          };
-        })
-      { };
-  };
-
   programs.emacs.init.usePackage = {
 
     vertico = {
