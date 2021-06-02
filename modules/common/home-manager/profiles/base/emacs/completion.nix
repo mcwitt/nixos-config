@@ -171,6 +171,16 @@ with lib;
       '';
     };
 
+    consult-org = {
+      enable = true;
+      after = [ "org" ];
+    };
+
+    consult-xref = {
+      enable = true;
+      command = [ "consult-xref" ];
+    };
+
     embark = {
       enable = true;
       bind = {
