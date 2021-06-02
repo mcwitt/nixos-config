@@ -309,6 +309,13 @@
       command = [ "pkg-info-version-info" ];
     };
 
+    powerline = {
+      enable = true;
+      config = ''
+        (powerline-center-evil-theme)
+      '';
+    };
+
     projectile = {
       enable = true;
       command = [ "projectile-mode" ];
