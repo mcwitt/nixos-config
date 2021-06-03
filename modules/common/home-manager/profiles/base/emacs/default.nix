@@ -8,6 +8,7 @@
     ./jupyter.nix
     ./lsp.nix
     ./org.nix
+    ./pdf-tools.nix
     ./treemacs.nix
   ];
 
@@ -283,17 +284,6 @@
       enable = true;
       hook = [ "(text-mode . mixed-pitch-mode)" ];
       diminish = [ "mixed-pitch-mode" ];
-    };
-
-    pdf-tools = {
-      enable = true;
-      mode = [ ''("\\.pdf\\'" . pdf-view-mode)'' ];
-      hook = [ "(pdf-view-mode . (lambda () (linum-mode -1)))" ];
-      config = ''
-        (pdf-tools-install)
-        (setq pdf-view-use-scaling t)
-        (setq-default pdf-view-display-size 'fit-page)
-      '';
     };
 
     pinentry = {

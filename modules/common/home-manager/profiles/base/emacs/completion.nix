@@ -190,6 +190,7 @@ with lib;
       bind."C-c r" = "bibtex-actions-insert-citation";
       bindLocal.minibuffer-local-map."M-b" = "bibtex-actions-insert-preset";
       config = ''
+        (require 'embark)
         (add-to-list 'embark-keymap-alist '(bibtex . bibtex-actions-map))
       '';
     };
