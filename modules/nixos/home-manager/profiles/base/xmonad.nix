@@ -70,6 +70,7 @@
     enableContribAndExtras = true;
     config = lib.mkDefault (pkgs.writeText "xmonad.hs" ''
       import Data.List (isInfixOf)
+      import Data.Ratio ((%))
       import XMonad
       import XMonad.Actions.WindowBringer (bringMenu, gotoMenu)
       import XMonad.Hooks.DynamicLog
@@ -79,29 +80,15 @@
       import XMonad.Layout.Reflect (REFLECTX (REFLECTX))
       import XMonad.Prompt
       import XMonad.Prompt.Shell (shellPrompt)
-      import XMonad.Util.EZConfig (additionalKeysP)
+      import XMonad.Util.EZConfig (additionalKeys, additionalKeysP)
       import XMonad.Util.Run (hPutStrLn, spawnPipe)
 
-      myKeys =
-        [ ("M-p", shellPrompt myPromptConfig),
-          ("M-f", sendMessage $ Toggle REFLECTX),
-          ("M-g", gotoMenu),
-          ("M-b", bringMenu),
-          ("M-y", spawn "${config.programs.emacs.finalPackage}/bin/emacsclient -c -n -e '(switch-to-buffer nil)'"),
-          ("M-u", spawn "${config.programs.chromium.package}/bin/chromium-browser"),
-          ("M-s", spawn "${pkgs.lightdm}/bin/dm-tool switch-to-greeter"),
-          ("<XF86MonBrightnessUp>", spawn "xbacklight -inc 2"),
-          ("<XF86MonBrightnessDown>", spawn "xbacklight -dec 2"),
-          ("<XF86AudioMute>", spawn "amixer -q set Master toggle"),
-          ("<XF86AudioLowerVolume>", spawn "amixer -q set Master 2%-"),
-          ("<XF86AudioRaiseVolume>", spawn "amixer -q set Master 2%+")
-        ]
-
       myLayoutHook =
-        avoidStruts
-          . smartBorders
-          . mkToggle (single REFLECTX)
-          $ layoutHook def
+        let tall = Tall 1 (1 % 50) (3 % 5)
+         in avoidStruts
+              . smartBorders
+              . mkToggle (single REFLECTX)
+              $ tall ||| Mirror tall ||| Full
 
       myPromptConfig =
         def
@@ -138,7 +125,20 @@
               modMask = mod4Mask,
               terminal = "alacritty"
             }
-            `additionalKeysP` myKeys
+            `additionalKeys` [ ((mod4Mask, xK_p), shellPrompt myPromptConfig),
+                               ((mod4Mask, xK_f), sendMessage $ Toggle REFLECTX),
+                               ((mod4Mask, xK_g), gotoMenu),
+                               ((mod4Mask, xK_b), bringMenu),
+                               ((mod4Mask, xK_y), spawn "${config.programs.emacs.finalPackage}/bin/emacsclient -c -n -e '(switch-to-buffer nil)'"),
+                               ((mod4Mask, xK_u), spawn "${config.programs.chromium.package}/bin/chromium-browser"),
+                               ((mod4Mask, xK_s), spawn "${pkgs.lightdm}/bin/dm-tool switch-to-greeter")
+                             ]
+              `additionalKeysP` [ ("<XF86MonBrightnessUp>", spawn "xbacklight -inc 2"),
+                                  ("<XF86MonBrightnessDown>", spawn "xbacklight -dec 2"),
+                                  ("<XF86AudioMute>", spawn "amixer -q set Master toggle"),
+                                  ("<XF86AudioLowerVolume>", spawn "amixer -q set Master 2%-"),
+                                  ("<XF86AudioRaiseVolume>", spawn "amixer -q set Master 2%+")
+                                ]
     '');
   };
 }
