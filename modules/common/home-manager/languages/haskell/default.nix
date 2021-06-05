@@ -41,6 +41,12 @@ in
 
     programs.emacs.init.usePackage = {
 
+      haskell = {
+        enable = true;
+        command = [ "interactive-haskell-mode" ];
+        hook = [ "(haskell-mode . interactive-haskell-mode)" ];
+      };
+
       haskell-mode = {
         enable = true;
         mode = [
@@ -48,7 +54,6 @@ in
           ''("\\.lhs\\'" . haskell-literate-mode)''
         ];
         hook = [
-          "(haskell-mode . interactive-haskell-mode)"
           ''
             (haskell-mode . (lambda ()
                               (setq-local format-all-formatters '(("Haskell" ormolu)))))
