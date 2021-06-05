@@ -61,6 +61,7 @@
       command = [ "lsp-ui-mode" ];
       config = ''
         (setq lsp-ui-doc-position 'at-point)
+        (setq lsp-ui-doc-show-with-mouse nil)
       '';
     };
   };
