@@ -266,6 +266,60 @@
       command = [ "kubernetes-overview" ];
     };
 
+    lightswitch = {
+      enable = true;
+      package = epkgs:
+        epkgs.trivialBuild {
+          pname = "lightswitch";
+          version = "2021-06-07";
+          src = pkgs.writeText "lightswitch.el" ''
+            ;;; lightswitch.el --- Switch between light and dark themes  -*- lexical-binding: t; -*-
+
+            ;; Copyright (C) 2021 Matt Wittmann
+
+            ;; Author: Matt Wittmann <mcwitt@gmail.com>
+            ;; Keywords: themes
+            ;; Package-Requires: ((solarized "1.3.1"))
+            ;; Version: 1.0.0
+
+            ;;; Commentary:
+
+            ;;; Code:
+
+            (defgroup lightswitch nil "Lightswitch theme switcher."
+              :group 'theme
+              :tag "Lightswitch")
+
+            (defcustom lightswitch-light-theme 'solarized-light
+              "Light theme to use."
+              :type 'symbol
+              :group 'lightswitch)
+
+            (defcustom lightswitch-dark-theme 'solarized-dark
+              "Dark theme to use."
+              :type 'symbol
+              :group 'lightswitch)
+
+            (defadvice load-theme (before lightswitch--disable-custom-themes activate)
+              "Disable all custom themes."
+              (mapc #'disable-theme custom-enabled-themes))
+
+            (defun lightswitch-toggle ()
+              "Toggle between light and dark themes."
+              (interactive)
+              (if (member lightswitch-light-theme custom-enabled-themes)
+                  (load-theme lightswitch-dark-theme t)
+                (load-theme lightswitch-light-theme t)))
+
+            (provide 'lightswitch)
+            ;;; lightswitch.el ends here
+          '';
+        };
+      bind = {
+        "C-c t" = "lightswitch-toggle";
+      };
+    };
+
     logview = {
       enable = true;
       command = [ "logview-mode" ];
@@ -336,24 +390,6 @@
     solarized-theme = {
       enable = true;
       demand = true;
-      init = ''
-        ;; Disable any enabled themes before loading
-        (defadvice load-theme (before theme-dont-propagate activate)
-          (mapc #'disable-theme custom-enabled-themes))
-
-        (defvar my/theme-light 'solarized-light)
-        (defvar my/theme-dark 'solarized-dark)
-
-        (defun my/theme-toggle ()
-          "Toggle between light and dark themes."
-          (interactive)
-          (if (member my/theme-light custom-enabled-themes)
-              (load-theme my/theme-dark t)
-            (load-theme my/theme-light t)))
-      '';
-      bind = {
-        "C-c t" = "my/theme-toggle";
-      };
       config = ''
         (load-theme 'solarized-light t)
       '';
