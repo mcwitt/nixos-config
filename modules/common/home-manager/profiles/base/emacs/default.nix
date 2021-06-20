@@ -202,6 +202,7 @@
       config = ''
         (setq flycheck-check-syntax-automatically '(save idle-change new-line))
         (setq flycheck-idle-change-delay 0.5)
+        (setq flycheck-checker-error-threshold nil)
         (global-flycheck-mode t)
       '';
     };
