@@ -37,8 +37,8 @@
     enable = true;
     enableBashIntegration = true;
     enableFishIntegration = true;
-    enableNixDirenvIntegration = true;
     enableZshIntegration = true;
+    nix-direnv.enable = true;
   };
 
   programs.emacs.enable = true;
