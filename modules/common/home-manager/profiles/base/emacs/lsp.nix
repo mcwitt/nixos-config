@@ -30,15 +30,18 @@
       command = [ "lsp-headerline-breadcrumb-mode" ];
     };
 
+    lsp-lens = {
+      enable = true;
+      command = [ "lsp-lens-mode" ];
+    };
+
     lsp-mode = {
       enable = true;
       command = [ "lsp" "lsp-deferred" ];
-      hook = [
-        "(lsp-mode . lsp-enable-which-key-integration)"
-        "(lsp-mode . lsp-lens-mode)"
-      ];
+      hook = [ "(lsp-mode . lsp-enable-which-key-integration)" ];
       init = ''
         (setq lsp-keymap-prefix "C-c l")
+        (setq lsp-lens-enable t)
       '';
       config = ''
         (define-key lsp-mode-map (kbd "C-c l") lsp-command-map)
