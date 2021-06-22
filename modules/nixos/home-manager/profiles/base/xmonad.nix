@@ -74,7 +74,7 @@
       import XMonad
       import XMonad.Actions.WindowBringer (bringMenu, gotoMenu)
       import XMonad.Hooks.DynamicLog
-      import XMonad.Hooks.ManageDocks (avoidStruts, docks, manageDocks)
+      import XMonad.Hooks.ManageDocks (ToggleStruts (ToggleStruts), avoidStruts, docks, manageDocks)
       import XMonad.Layout.MultiToggle (Toggle (Toggle), mkToggle, single)
       import XMonad.Layout.NoBorders (smartBorders)
       import XMonad.Layout.Reflect (REFLECTX (REFLECTX))
@@ -127,8 +127,9 @@
             }
             `additionalKeys` [ ((mod4Mask, xK_p), shellPrompt myPromptConfig),
                                ((mod4Mask, xK_f), sendMessage $ Toggle REFLECTX),
+                               ((mod4Mask, xK_b), sendMessage ToggleStruts),
                                ((mod4Mask, xK_g), gotoMenu),
-                               ((mod4Mask, xK_b), bringMenu),
+                               ((mod4Mask, xK_r), bringMenu),
                                ((mod4Mask, xK_y), spawn "${config.programs.emacs.finalPackage}/bin/emacsclient -c -n -e '(switch-to-buffer nil)'"),
                                ((mod4Mask, xK_u), spawn "${config.programs.chromium.package}/bin/chromium-browser"),
                                ((mod4Mask, xK_s), spawn "${pkgs.lightdm}/bin/dm-tool switch-to-greeter")
