@@ -25,6 +25,7 @@ in
           lens
           lens-aeson
           monad-loops
+          monoidal-containers
           mtl
           optparse-generic
           parsec
