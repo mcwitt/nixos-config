@@ -1,4 +1,4 @@
-{ lib, mypkgs }:
+{ lib }:
 let sources = import ../../../nix/sources.nix;
 in
 {

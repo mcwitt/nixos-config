@@ -5,7 +5,7 @@
   home.packages = with pkgs;
     [
       bat
-      mypkgs.scripts
+      pkgs.mcwitt.scripts
       nix-du
       nix-index
       pandoc
@@ -83,7 +83,7 @@
         + " —%Cblue%d%Creset %s %Cgreen(%cr)%Creset'"
         + " --abbrev-commit --date=relative --show-notes=*";
     };
-    ignores = (lib.concatMap pkgs.mypkgs.gitignore.ghGitIgnoreLines [
+    ignores = (lib.concatMap pkgs.mcwitt.gitignore.ghGitIgnoreLines [
       "Global/Vim"
       "Global/Emacs"
     ]) ++ [ ".direnv/" ];

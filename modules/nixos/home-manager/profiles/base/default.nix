@@ -57,7 +57,7 @@ in
     };
   };
 
-  programs.git.ignores = pkgs.mypkgs.gitignore.ghGitIgnoreLines "Global/Linux";
+  programs.git.ignores = pkgs.mcwitt.gitignore.ghGitIgnoreLines "Global/Linux";
 
   programs.zathura.enable = true;
 
