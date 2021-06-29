@@ -7,7 +7,7 @@ in
     ../../modules/nixos/home-manager
   ];
 
-  programs.xmobar = let cfg = config.programs.xmobar; in
+  extra.programs.xmobar = let cfg = config.extra.programs.xmobar; in
     {
       commands = [
         ''

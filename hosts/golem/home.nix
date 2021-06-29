@@ -7,7 +7,7 @@ in
     ../../modules/nixos/home-manager
   ];
 
-  programs.xmobar = {
+  extra.programs.xmobar = {
     config = {
       position = ''
         Static

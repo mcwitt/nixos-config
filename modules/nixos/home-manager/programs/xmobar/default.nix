@@ -1,9 +1,9 @@
 { config, lib, pkgs, ... }:
 with lib;
-let cfg = config.programs.xmobar;
+let cfg = config.extra.programs.xmobar;
 in
 {
-  options.programs.xmobar =
+  options.extra.programs.xmobar =
     {
       enable = mkEnableOption "xmobar status bar";
 

@@ -2,7 +2,7 @@
 {
   home.packages = [ pkgs.dmenu ];
 
-  programs.xmobar = let cfg = config.programs.xmobar; in
+  extra.programs.xmobar = let cfg = config.extra.programs.xmobar; in
     {
       enable = true;
       commands =
