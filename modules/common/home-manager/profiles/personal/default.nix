@@ -6,76 +6,79 @@ in
   options.profiles.personal.enable =
     mkEnableOption "Profile for use on machines I own";
 
-  config = mkIf cfg.enable {
+  config =
+    let enableAll = keys: listToAttrs (map (key: nameValuePair key { enable = true; }) keys);
+    in
 
-    languages = {
-      R.enable = true;
-      dhall.enable = true;
-      elm.enable = true;
-      go.enable = true;
-      graphviz.enable = true;
+    mkIf cfg.enable {
+      languages = {
 
-      haskell = {
-        enable = true;
-        hoogle.enable = true;
-        extraPackages = ps: with ps; [
-          aeson
-          array
-          containers
-          lens
-          lens-aeson
-          monad-loops
-          monoidal-containers
-          mtl
-          optparse-generic
-          parsec
-          random-fu
-          rvar
-          safe
-          split
-          streaming
-          text
-          vector
-        ];
+        haskell = {
+          enable = true;
+          hoogle.enable = true;
+          extraPackages = ps: with ps; [
+            aeson
+            array
+            containers
+            lens
+            lens-aeson
+            monad-loops
+            monoidal-containers
+            mtl
+            optparse-generic
+            parsec
+            random-fu
+            rvar
+            safe
+            split
+            streaming
+            text
+            vector
+          ];
+        };
+
+        python = {
+          enable = true;
+          extraPackages = ps: with ps; [
+            httpx
+            jupyter
+            matplotlib
+            pandas
+            rich
+            toolz
+          ];
+        };
+      } // enableAll [
+        "R"
+        "coq"
+        "dhall"
+        "elm"
+        "go"
+        "graphviz"
+        "idris"
+        "js"
+        "latex"
+        "markdown"
+        "plantuml"
+        "rust"
+        "scala"
+        "shell"
+        "sql"
+        "terraform"
+      ];
+
+      programs.git = {
+        userName = "Matt Wittmann";
+        userEmail = "mcwitt@gmail.com";
+        signing = {
+          key = "C181215189C439A4";
+          signByDefault = true;
+        };
       };
 
-      idris.enable = true;
-      js.enable = true;
-      latex.enable = true;
-      markdown.enable = true;
-      plantuml.enable = true;
-
-      python = {
-        enable = true;
-        extraPackages = ps: with ps; [
-          httpx
-          jupyter
-          matplotlib
-          pandas
-          rich
-          toolz
-        ];
-      };
-
-      rust.enable = true;
-      scala.enable = true;
-      shell.enable = true;
-      sql.enable = true;
-      terraform.enable = true;
-    };
-
-    programs.git = {
-      userName = "Matt Wittmann";
-      userEmail = "mcwitt@gmail.com";
-      signing = {
-        key = "C181215189C439A4";
-        signByDefault = true;
+      tools = {
+        aws.enable = true;
+        kubernetes.enable = true;
       };
     };
-
-    tools = {
-      aws.enable = true;
-      kubernetes.enable = true;
-    };
-  };
 }

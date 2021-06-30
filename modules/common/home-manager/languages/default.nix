@@ -1,6 +1,7 @@
 {
   imports = [
     ./R
+    ./coq
     ./dhall
     ./elm
     ./go
