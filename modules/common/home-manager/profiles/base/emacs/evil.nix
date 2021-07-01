@@ -33,6 +33,13 @@ in
       diminish = [ "evil-collection-unimpaired-mode" ];
     };
 
+    evil-commentary = {
+      enable = true;
+      after = [ "evil" ];
+      config = "(evil-commentary-mode)";
+      diminish = [ "evil-commentary-mode" ];
+    };
+
     evil-escape = {
       enable = true;
       after = [ "evil" ];
