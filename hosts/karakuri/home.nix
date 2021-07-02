@@ -7,7 +7,7 @@ in
     ../../modules/nixos/home-manager
   ];
 
-  extra.programs.xmobar = let cfg = config.extra.programs.xmobar; in
+  programs.xmobar.rc = let cfg = config.programs.xmobar.rc; in
     {
       commands = [
         ''
@@ -38,7 +38,7 @@ in
         ''
       ];
 
-      config = {
+      extraConfig = {
         position = ''
           Static
             { xpos = 0

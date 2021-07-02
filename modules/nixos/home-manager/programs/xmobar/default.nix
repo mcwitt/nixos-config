@@ -1,12 +1,10 @@
 { config, lib, pkgs, ... }:
 with lib;
-let cfg = config.extra.programs.xmobar;
+let cfg = config.programs.xmobar.rc;
 in
 {
-  options.extra.programs.xmobar =
+  options.programs.xmobar.rc =
     {
-      enable = mkEnableOption "xmobar status bar";
-
       colors = {
         good = mkOption {
           type = types.str;
@@ -48,7 +46,7 @@ in
             ];
         };
 
-      config = mkOption {
+      extraConfig = mkOption {
         type = with types;
           attrsOf (nullOr (either str (either bool int)));
         description = ''
@@ -65,33 +63,26 @@ in
       };
     };
 
-  config = mkIf cfg.enable
-    (mkMerge [
-      {
-        home.packages = [ pkgs.xmobar ];
-      }
-
-      (mkIf (cfg.config != { }) {
-        xdg.configFile."xmobar/xmobarrc".text =
-          let
-            valueToString = v:
-              if isBool v then (if v then "True" else "False")
-              else v;
-            keyValues = concatStringsSep ", "
-              (mapAttrsToList
-                (k: v: ''
-                  ${k} = ${valueToString v}
-                '')
-                cfg.config);
-          in
-          ''
-            Config {
-              ${keyValues}
-            , commands = [
-              ${concatStringsSep "  , " cfg.commands}
-              ]
-            }
-          '';
-      })
-    ]);
+  config = {
+    programs.xmobar.extraConfig =
+      let
+        valueToString = v:
+          if isBool v then (if v then "True" else "False")
+          else v;
+        keyValues = concatStringsSep ", "
+          (mapAttrsToList
+            (k: v: ''
+              ${k} = ${valueToString v}
+            '')
+            cfg.extraConfig);
+      in
+      ''
+        Config {
+          ${keyValues}
+        , commands = [
+          ${concatStringsSep "  , " cfg.commands}
+          ]
+        }
+      '';
+  };
 }

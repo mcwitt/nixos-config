@@ -2,10 +2,10 @@
 {
   home.packages = [ pkgs.dmenu ];
 
-  extra.programs.xmobar = let cfg = config.extra.programs.xmobar; in
+  programs.xmobar = let cfg = config.programs.xmobar.rc; in
     {
       enable = true;
-      commands =
+      rc.commands =
         [
           ''
             Run DynNetwork [ "--template" , "<dev>: <tx>kB/s|<rx>kB/s"
@@ -47,7 +47,7 @@
           ''Run Date "<fc=#93a1a1>%F (%a) %T</fc>" "date" 10''
           ''Run StdinReader''
         ];
-      config = let inherit (lib) mkDefault; in
+      rc.extraConfig = let inherit (lib) mkDefault; in
         {
           position = mkDefault "Top";
           font = mkDefault ''"xft:Iosevka:size=12:bold:antialias=true"'';

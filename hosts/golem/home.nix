@@ -7,8 +7,9 @@ in
     ../../modules/nixos/home-manager
   ];
 
-  extra.programs.xmobar = {
-    config = {
+  programs.xmobar = {
+    enable = true;
+    rc.extraConfig = {
       position = ''
         Static
           { xpos = 0
