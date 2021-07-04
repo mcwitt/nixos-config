@@ -39,12 +39,12 @@
         "branch": "master",
         "description": "declarative and reproducible Jupyter environments - powered by Nix",
         "homepage": "",
-        "owner": "tweag",
+        "owner": "mcwitt",
         "repo": "jupyterWith",
-        "rev": "0940c0d8ff3dbbae8395c138a89a57fd2cdb509c",
-        "sha256": "1vczyg4ifkz17nyr4y0f151jyargw2rzwvmng2w6a1ff1vcgyqa0",
+        "rev": "5a2e1e615010c88cebca9a694eb58de17ee0cd41",
+        "sha256": "1rqmrflvphl89hml697yj7f2zhcmxqq1gcbv1b408352p4sf9kkx",
         "type": "tarball",
-        "url": "https://github.com/tweag/jupyterWith/archive/0940c0d8ff3dbbae8395c138a89a57fd2cdb509c.tar.gz",
+        "url": "https://github.com/mcwitt/jupyterWith/archive/5a2e1e615010c88cebca9a694eb58de17ee0cd41.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "niv": {
