@@ -41,10 +41,8 @@ in
           enable = true;
           extraPackages = ps: with ps; [
             httpx
-            jupyter
             matplotlib
             pandas
-            rich
             toolz
           ];
         };
@@ -75,6 +73,8 @@ in
           signByDefault = true;
         };
       };
+
+      programs.jupyterlab.enable = true;
 
       tools = {
         aws.enable = true;

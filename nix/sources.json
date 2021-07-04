@@ -5,10 +5,10 @@
         "homepage": "",
         "owner": "nix-community",
         "repo": "emacs-overlay",
-        "rev": "69e552cb9308fcba9351cb678fab468ad04d402e",
-        "sha256": "1nb1xqfdq504690xxs40n96iay1qb1m6rmh2a16ivkbvfx7bd7p6",
+        "rev": "5ee8f21122f8a581d58b9ba7ba8fdf9d7de642be",
+        "sha256": "1avry36b99nxpvfhd7l65fj9jf4gl4gd5c1fmx10n5i91pvp2pmm",
         "type": "tarball",
-        "url": "https://github.com/nix-community/emacs-overlay/archive/69e552cb9308fcba9351cb678fab468ad04d402e.tar.gz",
+        "url": "https://github.com/nix-community/emacs-overlay/archive/5ee8f21122f8a581d58b9ba7ba8fdf9d7de642be.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "fish-kubectl-completions": {
@@ -35,6 +35,18 @@
         "url": "https://github.com/github/gitignore/archive/991e760c1c6d50fdda246e0178b9c58b06770b90.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
+    "jupyterWith": {
+        "branch": "master",
+        "description": "declarative and reproducible Jupyter environments - powered by Nix",
+        "homepage": "",
+        "owner": "tweag",
+        "repo": "jupyterWith",
+        "rev": "0940c0d8ff3dbbae8395c138a89a57fd2cdb509c",
+        "sha256": "1vczyg4ifkz17nyr4y0f151jyargw2rzwvmng2w6a1ff1vcgyqa0",
+        "type": "tarball",
+        "url": "https://github.com/tweag/jupyterWith/archive/0940c0d8ff3dbbae8395c138a89a57fd2cdb509c.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "niv": {
         "branch": "master",
         "description": "Easy dependency management for Nix projects",
@@ -53,10 +65,10 @@
         "homepage": "",
         "owner": "NixOS",
         "repo": "nixos-hardware",
-        "rev": "03c60a2db286bcd8ecfac9a8739c50626ca0fd8e",
-        "sha256": "1ybc4fnny3ydjkxgqg028i09n7k2amgl89zr6hjrdyfcvwxjh9ls",
+        "rev": "eb889532fef2cb73071436842ae2ca0ed2d011aa",
+        "sha256": "009yfi178splswh9cn4l9jqjk6gc4hbqkpjpxln30liwwq3gqc1l",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixos-hardware/archive/03c60a2db286bcd8ecfac9a8739c50626ca0fd8e.tar.gz",
+        "url": "https://github.com/NixOS/nixos-hardware/archive/eb889532fef2cb73071436842ae2ca0ed2d011aa.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs": {
@@ -77,10 +89,10 @@
         "homepage": "",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "9591dd0e6fda30f17891941cdf16b6e2f2f92a95",
-        "sha256": "117hdzfkhp22cn2d3rgjv2363wxc00hc1s67ld63jmkm1m9mwscn",
+        "rev": "9bd6b9385dc24e2b0695a0cebf7bc346c09ae81d",
+        "sha256": "1932jz878anhls8458d7vr0brq3n1jmj82rhhp2swfym3lks8y8w",
         "type": "tarball",
-        "url": "https://github.com/nix-community/NUR/archive/9591dd0e6fda30f17891941cdf16b6e2f2f92a95.tar.gz",
+        "url": "https://github.com/nix-community/NUR/archive/9bd6b9385dc24e2b0695a0cebf7bc346c09ae81d.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "solarized": {
