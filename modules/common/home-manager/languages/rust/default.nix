@@ -15,5 +15,11 @@ in
         hook = [ "(rust-mode . lsp-deferred)" ];
       };
     };
+
+    programs.vscode = {
+      extensions = with pkgs.vscode-extensions; [
+        matklad.rust-analyzer
+      ];
+    };
   };
 }
