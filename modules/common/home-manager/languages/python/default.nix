@@ -76,12 +76,12 @@ in
       };
     };
 
-    programs.jupyterlab.kernels =
-      let ipython = pkgs.jupyterWith.kernels.iPythonWith {
+    programs.jupyterlab.kernels = [
+      (ks: ks.iPythonWith {
         name = "python";
         packages = cfg.extraPackages;
-      };
-      in [ ipython ];
+      })
+    ];
 
     programs.vscode = {
       extensions = with pkgs.vscode-extensions; [
