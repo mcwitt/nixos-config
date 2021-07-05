@@ -7,7 +7,12 @@ in
 
   config = mkIf cfg.enable {
 
-    home.packages = [ pkgs.rustup ];
+    home.packages = with pkgs; [
+      cargo
+      rustc
+      rustfmt
+      rust-analyzer
+    ];
 
     programs.emacs.init.usePackage = {
       rust-mode = {
