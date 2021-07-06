@@ -33,6 +33,7 @@ in
             split
             streaming
             text
+            turtle
             vector
           ];
         };
