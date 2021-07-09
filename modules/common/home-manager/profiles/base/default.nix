@@ -79,9 +79,20 @@
       ri = "rebase --interactive";
       su = "submodule update --init --recursive";
       w = "status -sb";
-      l = "log --graph --pretty=format:'%Cred%h%Creset"
-        + " —%Cblue%d%Creset %s %Cgreen(%cr)%Creset'"
-        + " --abbrev-commit --date=relative --show-notes=*";
+      l = lib.concatStringsSep " " [
+        "log"
+        "--graph"
+        "--pretty=format:'%Cred%h%Creset —%Cblue%d%Creset %s %Cgreen(%cr)%Creset'"
+        "--abbrev-commit"
+        "--date=relative"
+        "--show-notes=*"
+      ];
+      wip = lib.concatStringsSep " " [
+        "for-each-ref"
+        "--sort='authordate:iso8601'"
+        "--format=' %(color:green)%(authordate:relative)%09%(color:white)%(refname:short)'"
+        "refs/heads"
+      ];
     };
     ignores = (lib.concatMap pkgs.mcwitt.gitignore.ghGitIgnoreLines [
       "Global/Vim"
