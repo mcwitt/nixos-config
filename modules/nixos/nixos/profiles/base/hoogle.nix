@@ -18,6 +18,7 @@
       split
       streaming
       # text
+      turtle
       vector
     ];
   };

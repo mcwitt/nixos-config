@@ -28,6 +28,7 @@ in
             optparse-generic
             parsec
             random-fu
+            raw-strings-qq
             rvar
             safe
             split
@@ -77,9 +78,6 @@ in
 
       programs.jupyterlab.enable = true;
 
-      tools = {
-        aws.enable = true;
-        kubernetes.enable = true;
-      };
+      tools = enableAll [ "aws" "kubernetes" ];
     };
 }
