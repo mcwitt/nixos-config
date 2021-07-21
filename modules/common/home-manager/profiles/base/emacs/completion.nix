@@ -68,14 +68,10 @@ with lib;
         "C-x b" = "consult-buffer";
         "C-x 4 b" = "consult-buffer-other-window";
         "C-x 5 b" = "consult-buffer-other-frame";
-        "M-g e" = "consult-compile-error";
-        "M-g f" = "consult-flymake";
         "M-g M-g" = "consult-goto-line";
         "M-g o" = "consult-outline";
         "M-g m" = "consult-mark";
         "M-g k" = "consult-global-mark";
-        "M-g i" = "consult-imenu";
-        "M-g I" = "consult-project-imenu";
         "M-s f" = "consult-find";
         "M-s L" = "consult-locate";
         "M-s g" = "consult-grep";
@@ -148,6 +144,28 @@ with lib;
         ;;;; 4. locate-dominating-file
         ;; (setq consult-project-root-function (lambda () (locate-dominating-file "." ".git")))
       '';
+    };
+
+    consult-compile = {
+      enable = true;
+      bind = {
+        "M-g e" = "consult-compile-error";
+      };
+    };
+
+    consult-flymake = {
+      enable = true;
+      bind = {
+        "M-g f" = "consult-flymake";
+      };
+    };
+
+    consult-imenu = {
+      enable = true;
+      bind = {
+        "M-g i" = "consult-imenu";
+        "M-g I" = "consult-project-imenu";
+      };
     };
 
     consult-org = {
