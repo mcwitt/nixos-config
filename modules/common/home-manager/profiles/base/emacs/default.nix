@@ -164,6 +164,11 @@
       command = [ "eldoc-mode" ];
     };
 
+    elisp-format = {
+      enable = true;
+      command = [ "elisp-format-region" "elisp-format-buffer" ];
+    };
+
     envrc = {
       enable = true;
       demand = true;
