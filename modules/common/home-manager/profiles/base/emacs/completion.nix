@@ -143,6 +143,10 @@ with lib;
         ;; (setq consult-project-root-function #'vc-root-dir)
         ;;;; 4. locate-dominating-file
         ;; (setq consult-project-root-function (lambda () (locate-dominating-file "." ".git")))
+
+        (setq consult-ripgrep-command (string-join '("rg" "--null" "--line-buffered" "--color=ansi"
+                                                     "--max-columns=1000"  "--no-heading" "--line-number"
+                                                     "--smart-case" "." "-e" "ARG" "OPTS") " "))
       '';
     };
 
