@@ -17,7 +17,8 @@ in
         package = epkgs: epkgs.auctex;
         mode = [ ''("\\.tex\\'" . latex-mode)'' ];
         config = ''
-          (add-to-list 'TeX-view-program-selection '(output-pdf "PDF Tools"))'';
+          (add-to-list 'TeX-view-program-selection '(output-pdf "PDF Tools"))
+        '';
       };
 
       ob-latex = {
