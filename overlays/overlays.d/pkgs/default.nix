@@ -6,6 +6,7 @@ in
 
   mcwitt = {
     gitignore = callPackage ./gitignore.nix { };
+    lib = callPackage ./lib.nix { };
     scripts = callPackage ./scripts { };
   };
 }
