@@ -44,7 +44,11 @@ in
 
   networking = {
     hostName = "karakuri";
-    wireless.enable = true;
+    wireless = {
+      enable = true;
+      interfaces = [ "wlp0s20f3" ];
+      userControlled.enable = true;
+    };
     useDHCP = false;
     interfaces.wlp0s20f3.useDHCP = true;
   };
