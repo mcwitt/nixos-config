@@ -303,6 +303,9 @@ in
             "C-c n I" = "org-roam-insert-immediate";
           };
         };
+        init = ''
+          (setq org-roam-v2-ack t)
+        '';
         config = ''
           (setq org-roam-directory org-notes-notes-directory)
           (require 'org-roam-protocol)
