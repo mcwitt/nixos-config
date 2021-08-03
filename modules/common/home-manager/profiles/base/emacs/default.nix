@@ -324,6 +324,11 @@
       bind = {
         "C-c t" = "lightswitch-toggle";
       };
+      config = ''
+        (defadvice lightswitch-toggle (after reset-powerline-after-switching-theme activate)
+          "Reset powerline after switching theme."
+          (powerline-reset))
+      '';
     };
 
     logview = {
