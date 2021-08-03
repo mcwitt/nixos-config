@@ -289,27 +289,35 @@ in
 
       org-roam = {
         enable = true;
-        after = [ "org" ];
-        diminish = [ "org-roam-mode" ];
-        hook = [ "(after-init . org-roam-mode)" ];
-        bindLocal = {
-          org-roam-mode-map = {
-            "C-c n l" = "org-roam";
-            "C-c n f" = "org-roam-find-file";
-            "C-c n g" = "org-roam-graph";
-          };
-          org-mode-map = {
-            "C-c n i" = "org-roam-insert";
-            "C-c n I" = "org-roam-insert-immediate";
-          };
-        };
         init = ''
           (setq org-roam-v2-ack t)
-        '';
-        config = ''
           (setq org-roam-directory org-notes-notes-directory)
+          (setq org-roam-dailies-directory "daily/")
+          (setq org-roam-dailies-capture-templates
+                '(("d" "default" entry
+                   "* %?"
+                   :if-new (file+head "%<%Y-%m-%d>.org"
+                                      "#+title: %<%Y-%m-%d>\n"))))
+        '';
+        bind = {
+          "C-c n l" = "org-roam-buffer-toggle";
+          "C-c n f" = "org-roam-node-find";
+          "C-c n i" = "org-roam-node-insert";
+          "C-c n c" = "org-roam-capture";
+          "C-c n j" = "org-roam-dailies-capture-today";
+        };
+        config = ''
+          (org-roam-setup)
           (require 'org-roam-protocol)
         '';
+      };
+
+      org-roam-graph = {
+        enable = true;
+        command = [ "org-roam-graph" ];
+        bind = {
+          "C-c n g" = "org-roam-graph";
+        };
       };
 
       org-roam-bibtex = {
