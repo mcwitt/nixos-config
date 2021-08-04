@@ -95,7 +95,7 @@ in
 
   users.users.matt = {
     isNormalUser = true;
-    extraGroups = [ "video" "wheel" ];
+    extraGroups = [ "docker" "video" "wheel" ];
     shell = pkgs.fish;
   };
 }
