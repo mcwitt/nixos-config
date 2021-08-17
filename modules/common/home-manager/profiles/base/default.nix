@@ -69,6 +69,7 @@
 
   programs.git = {
     enable = true;
+
     aliases = {
       b = "branch --color -v";
       ca = "commit --amend";
@@ -79,14 +80,7 @@
       ri = "rebase --interactive";
       su = "submodule update --init --recursive";
       w = "status -sb";
-      l = lib.concatStringsSep " " [
-        "log"
-        "--graph"
-        "--pretty=format:'%Cred%h%Creset —%Cblue%d%Creset %s %Cgreen(%cr)%Creset'"
-        "--abbrev-commit"
-        "--date=relative"
-        "--show-notes=*"
-      ];
+      l = "log --graph";
       wip = lib.concatStringsSep " " [
         "for-each-ref"
         "--sort='authordate:iso8601'"
@@ -94,16 +88,23 @@
         "refs/heads"
       ];
     };
+
     ignores = (lib.concatMap pkgs.mcwitt.gitignore.ghGitIgnoreLines [
       "Global/Vim"
       "Global/Emacs"
     ]) ++ [ ".direnv/" ];
+
+    delta.enable = true;
+
     extraConfig = {
+      # https://stackoverflow.com/a/9463536
+      format.pretty = "format:%C(auto,yellow)%h%C(auto,magenta)% G? %C(auto,blue)%>(12,trunc)%ad %C(auto,green)%<(7,trunc)%aN%C(auto,reset)%s%C(auto,red)% gD% D";
+
       gitHub.user = "mcwitt";
+      log.date = "relative";
       merge.conflictStyle = "diff3";
       pull.rebase = true;
     };
-    delta.enable = true;
   };
 
   programs.home-manager.enable = true;
