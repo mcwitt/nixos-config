@@ -13,7 +13,7 @@ in
 
       proof-general = {
         enable = true;
-        package = ps: ps.proofgeneral_HEAD;
+        package = ps: ps.proof-general;
         mode = [ ''("\\.v\\'" . coq-mode)'' ];
         init = ''
           (with-eval-after-load "proof-script"
