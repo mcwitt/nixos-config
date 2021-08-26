@@ -7,7 +7,6 @@
     gimp
     peek
     slack
-    steam
     zulip
   ];
 }
