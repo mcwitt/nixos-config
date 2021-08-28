@@ -29,6 +29,8 @@ in
           safe
           split
           streaming
+          tasty
+          tasty-hunit
           text
           turtle
           vector
