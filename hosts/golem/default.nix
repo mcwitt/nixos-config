@@ -21,7 +21,7 @@
 
   hardware.bluetooth = {
     enable = true;
-    settings = { General = { ControllerMode = "bredr"; }; };
+    settings.General.ControllerMode = "bredr";
   };
 
   hardware.pulseaudio = {
@@ -88,20 +88,20 @@
     };
     dpi = 180;
     layout = "us";
-  };
 
-  services.xserver.xrandrHeads = [
-    {
-      primary = true;
-      output = "DP-4";
-    }
-    {
-      monitorConfig = ''
-        Option "Rotate" "left"
-      '';
-      output = "DP-2";
-    }
-  ];
+    xrandrHeads = [
+      {
+        primary = true;
+        output = "DP-4";
+      }
+      {
+        monitorConfig = ''
+          Option "Rotate" "left"
+        '';
+        output = "DP-2";
+      }
+    ];
+  };
 
   sound = {
     enable = true;
