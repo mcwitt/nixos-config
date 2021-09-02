@@ -53,6 +53,8 @@ in
     interfaces.wlp0s20f3.useDHCP = true;
   };
 
+  services.autorandr.enable = true;
+
   services.blueman.enable = true;
 
   services.geoclue2 = {
