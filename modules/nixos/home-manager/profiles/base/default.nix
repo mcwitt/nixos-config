@@ -60,6 +60,11 @@ in
 
   programs.git.ignores = pkgs.mcwitt.gitignore.ghGitIgnoreLines "Global/Linux";
 
+  programs.urxvt = {
+    enable = true;
+    fonts = [ "xft:FiraCode Nerd Font Mono:size=11:antialias=true" ];
+  };
+
   programs.zathura.enable = true;
 
   services.dunst = {

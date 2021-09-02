@@ -123,7 +123,7 @@
                     },
               manageHook = manageDocks,
               modMask = mod4Mask,
-              terminal = "alacritty"
+              terminal = "urxvt"
             }
             `additionalKeys` [ ((mod4Mask, xK_p), shellPrompt myPromptConfig),
                                ((mod4Mask, xK_f), sendMessage $ Toggle REFLECTX),
