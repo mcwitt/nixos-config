@@ -62,7 +62,7 @@ in
 
   programs.urxvt = {
     enable = true;
-    fonts = [ "xft:FiraCode Nerd Font Mono:size=11:antialias=true" ];
+    fonts = [ "xft:FiraCode Nerd Font Mono:size=10:antialias=true" ];
   };
 
   programs.zathura.enable = true;

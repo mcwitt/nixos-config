@@ -28,7 +28,7 @@ in
   };
 
   services.stalonetray.config = {
-    geometry = "5x1-2495";
+    geometry = "5x1+3300";
     icon_gravity = "NE";
     icon_size = statusBarHeight * 7 / 8;
     slot_size = statusBarHeight;

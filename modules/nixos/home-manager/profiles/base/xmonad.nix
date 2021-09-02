@@ -50,7 +50,7 @@
       rc.extraConfig = let inherit (lib) mkDefault; in
         {
           position = mkDefault "Top";
-          font = mkDefault ''"xft:Iosevka:size=12:bold:antialias=true"'';
+          font = mkDefault ''"xft:Iosevka:size=10:bold:antialias=true"'';
           template = mkDefault ''"<fc=#d33682>%StdinReader%</fc> | %multicpu% | %coretemp% | %memory% | %dynnetwork% }{ %date% "'';
           bgColor = ''"#002b36"'';
           fgColor = ''"#839496"'';
@@ -97,7 +97,7 @@
             defaultText = "",
             alwaysHighlight = True,
             height = 36,
-            font = "xft:Iosevka:size=12:bold:antialias=true",
+            font = "xft:Iosevka:size=10:bold:antialias=true",
             searchPredicate = isInfixOf
           }
 

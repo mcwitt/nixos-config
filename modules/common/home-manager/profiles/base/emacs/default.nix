@@ -27,7 +27,7 @@
 
       (set-face-attribute 'default
                           nil
-                          :height 110
+                          :height 100
                           :family "Fira Code")
       (set-face-attribute 'variable-pitch
                           nil

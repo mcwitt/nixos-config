@@ -15,13 +15,7 @@ in
     efi.canTouchEfiVariables = true;
   };
 
-  console = {
-    font = "ter-v32n";
-    keyMap = "us";
-    packages = [ pkgs.terminus_font ];
-  };
-
-  fonts.fontconfig.dpi = 210;
+  console.keyMap = "us";
 
   hardware.acpilight.enable = true;
 
@@ -67,15 +61,7 @@ in
   services.xserver = {
     enable = true;
     desktopManager.xterm.enable = true;
-
-    displayManager.lightdm.greeters.gtk = {
-      cursorTheme.size = 64;
-      extraConfig = "xft-dpi=320";
-    };
-
-    dpi = 320;
     layout = "us";
-
     libinput = {
       enable = true;
       touchpad = {

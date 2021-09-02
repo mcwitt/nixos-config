@@ -12,12 +12,9 @@
   };
 
   console = {
-    font = "ter-u16n";
+    font = "${pkgs.terminus_font}/share/consolefonts/ter-u16n.psf.gz";
     keyMap = "us";
-    packages = [ pkgs.terminus_font ];
   };
-
-  fonts.fontconfig.dpi = 140;
 
   hardware.bluetooth = {
     enable = true;
@@ -82,13 +79,8 @@
     enable = true;
     videoDrivers = [ "nvidia" ];
     desktopManager.xterm.enable = true;
-    displayManager.lightdm.greeters.gtk = {
-      cursorTheme.size = 36;
-      extraConfig = "xft-dpi=180";
-    };
-    dpi = 180;
     layout = "us";
-
+    dpi = 183;
     xrandrHeads = [
       {
         primary = true;
