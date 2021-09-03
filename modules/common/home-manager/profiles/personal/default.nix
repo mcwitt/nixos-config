@@ -41,8 +41,10 @@ in
         enable = true;
         extraPackages = ps: with ps; [
           httpx
+          hypothesis
           matplotlib
           pandas
+          seaborn
           toolz
         ];
       };
