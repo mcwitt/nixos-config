@@ -1,20 +1,6 @@
 { config, lib, pkgs, ... }:
 with lib;
-let
-  cfg = config.programs.jupyterlab;
-
-  mkIPython = ks: ks.iPythonWith {
-    name = "python";
-    packages = ps: with ps; [ pandas httpx seaborn ];
-  };
-
-  mkIHaskell = ks: ks.iHaskellWith {
-    extraIHaskellFlags = "--codemirror Haskell"; # for jupyterlab syntax highlighting
-    name = "haskell";
-    packages = p: with p; [ hvega formatting ];
-  };
-
-in
+let cfg = config.programs.jupyterlab; in
 {
   options.programs.jupyterlab = {
     enable = mkEnableOption "JupyterLab notebook server";
@@ -39,7 +25,18 @@ in
             };
           }));
 
-      default = [ mkIPython mkIHaskell ];
+      default = [
+        (ks: ks.iPythonWith {
+          name = "python";
+          packages = ps: with ps; [ pandas httpx seaborn ];
+        })
+
+        (ks: ks.iHaskellWith {
+          extraIHaskellFlags = "--codemirror Haskell"; # for jupyterlab syntax highlighting
+          name = "haskell";
+          packages = ps: with ps; [ hvega formatting ];
+        })
+      ];
     };
   };
 
