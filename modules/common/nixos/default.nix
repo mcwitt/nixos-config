@@ -21,6 +21,7 @@
   environment.systemPackages = with pkgs; [
     (aspellWithDicts (ds: [ ds.en ]))
     coreutils
+    dig
     fd
     ffmpeg
     file
