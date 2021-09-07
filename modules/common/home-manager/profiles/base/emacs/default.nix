@@ -324,11 +324,6 @@
       bind = {
         "C-c t" = "lightswitch-toggle";
       };
-      config = ''
-        (defadvice lightswitch-toggle (after reset-powerline-after-switching-theme activate)
-          "Reset powerline after switching theme."
-          (powerline-reset))
-      '';
     };
 
     logview = {
@@ -369,6 +364,9 @@
       enable = true;
       config = ''
         (powerline-center-evil-theme)
+        (defadvice load-theme (after powerline-reset-after-load-theme activate)
+          "Reset powerline after switching theme."
+          (powerline-reset))
       '';
     };
 
@@ -403,7 +401,7 @@
       enable = true;
       demand = true;
       config = ''
-        (load-theme 'solarized-light t)
+        (load-theme 'solarized-dark t)
       '';
     };
 
