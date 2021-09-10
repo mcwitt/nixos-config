@@ -185,10 +185,12 @@ with lib;
     embark = {
       enable = true;
       bind = {
-        "C-S-a" = "embark-act";
+        "C-." = "embark-act";
+        "C-;" = "embark-dwim";
         "C-h B" = "embark-bindings";
       };
       init = ''
+        ;; Optionally replace the key help with a completing-read interface
         (setq prefix-help-command #'embark-prefix-help-command)
       '';
       config = ''
@@ -197,6 +199,9 @@ with lib;
                      '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
                        nil
                        (window-parameters (mode-line-format . none))))
+
+        ;; Prevent error when attempting to open in a new frame
+        (add-to-list 'frames-only-mode-use-window-functions #'embark-act)
       '';
     };
 
