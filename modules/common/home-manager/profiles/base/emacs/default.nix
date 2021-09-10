@@ -235,6 +235,10 @@
     frames-only-mode = {
       enable = true;
       config = ''
+        ;; Prevent error when attempting to open in a new frame
+        ;; Must run before enabling mode
+        (add-to-list 'frames-only-mode-use-window-functions #'embark-act)
+
         (frames-only-mode 1)
       '';
     };

@@ -199,9 +199,6 @@ with lib;
                      '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
                        nil
                        (window-parameters (mode-line-format . none))))
-
-        ;; Prevent error when attempting to open in a new frame
-        (add-to-list 'frames-only-mode-use-window-functions #'embark-act)
       '';
     };
 
