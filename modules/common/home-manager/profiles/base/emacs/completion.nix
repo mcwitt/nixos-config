@@ -213,9 +213,15 @@ with lib;
       enable = true;
       bind."C-c r" = "bibtex-actions-insert-citation";
       bindLocal.minibuffer-local-map."M-b" = "bibtex-actions-insert-preset";
+      after = [ "org" "bibtex-completion" ];
       config = ''
         (require 'embark)
-        (add-to-list 'embark-keymap-alist '(bibtex . bibtex-actions-map))
+
+        ;; Make the 'bibtex-actions' bindings and targets available to `embark'.
+        (add-to-list 'embark-target-finders 'bibtex-actions-citation-key-at-point)
+        (add-to-list 'embark-keymap-alist '(bib-reference . bibtex-actions-map))
+        (add-to-list 'embark-keymap-alist '(citation-key . bibtex-actions-buffer-map))
+        (setq bibtex-actions-bibliography (list (concat org-notes-references-directory "master.bib")))
       '';
     };
   };
