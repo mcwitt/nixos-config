@@ -51,8 +51,14 @@
       ;; Prompt for y/n instead of yes/no
       (defalias 'yes-or-no-p 'y-or-n-p)
 
+      ;; Indent with spaces
       (setq-default indent-tabs-mode nil)
+
+      ;; Highlight matching parens
       (show-paren-mode 1)
+
+      ;; Don't insert a double space between sentences when filling
+      (setq-default sentence-end-double-space nil)
 
       ;; Always show line and column numbers
       (line-number-mode)
