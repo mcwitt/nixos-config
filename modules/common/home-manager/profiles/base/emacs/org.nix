@@ -83,18 +83,6 @@ in
         command = [ "turn-on-cdlatex" ];
       };
 
-      deft = {
-        enable = true;
-        after = [ "org" ];
-        config = ''
-          (setq deft-auto-save-interval 0
-                deft-recursive t
-                deft-use-filter-string-for-filename t
-                deft-default-extension "org"
-                deft-directory org-notes-notes-directory)
-        '';
-      };
-
       git-sync = {
         enable = true;
         package = epkgs:
