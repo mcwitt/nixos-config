@@ -107,5 +107,17 @@
         "url": "https://github.com/altercation/solarized/archive/62f656a02f93c5190a8753159e34b385588d5ff3.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz",
         "version": "62f656a02f93c5190a8753159e34b385588d5ff3"
+    },
+    "tmux-colors-solarized": {
+        "branch": "master",
+        "description": "A color theme for the tmux terminal multiplexer using Ethan Schoonover’s Solarized color scheme",
+        "homepage": "http://ethanschoonover.com/solarized",
+        "owner": "seebi",
+        "repo": "tmux-colors-solarized",
+        "rev": "e5e7b4f1af37f8f3fc81ca17eadee5ae5d82cd09",
+        "sha256": "1l3i82abzi4b395cgdsjg7lcfaq15kyyhijwvrgchzxi95z3hl4x",
+        "type": "tarball",
+        "url": "https://github.com/seebi/tmux-colors-solarized/archive/e5e7b4f1af37f8f3fc81ca17eadee5ae5d82cd09.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }

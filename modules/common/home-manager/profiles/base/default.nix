@@ -1,4 +1,7 @@
-{ config, lib, pkgs, ... }: {
+{ config, lib, pkgs, ... }:
+
+let sources = import ../../../../../nix/sources.nix; in
+{
 
   imports = [ ./emacs ];
 
@@ -182,6 +185,7 @@
   programs.tmux = {
     enable = true;
     keyMode = "vi";
+    extraConfig = builtins.readFile "${sources.tmux-colors-solarized}/tmuxcolors-dark.conf";
   };
 
   programs.vscode = {
