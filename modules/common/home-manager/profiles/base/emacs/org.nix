@@ -328,7 +328,12 @@ in
         hook = [ "(org-mode . org-variable-pitch-minor-mode)" ];
       };
 
-      ox-pandoc.enable = true;
+      ox-pandoc = {
+        enable = true;
+        config = ''
+          (setq org-pandoc-options-for-slidy '((mathjax t)))
+        '';
+      };
     };
   };
 }
