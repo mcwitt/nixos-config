@@ -68,7 +68,10 @@
 
   nix.trustedUsers = [ "root" "@wheel" "matt" ];
 
-  profiles.personal.enable = true;
+  profiles = {
+    personal.enable = true;
+    moonlander.enable = true;
+  };
 
   services.openssh.enable = true;
 
@@ -108,7 +111,7 @@
 
   users.users.matt = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "docker" ];
+    extraGroups = [ "wheel" "docker" "plugdev" ];
     shell = pkgs.fish;
   };
 
