@@ -1,12 +1,15 @@
-{ pkgs, ... }:
+{ config, lib, pkgs, ... }:
+with lib;
 {
-  home.packages = with pkgs; [
-    anki
-    discord
-    element-desktop
-    gimp
-    peek
-    slack
-    zulip
-  ];
+  config = mkIf config.profiles.personal.enable {
+    home.packages = with pkgs; [
+      anki
+      discord
+      element-desktop
+      gimp
+      peek
+      slack
+      zulip
+    ];
+  };
 }

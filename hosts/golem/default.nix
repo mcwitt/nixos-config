@@ -68,6 +68,8 @@
 
   nix.trustedUsers = [ "root" "@wheel" "matt" ];
 
+  profiles.personal.enable = true;
+
   services.openssh.enable = true;
 
   services.printing = {
