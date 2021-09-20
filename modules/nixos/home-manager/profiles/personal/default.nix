@@ -9,6 +9,7 @@ with lib;
       gimp
       peek
       slack
+      zoom-us
       zulip
     ];
   };
