@@ -45,6 +45,7 @@ in
     };
     useDHCP = false;
     interfaces.wlp0s20f3.useDHCP = true;
+    interfaces.enp45s0u1u1i5.useDHCP = true;
   };
 
   services.autorandr.enable = true;
