@@ -62,6 +62,7 @@ in
     enable = true;
     desktopManager.xterm.enable = true;
     layout = "us";
+    dpi = 240;
     libinput = {
       enable = true;
       touchpad = {
