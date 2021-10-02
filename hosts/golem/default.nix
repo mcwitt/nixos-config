@@ -50,10 +50,7 @@
     };
   };
 
-  libraries.cuda = {
-    enable = true;
-    package = pkgs.cudatoolkit_10_2;
-  };
+  libraries.cuda.enable = true;
 
   location = {
     latitude = 37.8044;
