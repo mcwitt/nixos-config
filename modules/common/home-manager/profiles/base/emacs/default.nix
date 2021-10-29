@@ -357,6 +357,14 @@
       diminish = [ "mixed-pitch-mode" ];
     };
 
+    multiple-cursors = {
+      enable = true;
+      bind = {
+        "C-x m m" = "mc/edit-lines";
+        "C-x m d" = "mc/mark-all-dwim";
+      };
+    };
+
     pinentry = {
       enable = true;
       config = ''
