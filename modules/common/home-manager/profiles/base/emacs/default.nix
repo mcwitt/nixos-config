@@ -360,8 +360,8 @@
     multiple-cursors = {
       enable = true;
       bind = {
-        "C-x m m" = "mc/edit-lines";
-        "C-x m d" = "mc/mark-all-dwim";
+        "C-x | e" = "mc/edit-lines";
+        "C-x | d" = "mc/mark-all-dwim";
       };
     };
 
