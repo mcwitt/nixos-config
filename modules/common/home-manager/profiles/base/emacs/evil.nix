@@ -50,11 +50,20 @@ in
 
     evil-org = {
       enable = true;
-      after = [ "org" ];
+      after = [ "evil" "org" ];
       hook = [ "(org-mode . evil-org-mode)" ];
+      init = ''
+        ;; temporary workaround for https://github.com/Somelauw/evil-org-mode/issues/93
+        (fset 'evil-redirect-digit-argument 'ignore)
+      '';
       config = ''
         (require 'evil-org-agenda)
         (evil-org-agenda-set-keys)
+
+        ;; temporary workaround for https://github.com/Somelauw/evil-org-mode/issues/93
+        (add-to-list 'evil-digit-bound-motions 'evil-org-beginning-of-line)
+        (evil-define-key 'motion 'evil-org-mode
+            (kbd "0") 'evil-org-beginning-of-line)
       '';
     };
 
