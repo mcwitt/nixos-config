@@ -61,20 +61,64 @@ in
         config = ''
           (setq biblio-download-directory
                 (file-name-as-directory
-                 (concat org-notes-references-directory "bibtex-pdfs")))
+                 (concat org-notes-references-directory "pdf")))
         '';
       };
 
       bibtex-completion = {
         enable = true;
-        after = [ "org" ];
         config = ''
-          (setq bibtex-completion-bibliography
-                (concat org-notes-references-directory "master.bib"))
-          (setq bibtex-completion-library-path
-                (concat org-notes-references-directory "bibtex-pdfs"))
-          (setq bibtex-completion-notes-path
-                (concat org-notes-references-directory "helm-bibtex-notes"))
+          (setq bibtex-completion-bibliography `(,(concat org-notes-references-directory "master.bib")))
+          (setq bibtex-completion-library-path `(,(concat org-notes-references-directory "pdf")))
+        '';
+      };
+
+      citar = {
+        enable = true;
+        bind = {
+          "C-c r" = "citar-insert-citation";
+        };
+        bindLocal.minibuffer-local-map = {
+          "M-b" = "citar-insert-preset";
+        };
+        config = ''
+          (setq citar-bibliography `(,(concat org-notes-references-directory "master.bib")))
+
+          ;; use org-roam-bibtex
+          (setq citar-file-open-note-function 'orb-bibtex-actions-edit-note)
+
+          ;; use consult-completing-read for enhanced interface
+          (advice-add #'completing-read-multiple :override #'consult-completing-read-multiple)
+
+          ;; use icons - https://github.com/bdarcus/citar
+          (setq citar-symbols
+                `((file . (,(all-the-icons-icon-for-file "a.pdf" :face 'all-the-icons-dred) .
+                           ,(all-the-icons-icon-for-file "a.pdf" :face 'citar-icon-dim)))
+                  (note . (,(all-the-icons-icon-for-file "a.txt") .
+                           ,(all-the-icons-icon-for-file "a.txt" :face 'citar-icon-dim)))
+                  (link . (,(all-the-icons-faicon "external-link-square" :v-adjust 0.02 :face 'all-the-icons-dpurple) .
+                           ,(all-the-icons-faicon "external-link-square" :v-adjust 0.02 :face 'citar-icon-dim)))))
+
+          (defface citar-icon-dim
+            '((((background dark)) :foreground "#282c34")
+              (((background light)) :foreground "#fafafa"))
+            "Face for obscuring/dimming icons"
+            :group 'all-the-icons-faces)
+        '';
+      };
+
+      citar-org = {
+        enable = true;
+        demand = true;
+        after = [ "org" ];
+        bindLocal.org-mode-map = {
+          "C-c r" = "org-cite-insert";
+        };
+        config = ''
+          (setq org-cite-global-bibliography `(,(concat org-notes-references-directory "master.bib")))
+          (setq org-cite-insert-processor 'citar)
+          (setq org-cite-follow-processor 'citar)
+          (setq org-cite-activate-processor 'citar)
         '';
       };
 
