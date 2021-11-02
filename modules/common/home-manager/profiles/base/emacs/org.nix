@@ -259,22 +259,6 @@ in
         };
       };
 
-      org-ref = {
-        enable = true;
-        after = [ "org" ];
-        config = ''
-          (setq reftex-default-bibliography
-                (list (concat org-notes-references-directory "master.bib")))
-          (setq org-ref-bibliography-notes
-                (concat org-notes-references-directory "notes.org"))
-          (setq org-ref-default-bibliography
-                (list (concat org-notes-references-directory "master.bib")))
-          (setq org-ref-pdf-directory
-                (concat org-notes-references-directory
-                        (file-name-as-directory "bibtex-pdfs")))
-        '';
-      };
-
       org-roam = {
         enable = true;
         init = ''
