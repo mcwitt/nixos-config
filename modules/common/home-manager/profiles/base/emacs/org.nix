@@ -129,8 +129,8 @@ in
 
       git-sync = {
         enable = true;
-        package = epkgs:
-          epkgs.trivialBuild {
+        package = ps:
+          ps.trivialBuild {
             pname = "git-sync";
             version = "2020-11-22";
             src = pkgs.writeText "git-sync.el" ''
@@ -178,7 +178,7 @@ in
 
       org = {
         enable = true;
-        package = epkgs: epkgs.org-plus-contrib;
+        package = ps: ps.elpaPackages.org;
         bind = {
           "C-c o a" = "org-agenda";
           "C-c o c" = "org-capture";
