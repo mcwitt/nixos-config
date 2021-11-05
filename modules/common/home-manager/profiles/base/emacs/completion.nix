@@ -81,12 +81,12 @@ with lib;
         "M-s m" = "consult-multi-occur";
         "M-s k" = "consult-keep-lines";
         "M-s u" = "consult-focus-lines";
-        "M-s e" = "consult-isearch";
+        "M-s e" = "consult-isearch-history";
       };
 
       bindLocal.isearch-mode-map = {
-        "M-e" = "consult-isearch";
-        "M-s e" = "consult-isearch";
+        "M-e" = "consult-isearch-history";
+        "M-s e" = "consult-isearch-history";
         "M-s l" = "consult-line";
       };
 

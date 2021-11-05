@@ -323,7 +323,7 @@ in
           "C-c n j" = "org-roam-dailies-capture-today";
         };
         config = ''
-          (org-roam-setup)
+          (org-roam-db-autosync-mode)
           (require 'org-roam-protocol)
         '';
       };
