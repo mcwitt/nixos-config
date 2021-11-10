@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, ... }:
 let statusBarHeight = 54;
 in
 {
