@@ -20,6 +20,7 @@ let sources = import ../../../../../nix/sources.nix; in
       git-crypt
       git-remote-gcrypt
       hub
+      lab
       pre-commit
     ]);
 
