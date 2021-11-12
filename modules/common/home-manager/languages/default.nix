@@ -2,6 +2,7 @@
   imports = [
     ./R
     ./coq
+    ./cpp
     ./dhall
     ./elm
     ./go
