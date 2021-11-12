@@ -1,7 +1,10 @@
+{ pkgs, ... }:
 {
   imports = [ ./hoogle.nix ];
 
   i18n.defaultLocale = "en_US.UTF-8";
+
+  nix.package = pkgs.nixFlakes;
 
   nixpkgs = {
     config.allowUnfree = true;
