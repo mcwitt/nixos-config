@@ -10,11 +10,20 @@ in
     home.packages = [ pkgs.clang-tools ];
 
     programs.emacs.init.usePackage = {
+
       lsp-clangd = {
         enable = true;
         hook = [
           "(c-mode . lsp-deferred)"
           "(c++-mode . lsp-deferred)"
+        ];
+      };
+
+      cmake-mode = {
+        enable = true;
+        mode = [
+          ''"\\.cmake\\'"''
+          ''"CMakeLists.txt\\'"''
         ];
       };
 
