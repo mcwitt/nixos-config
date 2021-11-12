@@ -22,6 +22,7 @@ let sources = import ../../../../../nix/sources.nix; in
       hub
       lab
       pre-commit
+      ripgrep
     ]);
 
   home.sessionPath = [ "${config.home.homeDirectory}/.local/bin" ];

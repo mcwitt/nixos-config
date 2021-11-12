@@ -83,7 +83,7 @@ in
       })
     ];
 
-    programs.vscode = {
+    programs.vscode = mkIf (!pkgs.stdenv.isDarwin) {
       extensions = with pkgs.vscode-extensions; [
         ms-python.python
         ms-python.vscode-pylance
