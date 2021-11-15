@@ -329,6 +329,15 @@ in
         '';
       };
 
+      org-roam-bibtex = {
+        enable = true;
+        diminish = [ "org-roam-bibtex-mode" ];
+        hook = [ "(org-roam-mode . org-roam-bibtex-mode)" ];
+        bindLocal.org-mode-map = {
+          "C-c n a" = "org-note-actions";
+        };
+      };
+
       org-roam-graph = {
         enable = true;
         command = [ "org-roam-graph" ];
@@ -337,13 +346,16 @@ in
         };
       };
 
-      org-roam-bibtex = {
+      org-roam-ui = {
         enable = true;
-        diminish = [ "org-roam-bibtex-mode" ];
-        hook = [ "(org-roam-mode . org-roam-bibtex-mode)" ];
-        bindLocal.org-mode-map = {
-          "C-c n a" = "org-note-actions";
-        };
+        after = [ "org-roam" ];
+        command = [ "org-roam-ui-mode" ];
+        config = ''
+          (setq org-roam-ui-sync-theme t
+                org-roam-ui-follow t
+                org-roam-ui-update-on-save t
+                org-roam-ui-open-on-start t)
+        '';
       };
 
       org-superstar = {
