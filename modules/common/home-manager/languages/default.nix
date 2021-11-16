@@ -3,6 +3,7 @@
     ./R
     ./coq
     ./cpp
+    ./cuda
     ./dhall
     ./elm
     ./go

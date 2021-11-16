@@ -3,10 +3,7 @@ with lib;
 let cfg = config.languages.cpp;
 in
 {
-  options.languages.cpp = {
-    enable = mkEnableOption "C/C++ language environment";
-    cuda.enable = mkEnableOption "CUDA tools";
-  };
+  options.languages.cpp.enable = mkEnableOption "C/C++ language environment";
 
   config = mkIf cfg.enable {
 
@@ -26,11 +23,6 @@ in
         ];
       };
 
-      cuda-mode = mkIf cfg.cuda.enable {
-        enable = true;
-        mode = [ ''"\\.cuh?\\'"'' ];
-      };
-
       lsp-clangd = {
         enable = true;
         hook = [
@@ -38,10 +30,6 @@ in
           "(c++-mode . lsp-deferred)"
         ];
       };
-
-      lsp-clangd.config = mkIf cfg.cuda.enable ''
-        (add-to-list 'lsp-language-id-configuration '(cuda-mode . "cpp"))
-      '';
 
       lsp-cmake = {
         enable = true;
@@ -51,6 +39,6 @@ in
 
     programs.vscode.extensions = [
       pkgs.vscode-extensions.llvm-vs-code-extensions.vscode-clangd
-    ] ++ lib.optional cfg.cuda.enable pkgs.mcwitt.vscode-extensions.NVIDIA.nsight-vscode-edition;
+    ];
   };
 }
