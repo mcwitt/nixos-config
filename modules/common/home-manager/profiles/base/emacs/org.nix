@@ -82,8 +82,9 @@ in
           "M-b" = "citar-insert-preset";
         };
         config = ''
-          (setq citar-bibliography `(,(concat org-notes-references-directory "master.bib")))
-          (setq citar-notes-paths `(,(concat org-notes-references-directory "notes")))
+          (setq citar-bibliography  `(,(concat org-notes-references-directory "master.bib")))
+          (setq citar-library-paths `(,(concat org-notes-references-directory "pdf")))
+          (setq citar-notes-paths   `(,(concat org-notes-references-directory "notes")))
 
           ;; use org-roam-bibtex
           (setq citar-file-open-note-function 'orb-bibtex-actions-edit-note)
