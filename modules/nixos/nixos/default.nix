@@ -1,5 +1,5 @@
 {
-  imports = [ ./cuda.nix ./profiles ];
+  imports = [ ./profiles ];
 
   # protect nix-shell environments from garbage collection
   nix.extraOptions = ''

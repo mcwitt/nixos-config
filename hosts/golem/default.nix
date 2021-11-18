@@ -21,6 +21,10 @@
     settings.General.ControllerMode = "bredr";
   };
 
+  hardware.nvidia.modesetting.enable = true;
+
+  hardware.opengl.driSupport32Bit = true;
+
   hardware.pulseaudio = {
     enable = true;
     package = pkgs.pulseaudioFull;
@@ -49,8 +53,6 @@
       profiles.personal.enable = true;
     };
   };
-
-  libraries.cuda.enable = true;
 
   location = {
     latitude = 37.8044;
