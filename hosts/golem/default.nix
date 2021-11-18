@@ -89,9 +89,6 @@
         output = "DP-4";
       }
       {
-        monitorConfig = ''
-          Option "Rotate" "left"
-        '';
         output = "DP-2";
       }
     ];
