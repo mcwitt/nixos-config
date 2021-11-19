@@ -2,8 +2,8 @@
 {
   imports = [
     <home-manager/nixos>
-    ../../modules/common/nixos
-    ../../modules/nixos/nixos
+    ../../../modules/common/nixos
+    ../../../modules/nixos/nixos
   ];
 
   boot.loader = {
@@ -49,7 +49,7 @@
   home-manager = {
     useGlobalPkgs = true;
     users.matt = {
-      imports = [ ./home.nix ];
+      imports = [ ../home ];
       profiles.personal.enable = true;
     };
   };

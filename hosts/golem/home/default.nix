@@ -2,8 +2,8 @@ let statusBarHeight = 36;
 in
 {
   imports = [
-    ../../modules/common/home-manager
-    ../../modules/nixos/home-manager
+    ../../../modules/common/home-manager
+    ../../../modules/nixos/home-manager
   ];
 
   programs.xmobar = {

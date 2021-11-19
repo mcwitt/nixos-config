@@ -1,12 +1,12 @@
 { config, pkgs, ... }:
 
-let sources = import ../../nix/sources.nix;
+let sources = import ../../../nix/sources.nix;
 in
 {
   imports = [
     <home-manager/nixos>
-    ../../modules/common/nixos
-    ../../modules/nixos/nixos
+    ../../../modules/common/nixos
+    ../../../modules/nixos/nixos
     "${sources.nixos-hardware}/lenovo/thinkpad/x1/7th-gen"
   ];
 
@@ -31,7 +31,7 @@ in
   home-manager = {
     useGlobalPkgs = true;
     users.matt = {
-      imports = [ ./home.nix ];
+      imports = [ ../home ];
       profiles.personal.enable = true;
     };
   };

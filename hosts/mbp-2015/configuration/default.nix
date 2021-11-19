@@ -3,7 +3,7 @@
 {
   imports = [
     <home-manager/nix-darwin>
-    ../../modules/common/nixos
+    ../../../modules/common/nixos
   ];
 
   environment = {
