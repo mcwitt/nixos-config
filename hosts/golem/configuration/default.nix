@@ -4,6 +4,7 @@
     <home-manager/nixos>
     ../../../modules/common/nixos
     ../../../modules/nixos/nixos
+    ./synergy-server.nix
   ];
 
   boot.loader = {
