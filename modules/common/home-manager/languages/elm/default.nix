@@ -6,11 +6,6 @@ in
   options.languages.elm.enable = mkEnableOption "Elm language environment";
 
   config = mkIf cfg.enable {
-    home.packages = with pkgs.elmPackages; [
-      elm
-      elm-format
-      elm-language-server
-    ];
 
     programs.emacs.init.usePackage = {
       elm-mode = {

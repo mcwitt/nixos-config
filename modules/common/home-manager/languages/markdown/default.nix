@@ -7,6 +7,7 @@ in
     mkEnableOption "Markdown language environment";
 
   config = mkIf cfg.enable {
+
     home.packages = [ pkgs.mdl ];
 
     programs.emacs.init.usePackage = {

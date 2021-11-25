@@ -7,8 +7,6 @@ in
 
   config = mkIf cfg.enable {
 
-    home.packages = with pkgs; [ terraform terraform-ls ];
-
     programs.emacs.init.usePackage = {
 
       lsp-terraform = {

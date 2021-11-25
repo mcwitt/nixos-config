@@ -6,7 +6,7 @@ in
   options.languages.python = {
     enable = mkEnableOption "Python language environment";
 
-    extraPackages = mkOption {
+    globalPackages = mkOption {
       default = self: [ ];
       type = hm.types.selectorFunction;
       defaultText = "pypkgs: []";
@@ -19,20 +19,8 @@ in
 
   config = mkIf cfg.enable {
     home.packages =
-      let
-        pythonEnv = pkgs.python3.withPackages
-          (ps:
-            (with ps; [
-              black
-              flake8
-              mypy
-            ]) ++ cfg.extraPackages ps);
-      in
-      [
-        pkgs.nodePackages.pyright
-        pythonEnv
-      ];
-
+      let pythonEnv = pkgs.python3.withPackages (ps: cfg.globalPackages ps);
+      in [ pythonEnv ];
 
     programs.emacs.init.usePackage = {
 
@@ -79,7 +67,7 @@ in
     programs.jupyterlab.kernels = [
       (ks: ks.iPythonWith {
         name = "python";
-        packages = cfg.extraPackages;
+        packages = cfg.globalPackages;
       })
     ];
 

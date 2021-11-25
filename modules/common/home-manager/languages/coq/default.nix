@@ -7,8 +7,6 @@ in
 
   config = mkIf cfg.enable {
 
-    home.packages = [ pkgs.coq ];
-
     programs.emacs.init.usePackage = {
 
       proof-general = {

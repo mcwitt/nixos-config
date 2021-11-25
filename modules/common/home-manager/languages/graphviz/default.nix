@@ -7,6 +7,7 @@ in
     mkEnableOption "Graphviz Dot language environment";
 
   config = mkIf cfg.enable {
+
     home.packages = [ pkgs.graphviz ];
 
     programs.emacs.init.usePackage = {

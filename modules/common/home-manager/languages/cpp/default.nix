@@ -7,12 +7,6 @@ in
 
   config = mkIf cfg.enable {
 
-    home.packages = with pkgs; [
-      bear
-      clang-tools
-      cmake-language-server
-    ];
-
     programs.emacs.init.usePackage = {
 
       cmake-mode = {

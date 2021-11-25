@@ -6,7 +6,7 @@ in
   options.languages.scala.enable = mkEnableOption "Scala language environment";
 
   config = mkIf cfg.enable {
-    home.packages = with pkgs; [ ammonite metals sbt scalafmt ];
+    home.packages = [ pkgs.ammonite ];
 
     programs.emacs.init.usePackage = {
 

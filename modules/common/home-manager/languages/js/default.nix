@@ -8,11 +8,6 @@ in
   options.languages.js.enable = mkEnableOption "JavaScript/TypeScript language environment";
 
   config = mkIf cfg.enable {
-    home.packages = [ pkgs.nodejs ] ++ (with pkgs.nodePackages; [
-      prettier
-      typescript
-      typescript-language-server
-    ]);
 
     home.file.".npmrc".text = ''
       prefix=${prefix}

@@ -6,7 +6,7 @@ in
   options.languages.go.enable = mkEnableOption "Go language environment";
 
   config = mkIf cfg.enable {
-    home.packages = with pkgs; [ golint gopls ];
+
     programs.go.enable = true;
 
     programs.emacs.init.usePackage = {

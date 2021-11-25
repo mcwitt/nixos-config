@@ -6,7 +6,7 @@ in
   options.languages.haskell = {
     enable = mkEnableOption "Haskell language environment";
 
-    extraPackages = mkOption {
+    globalPackages = mkOption {
       default = self: [ ];
       type = hm.types.selectorFunction;
       defaultText = "hpkgs: []";
@@ -17,27 +17,16 @@ in
     };
 
     hoogle.enable = mkEnableOption
-      "Install a local hoogle with docs for packages in extraPackages.";
+      "Install a local hoogle with docs for packages in globalPackages.";
   };
 
   config = mkIf cfg.enable {
     home.packages =
       let
         ghcWithPackages' = with pkgs.haskellPackages; if cfg.hoogle.enable then ghcWithHoogle else ghcWithPackages;
-        ghcEnv = ghcWithPackages' cfg.extraPackages;
+        ghcEnv = ghcWithPackages' cfg.globalPackages;
       in
-      [ ghcEnv ] ++ (with pkgs.haskellPackages;
-      [
-        brittany
-        cabal-fmt
-        cabal-install
-        ghcEnv
-        ghcid
-        haskell-language-server
-        hlint
-        ormolu
-        stack
-      ]);
+      [ ghcEnv ];
 
     programs.emacs.init.usePackage = {
 
@@ -111,7 +100,7 @@ in
     programs.jupyterlab.kernels = [
       (ks: ks.iHaskellWith {
         name = "haskell";
-        packages = cfg.extraPackages;
+        packages = cfg.globalPackages;
         extraIHaskellFlags = "--codemirror Haskell"; # for jupyterlab syntax highlighting
       })
     ];

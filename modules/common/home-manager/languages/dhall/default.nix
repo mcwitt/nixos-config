@@ -7,13 +7,6 @@ in
 
   config = mkIf cfg.enable {
 
-    home.packages = with pkgs; [
-      dhall
-      dhall-json
-      dhall-lsp-server
-      haskellPackages.dhall-yaml
-    ];
-
     programs.emacs.init.usePackage = {
 
       lsp-dhall = {

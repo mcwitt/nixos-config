@@ -12,7 +12,7 @@ in
       haskell = {
         enable = true;
         hoogle.enable = true;
-        extraPackages = ps: with ps; [
+        globalPackages = ps: with ps; [
           aeson
           array
           containers
@@ -39,12 +39,12 @@ in
 
       python = {
         enable = true;
-        extraPackages = ps: with ps; [
+        globalPackages = ps: with ps; [
           httpx
           hypothesis
           matplotlib
           pandas
-          seaborn
+          # seaborn
           toolz
         ];
       };
