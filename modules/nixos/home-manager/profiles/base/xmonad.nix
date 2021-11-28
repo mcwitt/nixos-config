@@ -1,7 +1,5 @@
 { config, lib, pkgs, ... }:
 {
-  home.packages = [ pkgs.dmenu ];
-
   programs.xmobar = let cfg = config.programs.xmobar.rc; in
     {
       enable = true;
@@ -72,14 +70,13 @@
       import Data.List (isInfixOf)
       import Data.Ratio ((%))
       import XMonad
-      import XMonad.Actions.WindowBringer (bringMenu, gotoMenu)
       import XMonad.Hooks.DynamicLog
+      import XMonad.Hooks.EwmhDesktops
       import XMonad.Hooks.ManageDocks (ToggleStruts (ToggleStruts), avoidStruts, docks, manageDocks)
       import XMonad.Layout.MultiToggle (Toggle (Toggle), mkToggle, single)
       import XMonad.Layout.NoBorders (smartBorders)
       import XMonad.Layout.Reflect (REFLECTX (REFLECTX))
       import XMonad.Prompt
-      import XMonad.Prompt.Shell (shellPrompt)
       import XMonad.Util.EZConfig (additionalKeys, additionalKeysP)
       import XMonad.Util.Run (hPutStrLn, spawnPipe)
 
@@ -105,6 +102,7 @@
         xmobarProc <- spawnPipe "${pkgs.xmobar}/bin/xmobar"
         xmonad
           . docks
+          . ewmh
           $ def
             { borderWidth = 5,
               normalBorderColor = "#073642",
@@ -125,14 +123,16 @@
               modMask = mod4Mask,
               terminal = "urxvt"
             }
-            `additionalKeys` [ ((mod4Mask, xK_p), shellPrompt myPromptConfig),
-                               ((mod4Mask, xK_f), sendMessage $ Toggle REFLECTX),
+            `additionalKeys` [ ((mod4Mask, xK_f), sendMessage $ Toggle REFLECTX),
                                ((mod4Mask, xK_b), sendMessage ToggleStruts),
-                               ((mod4Mask, xK_g), gotoMenu),
-                               ((mod4Mask, xK_r), bringMenu),
-                               ((mod4Mask, xK_y), spawn "${config.programs.emacs.finalPackage}/bin/emacsclient -c -n -e '(switch-to-buffer nil)'"),
-                               ((mod4Mask, xK_u), spawn "${config.programs.chromium.package}/bin/chromium-browser"),
-                               ((mod4Mask, xK_s), spawn "${pkgs.lightdm}/bin/dm-tool switch-to-greeter")
+                               ((mod4Mask, xK_g), spawn "rofi -show window"),
+                               ((mod4Mask, xK_p), spawn "rofi -show drun"),
+                               ((mod4Mask + shiftMask, xK_p), spawn "rofi -show run"),
+                               ((mod4Mask, xK_o), spawn "rofi-pass"),
+                               ((mod4Mask, xK_i), spawn "rofi -show ssh"),
+                               ((mod4Mask, xK_y), spawn "emacsclient -c -n -e '(switch-to-buffer nil)'"),
+                               ((mod4Mask, xK_u), spawn "chromium-browser"),
+                               ((mod4Mask, xK_s), spawn "dm-tool switch-to-greeter")
                              ]
               `additionalKeysP` [ ("<XF86MonBrightnessUp>", spawn "xbacklight -inc 2"),
                                   ("<XF86MonBrightnessDown>", spawn "xbacklight -dec 2"),

@@ -60,6 +60,16 @@ in
 
   programs.git.ignores = pkgs.mcwitt.gitignore.ghGitIgnoreLines "Global/Linux";
 
+  programs.rofi = {
+    enable = true;
+    font = "Iosevka 12";
+    pass.enable = true;
+    theme = "solarized";
+    extraConfig = {
+      modi = "window,run,ssh,drun";
+    };
+  };
+
   programs.urxvt = {
     enable = true;
     fonts = [ "xft:FiraCode Nerd Font Mono:size=10:antialias=true" ];
