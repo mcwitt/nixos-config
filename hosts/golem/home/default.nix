@@ -32,4 +32,8 @@ in
     icon_size = statusBarHeight * 7 / 8;
     slot_size = statusBarHeight;
   };
+
+  xresources.properties = {
+    "*dpi" = 183;
+  };
 }

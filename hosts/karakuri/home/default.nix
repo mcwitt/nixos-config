@@ -62,5 +62,9 @@ in
     slot_size = statusBarHeight;
   };
 
+  xresources.properties = {
+    "*dpi" = 240;
+  };
+
   xsession.pointerCursor.size = 64;
 }
