@@ -1,3 +1,4 @@
+{ lib, ... }:
 let statusBarHeight = 36;
 in
 {
@@ -5,6 +6,8 @@ in
     ../../../modules/common/home-manager
     ../../../modules/nixos/home-manager
   ];
+
+  programs.rofi.font = lib.mkForce "Iosevka 20"; # HACK since dpi setting in Xresources seems ignored
 
   programs.xmobar = {
     enable = true;
@@ -35,5 +38,6 @@ in
 
   xresources.properties = {
     "*dpi" = 183;
+    "Xft.dpi" = 183;
   };
 }
