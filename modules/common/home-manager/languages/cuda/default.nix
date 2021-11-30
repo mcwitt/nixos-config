@@ -22,8 +22,16 @@ in
       };
     };
 
-    programs.vscode.extensions = [
-      pkgs.mcwitt.vscode-extensions.NVIDIA.nsight-vscode-edition
-    ];
+    programs.vscode = {
+
+      extensions = [
+        pkgs.mcwitt.vscode-extensions.NVIDIA.nsight-vscode-edition
+      ];
+
+      userSettings.files.associations = {
+        "*.cu" = "cpp";
+        "*.cuh" = "cpp";
+      };
+    };
   };
 }
