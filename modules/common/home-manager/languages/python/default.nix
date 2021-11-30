@@ -20,7 +20,12 @@ in
   config = mkIf cfg.enable {
     home.packages =
       let pythonEnv = pkgs.python3.withPackages (ps: cfg.globalPackages ps);
-      in [ pythonEnv ];
+      in
+      [
+        pkgs.black
+        pkgs.pyright
+        pythonEnv
+      ];
 
     programs.emacs.init.usePackage = {
 
