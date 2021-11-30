@@ -194,6 +194,7 @@ let sources = import ../../../../../nix/sources.nix; in
     enable = true;
     extensions = with pkgs.vscode-extensions; [
       arrterian.nix-env-selector
+      ms-toolsai.jupyter
       vscodevim.vim
     ];
     package = pkgs.vscodium;
