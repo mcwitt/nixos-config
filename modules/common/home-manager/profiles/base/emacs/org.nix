@@ -350,6 +350,10 @@ in
 
       org-roam-ui = {
         enable = true;
+        diminish = [
+          "org-roam-ui-mode"
+          "org-roam-ui-follow-mode"
+        ];
         after = [ "org-roam" ];
         command = [ "org-roam-ui-mode" ];
         config = ''
