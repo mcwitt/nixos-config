@@ -191,7 +191,8 @@ in
           "C-c o s" = "org-notes-save-and-sync";
         };
         bindLocal.org-mode-map = {
-          "C-c C-x l" = "org-toggle-link-display";
+          "C-c C-x l d" = "org-toggle-link-display";
+          "C-c C-x l i" = "org-insert-link";
         };
         hook = [
           "(org-mode . turn-on-visual-line-mode)"
