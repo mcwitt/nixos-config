@@ -199,6 +199,20 @@ let sources = import ../../../../../nix/sources.nix; in
       vscodevim.vim
     ];
     package = pkgs.vscodium;
+
+    keybindings = [
+      {
+        key = "alt+n";
+        command = "editor.action.marker.nextInFiles";
+        when = "editorFocus";
+      }
+      {
+        key = "alt+p";
+        command = "editor.action.marker.prevInFiles";
+        when = "editorFocus";
+      }
+    ];
+
     userSettings = {
       update.mode = "none";
       extensions.autoUpdate = false;
@@ -207,19 +221,6 @@ let sources = import ../../../../../nix/sources.nix; in
         fontFamily = "'Fira Code'";
         fontLigatures = true;
       };
-      keybindings =
-        [
-          {
-            key = "alt+n";
-            command = "editor.action.marker.nextInFiles";
-            when = "editorFocus";
-          }
-          {
-            key = "alt+p";
-            command = "editor.action.marker.prevInFiles";
-            when = "editorFocus";
-          }
-        ];
       vim = {
         hlsearch = true;
         insertModeKeyBindings = [{
