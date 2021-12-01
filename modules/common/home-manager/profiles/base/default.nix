@@ -216,13 +216,16 @@ let sources = import ../../../../../nix/sources.nix; in
     ];
 
     userSettings = {
+
       update.mode = "none";
       extensions.autoUpdate = false;
       workbench.colorTheme = "Solarized Dark";
+
       editor = {
         fontFamily = "'Fira Code'";
         fontLigatures = true;
       };
+
       vim = {
         hlsearch = true;
         insertModeKeyBindings = [{
