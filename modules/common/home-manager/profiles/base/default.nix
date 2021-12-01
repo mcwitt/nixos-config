@@ -191,14 +191,16 @@ let sources = import ../../../../../nix/sources.nix; in
   };
 
   programs.vscode = {
+
     enable = true;
+    package = pkgs.vscodium-fhs;
+
     extensions = with pkgs.vscode-extensions; [
       arrterian.nix-env-selector
       ms-toolsai.jupyter
       ms-vsliveshare.vsliveshare
       vscodevim.vim
     ];
-    package = pkgs.vscodium;
 
     keybindings = [
       {
