@@ -42,7 +42,10 @@
         };
       };
 
-      font.normal.family = "FiraCode Nerd Font";
+      font = {
+        normal.family = "FiraCode Nerd Font";
+        size = 10;
+      };
 
       window.padding = {
         x = 5;
@@ -54,5 +57,6 @@
   # work around "unknown terminal type" issue with ssh
   programs.fish.shellAliases.ssh =
     "TERM=xterm-256color ${pkgs.openssh}/bin/ssh";
-  programs.zsh.shellAliases.ssh = "TERM=xterm-256color ${pkgs.openssh}/bin/ssh";
+  programs.zsh.shellAliases.ssh =
+    "TERM=xterm-256color ${pkgs.openssh}/bin/ssh";
 }
