@@ -4,5 +4,5 @@ in
 {
   ghGitIgnoreLines = path:
     lib.splitString "\n"
-      (builtins.readFile "${sources.github-gitignore}/${path}.gitignore");
+      (builtins.readFile "${sources.gitignore}/${path}.gitignore");
 }
