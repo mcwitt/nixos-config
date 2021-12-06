@@ -50,6 +50,7 @@ in
       };
     } // pkgs.mcwitt.lib.setAll { enable = true; } [
       "R"
+      "agda"
       "coq"
       "dhall"
       "elm"

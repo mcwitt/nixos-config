@@ -1,6 +1,7 @@
 {
   imports = [
     ./R
+    ./agda
     ./coq
     ./cpp
     ./cuda
