@@ -115,7 +115,10 @@ in
   services.gammastep = {
     enable = true;
     tray = true;
-    settings.general.brightness-night = 0.6;
+    settings.general = {
+      adjustment-method = "randr";
+      brightness-night = 0.6;
+    };
   };
 
   services.gpg-agent = {

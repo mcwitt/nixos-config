@@ -49,7 +49,12 @@ in
 
   services.geoclue2 = {
     enable = true;
-    enableWifi = true;
+    appConfig = {
+      "gammastep" = {
+        isAllowed = true;
+        isSystem = false;
+      };
+    };
   };
 
   services.printing.enable = true;
