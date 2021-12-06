@@ -2,6 +2,5 @@
   imports = [
     ./emacs
     ./jupyterlab
-    ./thefuck
   ];
 }
