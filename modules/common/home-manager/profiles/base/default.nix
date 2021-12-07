@@ -8,22 +8,21 @@ let sources = import ../../../../../nix/sources.nix; in
   home.packages = with pkgs;
     [
       bat
-      pkgs.mcwitt.scripts
-      nix-du
-      nix-index
-      pandoc
-      proselint
-      yq
-    ] ++ (with gitAndTools; [
       delta
       git-annex
       git-crypt
       git-remote-gcrypt
       hub
       lab
+      nix-du
+      nix-index
+      pandoc
+      pkgs.mcwitt.scripts
       pre-commit
+      proselint
       ripgrep
-    ]);
+      yq
+    ];
 
   home.sessionPath = [ "${config.home.homeDirectory}/.local/bin" ];
 
@@ -260,9 +259,9 @@ let sources = import ../../../../../nix/sources.nix; in
     l = "${pkgs.coreutils}/bin/ls --color=auto -alh";
     ll = "${pkgs.coreutils}/bin/ls --color=auto -l";
     ls = "${pkgs.coreutils}/bin/ls --color=auto";
-    git = "${pkgs.gitAndTools.hub}/bin/hub";
-    g = "${pkgs.gitAndTools.hub}/bin/hub";
-    ga = "${pkgs.gitAndTools.git-annex}/bin/git-annex";
+    git = "${pkgs.hub}/bin/hub";
+    g = "${pkgs.hub}/bin/hub";
+    ga = "${pkgs.git-annex}/bin/git-annex";
     gb = "${pkgs.git}/bin/git b";
     gca = "${pkgs.git}/bin/git ca";
     gd = "${pkgs.git}/bin/git d";
