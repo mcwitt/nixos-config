@@ -7,7 +7,7 @@ in
     enable = mkEnableOption "Python language environment";
 
     globalPackages = mkOption {
-      default = self: [ ];
+      default = _: [ ];
       type = hm.types.selectorFunction;
       defaultText = "pypkgs: []";
       example = literalExample "pypkgs: with pypkgs; [ black pandas requests ]";
@@ -19,7 +19,7 @@ in
 
   config = mkIf cfg.enable {
     home.packages =
-      let pythonEnv = pkgs.python3.withPackages (ps: cfg.globalPackages ps);
+      let pythonEnv = pkgs.python3.withPackages cfg.globalPackages;
       in
       [
         pkgs.black

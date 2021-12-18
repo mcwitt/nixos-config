@@ -1,3 +1,5 @@
-self: super:
 let sources = import ../../nix/sources.nix;
-in { nur = import sources.nur { pkgs = super; }; }
+in
+_: pkgs: {
+  nur = import sources.nur { inherit pkgs; };
+}

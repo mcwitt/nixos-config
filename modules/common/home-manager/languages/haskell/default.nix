@@ -7,7 +7,7 @@ in
     enable = mkEnableOption "Haskell language environment";
 
     globalPackages = mkOption {
-      default = self: [ ];
+      default = _: [ ];
       type = hm.types.selectorFunction;
       defaultText = "hpkgs: []";
       example = literalExample "hpkgs: [ hpkgs.aeson hpkgs.lens ]";

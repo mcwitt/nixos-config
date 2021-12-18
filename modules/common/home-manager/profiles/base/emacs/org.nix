@@ -1,7 +1,5 @@
-{ config, lib, pkgs, ... }:
+{ lib, pkgs, ... }:
 with lib;
-let usePackageCfg = config.programs.emacs.init.usePackage;
-in
 {
   programs.emacs.init = {
     prelude = ''

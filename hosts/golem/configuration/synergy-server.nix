@@ -1,4 +1,4 @@
-{ lib, pkgs, ... }:
+{ lib, ... }:
 {
   networking.firewall = {
     allowedTCPPorts = lib.mkAfter [ 24800 ];

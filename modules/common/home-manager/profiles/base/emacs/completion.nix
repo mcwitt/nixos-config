@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ lib, ... }:
 with lib;
 {
   programs.emacs.init.usePackage = {

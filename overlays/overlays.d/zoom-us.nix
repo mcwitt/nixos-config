@@ -1,4 +1,4 @@
-self: super:
+_: super:
 let nixpkgs = import
   (super.fetchFromGitHub {
     owner = "NixOS";

@@ -1,11 +1,9 @@
-self: super:
-let inherit (self) callPackage;
-in
+self: _:
 {
   mcwitt = {
-    gitignore = callPackage ./gitignore.nix { };
-    lib = callPackage ./lib.nix { };
-    scripts = callPackage ./scripts { };
-    vscode-extensions = callPackage ./vscode-extensions { };
+    gitignore = self.callPackage ./gitignore.nix { };
+    lib = self.callPackage ./lib.nix { };
+    scripts = self.callPackage ./scripts { };
+    vscode-extensions = self.callPackage ./vscode-extensions { };
   };
 }
