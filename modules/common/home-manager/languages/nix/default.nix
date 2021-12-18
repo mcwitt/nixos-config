@@ -10,6 +10,7 @@ in
       cachix
       niv
       nix-info
+      nix-linter
       nix-prefetch-git
       nix-prefetch-github
       nixfmt
