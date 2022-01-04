@@ -79,7 +79,7 @@ in
     mediaKeys.enable = true;
   };
 
-  system.stateVersion = "20.09";
+  system.stateVersion = "21.11";
 
   time.timeZone = "America/Los_Angeles";
 
