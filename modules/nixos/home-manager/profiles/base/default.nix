@@ -67,6 +67,7 @@ in
     theme = "solarized";
     extraConfig = {
       modi = "window,run,ssh,drun";
+      terminal = "alacritty";
     };
   };
 
