@@ -9,6 +9,7 @@
     ./lsp.nix
     ./org.nix
     ./pdf-tools.nix
+    ./tree-sitter.nix
     ./treemacs.nix
   ];
 

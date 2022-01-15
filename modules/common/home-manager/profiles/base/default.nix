@@ -3,7 +3,10 @@
 let sources = import ../../../../../nix/sources.nix; in
 {
 
-  imports = [ ./emacs ];
+  imports = [
+    ./emacs
+    ./neovim
+  ];
 
   home.packages = with pkgs;
     [
@@ -114,42 +117,6 @@ let sources = import ../../../../../nix/sources.nix; in
   programs.home-manager.enable = true;
 
   programs.mpv.enable = true;
-
-  programs.neovim = {
-    enable = true;
-    vimAlias = true;
-    vimdiffAlias = true;
-    withPython3 = true;
-    plugins = with pkgs.vimPlugins; [
-      YouCompleteMe
-      vim-airline
-      ctrlp-vim
-      vim-fugitive
-      vim-gitgutter
-      nvim-lightbulb
-      vim-surround
-      syntastic
-      tagbar
-    ];
-    extraConfig = ''
-      set expandtab
-      set shiftwidth=2
-      set softtabstop=2
-      set nojoinspaces
-
-      " fd returns to normal mode
-      inoremap fd <esc>
-
-      set statusline+=%#warningmsg#
-      set statusline+=%{SyntasticStatuslineFlag()}
-      set statusline+=%*
-
-      let g:syntastic_always_populate_loc_list = 1
-      let g:syntastic_auto_loc_list = 1
-      let g:syntastic_check_on_open = 1
-      let g:syntastic_check_on_wq = 0
-    '';
-  };
 
   programs.password-store = {
     enable = true;
