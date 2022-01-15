@@ -42,12 +42,6 @@ in
           ''("\\.hs\\'" . haskell-mode)''
           ''("\\.lhs\\'" . haskell-literate-mode)''
         ];
-        hook = [
-          ''
-            (haskell-mode . (lambda ()
-                              (setq-local format-all-formatters '(("Haskell" ormolu)))))
-          ''
-        ];
         bindLocal.haskell-mode-map = {
           "C-c C-h" = "haskell-hoogle-lookup-from-local";
         };
@@ -86,7 +80,6 @@ in
 
       reformatter = {
         enable = true;
-        hook = [ "(haskell-cabal-mode . cabal-fmt-on-save-mode)" ];
         config = ''
           (reformatter-define cabal-fmt
               :program "cabal-fmt"
