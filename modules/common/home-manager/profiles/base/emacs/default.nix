@@ -430,7 +430,7 @@
 
     string-inflection = {
       enable = true;
-      bind = { "C-c C-u" = "string-inflection-all-cycle"; };
+      bind = { "C-c u" = "string-inflection-all-cycle"; };
     };
 
     undo-tree = {
