@@ -73,8 +73,6 @@
     moonlander.enable = true;
   };
 
-  services.openssh.enable = true;
-
   services.printing = {
     enable = true;
     drivers = [ pkgs.brlaser ];

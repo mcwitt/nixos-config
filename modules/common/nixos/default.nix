@@ -43,7 +43,6 @@
     less
     lsof
     ncdu
-    openssh
     openssl
     parallel
     perl
