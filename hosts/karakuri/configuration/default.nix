@@ -59,6 +59,11 @@ in
 
   services.printing.enable = true;
 
+  services.synergy.client = {
+    enable = true;
+    serverAddress = "golem.local";
+  };
+
   services.xserver = {
     enable = true;
     desktopManager.xterm.enable = true;
