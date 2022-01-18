@@ -143,5 +143,17 @@
         "type": "tarball",
         "url": "https://github.com/seebi/tmux-colors-solarized/archive/e5e7b4f1af37f8f3fc81ca17eadee5ae5d82cd09.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "z": {
+        "branch": "master",
+        "description": "Pure-fish z directory jumping",
+        "homepage": "",
+        "owner": "jethrokuan",
+        "repo": "z",
+        "rev": "45a9ff6d0932b0e9835cbeb60b9794ba706eef10",
+        "sha256": "1kjyl4gx26q8175wcizvsm0jwhppd00rixdcr1p7gifw6s308sd5",
+        "type": "tarball",
+        "url": "https://github.com/jethrokuan/z/archive/45a9ff6d0932b0e9835cbeb60b9794ba706eef10.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }

@@ -51,8 +51,6 @@ let sources = import ../../../../../nix/sources.nix; in
 
   programs.fish = {
     enable = true;
-    shellAliases.cdr =
-      lib.mkForce "cd (${pkgs.git}/bin/git rev-parse --show-toplevel)";
 
     functions = {
       fish_user_key_bindings = ''
@@ -65,6 +63,14 @@ let sources = import ../../../../../nix/sources.nix; in
     interactiveShellInit = ''
       set fish_key_bindings fish_user_key_bindings
     '';
+
+    plugins = [{
+      name = "z";
+      src = sources.z;
+    }];
+
+    shellAliases.cdr =
+      lib.mkForce "cd (${pkgs.git}/bin/git rev-parse --show-toplevel)";
   };
 
   programs.fzf = {
