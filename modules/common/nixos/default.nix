@@ -38,7 +38,6 @@
     gzip
     htop
     imagemagick
-    jq
     killall
     less
     lsof

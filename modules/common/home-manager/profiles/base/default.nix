@@ -10,7 +10,6 @@ let sources = import ../../../../../nix/sources.nix; in
 
   home.packages = with pkgs;
     [
-      bat
       delta
       git-annex
       git-crypt
@@ -19,7 +18,6 @@ let sources = import ../../../../../nix/sources.nix; in
       lab
       nix-du
       nix-index
-      pandoc
       pkgs.mcwitt.scripts
       pre-commit
       proselint
@@ -37,6 +35,8 @@ let sources = import ../../../../../nix/sources.nix; in
   home.stateVersion = "20.09";
 
   languages.nix.enable = true;
+
+  programs.bat.enable = true;
 
   programs.browserpass.enable = true;
 
@@ -121,7 +121,11 @@ let sources = import ../../../../../nix/sources.nix; in
 
   programs.home-manager.enable = true;
 
+  programs.jq.enable = true;
+
   programs.mpv.enable = true;
+
+  programs.pandoc.enable = true;
 
   programs.password-store = {
     enable = true;
