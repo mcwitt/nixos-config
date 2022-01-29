@@ -64,11 +64,6 @@ let sources = import ../../../../../nix/sources.nix; in
       set fish_key_bindings fish_user_key_bindings
     '';
 
-    plugins = [{
-      name = "z";
-      src = sources.z;
-    }];
-
     shellAliases.cdr =
       lib.mkForce "cd (${pkgs.git}/bin/git rev-parse --show-toplevel)";
   };
