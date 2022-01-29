@@ -118,6 +118,11 @@ let sources = import ../../../../../nix/sources.nix; in
 
   programs.jq.enable = true;
 
+  programs.lsd = {
+    enable = true;
+    enableAliases = true;
+  };
+
   programs.mpv.enable = true;
 
   programs.pandoc.enable = true;
@@ -227,9 +232,6 @@ let sources = import ../../../../../nix/sources.nix; in
     cdr = ''cd "$(${pkgs.git}/bin/git rev-parse --show-toplevel)"'';
     ec = "${config.programs.emacs.finalPackage}/bin/emacsclient --create-frame";
     ff = "${pkgs.fd}/bin/fd";
-    l = "${pkgs.coreutils}/bin/ls --color=auto -alh";
-    ll = "${pkgs.coreutils}/bin/ls --color=auto -l";
-    ls = "${pkgs.coreutils}/bin/ls --color=auto";
     git = "${pkgs.hub}/bin/hub";
     g = "${pkgs.hub}/bin/hub";
     ga = "${pkgs.git-annex}/bin/git-annex";
