@@ -32,7 +32,7 @@ let sources = import ../../../../../nix/sources.nix; in
     ALTERNATE_EDITOR = "${pkgs.vim}/bin/vim";
   };
 
-  home.stateVersion = "20.09";
+  home.stateVersion = "21.11";
 
   languages.nix.enable = true;
 
