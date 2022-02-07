@@ -106,7 +106,7 @@
 
   users.users.matt = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "docker" "plugdev" ];
+    extraGroups = [ "wheel" "docker" ];
     shell = pkgs.fish;
   };
 
