@@ -66,7 +66,7 @@
     interfaces.enp0s31f6.useDHCP = true;
   };
 
-  nix.trustedUsers = [ "root" "@wheel" "matt" ];
+  nix.settings.trusted-users = [ "root" "@wheel" "matt" ];
 
   profiles = {
     personal.enable = true;
