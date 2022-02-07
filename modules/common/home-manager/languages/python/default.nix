@@ -58,6 +58,14 @@ in
         ];
       };
 
+      py-isort = {
+        enable = true;
+        command = [
+          "py-isort-buffer"
+          "py-isort-region"
+        ];
+      };
+
       python-mode = {
         enable = true;
         mode = [ ''"\\.py\\'"'' ];
