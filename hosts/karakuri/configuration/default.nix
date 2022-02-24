@@ -4,7 +4,7 @@ let sources = import ../../../nix/sources.nix;
 in
 {
   imports = [
-    <home-manager/nixos>
+    "${sources.home-manager}/nixos"
     ../../../modules/common/nixos
     ../../../modules/nixos/nixos
     "${sources.nixos-hardware}/lenovo/thinkpad/x1/7th-gen"

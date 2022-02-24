@@ -1,8 +1,9 @@
 { pkgs, ... }:
 
+let sources = import ../../../nix/sources.nix; in
 {
   imports = [
-    <home-manager/nix-darwin>
+    "${sources.home-manager}/nix-darwin"
     ../../../modules/common/nixos
   ];
 
