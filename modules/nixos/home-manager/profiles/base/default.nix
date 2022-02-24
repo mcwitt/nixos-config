@@ -63,9 +63,10 @@ in
     enable = true;
     font = "Iosevka 12";
     pass.enable = true;
+    plugins = with pkgs; [ rofi-calc rofi-emoji ];
     theme = "solarized";
     extraConfig = {
-      modi = "window,run,ssh,drun";
+      modi = "window,run,ssh,drun,calc,emoji";
       terminal = "alacritty";
     };
   };
