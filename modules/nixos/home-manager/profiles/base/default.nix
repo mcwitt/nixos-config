@@ -2,7 +2,11 @@
 let sources = import ../../../../../nix/sources.nix;
 in
 {
-  imports = [ ./alacritty.nix ./xmonad.nix ];
+  imports = [
+    ./alacritty.nix
+    ./rofi.nix
+    ./xmonad.nix
+  ];
 
   home.packages = with pkgs; [
     libnotify
@@ -58,18 +62,6 @@ in
   };
 
   programs.git.ignores = pkgs.mcwitt.gitignore.ghGitIgnoreLines "Global/Linux";
-
-  programs.rofi = {
-    enable = true;
-    font = "Iosevka 12";
-    pass.enable = true;
-    plugins = with pkgs; [ rofi-calc rofi-emoji ];
-    theme = "solarized";
-    extraConfig = {
-      modi = "window,run,ssh,drun,calc,emoji";
-      terminal = "alacritty";
-    };
-  };
 
   programs.urxvt = {
     enable = true;
