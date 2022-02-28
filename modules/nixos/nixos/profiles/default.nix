@@ -1,7 +1,7 @@
 {
   imports = [
     ./base
-    ./moonlander
+    ./moonlander.nix
     ./personal
   ];
 }

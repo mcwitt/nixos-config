@@ -71,7 +71,10 @@ let sources = import ../../../nix/sources.nix; in
 
   profiles = {
     personal.enable = true;
-    moonlander.enable = true;
+    moonlander = {
+      enable = true;
+      allowedUsers = [ "matt" ];
+    };
   };
 
   services.printing = {
