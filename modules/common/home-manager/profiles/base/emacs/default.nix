@@ -85,6 +85,13 @@
       '';
     };
 
+    all-the-icons-completion = {
+      enable = true;
+      config = ''
+        (all-the-icons-completion-mode)
+      '';
+    };
+
     all-the-icons-dired = {
       enable = true;
       command = [ "all-the-icons-dired-mode" ];
