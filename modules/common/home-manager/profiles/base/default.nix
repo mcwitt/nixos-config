@@ -4,6 +4,7 @@ let sources = import ../../../../../nix/sources.nix; in
 {
 
   imports = [
+    ./alacritty.nix
     ./emacs
     ./neovim
   ];

@@ -3,7 +3,6 @@ let sources = import ../../../../../nix/sources.nix;
 in
 {
   imports = [
-    ./alacritty.nix
     ./rofi.nix
     ./xmonad.nix
   ];
