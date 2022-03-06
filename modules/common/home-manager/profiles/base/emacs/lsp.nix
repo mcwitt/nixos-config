@@ -63,7 +63,7 @@
       enable = true;
       command = [ "lsp-ui-mode" ];
       bindLocal.lsp-ui-mode-map = {
-        "C-c g" = "lsp-ui-doc-glance";
+        "C-c d" = "lsp-ui-doc-glance";
       };
     };
 
@@ -73,6 +73,7 @@
       config = ''
         (setq lsp-ui-doc-enable nil)
         (setq lsp-ui-doc-position 'at-point)
+        (setq lsp-ui-doc-show-with-cursor t)
         (setq lsp-ui-doc-show-with-mouse nil)
       '';
     };
