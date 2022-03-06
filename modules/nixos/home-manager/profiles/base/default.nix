@@ -67,6 +67,8 @@ in
     fonts = [ "xft:FiraCode Nerd Font Mono:size=10:antialias=true" ];
   };
 
+  programs.vscode.package = pkgs.vscodium-fhs;
+
   programs.zathura.enable = true;
 
   services.dunst = {
