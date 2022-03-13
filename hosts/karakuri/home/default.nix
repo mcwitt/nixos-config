@@ -65,8 +65,8 @@ in
   };
 
   xresources.properties = {
-    "*dpi" = 240;
-    "Xft.dpi" = 240;
+    "*dpi" = 200;
+    "Xft.dpi" = 200;
   };
 
   xsession.pointerCursor.size = 64;
