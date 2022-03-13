@@ -1,4 +1,4 @@
-{ pkgs, ... }: {
+{ lib, pkgs, ... }: {
   programs.alacritty = {
     enable = true;
 
@@ -44,7 +44,7 @@
 
       font = {
         normal.family = "FiraCode Nerd Font";
-        size = 10;
+        size = lib.mkDefault 10;
       };
 
       window.padding = {

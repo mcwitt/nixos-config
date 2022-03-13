@@ -25,14 +25,6 @@
       (scroll-bar-mode -1)
       (tool-bar-mode -1)
       (tooltip-mode -1)
-
-      (set-face-attribute 'default
-                          nil
-                          :height 100
-                          :family "Fira Code")
-      (set-face-attribute 'variable-pitch
-                          nil
-                          :family "DejaVu Sans")
     '';
 
     prelude = ''
