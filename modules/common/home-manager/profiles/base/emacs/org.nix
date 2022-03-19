@@ -332,10 +332,9 @@ with lib;
       org-roam-bibtex = {
         enable = true;
         diminish = [ "org-roam-bibtex-mode" ];
-        hook = [ "(org-roam-mode . org-roam-bibtex-mode)" ];
-        bindLocal.org-mode-map = {
-          "C-c n a" = "org-note-actions";
-        };
+        config = ''
+          (org-roam-bibtex-mode)
+        '';
       };
 
       org-roam-graph = {
