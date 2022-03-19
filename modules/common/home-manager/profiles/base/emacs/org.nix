@@ -304,6 +304,14 @@ with lib;
         };
       };
 
+      org-ref = {
+        enable = true;
+        command = [
+          "org-ref-bibtex-assoc-pdf-with-entry"
+          "org-ref-clean-bibtex-entry"
+        ];
+      };
+
       org-roam = {
         enable = true;
         init = ''
