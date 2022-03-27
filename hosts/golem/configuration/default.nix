@@ -77,6 +77,12 @@ let sources = import ../../../nix/sources.nix; in
     };
   };
 
+  services.avahi.publish = {
+    enable = true;
+    addresses = true;
+    workstation = true;
+  };
+
   services.printing = {
     enable = true;
     drivers = [ pkgs.brlaser ];
