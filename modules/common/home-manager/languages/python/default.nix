@@ -77,6 +77,8 @@ in
       };
     };
 
+    programs.git.ignores = pkgs.mcwitt.gitignore.ghGitIgnoreLines "Python";
+
     programs.jupyterlab.kernels = [
       (ks: ks.iPythonWith {
         name = "python";
