@@ -42,7 +42,6 @@ let sources = import ../../../../../nix/sources.nix; in
 
   programs.direnv = {
     enable = true;
-    enableBashIntegration = true;
     enableZshIntegration = true;
     nix-direnv.enable = true;
   };
@@ -152,7 +151,6 @@ let sources = import ../../../../../nix/sources.nix; in
 
   programs.starship = {
     enable = true;
-    enableBashIntegration = true;
     enableFishIntegration = true;
     enableZshIntegration = true;
     settings.directory.fish_style_pwd_dir_length = 1;
