@@ -18,7 +18,6 @@ let sources = import ../../../../../nix/sources.nix; in
       hub
       lab
       nix-du
-      nix-index
       pkgs.mcwitt.scripts
       pre-commit
       proselint
@@ -125,6 +124,12 @@ let sources = import ../../../../../nix/sources.nix; in
   };
 
   programs.mpv.enable = true;
+
+  programs.nix-index = {
+    enable = true;
+    enableFishIntegration = true;
+    enableZshIntegration = true;
+  };
 
   programs.pandoc.enable = true;
 
