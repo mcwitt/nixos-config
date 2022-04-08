@@ -10,7 +10,7 @@ with lib;
     (set-face-attribute 'default
                         nil
                         :height ${builtins.toString config.programs.emacs.init.faces.height}
-                        :family "Fira Code")
+                        :family "Fira Code Nerd Font")
     (set-face-attribute 'variable-pitch
                         nil
                         :family "DejaVu Sans")
