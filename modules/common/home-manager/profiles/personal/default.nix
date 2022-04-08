@@ -52,6 +52,8 @@ in
       "R"
       "agda"
       "coq"
+      "cpp"
+      "cuda"
       "dhall"
       "elm"
       "go"
