@@ -1,4 +1,4 @@
-{ lib, config, pkgs, ... }:
+{ lib, inputs, config, pkgs, ... }:
 with lib;
 let cfg = config.languages.python;
 in
@@ -81,14 +81,7 @@ in
       };
     };
 
-    programs.git.ignores = pkgs.mcwitt.gitignore.ghGitIgnoreLines "Python";
-
-    programs.jupyterlab.kernels = [
-      (ks: ks.iPythonWith {
-        name = "python";
-        packages = cfg.globalPackages;
-      })
-    ];
+    programs.git.ignores = inputs.self.lib.gitignores "Python";
 
     programs.neovim.plugins = [ pkgs.vimPlugins.coc-pyright ];
 

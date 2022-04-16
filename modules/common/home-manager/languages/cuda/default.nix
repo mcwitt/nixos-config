@@ -41,7 +41,7 @@ in
     programs.vscode = {
 
       extensions = [
-        pkgs.mcwitt.vscode-extensions.NVIDIA.nsight-vscode-edition
+        pkgs.vscode-extensions.NVIDIA.nsight-vscode-edition
       ];
 
       userSettings.files.associations = {

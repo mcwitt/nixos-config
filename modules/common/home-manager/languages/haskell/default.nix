@@ -112,14 +112,6 @@ in
       subword.hook = [ "(haskell-mode . subword-mode)" ];
     };
 
-    programs.jupyterlab.kernels = [
-      (ks: ks.iHaskellWith {
-        name = "haskell";
-        packages = cfg.globalPackages;
-        extraIHaskellFlags = "--codemirror Haskell"; # for jupyterlab syntax highlighting
-      })
-    ];
-
     programs.vscode = {
       extensions = with pkgs.vscode-extensions; [
         haskell.haskell

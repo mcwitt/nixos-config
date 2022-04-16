@@ -1,6 +1,4 @@
-{ config, lib, pkgs, ... }:
-
-let sources = import ../../../../../nix/sources.nix; in
+{ config, inputs, lib, pkgs, ... }:
 {
   imports = [ ./emacs ./neovim ];
 
@@ -69,7 +67,7 @@ let sources = import ../../../../../nix/sources.nix; in
       set fish_key_bindings fish_user_key_bindings
     '';
 
-    plugins = [{ name = "fzf.fish"; src = sources."fzf.fish"; }];
+    plugins = [{ name = "fzf.fish"; src = inputs."fzf.fish"; }];
     shellAliases.cdr = lib.mkForce "cd (${pkgs.git}/bin/git rev-parse --show-toplevel)";
   };
 
@@ -102,7 +100,7 @@ let sources = import ../../../../../nix/sources.nix; in
       ];
     };
 
-    ignores = (lib.concatMap pkgs.mcwitt.gitignore.ghGitIgnoreLines [
+    ignores = (lib.concatMap inputs.self.lib.gitignores [
       "Global/Vim"
       "Global/Emacs"
     ]) ++ [ ".direnv/" ];
@@ -176,7 +174,7 @@ let sources = import ../../../../../nix/sources.nix; in
   programs.tmux = {
     enable = true;
     keyMode = "vi";
-    extraConfig = builtins.readFile "${sources.tmux-colors-solarized}/tmuxcolors-dark.conf";
+    extraConfig = builtins.readFile "${inputs.tmux-colors-solarized}/tmuxcolors-dark.conf";
   };
 
   programs.vscode = {

@@ -1,9 +1,6 @@
-{ config, lib, pkgs, ... }:
+{ config, inputs, lib, pkgs, ... }:
 with lib;
-let
-  cfg = config.tools.kubernetes;
-  sources = import ../../../../../nix/sources.nix;
-in
+let cfg = config.tools.kubernetes; in
 {
   options.tools.kubernetes.enable =
     mkEnableOption "Kubernetes command-line tools";
@@ -13,6 +10,6 @@ in
     home.shellAliases.k = "${pkgs.kubectl}/bin/kubectl";
 
     xdg.configFile."fish/completions/kubectl.fish".source = mkIf config.programs.fish.enable
-      "${sources.fish-kubectl-completions}/completions/kubectl.fish";
+      "${inputs.fish-kubectl-completions}/completions/kubectl.fish";
   };
 }

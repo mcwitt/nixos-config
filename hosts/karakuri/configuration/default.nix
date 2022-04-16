@@ -1,13 +1,9 @@
-{ pkgs, ... }:
+{ inputs, pkgs, ... }:
 
-let sources = import ../../../nix/sources.nix;
-in
 {
   imports = [
-    "${sources.home-manager}/nixos"
-    ../../../modules/common/nixos
-    ../../../modules/nixos/nixos
-    "${sources.nixos-hardware}/lenovo/thinkpad/x1/7th-gen"
+    ./hardware-configuration.nix
+    "${inputs.nixos-hardware}/lenovo/thinkpad/x1/7th-gen"
   ];
 
   boot.loader = {
@@ -27,14 +23,6 @@ in
   };
 
   hardware.video.hidpi.enable = true;
-
-  home-manager = {
-    useGlobalPkgs = true;
-    users.matt = {
-      imports = [ ../home ];
-      profiles.personal.enable = true;
-    };
-  };
 
   networking = {
     hostName = "karakuri";

@@ -2,11 +2,6 @@
 let statusBarHeight = 54;
 in
 {
-  imports = [
-    ../../../modules/common/home-manager
-    ../../../modules/nixos/home-manager
-  ];
-
   home.pointerCursor = {
     size = 64;
     x11.enable = true;
