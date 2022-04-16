@@ -10,11 +10,6 @@
     experimental-features = nix-command flakes
   '';
 
-  nixpkgs = {
-    config.allowUnfree = true;
-    overlays = import ../../../../../overlays;
-  };
-
   programs.fish.enable = true;
 
   programs.mtr.enable = true;

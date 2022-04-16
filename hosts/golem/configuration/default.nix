@@ -1,10 +1,7 @@
 { pkgs, ... }:
-let sources = import ../../../nix/sources.nix; in
 {
   imports = [
-    "${sources.home-manager}/nixos"
-    ../../../modules/common/nixos
-    ../../../modules/nixos/nixos
+    ./hardware-configuration.nix
     ./android.nix
     ./synergy-server.nix
   ];
@@ -55,14 +52,6 @@ let sources = import ../../../nix/sources.nix; in
   };
 
   hardware.video.hidpi.enable = true;
-
-  home-manager = {
-    useGlobalPkgs = true;
-    users.matt = {
-      imports = [ ../home ];
-      profiles.personal.enable = true;
-    };
-  };
 
   location = {
     latitude = 37.8044;

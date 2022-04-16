@@ -1,6 +1,4 @@
-{ config, lib, pkgs, ... }:
-let sources = import ../../../../../nix/sources.nix;
-in
+{ config, inputs, lib, pkgs, ... }:
 {
   imports = [
     ./rofi.nix
@@ -67,7 +65,7 @@ in
     };
   };
 
-  programs.git.ignores = pkgs.mcwitt.gitignore.ghGitIgnoreLines "Global/Linux";
+  programs.git.ignores = inputs.self.lib.gitignores "Global/Linux";
 
   programs.urxvt = {
     enable = true;
@@ -191,7 +189,7 @@ in
     };
   };
 
-  xresources.extraConfig = builtins.readFile "${sources.solarized}/xresources/solarized";
+  xresources.extraConfig = builtins.readFile "${inputs.solarized}/xresources/solarized";
 
   xsession.enable = true;
 }

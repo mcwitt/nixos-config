@@ -1,4 +1,4 @@
-let nurNoPkgs = import (import ../../../../../../nix/sources.nix).nur { }; in
+{ nurNoPkgs, ... }:
 {
   imports = [
     ./faces.nix

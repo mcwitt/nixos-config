@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, inputs, lib, ... }:
 with lib;
 let cfg = config.profiles.personal;
 in
@@ -49,7 +49,7 @@ in
           toolz
         ];
       };
-    } // pkgs.mcwitt.lib.setAll { enable = true; } [
+    } // inputs.self.lib.setAll { enable = true; } [
       "R"
       "agda"
       "coq"
@@ -80,8 +80,6 @@ in
         signByDefault = true;
       };
     };
-
-    programs.jupyterlab.enable = true;
 
     tools = {
       aws.enable = true;
