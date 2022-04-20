@@ -18,6 +18,7 @@ in
           containers
           lens
           lens-aeson
+          linear
           monad-loops
           monoidal-containers
           mtl
