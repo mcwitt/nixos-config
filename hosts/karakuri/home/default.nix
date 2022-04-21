@@ -58,7 +58,7 @@ in
   services.gammastep.provider = "geoclue2";
 
   services.stalonetray.config = {
-    geometry = "5x1+3095";
+    geometry = "5x1+3180";
     icon_gravity = "NE";
     icon_size = statusBarHeight * 7 / 8;
     slot_size = statusBarHeight;
