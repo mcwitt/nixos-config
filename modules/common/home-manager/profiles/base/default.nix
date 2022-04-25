@@ -206,6 +206,12 @@ let sources = import ../../../../../nix/sources.nix; in
     };
   };
 
+  programs.zoxide = {
+    enable = true;
+    enableFishIntegration = true;
+    enableZshIntegration = true;
+  };
+
   programs.zsh = {
     enable = true;
     autocd = true;
