@@ -41,6 +41,7 @@ in
       ];
 
       extraConfig = {
+        font = ''"xft:Iosevka:size=12:bold:antialias=true"'';
         position = ''
           Static
             { xpos = 0
@@ -58,7 +59,7 @@ in
   services.gammastep.provider = "geoclue2";
 
   services.stalonetray.config = {
-    geometry = "5x1+3180";
+    geometry = "5x1+3100";
     icon_gravity = "NE";
     icon_size = statusBarHeight * 7 / 8;
     slot_size = statusBarHeight;
