@@ -7,6 +7,11 @@ in
     ../../../modules/nixos/home-manager
   ];
 
+  home.pointerCursor = {
+    size = 64;
+    x11.enable = true;
+  };
+
   programs.rofi.font = lib.mkForce "Iosevka 24"; # HACK since dpi setting in Xresources seems ignored
 
   programs.xmobar.rc = let cfg = config.programs.xmobar.rc; in
@@ -69,6 +74,4 @@ in
     "*dpi" = 200;
     "Xft.dpi" = 200;
   };
-
-  xsession.pointerCursor.size = 64;
 }

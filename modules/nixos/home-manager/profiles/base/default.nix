@@ -14,6 +14,13 @@ in
     xfce.thunar
   ];
 
+  home.pointerCursor = {
+    package = pkgs.vanilla-dmz;
+    name = "Vanilla-DMZ";
+    size = lib.mkDefault 48;
+    x11.enable = true;
+  };
+
   programs.chromium = {
     enable = true;
     package = pkgs.chromium.override {
@@ -183,13 +190,5 @@ in
 
   xresources.extraConfig = builtins.readFile "${sources.solarized}/xresources/solarized";
 
-  xsession = {
-    enable = true;
-
-    pointerCursor = {
-      package = pkgs.vanilla-dmz;
-      name = "Vanilla-DMZ";
-      size = lib.mkDefault 48;
-    };
-  };
+  xsession.enable = true;
 }
