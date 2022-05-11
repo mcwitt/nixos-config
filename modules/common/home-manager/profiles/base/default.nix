@@ -170,7 +170,7 @@ let sources = import ../../../../../nix/sources.nix; in
       arrterian.nix-env-selector
       ms-toolsai.jupyter
       vscodevim.vim
-    ] ++ lib.optional (!pkgs.stdenv.isDarwin) ms-vsliveshare.vsliveshare;
+    ];
 
     keybindings = [
       {
