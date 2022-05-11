@@ -13,6 +13,13 @@
     ./treemacs.nix
   ];
 
+  programs.emacs.overrides = _: prev: {
+    # https://github.com/NixOS/nixpkgs/issues/172178
+    pdf-tools = prev.pdf-tools.overrideAttrs (_: {
+      CXXFLAGS = "-std=c++17";
+    });
+  };
+
   programs.emacs.package = lib.mkDefault pkgs.emacsNativeComp;
 
   programs.emacs.init = {
