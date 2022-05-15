@@ -68,6 +68,10 @@ in
         hook = [ "(haskell-mode . flycheck-haskell-setup)" ];
       };
 
+      format-all.config = ''
+        (add-to-list 'format-all-default-formatters '("Haskell" ormolu))
+      '';
+
       lsp-haskell = {
         enable = true;
         hook = [ "(haskell-mode . lsp-deferred)" ];
