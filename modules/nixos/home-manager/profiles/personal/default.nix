@@ -7,6 +7,7 @@ with lib;
       discord
       element-desktop
       gimp
+      inkscape
       peek
       slack
       zoom-us
