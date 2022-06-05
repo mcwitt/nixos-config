@@ -13,8 +13,6 @@ in
         mode = [ ''"\\.elm\\'"'' ];
       };
 
-      fira-code-mode.hook = [ "elm-mode" ];
-
       lsp-elm = {
         enable = true;
         hook = [ "(elm-mode . lsp-deferred)" ];

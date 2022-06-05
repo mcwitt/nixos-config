@@ -71,7 +71,7 @@ in
 
   programs.urxvt = {
     enable = true;
-    fonts = [ "xft:FiraCode Nerd Font Mono:size=10:antialias=true" ];
+    fonts = [ "xft:Iosevka:size=10:antialias=true" ];
   };
 
   programs.vscode.package = pkgs.vscodium-fhs;
@@ -83,7 +83,7 @@ in
     settings = {
       global = {
         browser = "${config.programs.chromium.package}/bin/chromium-browser";
-        font = "Iosevka 12";
+        font = "Iosevka 10";
         markup = "full";
         max_icon_size = 100;
         text_icon_padding = 10;

@@ -192,7 +192,7 @@ let sources = import ../../../../../nix/sources.nix; in
       workbench.colorTheme = "Solarized Dark";
 
       editor = {
-        fontFamily = "'Fira Code'";
+        fontFamily = "'Iosevka'";
         fontLigatures = true;
       };
 

@@ -21,8 +21,6 @@ in
         ];
       };
 
-      fira-code-mode.hook = [ "scala-mode" ];
-
       lsp-metals = {
         enable = true;
         hook = [ "(scala-mode . lsp-deferred)" ];

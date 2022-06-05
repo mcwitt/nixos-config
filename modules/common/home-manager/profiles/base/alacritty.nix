@@ -43,7 +43,7 @@
       };
 
       font = {
-        normal.family = "FiraCode Nerd Font";
+        normal.family = "Iosevka Nerd Font";
         size = lib.mkDefault 10;
       };
 

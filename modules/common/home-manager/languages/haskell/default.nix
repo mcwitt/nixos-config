@@ -61,8 +61,6 @@ in
         mode = [ ''("\\.cabal\\'" . haskell-cabal-mode)'' ];
       };
 
-      fira-code-mode.hook = [ "haskell-mode" ];
-
       flycheck-haskell = {
         enable = true;
         hook = [ "(haskell-mode . flycheck-haskell-setup)" ];

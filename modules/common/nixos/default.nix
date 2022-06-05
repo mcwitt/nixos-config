@@ -10,8 +10,10 @@
     fonts = with pkgs; [
       emacs-all-the-icons-fonts
       fira-code-symbols
+      iosevka
+      iosevka-custom
       joypixels
-      nerdfonts
+      (nerdfonts.override { fonts = [ "FiraCode" "Iosevka" ]; })
     ];
   };
 
