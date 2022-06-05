@@ -47,15 +47,6 @@ with lib;
       (setq enable-recursive-minibuffers t))
     '';
 
-    marginalia = {
-      enable = true;
-      bind."M-A" = "marginalia-cycle";
-      bindLocal.minibuffer-local-map."M-A" = "marginalia-cycle";
-      config = ''
-        (marginalia-mode)
-      '';
-    };
-
     consult = {
       enable = true;
 
@@ -207,6 +198,15 @@ with lib;
       after = [ "embark" "consult" ];
       demand = true;
       hook = [ "(embark-collect-mode . consult-preview-at-point-mode)" ];
+    };
+
+    marginalia = {
+      enable = true;
+      bind."M-A" = "marginalia-cycle";
+      bindLocal.minibuffer-local-map."M-A" = "marginalia-cycle";
+      init = ''
+        (marginalia-mode)
+      '';
     };
   };
 }
