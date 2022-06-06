@@ -430,6 +430,9 @@
       demand = true;
       config = ''
         (load-theme 'solarized-dark t)
+
+        ;; https://github.com/bbatsov/solarized-emacs/issues/203
+        (setq x-underline-at-descent-line t)
       '';
     };
 
