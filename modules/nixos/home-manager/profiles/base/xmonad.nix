@@ -121,7 +121,7 @@
                     },
               manageHook = manageDocks,
               modMask = mod4Mask,
-              terminal = "alacritty"
+              terminal = "kitty"
             }
             `additionalKeys` [ ((mod4Mask, xK_f), sendMessage $ Toggle REFLECTX),
                                ((mod4Mask, xK_b), sendMessage ToggleStruts),

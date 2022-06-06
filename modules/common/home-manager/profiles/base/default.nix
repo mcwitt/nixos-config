@@ -2,12 +2,7 @@
 
 let sources = import ../../../../../nix/sources.nix; in
 {
-
-  imports = [
-    ./alacritty.nix
-    ./emacs
-    ./neovim
-  ];
+  imports = [ ./emacs ./neovim ];
 
   home.packages = with pkgs;
     [
@@ -116,6 +111,12 @@ let sources = import ../../../../../nix/sources.nix; in
   programs.home-manager.enable = true;
 
   programs.jq.enable = true;
+
+  programs.kitty = {
+    enable = true;
+    font = { name = "Iosevka"; size = 10; };
+    theme = "Solarized Dark";
+  };
 
   programs.lsd = {
     enable = true;

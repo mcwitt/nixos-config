@@ -22,7 +22,7 @@
 
     extraConfig = {
       modi = "window,run,ssh,drun,calc,emoji";
-      terminal = "alacritty";
+      terminal = "kitty";
     };
   };
 }
