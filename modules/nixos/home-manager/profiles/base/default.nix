@@ -111,7 +111,10 @@ in
     client.enable = true;
   };
 
-  services.flameshot.enable = true;
+  services.flameshot = {
+    enable = true;
+    settings.General.showStartupLaunchMessage = false;
+  };
 
   services.gammastep = {
     enable = true;
