@@ -70,9 +70,17 @@
       import Data.List (isInfixOf)
       import Data.Ratio ((%))
       import XMonad
+      import XMonad.Actions.Minimize
       import XMonad.Hooks.DynamicLog
       import XMonad.Hooks.EwmhDesktops
       import XMonad.Hooks.ManageDocks (ToggleStruts (ToggleStruts), avoidStruts, docks, manageDocks)
+      import XMonad.Layout.BoringWindows
+        ( boringWindows,
+          focusDown,
+          focusMaster,
+          focusUp,
+        )
+      import XMonad.Layout.Minimize
       import XMonad.Layout.MultiToggle (Toggle (Toggle), mkToggle, single)
       import XMonad.Layout.NoBorders (smartBorders)
       import XMonad.Layout.Reflect (REFLECTX (REFLECTX))
@@ -83,8 +91,10 @@
       myLayoutHook =
         let tall = Tall 1 (1 % 50) (3 % 5)
          in avoidStruts
-              . smartBorders
+              . minimize
+              . boringWindows
               . mkToggle (single REFLECTX)
+              . smartBorders
               $ tall ||| Mirror tall ||| Full
 
       myPromptConfig =
@@ -123,7 +133,12 @@
               modMask = mod4Mask,
               terminal = "kitty"
             }
-            `additionalKeys` [ ((mod4Mask, xK_f), sendMessage $ Toggle REFLECTX),
+            `additionalKeys` [ ((mod4Mask, xK_j), focusDown),
+                               ((mod4Mask, xK_k), focusUp),
+                               ((mod4Mask, xK_m), focusMaster),
+                               ((mod4Mask, xK_backslash), withFocused minimizeWindow),
+                               ((mod4Mask + shiftMask, xK_backslash), withLastMinimized maximizeWindowAndFocus),
+                               ((mod4Mask, xK_f), sendMessage $ Toggle REFLECTX),
                                ((mod4Mask, xK_b), sendMessage ToggleStruts),
                                ((mod4Mask, xK_g), spawn "rofi -show window"),
                                ((mod4Mask, xK_p), spawn "rofi -show drun"),
