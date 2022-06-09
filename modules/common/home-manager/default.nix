@@ -4,6 +4,5 @@
     ./profiles
     ./programs
     ./tools
-    ./shells.nix
   ];
 }

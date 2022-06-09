@@ -20,6 +20,22 @@ let sources = import ../../../../../nix/sources.nix; in
       yq
     ];
 
+  home.shellAliases = {
+    cdr = ''cd "$(${pkgs.git}/bin/git rev-parse --show-toplevel)"'';
+    ec = "${config.programs.emacs.finalPackage}/bin/emacsclient --create-frame";
+    ff = "${pkgs.fd}/bin/fd";
+    git = "${pkgs.hub}/bin/hub";
+    g = "${pkgs.hub}/bin/hub";
+    ga = "${pkgs.git-annex}/bin/git-annex";
+    gb = "${pkgs.git}/bin/git b";
+    gca = "${pkgs.git}/bin/git ca";
+    gd = "${pkgs.git}/bin/git d";
+    gds = "${pkgs.git}/bin/git ds";
+    gl = "${pkgs.git}/bin/git l";
+    gw = "${pkgs.git}/bin/git w";
+    rm = "${pkgs.coreutils}/bin/rm -i";
+  };
+
   home.sessionPath = [ "${config.home.homeDirectory}/.local/bin" ];
 
   home.sessionVariables = {
@@ -235,21 +251,5 @@ let sources = import ../../../../../nix/sources.nix; in
       bindkey -M vicmd 'k' history-substring-search-up
       bindkey -M vicmd 'j' history-substring-search-down
     '';
-  };
-
-  shells.aliases = {
-    cdr = ''cd "$(${pkgs.git}/bin/git rev-parse --show-toplevel)"'';
-    ec = "${config.programs.emacs.finalPackage}/bin/emacsclient --create-frame";
-    ff = "${pkgs.fd}/bin/fd";
-    git = "${pkgs.hub}/bin/hub";
-    g = "${pkgs.hub}/bin/hub";
-    ga = "${pkgs.git-annex}/bin/git-annex";
-    gb = "${pkgs.git}/bin/git b";
-    gca = "${pkgs.git}/bin/git ca";
-    gd = "${pkgs.git}/bin/git d";
-    gds = "${pkgs.git}/bin/git ds";
-    gl = "${pkgs.git}/bin/git l";
-    gw = "${pkgs.git}/bin/git w";
-    rm = "${pkgs.coreutils}/bin/rm -i";
   };
 }

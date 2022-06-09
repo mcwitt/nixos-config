@@ -10,8 +10,7 @@ in
 
   config = mkIf cfg.enable {
     home.packages = [ pkgs.kubectl ];
-
-    shells.aliases.k = "${pkgs.kubectl}/bin/kubectl";
+    home.shellAliases.k = "${pkgs.kubectl}/bin/kubectl";
 
     xdg.configFile."fish/completions/kubectl.fish".source = mkIf config.programs.fish.enable
       "${sources.fish-kubectl-completions}/completions/kubectl.fish";
