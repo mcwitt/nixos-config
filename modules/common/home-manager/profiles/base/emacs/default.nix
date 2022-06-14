@@ -13,9 +13,35 @@
     ./treemacs.nix
   ];
 
-  programs.emacs.overrides = _: prev: {
-    # https://github.com/NixOS/nixpkgs/issues/172178
+  programs.emacs.overrides = final: prev: {
+
+    ligature = let rev = "9357156a917a021a87b33ee391567a5d8e44794a"; in
+      final.melpaBuild {
+        pname = "ligature";
+        version = "20220213.1";
+        commit = rev;
+
+        src = pkgs.fetchFromGitHub {
+          owner = "mickeynp";
+          repo = "ligature.el";
+          inherit rev;
+          sha256 = "sha256-Bgb5wFyx0hMilpihxA8cTrRVw71EBOw2DczlM4lSNMs=";
+        };
+
+        recipe = pkgs.writeText "recipe" ''
+          (ligature
+          :repo "mickeynp/ligature.el"
+          :fetcher github)
+        '';
+
+        meta = {
+          description = "Typographic Ligatures in Emacs";
+          license = lib.licenses.gpl3Plus;
+        };
+      };
+
     pdf-tools = prev.pdf-tools.overrideAttrs (_: {
+      # https://github.com/NixOS/nixpkgs/issues/172178
       CXXFLAGS = "-std=c++17";
     });
   };
@@ -290,6 +316,13 @@
     kubernetes = {
       enable = true;
       command = [ "kubernetes-overview" ];
+    };
+
+    ligature = {
+      enable = true;
+      config = ''
+        (global-ligature-mode t)
+      '';
     };
 
     lightswitch = {

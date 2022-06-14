@@ -70,6 +70,23 @@ in
         (add-to-list 'format-all-default-formatters '("Haskell" ormolu))
       '';
 
+      ligature.config = ''
+        (ligature-set-ligatures 'haskell-mode '("->"
+                                                "<-"
+                                                "=>"
+                                                ">>=" ">=>" "=>>"
+                                                "<<=" "<=<" "<<="
+                                                "<>" "<$>" "<&>" "<*>" "<|>"
+                                                "$>" "*>" "|>"
+                                                "<$" "<*" "<|"
+                                                "::"
+                                                "==" "/=" "===" "=/="
+                                                ">=" "<="
+                                                "||" "&&"
+                                                "++"
+                                                ))
+      '';
+
       lsp-haskell = {
         enable = true;
         hook = [ "(haskell-mode . lsp-deferred)" ];
