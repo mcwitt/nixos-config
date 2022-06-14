@@ -5,10 +5,10 @@
         "homepage": "",
         "owner": "nix-community",
         "repo": "emacs-overlay",
-        "rev": "92244ab0b93bed8e207f8ccb6b2e08557a84594c",
-        "sha256": "120i5mq11qxky9qm5njcyn56frbsjc34aav8lfzjzrrwhb8bj90n",
+        "rev": "25ce68a5d0f177f1cc68f48376ee180dc0f9f292",
+        "sha256": "1v2wgdj73f59sjiffn537ws4475lcij3bmj3avs6lfqmdwq4d7sb",
         "type": "tarball",
-        "url": "https://github.com/nix-community/emacs-overlay/archive/92244ab0b93bed8e207f8ccb6b2e08557a84594c.tar.gz",
+        "url": "https://github.com/nix-community/emacs-overlay/archive/25ce68a5d0f177f1cc68f48376ee180dc0f9f292.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "fish-kubectl-completions": {
@@ -53,10 +53,10 @@
         "homepage": "https://nix-community.github.io/home-manager/",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "20703892473d01c70fb10248442231fe94f4ceb4",
-        "sha256": "1mhk0mmgan8p90vd83xa0f8979vjff4gczg5c0qb77n0blrhq6b7",
+        "rev": "87d30c164849a7471d99749aa4d2d28b81564f69",
+        "sha256": "1x9740bgvrcaj4ilhnpf9ww1rrj74hgci4vdgr76a6b5d9jkdy27",
         "type": "tarball",
-        "url": "https://github.com/nix-community/home-manager/archive/20703892473d01c70fb10248442231fe94f4ceb4.tar.gz",
+        "url": "https://github.com/nix-community/home-manager/archive/87d30c164849a7471d99749aa4d2d28b81564f69.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "jupyterWith": {
@@ -101,10 +101,10 @@
         "homepage": "",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "2de556c4cd46a59e8ce2f85ee4dd400983213d45",
-        "sha256": "18rhjpyj9p7ip49r14cahdzqxaipx4w9imib1303pifx8xk2vd33",
+        "rev": "2a9a64710a34334c1a3c82b7d73a3df634dcad7d",
+        "sha256": "1plfk1s6jmifgspszf443f1hj053vpvkqz361j7lhvzil7v8i7jf",
         "type": "tarball",
-        "url": "https://github.com/nixos/nixpkgs/archive/2de556c4cd46a59e8ce2f85ee4dd400983213d45.tar.gz",
+        "url": "https://github.com/nixos/nixpkgs/archive/2a9a64710a34334c1a3c82b7d73a3df634dcad7d.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nur": {
@@ -113,10 +113,10 @@
         "homepage": "",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "18fa7520a7ca968eb74b46036329f3f7606bd541",
-        "sha256": "1xdimb08v9iyzm2rfr1bhri9gvsg377q1a1m8zy0wn5jppzvl1xd",
+        "rev": "c92906e4e6425ffe1be7d1a52018c1b8d5b40ca6",
+        "sha256": "02xrrs9ckmniilc298nm87lb0i1l408zs5z44w556jgq865jkv0c",
         "type": "tarball",
-        "url": "https://github.com/nix-community/NUR/archive/18fa7520a7ca968eb74b46036329f3f7606bd541.tar.gz",
+        "url": "https://github.com/nix-community/NUR/archive/c92906e4e6425ffe1be7d1a52018c1b8d5b40ca6.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "pre-commit-hooks.nix": {
@@ -150,10 +150,10 @@
         "homepage": "http://ethanschoonover.com/solarized",
         "owner": "seebi",
         "repo": "tmux-colors-solarized",
-        "rev": "e5e7b4f1af37f8f3fc81ca17eadee5ae5d82cd09",
-        "sha256": "1l3i82abzi4b395cgdsjg7lcfaq15kyyhijwvrgchzxi95z3hl4x",
+        "rev": "4d07f3cc1ce2bdc0c8391290c5b0cf098abddddc",
+        "sha256": "10lg4jc591mpsqv2104bcghw703fylmvl6ykn0wv5r9c8asglp1k",
         "type": "tarball",
-        "url": "https://github.com/seebi/tmux-colors-solarized/archive/e5e7b4f1af37f8f3fc81ca17eadee5ae5d82cd09.tar.gz",
+        "url": "https://github.com/seebi/tmux-colors-solarized/archive/4d07f3cc1ce2bdc0c8391290c5b0cf098abddddc.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }
