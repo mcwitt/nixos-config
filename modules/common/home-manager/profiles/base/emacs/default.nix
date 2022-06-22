@@ -15,30 +15,53 @@
 
   programs.emacs.overrides = final: prev: {
 
-    ligature = let rev = "9357156a917a021a87b33ee391567a5d8e44794a"; in
-      final.melpaBuild {
-        pname = "ligature";
-        version = "20220213.1";
-        commit = rev;
+    copilot = final.melpaBuild rec {
+      pname = "copilot";
+      version = "20220622.1";
+      commit = "0c0496483ebfe7132a9922d397a2960d4cee3463";
 
-        src = pkgs.fetchFromGitHub {
-          owner = "mickeynp";
-          repo = "ligature.el";
-          inherit rev;
-          sha256 = "sha256-Bgb5wFyx0hMilpihxA8cTrRVw71EBOw2DczlM4lSNMs=";
-        };
-
-        recipe = pkgs.writeText "recipe" ''
-          (ligature
-          :repo "mickeynp/ligature.el"
-          :fetcher github)
-        '';
-
-        meta = {
-          description = "Typographic Ligatures in Emacs";
-          license = lib.licenses.gpl3Plus;
-        };
+      src = pkgs.fetchFromGitHub {
+        owner = "zerolfx";
+        repo = "copilot.el";
+        rev = commit;
+        sha256 = "sha256-EYqZOMjIOYsm7s6FLaDAwtRRYsMFMcXAyZkADMhQVpY=";
       };
+
+      packageRequires = with final; [ dash editorconfig s ];
+
+      recipe = pkgs.writeText "recipe" ''
+        (copilot
+        :repo "zerolfx/copilot.el"
+        :fetcher github
+        :files ("dist" "*.el"))
+      '';
+
+      meta.description = "Emacs plugin for GitHub Copilot";
+    };
+
+    ligature = final.melpaBuild rec {
+      pname = "ligature";
+      version = "20220213.1";
+      commit = "9357156a917a021a87b33ee391567a5d8e44794a";
+
+      src = pkgs.fetchFromGitHub {
+        owner = "mickeynp";
+        repo = "ligature.el";
+        rev = commit;
+        sha256 = "sha256-Bgb5wFyx0hMilpihxA8cTrRVw71EBOw2DczlM4lSNMs=";
+      };
+
+      recipe = pkgs.writeText "recipe" ''
+        (ligature
+        :repo "mickeynp/ligature.el"
+        :fetcher github)
+      '';
+
+      meta = {
+        description = "Typographic Ligatures in Emacs";
+        license = lib.licenses.gpl3Plus;
+      };
+    };
 
     pdf-tools = prev.pdf-tools.overrideAttrs (_: {
       # https://github.com/NixOS/nixpkgs/issues/172178
@@ -182,6 +205,17 @@
     company-restclient = {
       enable = true;
       after = [ "company" "restclient" ];
+    };
+
+    copilot = {
+      enable = true;
+      command = [ "copilot-login" "copilot-mode" ];
+      bindLocal.copilot-mode-map = {
+        "TAB" = "copilot-accept-completion";
+      };
+      config = ''
+        (setq copilot-node-executable "${pkgs.nodejs-16_x}/bin/node")
+      '';
     };
 
     csv-mode = {
