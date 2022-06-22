@@ -2,6 +2,7 @@
 {
   programs.neovim = {
     enable = true;
+    coc.enable = true;
     extraPackages = [ pkgs.nodejs-16_x ];
     vimAlias = true;
     vimdiffAlias = true;
