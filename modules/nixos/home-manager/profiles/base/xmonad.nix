@@ -91,11 +91,12 @@
       myLayoutHook =
         let tall = Tall 1 (1 % 50) (3 % 5)
             layouts = tall ||| Mirror tall ||| Full
+            minimizeBoring = minimize . boringWindows
          in avoidStruts
               . mkToggle (single REFLECTX)
               . smartBorders
-              . boringWindows
-              $ layouts ||| minimize layouts
+              . minimizeBoring
+              $ layouts
 
       myPromptConfig =
         def
