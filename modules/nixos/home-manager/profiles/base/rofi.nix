@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 {
 
   home.packages = [
@@ -16,12 +16,18 @@
     # Work around by overriding rofi-pass to use rofi.finalPackage
     # pass.enable = true;
 
-    plugins = with pkgs; [ rofi-calc rofi-emoji ];
+    plugins = [ pkgs.rofi-calc ];
 
     theme = "solarized";
 
     extraConfig = {
-      modi = "window,run,ssh,drun,calc,emoji";
+      modi = lib.concatStringsSep "," [
+        "window"
+        "run"
+        "ssh"
+        "drun"
+        "calc"
+      ];
       terminal = "kitty";
     };
   };
