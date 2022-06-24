@@ -114,6 +114,9 @@ let sources = import ../../../../../nix/sources.nix; in
     delta.enable = true;
 
     extraConfig = {
+      # https://github.com/davidshepherd7/frames-only-mode#integrating-with-command-line-git
+      core.editor = "emacsclient -c";
+
       # https://stackoverflow.com/a/9463536
       format.pretty = "format:%C(auto,yellow)%h%C(auto,magenta)% G? %C(auto,blue)%>(12,trunc)%ad %C(auto,green)%<(7,trunc)%aN%C(auto,reset)%s%C(auto,red)% gD% D";
 
