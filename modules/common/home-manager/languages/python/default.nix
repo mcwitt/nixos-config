@@ -90,6 +90,8 @@ in
       })
     ];
 
+    programs.neovim.plugins = [ pkgs.vimPlugins.coc-pyright ];
+
     programs.vscode = mkIf (!pkgs.stdenv.isDarwin) {
       extensions = with pkgs.vscode-extensions; [
         ms-python.python
