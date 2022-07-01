@@ -48,7 +48,7 @@ in
       dap-python.enable = true;
 
       ligature.config = ''
-        (ligature-set-ligatures 'python-mode '("->"))
+        (ligature-set-ligatures 'python-mode '("->" "==" ">=" "<="))
       '';
 
       lsp-pyright = {
