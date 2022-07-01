@@ -13,6 +13,10 @@ in
         ''"\\.l?agda\\'"''
         ''"\\.lagda.md\\'"''
       ];
+      config = ''
+        ;; Workaround for usage with direnv https://github.com/agda/agda/issues/5664
+        (advice-add 'agda2-restart :before 'envrc--update)
+      '';
     };
   };
 }
