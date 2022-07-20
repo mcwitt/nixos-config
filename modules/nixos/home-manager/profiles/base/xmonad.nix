@@ -146,7 +146,7 @@
                                ((mod4Mask + shiftMask, xK_p), spawn "rofi -show run"),
                                ((mod4Mask, xK_o), spawn "rofi-pass"),
                                ((mod4Mask, xK_i), spawn "rofi -show ssh"),
-                               ((mod4Mask, xK_semicolon), spawn "${pkgs.rofimoji}/bin/rofimoji"),
+                               ((mod4Mask, xK_semicolon), spawn "${pkgs.rofimoji}/bin/rofimoji --files emojis general_punctuation math"),
                                ((mod4Mask, xK_quoteright), spawn "rofi -show calc"),
                                ((mod4Mask, xK_y), spawn "emacsclient -c -n -e '(switch-to-buffer nil)'"),
                                ((mod4Mask, xK_u), spawn "chromium-browser"),
