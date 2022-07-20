@@ -49,6 +49,8 @@ let sources = import ../../../../../nix/sources.nix; in
 
   programs.bat.enable = true;
 
+  programs.bash.enable = true;
+
   programs.browserpass.enable = true;
 
   programs.direnv.enable = true;
