@@ -473,6 +473,16 @@
         (setq projectile-enable-caching t)
         (setq projectile-project-search-path '("~/src/"))
         (setq projectile-require-project-root nil)
+
+        ;; https://emacs.stackexchange.com/a/26272/28931
+        (defun run-projectile-invalidate-cache (&rest _args)
+          ;; We ignore the args to `magit-checkout'.
+          (projectile-invalidate-cache nil))
+        (advice-add 'magit-checkout
+                    :after #'run-projectile-invalidate-cache)
+        (advice-add 'magit-branch-and-checkout ; This is `b c'.
+                    :after #'run-projectile-invalidate-cache)
+
         (projectile-mode 1)
       '';
     };
