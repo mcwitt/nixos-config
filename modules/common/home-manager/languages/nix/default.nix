@@ -34,5 +34,7 @@ in
 
       subword.hook = [ "(nix-mode . subword-mode)" ];
     };
+
+    programs.neovim.plugins = [ pkgs.vimPlugins.vim-nix ];
   };
 }
