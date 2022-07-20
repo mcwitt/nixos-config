@@ -51,11 +51,7 @@ let sources = import ../../../../../nix/sources.nix; in
 
   programs.browserpass.enable = true;
 
-  programs.direnv = {
-    enable = true;
-    enableZshIntegration = true;
-    nix-direnv.enable = true;
-  };
+  programs.direnv.enable = true;
 
   programs.emacs.enable = true;
 
@@ -145,11 +141,7 @@ let sources = import ../../../../../nix/sources.nix; in
 
   programs.mpv.enable = true;
 
-  programs.nix-index = {
-    enable = true;
-    enableFishIntegration = true;
-    enableZshIntegration = true;
-  };
+  programs.nix-index.enable = true;
 
   programs.pandoc.enable = true;
 
@@ -172,8 +164,6 @@ let sources = import ../../../../../nix/sources.nix; in
 
   programs.starship = {
     enable = true;
-    enableFishIntegration = true;
-    enableZshIntegration = true;
     settings.directory.fish_style_pwd_dir_length = 1;
   };
 
@@ -227,11 +217,7 @@ let sources = import ../../../../../nix/sources.nix; in
     };
   };
 
-  programs.zoxide = {
-    enable = true;
-    enableFishIntegration = true;
-    enableZshIntegration = true;
-  };
+  programs.zoxide.enable = true;
 
   programs.zsh = {
     enable = true;
