@@ -59,23 +59,14 @@ let sources = import ../../../../../nix/sources.nix; in
 
   programs.fish = {
     enable = true;
-
-    functions = {
-      fish_user_key_bindings = ''
-        fish_vi_key_bindings
-        bind -M insert -m default fd backward-char force-repaint
-      '';
-      gitignore = "curl -sL https://www.gitignore.io/api/$argv";
-    };
+    functions.gitignore = "curl -sL https://www.gitignore.io/api/$argv";
 
     interactiveShellInit = ''
-      set fish_key_bindings fish_user_key_bindings
+      set fish_key_bindings fish_vi_key_bindings
     '';
 
     plugins = [{ name = "fzf.fish"; src = sources."fzf.fish"; }];
-
-    shellAliases.cdr =
-      lib.mkForce "cd (${pkgs.git}/bin/git rev-parse --show-toplevel)";
+    shellAliases.cdr = lib.mkForce "cd (${pkgs.git}/bin/git rev-parse --show-toplevel)";
   };
 
   programs.fzf = {
