@@ -22,11 +22,6 @@
 
   programs.mtr.enable = true;
 
-  programs.gnupg.agent = {
-    enable = true;
-    enableSSHSupport = true;
-  };
-
   services.avahi = {
     enable = true;
     nssmdns = true;

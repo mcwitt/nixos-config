@@ -30,7 +30,6 @@
     git
     gnugrep
     gnumake
-    gnupg
     gnused
     gnutar
     groff
