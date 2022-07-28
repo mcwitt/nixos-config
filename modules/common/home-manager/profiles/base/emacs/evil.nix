@@ -17,7 +17,6 @@ in
     evil = {
       enable = true;
       init = ''
-        (setq evil-want-C-u-scroll t)
         (setq evil-want-integration t)
         (setq evil-want-keybinding nil)
         (setq evil-respect-visual-line-mode t)
