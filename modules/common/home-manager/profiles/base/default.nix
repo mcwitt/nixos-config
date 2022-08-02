@@ -14,7 +14,6 @@ let sources = import ../../../../../nix/sources.nix; in
       hub
       lab
       nix-du
-      pkgs.mcwitt.scripts
       pre-commit
       proselint
       ripgrep
