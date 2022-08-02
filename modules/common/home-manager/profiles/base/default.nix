@@ -7,6 +7,7 @@ let sources = import ../../../../../nix/sources.nix; in
   home.packages = with pkgs;
     [
       delta
+      difftastic
       git-annex
       git-crypt
       git-remote-gcrypt
@@ -108,7 +109,7 @@ let sources = import ../../../../../nix/sources.nix; in
       "Global/Emacs"
     ]) ++ [ ".direnv/" ];
 
-    delta.enable = true;
+    difftastic.enable = true;
 
     extraConfig = {
       # https://github.com/davidshepherd7/frames-only-mode#integrating-with-command-line-git
