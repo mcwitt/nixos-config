@@ -11,6 +11,8 @@ let
     { };
 in
 {
+  inherit (pkgs) iosevka iosevka-comfy;
+
   iosevka-custom = pkgs.iosevka.override {
     privateBuildPlan = {
       family = "Iosevka Custom";

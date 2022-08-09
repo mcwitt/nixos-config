@@ -7,7 +7,7 @@ in
     ../../../modules/nixos/home-manager
   ];
 
-  programs.rofi.font = lib.mkForce "Iosevka 20"; # HACK since dpi setting in Xresources seems ignored
+  programs.rofi.font = lib.mkForce "Iosevka Comfy 20"; # HACK since dpi setting in Xresources seems ignored
 
   programs.xmobar = {
     enable = true;

@@ -9,7 +9,7 @@
 
   programs.rofi = {
     enable = true;
-    font = "Iosevka 10";
+    font = "Iosevka Comfy 10";
 
     # This installs a copy of rofi without plugins but still using
     # global config, leading to "missing plugin" startup errors.

@@ -130,7 +130,7 @@ let sources = import ../../../../../nix/sources.nix; in
 
   programs.kitty = {
     enable = true;
-    font = { name = "Iosevka"; size = 10; };
+    font = { name = "Iosevka Comfy"; size = 10; };
     theme = "Solarized Dark";
   };
 

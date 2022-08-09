@@ -10,7 +10,7 @@
       (set-face-attribute 'default
                           nil
                           :height ${builtins.toString config.programs.emacs.init.faces.height}
-                          :family "Iosevka Custom")
+                          :family "Iosevka Comfy")
       (set-face-attribute 'variable-pitch
                           nil
                           :family "DejaVu Sans")
