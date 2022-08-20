@@ -11,7 +11,6 @@
       emacs-all-the-icons-fonts
       fira-code-symbols
       iosevka
-      iosevka-comfy
       iosevka-custom
       iosevka-comfy.comfy
       joypixels
