@@ -128,10 +128,16 @@ let sources = import ../../../../../nix/sources.nix; in
 
   programs.jq.enable = true;
 
-  programs.kitty = {
+  programs.wezterm = {
     enable = true;
-    font = { name = "Iosevka Comfy"; size = 10; };
-    theme = "Solarized Dark";
+    extraConfig = ''
+      return {
+        font = wezterm.font 'Iosevka Comfy',
+        font_size = 10.0,
+        color_scheme = 'Solarized Dark - Patched',
+        hide_tab_bar_if_only_one_tab = true,
+      };
+    '';
   };
 
   programs.lsd = {

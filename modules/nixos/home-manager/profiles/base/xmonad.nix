@@ -132,7 +132,7 @@
                     },
               manageHook = manageDocks,
               modMask = mod4Mask,
-              terminal = "kitty"
+              terminal = "wezterm"
             }
             `additionalKeys` [ ((mod4Mask, xK_j), focusDown),
                                ((mod4Mask, xK_k), focusUp),

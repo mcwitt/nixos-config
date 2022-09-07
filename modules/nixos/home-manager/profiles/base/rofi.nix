@@ -28,7 +28,7 @@
         "drun"
         "calc"
       ];
-      terminal = "kitty";
+      terminal = "wezterm";
     };
   };
 }
