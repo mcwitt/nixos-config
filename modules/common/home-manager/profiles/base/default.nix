@@ -134,8 +134,9 @@ let sources = import ../../../../../nix/sources.nix; in
       return {
         font = wezterm.font 'Iosevka Comfy',
         font_size = 10.0,
-        color_scheme = 'Solarized Dark - Patched',
+        color_scheme = 'Solarized Dark (base16)',
         hide_tab_bar_if_only_one_tab = true,
+        check_for_updates = false,
       };
     '';
   };
