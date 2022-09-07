@@ -69,6 +69,7 @@ in
       "shell"
       "sql"
       "terraform"
+      "unison"
     ];
 
     programs.git = {

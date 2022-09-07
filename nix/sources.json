@@ -167,5 +167,17 @@
         "type": "tarball",
         "url": "https://github.com/seebi/tmux-colors-solarized/archive/4d07f3cc1ce2bdc0c8391290c5b0cf098abddddc.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "unison-nix": {
+        "branch": "trunk",
+        "description": "Nix support for the Unison programming language",
+        "homepage": null,
+        "owner": "ceedubs",
+        "repo": "unison-nix",
+        "rev": "abf44c07317306732776171b28778b63b630fccc",
+        "sha256": "0vg2vgqlnl2y4hdgql1fjmwknfc46x8d8yk1hf4a63n2k108rb1n",
+        "type": "tarball",
+        "url": "https://github.com/ceedubs/unison-nix/archive/abf44c07317306732776171b28778b63b630fccc.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }

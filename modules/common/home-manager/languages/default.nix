@@ -23,5 +23,6 @@
     ./shell
     ./sql
     ./terraform
+    ./unison
   ];
 }
