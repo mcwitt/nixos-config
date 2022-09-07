@@ -144,6 +144,7 @@ let sources = import ../../../../../nix/sources.nix; in
   programs.lsd = {
     enable = true;
     enableAliases = true;
+    settings.icons.separator = "  ";
   };
 
   programs.mpv.enable = true;
@@ -154,8 +155,7 @@ let sources = import ../../../../../nix/sources.nix; in
 
   programs.password-store = {
     enable = true;
-    package =
-      pkgs.pass.withExtensions (exts: with exts; [ pass-update pass-otp ]);
+    package = pkgs.pass.withExtensions (exts: with exts; [ pass-update pass-otp ]);
     settings = {
       PASSWORD_STORE_DIR = "${config.home.homeDirectory}/.password-store/";
     };
