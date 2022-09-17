@@ -11,8 +11,6 @@ let sources = import ../../../../../nix/sources.nix; in
       git-annex
       git-crypt
       git-remote-gcrypt
-      hub
-      lab
       nix-du
       pre-commit
       proselint
@@ -24,8 +22,7 @@ let sources = import ../../../../../nix/sources.nix; in
     cdr = ''cd "$(${pkgs.git}/bin/git rev-parse --show-toplevel)"'';
     ec = "${config.programs.emacs.finalPackage}/bin/emacsclient --create-frame";
     ff = "${pkgs.fd}/bin/fd";
-    git = "${pkgs.hub}/bin/hub";
-    g = "${pkgs.hub}/bin/hub";
+    g = "${pkgs.git}/bin/git";
     ga = "${pkgs.git-annex}/bin/git-annex";
     gb = "${pkgs.git}/bin/git b";
     gca = "${pkgs.git}/bin/git ca";
