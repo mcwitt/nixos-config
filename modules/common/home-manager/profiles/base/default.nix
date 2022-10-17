@@ -78,6 +78,8 @@ let sources = import ../../../../../nix/sources.nix; in
     enableFishIntegration = false; # prefer PatrickF1/fzf.fish
   };
 
+  programs.gh.enable = true;
+
   programs.git = {
     enable = true;
 
