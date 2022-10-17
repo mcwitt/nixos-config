@@ -1,17 +1,14 @@
-{ config, lib, pkgs, ... }:
-{
+{ pkgs, ... }: {
+
   imports = [ ./hoogle.nix ];
 
   i18n.defaultLocale = "en_US.UTF-8";
 
-  nix = {
-    package = pkgs.nixFlakes;
-
-    extraOptions = ''
-      keep-outputs = true
-      keep-derivations = true
-    '' + lib.optionalString (config.nix.package == pkgs.nixFlakes) "experimental-features = nix-command flakes";
-  };
+  nix.extraOptions = ''
+    keep-outputs = true
+    keep-derivations = true
+    experimental-features = nix-command flakes
+  '';
 
   nixpkgs = {
     config.allowUnfree = true;
