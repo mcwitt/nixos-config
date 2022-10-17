@@ -66,9 +66,7 @@ in
         hook = [ "(haskell-mode . flycheck-haskell-setup)" ];
       };
 
-      format-all.config = ''
-        (add-to-list 'format-all-default-formatters '("Haskell" ormolu))
-      '';
+      format-all.hook = [ "(haskell-mode . (lambda () (format-all-mode -1)))" ];
 
       ligature.config = ''
         (ligature-set-ligatures 'haskell-mode '("++" ".." "::"
@@ -95,6 +93,11 @@ in
       ob-haskell = {
         enable = true;
         after = [ "org" ];
+      };
+
+      ormolu = {
+        enable = true;
+        hook = [ "(haskell-mode . ormolu-format-on-save-mode)" ];
       };
 
       reformatter = {
