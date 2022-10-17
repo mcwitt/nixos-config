@@ -25,7 +25,10 @@ let sources = import ../../../nix/sources.nix; in
 
   hardware.nvidia.modesetting.enable = true;
 
-  hardware.opengl.driSupport32Bit = true;
+  hardware.opengl = {
+    enable = true;
+    driSupport32Bit = true;
+  };
 
   hardware.pulseaudio = {
     enable = true;
