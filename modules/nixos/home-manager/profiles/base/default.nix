@@ -155,7 +155,7 @@ in
     };
   };
 
-  home.shellAliases.open = "${pkgs.xdg_utils}/bin/xdg-open";
+  home.shellAliases.open = "${pkgs.xdg-utils}/bin/xdg-open";
 
   xdg = {
     enable = true;
