@@ -17,14 +17,14 @@
 
     copilot = final.melpaBuild rec {
       pname = "copilot";
-      version = "20220622.1";
-      commit = "0c0496483ebfe7132a9922d397a2960d4cee3463";
+      version = "20221015.1";
+      commit = "3b78e9b6fd7b7e78180a795affdfbbe89af2ccec";
 
       src = pkgs.fetchFromGitHub {
         owner = "zerolfx";
         repo = "copilot.el";
         rev = commit;
-        sha256 = "sha256-EYqZOMjIOYsm7s6FLaDAwtRRYsMFMcXAyZkADMhQVpY=";
+        hash = "sha256-x4o6TJfa32DN6Eb+t+9e6iQ+byK4KA06qijMUgUMsZg=";
       };
 
       packageRequires = with final; [ dash editorconfig s ];
