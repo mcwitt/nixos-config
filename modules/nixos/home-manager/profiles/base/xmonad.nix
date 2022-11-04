@@ -48,7 +48,7 @@
       rc.extraConfig = let inherit (lib) mkDefault; in
         {
           position = mkDefault "Top";
-          font = mkDefault ''"xft:Iosevka Comfy:size=10:antialias=true"'';
+          font = mkDefault ''"Iosevka Comfy 20"''; # HACK: doesn't scale on hidpi
           template = mkDefault ''"<fc=#d33682>%StdinReader%</fc> | %multicpu% | %coretemp% | %memory% | %dynnetwork% }{ %date% "'';
           bgColor = ''"#002b36"'';
           fgColor = ''"#839496"'';
