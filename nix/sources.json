@@ -5,10 +5,10 @@
         "homepage": "",
         "owner": "nix-community",
         "repo": "emacs-overlay",
-        "rev": "620f79f8ca3c3f30536a9a3cd27e74fc6e34af36",
-        "sha256": "0l1h8l2mccbfkl1lccy91481yb1f7sgs7wqrzqn65599xq9lww6d",
+        "rev": "ccefa5f7ddbb036656d8617ed2862fe057d60fb4",
+        "sha256": "0rmfp7j943xy5nwiaavhlc21vmzy699zmbwgf4m75r6ff8skrjsf",
         "type": "tarball",
-        "url": "https://github.com/nix-community/emacs-overlay/archive/620f79f8ca3c3f30536a9a3cd27e74fc6e34af36.tar.gz",
+        "url": "https://github.com/nix-community/emacs-overlay/archive/ccefa5f7ddbb036656d8617ed2862fe057d60fb4.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "fish-kubectl-completions": {
@@ -125,10 +125,10 @@
         "homepage": "",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "bc8d423249bb18e21c3950e2cf3522908f17ddb6",
-        "sha256": "0qnv58rj42xk9vknv3v7q78lrpmcjpscpdmlypyi098sjrz73nhf",
+        "rev": "509ce79e344b70f8035bf812c38cbdc752d5350d",
+        "sha256": "0jycclgiv52c82vz0lid0pjbqp7lzp8i2mwgksd41nliq1049iz0",
         "type": "tarball",
-        "url": "https://github.com/nix-community/NUR/archive/bc8d423249bb18e21c3950e2cf3522908f17ddb6.tar.gz",
+        "url": "https://github.com/nix-community/NUR/archive/509ce79e344b70f8035bf812c38cbdc752d5350d.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "pre-commit-hooks.nix": {
