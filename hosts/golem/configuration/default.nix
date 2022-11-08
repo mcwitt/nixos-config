@@ -13,6 +13,10 @@ let sources = import ../../../nix/sources.nix; in
     efi.canTouchEfiVariables = true;
   };
 
+  # Needed for building NixOS for aarch64 (Raspberry Pi)
+  # https://nixos.wiki/wiki/NixOS_on_ARM#Compiling_through_binfmt_QEMU
+  boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
+
   console = {
     font = "${pkgs.terminus_font}/share/consolefonts/ter-u16n.psf.gz";
     keyMap = "us";
