@@ -74,7 +74,10 @@ let sources = import ../../../nix/sources.nix; in
     interfaces.enp0s31f6.useDHCP = true;
   };
 
-  nix.settings.trusted-users = [ "root" "@wheel" "matt" ];
+  nix.settings = {
+    trusted-users = [ "root" "@wheel" "matt" ];
+    secret-key-files = [ "/etc/nix/golem.secret.key" ];
+  };
 
   profiles = {
     personal.enable = true;
