@@ -8,7 +8,6 @@
     vimdiffAlias = true;
     withPython3 = true;
     plugins = with pkgs.vimPlugins; [
-      YouCompleteMe
       (copilot-vim.overrideAttrs (_: {
         version = "1.4.2";
         src = pkgs.fetchFromGitHub {
