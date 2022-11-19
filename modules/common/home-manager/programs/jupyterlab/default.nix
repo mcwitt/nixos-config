@@ -41,9 +41,11 @@ let cfg = config.programs.jupyterlab; in
   };
 
   config =
-    let jupyterEnvironment = pkgs.jupyterWith.jupyterlabWith {
-      kernels = map (mk: mk pkgs.jupyterWith.kernels) cfg.kernels;
-    }; in
+    let
+      jupyterEnvironment = pkgs.jupyterWith.jupyterlabWith {
+        kernels = map (mk: mk pkgs.jupyterWith.kernels) cfg.kernels;
+      };
+    in
     mkIf cfg.enable {
       home.packages = [ jupyterEnvironment ];
     };
