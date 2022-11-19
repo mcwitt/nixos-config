@@ -15,6 +15,7 @@ in
       nix-prefetch-github
       nixfmt
       nixpkgs-fmt
+      rnix-lsp
     ];
 
     programs.emacs.init.usePackage = {
@@ -25,6 +26,7 @@ in
         bindLocal.nix-mode-map = {
           "C-c C-z" = "nix-repl-show";
         };
+        hook = [ "(nix-mode . lsp-deferred)" ];
       };
 
       nix-repl = {
