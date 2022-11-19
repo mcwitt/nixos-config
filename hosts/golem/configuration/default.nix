@@ -5,6 +5,7 @@ let sources = import ../../../nix/sources.nix; in
     "${sources.home-manager}/nixos"
     ../../../modules/common/nixos
     ../../../modules/nixos/nixos
+    ./android.nix
     ./synergy-server.nix
   ];
 
