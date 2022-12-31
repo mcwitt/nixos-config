@@ -69,7 +69,7 @@
     });
   };
 
-  programs.emacs.package = lib.mkDefault pkgs.emacsNativeComp;
+  programs.emacs.package = lib.mkDefault pkgs.emacsUnstable;
 
   programs.emacs.init = {
 
