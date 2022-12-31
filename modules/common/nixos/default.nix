@@ -41,7 +41,7 @@
     lsof
     ncdu
     openssl
-    parallel
+    (parallel-full.override { willCite = true; })
     perl
     postgresql
     python3
