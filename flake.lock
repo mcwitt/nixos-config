@@ -1,5 +1,73 @@
 {
   "nodes": {
+    "base16": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1658847131,
+        "narHash": "sha256-X6Mml7cT0YR3WCD5fkUhpRVV5ZPcwdcDsND8r8xMqTE=",
+        "owner": "SenchoPens",
+        "repo": "base16.nix",
+        "rev": "6b404cda2e04ca3cf5ca7b877af9c469e1386acb",
+        "type": "github"
+      },
+      "original": {
+        "owner": "SenchoPens",
+        "repo": "base16.nix",
+        "type": "github"
+      }
+    },
+    "base16-emacs": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1671325535,
+        "narHash": "sha256-blVWHSZZl/U63B514TyOJ7L1qoBp3V1PqagK/8qvcJ8=",
+        "owner": "base16-project",
+        "repo": "base16-emacs",
+        "rev": "d113012e4b76bb3ced331480bce33d03241e56bc",
+        "type": "github"
+      },
+      "original": {
+        "owner": "base16-project",
+        "repo": "base16-emacs",
+        "type": "github"
+      }
+    },
+    "base16-schemes": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1671208311,
+        "narHash": "sha256-U9pfie3qABp5sTr3M9ga/jX8C807FeiXlmEZnC4ZM58=",
+        "owner": "base16-project",
+        "repo": "base16-schemes",
+        "rev": "cf6bc892a24af19e11383adedc6ce7901f133ea7",
+        "type": "github"
+      },
+      "original": {
+        "owner": "base16-project",
+        "repo": "base16-schemes",
+        "type": "github"
+      }
+    },
+    "copilot-el": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1672677136,
+        "narHash": "sha256-fhxjPOeeS7CYMpC+USI9ITSdOWpg+9CkFO7xTW/mdDM=",
+        "owner": "zerolfx",
+        "repo": "copilot.el",
+        "rev": "34c294a3cf623ccde2d8970d03de08025b0845cb",
+        "type": "github"
+      },
+      "original": {
+        "owner": "zerolfx",
+        "repo": "copilot.el",
+        "type": "github"
+      }
+    },
     "emacs-overlay": {
       "inputs": {
         "flake-utils": "flake-utils",
@@ -124,6 +192,22 @@
       "original": {
         "owner": "PatrickF1",
         "repo": "fzf.fish",
+        "type": "github"
+      }
+    },
+    "git-sync-el": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1664687638,
+        "narHash": "sha256-mTL9oeqsgqBAkdVSL4/DcNUoQUgDr3521G8hxEOJIjw=",
+        "owner": "mcwitt",
+        "repo": "git-sync.el",
+        "rev": "9b27ee28e077a30654f87737d97af1d21fdb2e41",
+        "type": "github"
+      },
+      "original": {
+        "owner": "mcwitt",
+        "repo": "git-sync.el",
         "type": "github"
       }
     },
@@ -365,10 +449,15 @@
     },
     "root": {
       "inputs": {
+        "base16": "base16",
+        "base16-emacs": "base16-emacs",
+        "base16-schemes": "base16-schemes",
+        "copilot-el": "copilot-el",
         "emacs-overlay": "emacs-overlay",
         "fish-kubectl-completions": "fish-kubectl-completions",
         "flake-utils": "flake-utils_2",
         "fzf.fish": "fzf.fish",
+        "git-sync-el": "git-sync-el",
         "gitignore": "gitignore",
         "gitignore.nix": "gitignore.nix",
         "home-manager": "home-manager",
