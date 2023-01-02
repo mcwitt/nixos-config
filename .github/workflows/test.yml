@@ -11,5 +11,5 @@ jobs:
     - uses: cachix/cachix-action@v10
       with:
         name: nix-config
-    - run: nix-build
+    - run: nixos-rebuild build --flake .#golem
     - run: nix-shell --run "echo OK"
