@@ -4,6 +4,14 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    base16.url = "github:SenchoPens/base16.nix";
+    base16.inputs.nixpkgs.follows = "nixpkgs";
+    base16-emacs.url = "github:base16-project/base16-emacs";
+    base16-emacs.flake = false;
+    base16-schemes.url = "github:base16-project/base16-schemes";
+    base16-schemes.flake = false;
+    copilot-el.url = "github:zerolfx/copilot.el";
+    copilot-el.flake = false;
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     emacs-overlay.url = "github:nix-community/emacs-overlay";
@@ -11,6 +19,8 @@
     fish-kubectl-completions.flake = false;
     "fzf.fish".url = "github:PatrickF1/fzf.fish";
     "fzf.fish".flake = false;
+    git-sync-el.url = "github:mcwitt/git-sync.el";
+    git-sync-el.flake = false;
     gitignore.url = "github:github/gitignore";
     gitignore.flake = false;
     "gitignore.nix".url = "github:hercules-ci/gitignore.nix";

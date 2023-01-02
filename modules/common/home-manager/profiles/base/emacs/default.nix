@@ -1,78 +1,36 @@
-{ lib, pkgs, ... }: {
+{ config, inputs, lib, nurNoPkgs, pkgs, ... }: {
 
   imports = [
-    ./completion.nix
-    ./emoji.nix
-    ./erc.nix
-    ./evil.nix
-    ./jupyter.nix
-    ./lsp.nix
+    nurNoPkgs.repos.rycee.hmModules.emacs-init
     ./org.nix
-    ./pdf-tools.nix
-    ./tree-sitter.nix
-    ./treemacs.nix
   ];
-
-  programs.emacs.overrides = final: prev: {
-
-    copilot = final.melpaBuild rec {
-      pname = "copilot";
-      version = "20221015.1";
-      commit = "3b78e9b6fd7b7e78180a795affdfbbe89af2ccec";
-
-      src = pkgs.fetchFromGitHub {
-        owner = "zerolfx";
-        repo = "copilot.el";
-        rev = commit;
-        hash = "sha256-x4o6TJfa32DN6Eb+t+9e6iQ+byK4KA06qijMUgUMsZg=";
-      };
-
-      packageRequires = with final; [ dash editorconfig s ];
-
-      recipe = pkgs.writeText "recipe" ''
-        (copilot
-        :repo "zerolfx/copilot.el"
-        :fetcher github
-        :files ("dist" "*.el"))
-      '';
-
-      meta.description = "Emacs plugin for GitHub Copilot";
-    };
-
-    ligature = final.melpaBuild rec {
-      pname = "ligature";
-      version = "20220213.1";
-      commit = "9357156a917a021a87b33ee391567a5d8e44794a";
-
-      src = pkgs.fetchFromGitHub {
-        owner = "mickeynp";
-        repo = "ligature.el";
-        rev = commit;
-        sha256 = "sha256-Bgb5wFyx0hMilpihxA8cTrRVw71EBOw2DczlM4lSNMs=";
-      };
-
-      recipe = pkgs.writeText "recipe" ''
-        (ligature
-        :repo "mickeynp/ligature.el"
-        :fetcher github)
-      '';
-
-      meta = {
-        description = "Typographic Ligatures in Emacs";
-        license = lib.licenses.gpl3Plus;
-      };
-    };
-
-    pdf-tools = prev.pdf-tools.overrideAttrs (_: {
-      # https://github.com/NixOS/nixpkgs/issues/172178
-      CXXFLAGS = "-std=c++17";
-    });
-  };
 
   programs.emacs.package = lib.mkDefault pkgs.emacsUnstable;
 
-  programs.emacs.init = {
+  programs.emacs.overrides = final: prev: {
 
+    base16-theme = prev.base16-theme.overrideAttrs (old: {
+      patchPhase = (old.patchPhase or "") + (
+        let schemeFile = config.scheme.override { slug = "nix"; } inputs.base16-emacs;
+        in ''
+          cp ${schemeFile} build/base16-nix-theme.el
+        ''
+      );
+    });
+
+    copilot = final.trivialBuild {
+      pname = "copilot";
+      src = inputs.copilot-el;
+      packageRequires = with final; [ dash editorconfig s ];
+    };
+
+    git-sync = final.trivialBuild {
+      pname = "git-sync";
+      src = inputs.git-sync-el;
+    };
+  };
+
+  programs.emacs.init = {
     enable = true;
     recommendedGcSettings = true;
 
@@ -81,6 +39,16 @@
       (scroll-bar-mode -1)
       (tool-bar-mode -1)
       (tooltip-mode -1)
+
+      (defun emoji-set-font (frame)
+        "Adjust the font settings of FRAME so Emacs can display emoji properly."
+        (if (eq system-type 'darwin)
+            ;; For NS/Cocoa
+            (set-fontset-font t 'symbol (font-spec :family "Apple Color Emoji") frame 'prepend)
+          ;; For Linux
+          (set-fontset-font t 'symbol (font-spec :family "JoyPixels") frame 'prepend)))
+      (emoji-set-font nil)
+      (add-hook 'after-make-frame-functions 'emoji-set-font)
     '';
 
     prelude = ''
@@ -168,6 +136,13 @@
       };
     };
 
+    base16-theme = {
+      enable = true;
+      config = ''
+        (load-theme 'base16-nix t)
+      '';
+    };
+
     beacon = {
       enable = true;
       diminish = [ "beacon-mode" ];
@@ -187,7 +162,12 @@
       enable = true;
       diminish = [ "company-mode" ];
       command = [ "company-mode" "company-doc-buffer" "global-company-mode" ];
-      config = "(global-company-mode)";
+      bindLocal.company-active-map = {
+        "jk" = "company-complete";
+      };
+      config = ''
+        (global-company-mode)
+      '';
     };
 
     company-box = {
@@ -199,9 +179,110 @@
       '';
     };
 
+    company-emoji = {
+      enable = true;
+      config = ''
+        (add-to-list 'company-backends 'company-emoji)
+      '';
+    };
+
     company-restclient = {
       enable = true;
       after = [ "company" "restclient" ];
+    };
+
+    consult = {
+      enable = true;
+
+      bind = {
+        "C-c h" = "consult-history";
+        "C-c m" = "consult-mode-command";
+        "C-c b" = "consult-bookmark";
+        "C-c k" = "consult-kmacro";
+        "C-x M-:" = "consult-complex-command";
+        "C-x b" = "consult-buffer";
+        "C-x 4 b" = "consult-buffer-other-window";
+        "C-x 5 b" = "consult-buffer-other-frame";
+        "M-g M-g" = "consult-goto-line";
+        "M-g o" = "consult-outline";
+        "M-g m" = "consult-mark";
+        "M-g k" = "consult-global-mark";
+        "M-s f" = "consult-find";
+        "M-s L" = "consult-locate";
+        "M-s g" = "consult-grep";
+        "M-s G" = "consult-git-grep";
+        "M-s s" = "consult-ripgrep";
+        "M-s l" = "consult-line";
+        "M-s m" = "consult-multi-occur";
+        "M-s k" = "consult-keep-lines";
+        "M-s u" = "consult-focus-lines";
+        "M-s e" = "consult-isearch-history";
+      };
+
+      bindLocal.isearch-mode-map = {
+        "M-e" = "consult-isearch-history";
+        "M-s e" = "consult-isearch-history";
+        "M-s l" = "consult-line";
+      };
+
+      hook = [ "(completion-list-mode . consult-preview-at-point-mode)" ];
+
+      init = ''
+        ;; Optionally configure the register formatting. This improves the register
+        ;; preview for `consult-register', `consult-register-load',
+        ;; `consult-register-store' and the Emacs built-ins.
+        (setq register-preview-delay 0
+              register-preview-function #'consult-register-format)
+
+        ;; Optionally tweak the register preview window.
+        ;; This adds thin lines, sorting and hides the mode line of the window.
+        (advice-add #'register-preview :override #'consult-register-window)
+
+        ;; Use Consult to select xref locations with preview
+        (setq xref-show-xrefs-function #'consult-xref
+              xref-show-definitions-function #'consult-xref)
+      '';
+
+      config = ''
+        ;; Optionally configure preview. The default value
+        ;; is 'any, such that any key triggers the preview.
+        ;; (setq consult-preview-key 'any)
+        ;; (setq consult-preview-key (kbd "M-."))
+        ;; (setq consult-preview-key (list (kbd "<S-down>") (kbd "<S-up>")))
+        ;; For some commands and buffer sources it is useful to configure the
+        ;; :preview-key on a per-command basis using the `consult-customize' macro.
+        (consult-customize
+         consult-ripgrep consult-git-grep consult-grep consult-bookmark consult-recent-file
+         consult--source-file consult--source-project-file consult--source-bookmark
+         :preview-key (kbd "M-."))
+
+        ;; Optionally configure the narrowing key.
+        ;; Both < and C-+ work reasonably well.
+        (setq consult-narrow-key "<") ;; (kbd "C-+")
+
+        ;; Optionally make narrowing help available in the minibuffer.
+        ;; You may want to use `embark-prefix-help-command' or which-key instead.
+        ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
+
+        ;; Optionally configure a function which returns the project root directory.
+        ;; There are multiple reasonable alternatives to chose from.
+        ;;;; 1. project.el (project-roots)
+        (setq consult-project-root-function
+              (lambda ()
+                (when-let (project (project-current))
+                  (car (project-roots project)))))
+        ;;;; 2. projectile.el (projectile-project-root)
+        ;; (autoload 'projectile-project-root "projectile")
+        ;; (setq consult-project-root-function #'projectile-project-root)
+        ;;;; 3. vc.el (vc-root-dir)
+        ;; (setq consult-project-root-function #'vc-root-dir)
+        ;;;; 4. locate-dominating-file
+        ;; (setq consult-project-root-function (lambda () (locate-dominating-file "." ".git")))
+
+        (setq consult-ripgrep-command (string-join '("rg" "--null" "--line-buffered" "--color=ansi"
+                                                     "--max-columns=1000"  "--no-heading" "--line-number"
+                                                     "--smart-case" "." "-e" "ARG" "OPTS") " "))
+      '';
     };
 
     copilot = {
@@ -221,6 +302,8 @@
       hook = [ "(csv-mode . csv-align-mode)" ];
     };
 
+    dap-mode.enable = true;
+
     dockerfile-mode = {
       enable = true;
       mode = [ ''"Dockerfile\\'"'' ];
@@ -239,6 +322,51 @@
       command = [ "elisp-format-region" "elisp-format-buffer" ];
     };
 
+    emacs.init = ''
+      ;; Add prompt indicator to `completing-read-multiple'.
+      (defun crm-indicator (args)
+        (cons (concat "[CRM] " (car args)) (cdr args)))
+      (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
+
+      ;; Grow and shrink minibuffer
+      ;;(setq resize-mini-windows t)
+
+      ;; Do not allow the cursor in the minibuffer prompt
+      (setq minibuffer-prompt-properties
+            '(read-only t cursor-intangible t face minibuffer-prompt))
+      (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
+
+      ;; Enable recursive minibuffers
+      (setq enable-recursive-minibuffers t))
+    '';
+
+    embark = {
+      enable = true;
+      bind = {
+        "C-." = "embark-act";
+        "C-;" = "embark-dwim";
+        "C-h B" = "embark-bindings";
+      };
+      init = ''
+        ;; Optionally replace the key help with a completing-read interface
+        (setq prefix-help-command #'embark-prefix-help-command)
+      '';
+      config = ''
+        ;; Hide the mode line of the Embark live/completions buffers
+        (add-to-list 'display-buffer-alist
+                     '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                       nil
+                       (window-parameters (mode-line-format . none))))
+      '';
+    };
+
+    embark-consult = {
+      enable = true;
+      after = [ "embark" "consult" ];
+      demand = true;
+      hook = [ "(embark-collect-mode . consult-preview-at-point-mode)" ];
+    };
+
     envrc = {
       enable = true;
       demand = true;
@@ -255,15 +383,85 @@
       command = [ "esup" ];
     };
 
+    evil = {
+      enable = true;
+      init = ''
+        (setq evil-want-integration t)
+        (setq evil-want-keybinding nil)
+        (setq evil-respect-visual-line-mode t)
+        (setq evil-undo-system 'undo-tree)
+      '';
+      config = ''
+        (evil-mode)
+      '';
+    };
+
+    evil-collection = {
+      enable = true;
+      after = [ "evil" ];
+      config = ''
+        (evil-collection-init)
+      '';
+      diminish = [ "evil-collection-unimpaired-mode" ];
+    };
+
+    evil-commentary = {
+      enable = true;
+      after = [ "evil" ];
+      config = ''
+        (evil-commentary-mode)
+      '';
+      diminish = [ "evil-commentary-mode" ];
+    };
+
+    evil-escape = {
+      enable = true;
+      after = [ "evil" ];
+      diminish = [ "evil-escape-mode" ];
+      init = ''(setq-default evil-escape-key-sequence "fd")'';
+      config = ''
+        (evil-escape-mode)
+      '';
+    };
+
+    evil-org = {
+      enable = true;
+      after = [ "evil" "org" ];
+      hook = [ "(org-mode . evil-org-mode)" ];
+      init = ''
+        ;; temporary workaround for https://github.com/Somelauw/evil-org-mode/issues/93
+        (fset 'evil-redirect-digit-argument 'ignore)
+      '';
+      config = ''
+        (require 'evil-org-agenda)
+        (evil-org-agenda-set-keys)
+
+        ;; temporary workaround for https://github.com/Somelauw/evil-org-mode/issues/93
+        (add-to-list 'evil-digit-bound-motions 'evil-org-beginning-of-line)
+        (evil-define-key 'motion 'evil-org-mode
+            (kbd "0") 'evil-org-beginning-of-line)
+      '';
+    };
+
+    evil-smartparens = {
+      enable = true;
+      after = [ "evil" "smartparens" ];
+      hook = [ "(smartparens-enabled . evil-smartparens-mode)" ];
+    };
+
+    evil-surround = {
+      enable = true;
+      after = [ "evil" ];
+      config = ''
+        (global-evil-surround-mode)
+      '';
+    };
+
+    evil-string-inflection.enable = true;
+
     expand-region = {
       enable = true;
       bind = { "C-=" = "er/expand-region"; };
-    };
-
-    fira-code-mode = {
-      enable = true;
-      diminish = [ "fira-code-mode" ];
-      command = [ "fira-code-mode" ];
     };
 
     flycheck = {
@@ -312,15 +510,6 @@
 
     gist.enable = true;
 
-    groovy-mode = {
-      enable = true;
-      mode = [
-        ''"\\.gradle\\'"''
-        ''"\\.groovy\\'"''
-        ''"Jenkinsfile\\'"''
-      ];
-    };
-
     hl-todo = {
       enable = true;
       hook = [ "(prog-mode . hl-todo-mode)" ];
@@ -356,64 +545,30 @@
       '';
     };
 
-    lightswitch = {
-      enable = true;
-      package = epkgs:
-        epkgs.trivialBuild {
-          pname = "lightswitch";
-          version = "2021-06-07";
-          src = pkgs.writeText "lightswitch.el" ''
-            ;;; lightswitch.el --- Switch between light and dark themes  -*- lexical-binding: t; -*-
-
-            ;; Copyright (C) 2021 Matt Wittmann
-
-            ;; Author: Matt Wittmann <mcwitt@gmail.com>
-            ;; Keywords: themes
-            ;; Package-Requires: ((solarized "1.3.1"))
-            ;; Version: 1.0.0
-
-            ;;; Commentary:
-
-            ;;; Code:
-
-            (defgroup lightswitch nil "Lightswitch theme switcher."
-              :group 'theme
-              :tag "Lightswitch")
-
-            (defcustom lightswitch-light-theme 'solarized-light
-              "Light theme to use."
-              :type 'symbol
-              :group 'lightswitch)
-
-            (defcustom lightswitch-dark-theme 'solarized-dark
-              "Dark theme to use."
-              :type 'symbol
-              :group 'lightswitch)
-
-            (defadvice load-theme (before lightswitch--disable-custom-themes activate)
-              "Disable all custom themes."
-              (mapc #'disable-theme custom-enabled-themes))
-
-            (defun lightswitch-toggle ()
-              "Toggle between light and dark themes."
-              (interactive)
-              (if (member lightswitch-light-theme custom-enabled-themes)
-                  (load-theme lightswitch-dark-theme t)
-                (load-theme lightswitch-light-theme t)))
-
-            (provide 'lightswitch)
-            ;;; lightswitch.el ends here
-          '';
-        };
-      bind = {
-        "C-c t" = "lightswitch-toggle";
-      };
-    };
-
     logview = {
       enable = true;
       command = [ "logview-mode" ];
       mode = [ ''("\\.log\\(?:\\.[0-9]+\\)?\\'" . logview-mode)'' ];
+    };
+
+    lsp-mode = {
+      enable = true;
+      init = ''
+        ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+        (setq lsp-keymap-prefix "C-c l")
+      '';
+      command = [ "lsp" "lsp-deferred" ];
+      hook = [ "(lsp-mode . lsp-enable-which-key-integration)" ];
+    };
+
+    lsp-ui = {
+      enable = true;
+      command = [ "lsp-ui-mode" ];
+    };
+
+    lsp-treemacs = {
+      enable = true;
+      command = [ "lsp-treemacs-errors-list" ];
     };
 
     magit = {
@@ -423,6 +578,15 @@
         "C-x M-g" = "magit-dispatch";
         "C-c M-g" = "magit-file-dispatch";
       };
+    };
+
+    marginalia = {
+      enable = true;
+      bind."M-A" = "marginalia-cycle";
+      bindLocal.minibuffer-local-map."M-A" = "marginalia-cycle";
+      init = ''
+        (marginalia-mode)
+      '';
     };
 
     mixed-pitch = {
@@ -439,10 +603,42 @@
       };
     };
 
+    orderless = {
+      enable = true;
+      init = ''
+        (setq completion-styles '(orderless)
+              completion-category-defaults nil
+              completion-category-overrides '((file (styles . (partial-completion)))))
+      '';
+    };
+
     pinentry = {
       enable = true;
       config = ''
         (pinentry-start)
+      '';
+    };
+
+    org-agenda = {
+      enable = true;
+      bindLocal.org-agenda-mode-map = {
+        "j" = "evil-next-line";
+        "k" = "evil-previous-line";
+        "C-u" = "evil-scroll-page-up";
+        "C-d" = "evil-scroll-page-down";
+        "C-w h" = "evil-window-left";
+        "C-w l" = "evil-window-right";
+      };
+    };
+
+    pdf-tools = {
+      enable = true;
+      mode = [ ''("\\.pdf\\'" . pdf-view-mode)'' ];
+      hook = [ "(pdf-view-mode . (lambda () (linum-mode -1)))" ];
+      config = ''
+        (pdf-tools-install t t)
+        (setq pdf-view-use-scaling t)
+        (setq-default pdf-view-display-size 'fit-page)
       '';
     };
 
@@ -494,20 +690,16 @@
       command = [ "restclient-mode" ];
     };
 
+    savehist = {
+      enable = true;
+      config = ''
+        (savehist-mode)
+      '';
+    };
+
     smartparens = {
       enable = true;
       diminish = [ "smartparens-mode" ];
-    };
-
-    solarized-theme = {
-      enable = true;
-      demand = true;
-      config = ''
-        (load-theme 'solarized-dark t)
-
-        ;; https://github.com/bbatsov/solarized-emacs/issues/203
-        (setq x-underline-at-descent-line t)
-      '';
     };
 
     subword = {
@@ -520,10 +712,61 @@
       bind = { "C-c u" = "string-inflection-all-cycle"; };
     };
 
+    tree-sitter = {
+      enable = true;
+      config = ''
+        (global-tree-sitter-mode)
+        (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
+      '';
+    };
+
+    tree-sitter-langs.enable = true;
+
+    treemacs = {
+      enable = true;
+      bind = {
+        "M-0" = "treemacs-select-window";
+        "C-x t 1" = "treemacs-delete-other-windows";
+        "C-x t t" = "treemacs";
+        "C-x t B" = "treemacs-bookmark";
+        "C-x t C-t" = "treemacs-find-file";
+        "C-x t M-t" = "treemacs-find-tag";
+      };
+      config =
+        ''(setq treemacs-python-executable "${pkgs.python3}/bin/python")'';
+    };
+
+    treemacs-evil = {
+      enable = true;
+      after = [ "treemacs" "evil" ];
+    };
+
+    treemacs-projectile = {
+      enable = true;
+      after = [ "treemacs" "projectile" ];
+    };
+
+    treemacs-magit = {
+      enable = true;
+      after = [ "treemacs" "magit" ];
+    };
+
     undo-tree = {
       enable = true;
       diminish = [ "undo-tree-mode" ];
-      config = "(global-undo-tree-mode)";
+      config = ''
+        (global-undo-tree-mode)
+      '';
+    };
+
+    vertico = {
+      enable = true;
+      init = ''
+        (setq vertico-cycle t)
+      '';
+      config = ''
+        (vertico-mode)
+      '';
     };
 
     which-key = {
@@ -533,7 +776,9 @@
         (setq which-key-separator " ")
         (setq which-key-prefix-prefix "+")
       '';
-      config = "(which-key-mode 1)";
+      config = ''
+        (which-key-mode 1)
+      '';
     };
 
     yaml-mode = {
