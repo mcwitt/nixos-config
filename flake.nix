@@ -48,10 +48,7 @@
     let inherit (nixpkgs) lib;
     in
     {
-
-      overlay = import ./overlay.nix;
-
-      lib = import ./lib.nix { inherit inputs; inherit (nixpkgs) lib; };
+      overlays.default = import ./overlay.nix { inherit inputs; };
 
       nixosConfigurations =
         let
@@ -71,7 +68,7 @@
                   nixpkgs = {
                     config.allowUnfree = true;
                     overlays = [
-                      self.overlay
+                      self.overlays.default
                       emacs-overlay.overlay
                       nur.overlay
                       unison-nix.overlay

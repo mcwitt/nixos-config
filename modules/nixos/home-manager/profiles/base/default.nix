@@ -1,4 +1,4 @@
-{ config, inputs, lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 {
   imports = [
     ./rofi.nix
@@ -65,7 +65,7 @@
     };
   };
 
-  programs.git.ignores = inputs.self.lib.gitignores "Global/Linux";
+  programs.git.ignores = lib.gitignores "Global/Linux";
 
   programs.urxvt = {
     enable = true;
