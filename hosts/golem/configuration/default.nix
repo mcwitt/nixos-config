@@ -65,7 +65,7 @@
   };
 
   nix.settings = {
-    trusted-users = [ "root" "@wheel" "matt" ];
+    trusted-users = [ "root" "@wheel" ];
     secret-key-files = [ "/etc/nix/golem.secret.key" ];
   };
 
