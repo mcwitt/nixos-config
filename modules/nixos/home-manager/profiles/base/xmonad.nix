@@ -1,72 +1,70 @@
 { config, lib, pkgs, ... }:
 {
-  programs.xmobar = let cfg = config.programs.xmobar.rc; in
-    {
-      enable = true;
-      rc.commands =
-        [
-          ''
-            Run DynNetwork [ "--template" , "<dev>: <tx>kB/s|<rx>kB/s"
-                           , "--Low"      , "1000"
-                           , "--High"     , "5000"
-                           , "--low"      , "${cfg.colors.good}"
-                           , "--normal"   , "${cfg.colors.normal}"
-                           , "--high"     , "${cfg.colors.alert}"
-                           ] 10
-          ''
-          ''
-            Run MultiCpu   [ "--template" , "Cpu: <total0>% <total1>% <total2>% <total3>% <total4>% <total5>% <total6>% <total7>%"
-                           , "--Low"      , "50"
-                           , "--High"     , "85"
-                           , "--low"      , "${cfg.colors.good}"
-                           , "--normal"   , "${cfg.colors.normal}"
-                           , "--high"     , "${cfg.colors.alert}"
-                           , "--ppad"     , "3"
-                           ] 10
-          ''
-          ''
-            Run CoreTemp   [ "--template" , "Temp: <core0>°C <core1>°C <core2>°C <core3>°C"
-                           , "--Low"      , "70"
-                           , "--High"     , "80"
-                           , "--low"      , "${cfg.colors.good}"
-                           , "--normal"   , "${cfg.colors.normal}"
-                           , "--high"     , "${cfg.colors.alert}"
-                           ] 50
-          ''
-          ''
-            Run Memory     [ "--template" ,"Mem: <usedratio>%"
-                           , "--Low"      , "20"
-                           , "--High"     , "90"
-                           , "--low"      , "${cfg.colors.good}"
-                           , "--normal"   , "${cfg.colors.normal}"
-                           , "--high"     , "${cfg.colors.alert}"
-                           ] 10
-          ''
-          ''Run Date "<fc=#93a1a1>%F (%a) %T</fc>" "date" 10''
-          ''Run StdinReader''
-        ];
-      rc.extraConfig = let inherit (lib) mkDefault; in
-        {
-          position = mkDefault "Top";
-          font = mkDefault ''"Iosevka Comfy 20"''; # HACK: doesn't scale on hidpi
-          template = mkDefault ''"<fc=#d33682>%StdinReader%</fc> | %multicpu% | %coretemp% | %memory% | %dynnetwork% }{ %date% "'';
-          bgColor = ''"#002b36"'';
-          fgColor = ''"#839496"'';
-          sepChar = ''"%"'';
-          alignSep = ''"}{"'';
-          lowerOnStart = true;
-          hideOnStart = false;
-          allDesktops = true;
-          overrideRedirect = true;
-          pickBroadest = false;
-          persistent = true;
-        };
+  programs.xmobar = let s = config.scheme.withHashtag; in {
+    enable = true;
+    rc.commands = [
+      ''
+        Run DynNetwork [ "--template" , "<dev>: <tx>kB/s|<rx>kB/s"
+                       , "--Low"      , "1000"
+                       , "--High"     , "5000"
+                       , "--low"      , "${s.green}"
+                       , "--normal"   , "${s.yellow}"
+                       , "--high"     , "${s.red}"
+                       ] 10
+      ''
+      ''
+        Run MultiCpu   [ "--template" , "Cpu: <total0>% <total1>% <total2>% <total3>% <total4>% <total5>% <total6>% <total7>%"
+                       , "--Low"      , "50"
+                       , "--High"     , "85"
+                       , "--low"      , "${s.green}"
+                       , "--normal"   , "${s.yellow}"
+                       , "--high"     , "${s.red}"
+                       , "--ppad"     , "3"
+                       ] 10
+      ''
+      ''
+        Run CoreTemp   [ "--template" , "Temp: <core0>°C <core1>°C <core2>°C <core3>°C"
+                       , "--Low"      , "70"
+                       , "--High"     , "80"
+                       , "--low"      , "${s.green}"
+                       , "--normal"   , "${s.yellow}"
+                       , "--high"     , "${s.red}"
+                       ] 50
+      ''
+      ''
+        Run Memory     [ "--template" ,"Mem: <usedratio>%"
+                       , "--Low"      , "20"
+                       , "--High"     , "90"
+                       , "--low"      , "${s.green}"
+                       , "--normal"   , "${s.yellow}"
+                       , "--high"     , "${s.red}"
+                       ] 10
+      ''
+      ''Run Date "<fc=${s.base05}>%F (%a) %T</fc>" "date" 10''
+      ''Run StdinReader''
+    ];
+    rc.extraConfig = let inherit (lib) mkDefault; in {
+      position = mkDefault "Top";
+      font = mkDefault ''"Iosevka Comfy 20"''; # HACK: doesn't scale on hidpi
+      template = mkDefault ''"<fc=${s.green}>%StdinReader%</fc> | %multicpu% | %coretemp% | %memory% | %dynnetwork% }{ %date% "'';
+      bgColor = ''"${s.base00}"'';
+      fgColor = ''"${s.base05}"'';
+      borderColor = ''"${s.base00}"'';
+      sepChar = ''"%"'';
+      alignSep = ''"}{"'';
+      lowerOnStart = true;
+      hideOnStart = false;
+      allDesktops = true;
+      overrideRedirect = true;
+      pickBroadest = false;
+      persistent = true;
     };
+  };
 
   xsession.windowManager.xmonad = {
     enable = true;
     enableContribAndExtras = true;
-    config = lib.mkDefault (pkgs.writeText "xmonad.hs" ''
+    config = let s = config.scheme.withHashtag; in pkgs.writeText "xmonad.hs" ''
       import Data.List (isInfixOf)
       import Data.Ratio ((%))
       import XMonad
@@ -74,12 +72,7 @@
       import XMonad.Hooks.DynamicLog
       import XMonad.Hooks.EwmhDesktops
       import XMonad.Hooks.ManageDocks (ToggleStruts (ToggleStruts), avoidStruts, docks, manageDocks)
-      import XMonad.Layout.BoringWindows
-        ( boringWindows,
-          focusDown,
-          focusMaster,
-          focusUp,
-        )
+      import XMonad.Layout.BoringWindows (boringWindows, focusDown, focusMaster, focusUp)
       import XMonad.Layout.Minimize
       import XMonad.Layout.MultiToggle (Toggle (Toggle), mkToggle, single)
       import XMonad.Layout.NoBorders (smartBorders)
@@ -110,25 +103,25 @@
           }
 
       main = do
-        xmobarProc <- spawnPipe "${pkgs.xmobar}/bin/xmobar"
+        xmobarProc <- spawnPipe "xmobar"
         xmonad
           . docks
           . ewmh
           $ def
             { borderWidth = 5,
-              normalBorderColor = "#073642",
-              focusedBorderColor = "#859900",
+              normalBorderColor = "${s.base01}",
+              focusedBorderColor = "${s.magenta}",
               layoutHook = myLayoutHook,
               logHook =
                 dynamicLogWithPP
                   xmobarPP
                     { ppOutput = hPutStrLn xmobarProc,
-                      ppCurrent = xmobarColor "#859900" "" . wrap "[" "]",
-                      ppVisible = xmobarColor "#b58900" "" . wrap "(" ")",
-                      ppHidden = xmobarColor "#93a1a1" "" . wrap "*" "",
-                      ppSep = "<fc=#93a1a1> | </fc>",
-                      ppLayout = xmobarColor "#93a1a1" "",
-                      ppTitle = xmobarColor "#859900" "" . shorten 80
+                      ppCurrent = xmobarColor "${s.green}" "" . wrap "[" "]",
+                      ppVisible = xmobarColor "${s.yellow}" "" . wrap "(" ")",
+                      ppHidden = xmobarColor "${s.base01}" "" . wrap "*" "",
+                      ppSep = "<fc=${s.base05}> | </fc>",
+                      ppLayout = xmobarColor "${s.base05}" "",
+                      ppTitle = xmobarColor "${s.green}" "" . shorten 80
                     },
               manageHook = manageDocks,
               modMask = mod4Mask,
@@ -146,7 +139,7 @@
                                ((mod4Mask + shiftMask, xK_p), spawn "rofi -show run"),
                                ((mod4Mask, xK_o), spawn "rofi-pass"),
                                ((mod4Mask, xK_i), spawn "rofi -show ssh"),
-                               ((mod4Mask, xK_semicolon), spawn "${pkgs.rofimoji}/bin/rofimoji --files emojis general_punctuation math"),
+                               ((mod4Mask, xK_semicolon), spawn "rofimoji --files emojis general_punctuation math"),
                                ((mod4Mask, xK_quoteright), spawn "rofi -show calc"),
                                ((mod4Mask, xK_y), spawn "emacsclient -c -n -e '(switch-to-buffer nil)'"),
                                ((mod4Mask, xK_u), spawn "chromium-browser"),
@@ -158,6 +151,6 @@
                                   ("<XF86AudioLowerVolume>", spawn "amixer -q set Master 2%-"),
                                   ("<XF86AudioRaiseVolume>", spawn "amixer -q set Master 2%+")
                                 ]
-    '');
+    '';
   };
 }

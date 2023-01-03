@@ -5,21 +5,6 @@ in
 {
   options.programs.xmobar.rc =
     {
-      colors = {
-        good = mkOption {
-          type = types.str;
-          default = "#859900";
-        };
-        normal = mkOption {
-          type = types.str;
-          default = "#b58900";
-        };
-        alert = mkOption {
-          type = types.str;
-          default = "#dc322f";
-        };
-      };
-
       commands = mkOption
         {
           type = with types; listOf str;
@@ -33,9 +18,9 @@ in
               Run DynNetwork     [ "--template" , "<dev>: <tx>kB/s|<rx>kB/s"
                                  , "--Low"      , "1000"
                                  , "--High"     , "5000"
-                                 , "--low"      , "${cfg.colors.good}"
-                                 , "--normal"   , "${cfg.colors.normal}"
-                                 , "--high"     , "${cfg.colors.alert}"
+                                 , "--low"      , "#859900"
+                                 , "--normal"   , "#b58900"
+                                 , "--high"     , "#dc322f"
                                  ] 10
             ''
           ];
