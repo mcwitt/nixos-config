@@ -31,8 +31,6 @@
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     nur.url = "github:nix-community/NUR";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
-    solarized.url = "github:altercation/solarized";
-    solarized.flake = false;
     unison-nix.url = "github:ceedubs/unison-nix";
   };
 

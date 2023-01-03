@@ -499,24 +499,7 @@
         "nixpkgs": "nixpkgs_3",
         "nur": "nur",
         "pre-commit-hooks": "pre-commit-hooks",
-        "solarized": "solarized",
         "unison-nix": "unison-nix"
-      }
-    },
-    "solarized": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1522685115,
-        "narHash": "sha256-LRjLmZDbPquzOolE4/DR0Cyd/Yiw1/9G3B+pscuvAQA=",
-        "owner": "altercation",
-        "repo": "solarized",
-        "rev": "62f656a02f93c5190a8753159e34b385588d5ff3",
-        "type": "github"
-      },
-      "original": {
-        "owner": "altercation",
-        "repo": "solarized",
-        "type": "github"
       }
     },
     "unison": {
