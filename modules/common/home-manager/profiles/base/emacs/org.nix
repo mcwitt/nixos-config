@@ -1,56 +1,56 @@
 { lib, pkgs, ... }:
 {
+  programs.emacs.init.prelude = ''
+    (defvar org-notes-directory (file-name-as-directory "~/src/org-notes/"))
+    (defvar org-notes-gtd-directory (file-name-as-directory (concat org-notes-directory "gtd")))
+    (defvar org-notes-gtd-inbox-file (concat org-notes-gtd-directory "inbox.org"))
+    (defvar org-notes-gtd-projects-file (concat org-notes-gtd-directory "gtd.org"))
+    (defvar org-notes-gtd-habits-file (concat org-notes-gtd-directory "habits.org"))
+    (defvar org-notes-gtd-someday-file (concat org-notes-gtd-directory "someday.org"))
+    (defvar org-notes-flashcards-file (concat org-notes-gtd-directory "flash-cards.org"))
+    (defvar org-notes-bookmarks-file (concat org-notes-directory "bookmarks.org"))
+    (defvar org-notes-journal-file (concat org-notes-directory "journal.org"))
+    (defvar org-notes-notes-directory (concat org-notes-directory (file-name-as-directory "notes")))
+    (defvar org-notes-references-directory (concat org-notes-directory (file-name-as-directory "references")))
+
+    (defun org-notes-display-bookmarks-in-side-window ()
+      "Display org-notes bookmarks file in a side window."
+      (interactive)
+      (select-window
+       (display-buffer-in-side-window
+        (find-file-noselect org-notes-bookmarks-file) nil)))
+
+    (defun org-notes-open-journal ()
+      "Open org-notes journal file."
+      (interactive)
+      (find-file org-notes-journal-file))
+
+    (defun org-notes-gtd-open-projects ()
+      "Open org-notes gtd projects file."
+      (interactive)
+      (find-file org-notes-gtd-projects-file))
+
+    (defun org-notes-maybe-sync ()
+      "Sync org notes if the current buffer is visiting an org file in the org-notes directory."
+      (when (and (derived-mode-p 'org-mode)
+                 (string-prefix-p (expand-file-name org-notes-directory)
+                                  (buffer-file-name)))
+        (org-notes-sync)))
+
+    (defun org-notes-sync ()
+      "Sync org notes repo with upstream."
+      (interactive)
+      (let ((default-directory org-notes-directory))
+        (git-sync)))
+
+    (defun org-notes-save-and-sync ()
+      "Save all org buffers and sync gtd repo."
+      (interactive)
+      (org-save-all-org-buffers)
+      (org-notes-sync))
+  '';
+
   programs.emacs.init.usePackage = {
-    emacs.init = ''
-      (defvar org-notes-directory (file-name-as-directory "~/src/org-notes/"))
-      (defvar org-notes-gtd-directory (file-name-as-directory (concat org-notes-directory "gtd")))
-      (defvar org-notes-gtd-inbox-file (concat org-notes-gtd-directory "inbox.org"))
-      (defvar org-notes-gtd-projects-file (concat org-notes-gtd-directory "gtd.org"))
-      (defvar org-notes-gtd-habits-file (concat org-notes-gtd-directory "habits.org"))
-      (defvar org-notes-gtd-someday-file (concat org-notes-gtd-directory "someday.org"))
-      (defvar org-notes-flashcards-file (concat org-notes-gtd-directory "flash-cards.org"))
-      (defvar org-notes-bookmarks-file (concat org-notes-directory "bookmarks.org"))
-      (defvar org-notes-journal-file (concat org-notes-directory "journal.org"))
-      (defvar org-notes-notes-directory (concat org-notes-directory (file-name-as-directory "notes")))
-      (defvar org-notes-references-directory (concat org-notes-directory (file-name-as-directory "references")))
-
-      (defun org-notes-display-bookmarks-in-side-window ()
-        "Display org-notes bookmarks file in a side window."
-        (interactive)
-        (select-window
-         (display-buffer-in-side-window
-          (find-file-noselect org-notes-bookmarks-file) nil)))
-
-      (defun org-notes-open-journal ()
-        "Open org-notes journal file."
-        (interactive)
-        (find-file org-notes-journal-file))
-
-      (defun org-notes-gtd-open-projects ()
-        "Open org-notes gtd projects file."
-        (interactive)
-        (find-file org-notes-gtd-projects-file))
-
-      (defun org-notes-maybe-sync ()
-        "Sync org notes if the current buffer is visiting an org file in the org-notes directory."
-        (when (and (derived-mode-p 'org-mode)
-                   (string-prefix-p (expand-file-name org-notes-directory)
-                                    (buffer-file-name)))
-          (org-notes-sync)))
-
-      (defun org-notes-sync ()
-        "Sync org notes repo with upstream."
-        (interactive)
-        (let ((default-directory org-notes-directory))
-          (git-sync)))
-
-      (defun org-notes-save-and-sync ()
-        "Save all org buffers and sync gtd repo."
-        (interactive)
-        (org-save-all-org-buffers)
-        (org-notes-sync))
-    '';
-
     biblio = {
       enable = true;
       after = [ "org" ];
