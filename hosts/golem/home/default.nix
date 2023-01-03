@@ -2,6 +2,8 @@
 let statusBarHeight = 36;
 in
 {
+  home.stateVersion = "21.11";
+
   programs.rofi.font = lib.mkForce "Iosevka Comfy 20"; # HACK since dpi setting in Xresources seems ignored
 
   programs.xmobar = {
