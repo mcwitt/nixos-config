@@ -309,22 +309,7 @@
 
     edit-indirect.enable = true;
 
-    eglot = {
-      enable = true;
-      hook = map (mode: "(${mode} . eglot-ensure)") [
-        "c-mode"
-        "c++-mode"
-        "cuda-mode"
-        "elm-mode"
-        "go-mode"
-        "haskell-mode"
-        "java-mode"
-        "javascript-mode"
-        "python-mode"
-        "scala-mode"
-        "typescript-mode"
-      ];
-    };
+    eglot.enable = true;
 
     eldoc = {
       enable = true;
