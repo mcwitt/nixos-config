@@ -57,8 +57,6 @@ in
 
   services.blueman-applet.enable = true;
 
-  services.gammastep.provider = "geoclue2";
-
   services.stalonetray.config = {
     geometry = "5x1+3100";
     icon_gravity = "NE";
