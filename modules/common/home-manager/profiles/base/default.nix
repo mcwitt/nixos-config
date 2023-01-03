@@ -174,7 +174,7 @@
   programs.tmux = {
     enable = true;
     keyMode = "vi";
-    extraConfig = builtins.readFile "${inputs.tmux-colors-solarized}/tmuxcolors-dark.conf";
+    extraConfig = builtins.readFile (config.scheme inputs.base16-tmux);
   };
 
   programs.vscode = {
