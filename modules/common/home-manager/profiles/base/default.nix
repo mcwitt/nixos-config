@@ -127,11 +127,27 @@
 
   programs.wezterm = {
     enable = true;
+    colorSchemes.custom =
+      let
+        s = config.scheme.withHashtag;
+        colors = with s; [ red orange yellow green cyan blue magenta brown ];
+      in
+      {
+        ansi = colors;
+        brights = colors;
+        background = s.base00;
+        cursor_bg = s.base05;
+        cursor_border = s.base05;
+        cursor_fg = s.base00;
+        foreground = s.base05;
+        selection_bg = s.base05;
+        selection_fg = s.base00;
+      };
     extraConfig = ''
       return {
         font = wezterm.font 'Iosevka Comfy',
         font_size = 10.0,
-        color_scheme = 'Solarized Dark (base16)',
+        color_scheme = 'custom',
         hide_tab_bar_if_only_one_tab = true,
         check_for_updates = false,
       };
