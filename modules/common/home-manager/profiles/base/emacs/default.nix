@@ -11,9 +11,9 @@
 
     base16-theme = prev.base16-theme.overrideAttrs (old: {
       patchPhase = (old.patchPhase or "") + (
-        let schemeFile = config.scheme.override { slug = "nix"; } inputs.base16-emacs;
+        let schemeFile = config.scheme.override { slug = "custom"; } inputs.base16-emacs;
         in ''
-          cp ${schemeFile} build/base16-nix-theme.el
+          cp ${schemeFile} build/base16-custom-theme.el
         ''
       );
     });
@@ -139,7 +139,7 @@
     base16-theme = {
       enable = true;
       config = ''
-        (load-theme 'base16-nix t)
+        (load-theme 'base16-custom t)
       '';
     };
 
