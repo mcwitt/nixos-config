@@ -51,7 +51,7 @@
 
   services.synergy.client = {
     enable = true;
-    serverAddress = "golem.local";
+    serverAddress = "golem";
   };
 
   services.xserver = {
