@@ -1,5 +1,10 @@
 { pkgs, ... }: {
 
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+  };
+
   nixpkgs.config = {
     allowUnfree = true;
     joypixels.acceptLicense = true;
