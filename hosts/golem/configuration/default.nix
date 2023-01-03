@@ -77,12 +77,6 @@
     };
   };
 
-  services.avahi.publish = {
-    enable = true;
-    addresses = true;
-    workstation = true;
-  };
-
   services.printing = {
     enable = true;
     drivers = [ pkgs.brlaser ];

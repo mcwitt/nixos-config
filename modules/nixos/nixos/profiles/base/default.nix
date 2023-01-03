@@ -14,11 +14,6 @@
 
   programs.mtr.enable = true;
 
-  services.avahi = {
-    enable = true;
-    nssmdns = true;
-  };
-
   services.locate = {
     enable = true;
     localuser = null;
