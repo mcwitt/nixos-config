@@ -44,7 +44,10 @@
     , pre-commit-hooks
     , unison-nix
     , ...
-    }: {
+    }:
+    let inherit (nixpkgs) lib;
+    in
+    {
 
       overlay = import ./overlay.nix;
 
@@ -52,14 +55,18 @@
 
       nixosConfigurations =
         let
-          makeNixosSystem = { system, username, extraNixosModules, extraHmModules }:
-            nixpkgs.lib.makeOverridable nixpkgs.lib.nixosSystem {
+          makeNixosSystem = lib.makeOverridable ({ system, users, extraNixosModules, extraHmModules }:
+            let
+              pkgs = nixpkgs.legacyPackages.${system};
+            in
+            lib.nixosSystem {
               inherit system;
               specialArgs = { inherit inputs; };
               modules = [
                 home-manager.nixosModules.home-manager
                 self.nixosModules.common
                 self.nixosModules.nixos
+
                 ({ config, ... }: {
                   nixpkgs = {
                     config.allowUnfree = true;
@@ -70,6 +77,14 @@
                       unison-nix.overlay
                     ];
                   };
+
+                  users.users = builtins.listToAttrs (map
+                    (user: lib.nameValuePair user {
+                      isNormalUser = true;
+                      extraGroups = [ "wheel" "docker" "video" ];
+                      shell = pkgs.fish;
+                    })
+                    users);
 
                   home-manager = {
                     useGlobalPkgs = true;
@@ -85,30 +100,37 @@
                       };
                     };
 
-                    users.${username} = {
-                      imports = [
-                        self.homeManagerModules.common
-                        self.homeManagerModules.nixos
-                      ] ++ extraHmModules;
-                      profiles.personal.enable = true;
-                    };
+                    users = builtins.listToAttrs (map
+                      (user: lib.nameValuePair user {
+                        imports = [
+                          self.homeManagerModules.common
+                          self.homeManagerModules.nixos
+                        ] ++ extraHmModules;
+                      })
+                      users);
                   };
                 })
               ] ++ extraNixosModules;
-            };
+            });
         in
         {
           golem = makeNixosSystem {
             system = "x86_64-linux";
-            username = "matt";
-            extraNixosModules = [ ./hosts/golem/configuration ];
+            users = [ "matt" ];
+            extraNixosModules = [
+              ./hosts/golem/configuration
+              { home-manager.users.matt.profiles.personal.enable = true; }
+            ];
             extraHmModules = [ ./hosts/golem/home ];
           };
 
           karakuri = makeNixosSystem {
             system = "x86_64-linux";
-            username = "matt";
-            extraNixosModules = [ ./hosts/karakuri/configuration ];
+            users = [ "matt" ];
+            extraNixosModules = [
+              ./hosts/karakuri/configuration
+              { home-manager.users.matt.profiles.personal.enable = true; }
+            ];
             extraHmModules = [ ./hosts/karakuri/home ];
           };
         };
