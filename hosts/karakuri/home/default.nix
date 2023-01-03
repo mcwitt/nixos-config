@@ -7,6 +7,8 @@ in
     x11.enable = true;
   };
 
+  home.stateVersion = "21.11";
+
   programs.rofi.font = lib.mkForce "Iosevka Comfy 24"; # HACK since dpi setting in Xresources seems ignored
 
   programs.xmobar.rc = let cfg = config.programs.xmobar.rc; in

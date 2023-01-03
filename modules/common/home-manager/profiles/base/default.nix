@@ -38,8 +38,6 @@
     ALTERNATE_EDITOR = "${pkgs.vim}/bin/vim";
   };
 
-  home.stateVersion = "21.11";
-
   languages.nix.enable = true;
 
   programs.bat.enable = true;
