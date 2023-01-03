@@ -46,6 +46,16 @@
     , ...
     }:
     let inherit (nixpkgs) lib;
+      mkSpecialArgs = nurpkgs: {
+        inherit inputs;
+
+        # gross hack to use modules from NUR
+        # https://discourse.nixos.org/t/importing-nur-home-manager-modules-in-nix-flakes/16457
+        nurNoPkgs = import inputs.nur {
+          pkgs = null;
+          inherit nurpkgs;
+        };
+      };
     in
     {
       overlays.default = import ./overlay.nix { inherit inputs; };
@@ -86,16 +96,8 @@
                   home-manager = {
                     useGlobalPkgs = true;
                     useUserPackages = true;
-                    extraSpecialArgs = {
-                      inherit inputs;
-
-                      # gross hack to use modules from NUR
-                      # https://discourse.nixos.org/t/importing-nur-home-manager-modules-in-nix-flakes/16457
-                      nurNoPkgs = import inputs.nur {
-                        pkgs = null;
-                        nurpkgs = import inputs.nixpkgs { inherit (config.nixpkgs) system; };
-                      };
-                    };
+                    extraSpecialArgs = mkSpecialArgs
+                      (import inputs.nixpkgs { inherit (config.nixpkgs) system; });
 
                     users = builtins.listToAttrs (map
                       (user: lib.nameValuePair user {
@@ -132,6 +134,31 @@
           };
         };
 
+      homeConfigurations."matt@linux" =
+        lib.makeOverridable home-manager.lib.homeManagerConfiguration rec {
+          pkgs = import nixpkgs {
+            system = "x86_64-linux";
+            config.allowUnfree = true;
+            overlays = [
+              self.overlays.default
+              emacs-overlay.overlay
+              nur.overlay
+              unison-nix.overlay
+            ];
+          };
+          extraSpecialArgs = mkSpecialArgs pkgs;
+          modules = [
+            self.homeManagerModules.common
+            self.homeManagerModules.nixos
+            {
+              home.username = "matt";
+              home.homeDirectory = "/home/matt";
+              home.stateVersion = "22.11";
+              profiles.personal.enable = lib.mkDefault true;
+            }
+          ];
+        };
+
       nixosModules = {
         common = import ./modules/common/nixos;
         nixos = import ./modules/nixos/nixos;
@@ -140,6 +167,7 @@
       homeManagerModules = {
         common = import ./modules/common/home-manager;
         nixos = import ./modules/nixos/home-manager;
+        darwin = import ./modules/darwin/home-manager;
       };
 
     } // flake-utils.lib.eachDefaultSystem (system: {
@@ -155,7 +183,7 @@
         };
       };
 
-      devShell = nixpkgs.legacyPackages.${system}.mkShell {
+      devShells.default = nixpkgs.legacyPackages.${system}.mkShell {
         inherit (self.checks.${system}.pre-commit-check) shellHook;
       };
     });
