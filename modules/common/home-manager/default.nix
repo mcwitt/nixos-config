@@ -8,5 +8,5 @@
     ./tools
   ];
 
-  scheme = "${inputs.base16-schemes}/solarized-dark.yaml";
+  scheme = "${inputs.base16-schemes}/tomorrow-night.yaml";
 }
