@@ -117,6 +117,7 @@
   services.gammastep = {
     enable = true;
     tray = true;
+    provider = "geoclue2";
     settings.general = {
       adjustment-method = "randr";
       brightness-night = 0.6;

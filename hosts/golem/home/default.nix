@@ -21,11 +21,6 @@ in
     };
   };
 
-  services.gammastep = {
-    latitude = 37.8044;
-    longitude = -122.2712;
-  };
-
   services.stalonetray.config = {
     geometry = "5x1+3250";
     icon_gravity = "NE";

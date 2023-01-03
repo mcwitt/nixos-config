@@ -37,16 +37,6 @@
 
   services.blueman.enable = true;
 
-  services.geoclue2 = {
-    enable = true;
-    appConfig = {
-      "gammastep" = {
-        isAllowed = true;
-        isSystem = false;
-      };
-    };
-  };
-
   services.printing.enable = true;
 
   services.synergy.client = {
