@@ -10,17 +10,6 @@ in
 
     programs.emacs.init.usePackage = {
 
-      ammonite-term-repl = {
-        enable = true;
-        after = [ "scala-mode" ];
-        hook = [
-          ''
-            (scala-mode . (lambda ()
-                            (ammonite-term-repl-minor-mode t)))
-          ''
-        ];
-      };
-
       sbt-mode = {
         enable = true;
         command = [ "sbt-start" "sbt-command" ];
