@@ -42,7 +42,6 @@ in
     ];
 
     extraConfig = {
-      font = ''"xft:Iosevka:size=12:bold:antialias=true"'';
       position = ''
         Static
           { xpos = 0
@@ -58,7 +57,7 @@ in
   services.blueman-applet.enable = true;
 
   services.stalonetray.config = {
-    geometry = "5x1+3100";
+    geometry = "5x1+3175";
     icon_gravity = "NE";
     icon_size = statusBarHeight * 7 / 8;
     slot_size = statusBarHeight;
