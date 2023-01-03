@@ -2,7 +2,7 @@
   description = "NixOS configuration";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
     flake-utils.url = "github:numtide/flake-utils";
     base16.url = "github:SenchoPens/base16.nix";
     base16.inputs.nixpkgs.follows = "nixpkgs";
