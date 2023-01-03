@@ -252,9 +252,13 @@
         ;; For some commands and buffer sources it is useful to configure the
         ;; :preview-key on a per-command basis using the `consult-customize' macro.
         (consult-customize
-         consult-ripgrep consult-git-grep consult-grep consult-bookmark consult-recent-file
-         consult--source-file consult--source-project-file consult--source-bookmark
-         :preview-key (kbd "M-."))
+        consult-theme :preview-key '(:debounce 0.2 any)
+        consult-ripgrep consult-git-grep consult-grep
+        consult-bookmark consult-recent-file consult-xref
+        consult--source-bookmark consult--source-file-register
+        consult--source-recent-file consult--source-project-recent-file
+        ;; :preview-key (kbd "M-.")
+        :preview-key '(:debounce 0.4 any))
 
         ;; Optionally configure the narrowing key.
         ;; Both < and C-+ work reasonably well.
