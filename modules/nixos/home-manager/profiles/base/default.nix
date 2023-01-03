@@ -147,7 +147,7 @@
   services.stalonetray = {
     enable = true;
     config = {
-      background = "#002b36";
+      background = config.scheme.withHashtag.base00;
       kludges = "force_icons_size";
       transparent = false;
     };
