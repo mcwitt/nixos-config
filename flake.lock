@@ -52,6 +52,22 @@
         "type": "github"
       }
     },
+    "base16-tmux": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1671324556,
+        "narHash": "sha256-HcJwx1tucRP0XKkEIaP831xJCW8wwKvbiksDl9r9zNw=",
+        "owner": "tinted-theming",
+        "repo": "base16-tmux",
+        "rev": "3312bb2cbb26db7eeb2d2235ae17d4ffaef5e59b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tinted-theming",
+        "repo": "base16-tmux",
+        "type": "github"
+      }
+    },
     "copilot-el": {
       "flake": false,
       "locked": {
@@ -452,6 +468,7 @@
         "base16": "base16",
         "base16-emacs": "base16-emacs",
         "base16-schemes": "base16-schemes",
+        "base16-tmux": "base16-tmux",
         "copilot-el": "copilot-el",
         "emacs-overlay": "emacs-overlay",
         "fish-kubectl-completions": "fish-kubectl-completions",
@@ -466,7 +483,6 @@
         "nur": "nur",
         "pre-commit-hooks": "pre-commit-hooks",
         "solarized": "solarized",
-        "tmux-colors-solarized": "tmux-colors-solarized",
         "unison-nix": "unison-nix"
       }
     },
@@ -483,22 +499,6 @@
       "original": {
         "owner": "altercation",
         "repo": "solarized",
-        "type": "github"
-      }
-    },
-    "tmux-colors-solarized": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1654814598,
-        "narHash": "sha256-M1z6tEIs5bI5sNMbuiv1boDD4WOLgCA21reGVJgkj4I=",
-        "owner": "seebi",
-        "repo": "tmux-colors-solarized",
-        "rev": "4d07f3cc1ce2bdc0c8391290c5b0cf098abddddc",
-        "type": "github"
-      },
-      "original": {
-        "owner": "seebi",
-        "repo": "tmux-colors-solarized",
         "type": "github"
       }
     },

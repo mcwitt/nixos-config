@@ -10,6 +10,8 @@
     base16-emacs.flake = false;
     base16-schemes.url = "github:base16-project/base16-schemes";
     base16-schemes.flake = false;
+    base16-tmux.url = "github:tinted-theming/base16-tmux";
+    base16-tmux.flake = false;
     copilot-el.url = "github:zerolfx/copilot.el";
     copilot-el.flake = false;
     home-manager.url = "github:nix-community/home-manager";
@@ -29,8 +31,6 @@
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     solarized.url = "github:altercation/solarized";
     solarized.flake = false;
-    tmux-colors-solarized.url = "github:seebi/tmux-colors-solarized";
-    tmux-colors-solarized.flake = false;
     unison-nix.url = "github:ceedubs/unison-nix";
   };
 
