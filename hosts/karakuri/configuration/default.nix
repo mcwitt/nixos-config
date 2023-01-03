@@ -77,10 +77,4 @@
   system.stateVersion = "21.11";
 
   time.timeZone = "America/Los_Angeles";
-
-  users.users.matt = {
-    isNormalUser = true;
-    extraGroups = [ "docker" "video" "wheel" ];
-    shell = pkgs.fish;
-  };
 }
