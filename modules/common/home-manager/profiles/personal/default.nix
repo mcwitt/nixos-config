@@ -1,4 +1,4 @@
-{ config, inputs, lib, ... }:
+{ config, lib, ... }:
 with lib;
 let cfg = config.profiles.personal;
 in
@@ -49,7 +49,7 @@ in
           toolz
         ];
       };
-    } // inputs.self.lib.setAll { enable = true; } [
+    } // lib.setAll { enable = true; } [
       "R"
       "agda"
       "coq"

@@ -1,4 +1,4 @@
-{ lib, inputs, config, pkgs, ... }:
+{ lib, config, pkgs, ... }:
 with lib;
 let cfg = config.languages.python;
 in
@@ -68,7 +68,7 @@ in
       };
     };
 
-    programs.git.ignores = inputs.self.lib.gitignores "Python";
+    programs.git.ignores = lib.gitignores "Python";
 
     programs.neovim.plugins = [ pkgs.vimPlugins.coc-pyright ];
 

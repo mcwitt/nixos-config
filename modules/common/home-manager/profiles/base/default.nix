@@ -98,7 +98,7 @@
       ];
     };
 
-    ignores = (lib.concatMap inputs.self.lib.gitignores [
+    ignores = (lib.concatMap lib.gitignores [
       "Global/Vim"
       "Global/Emacs"
     ]) ++ [ ".direnv/" ];
