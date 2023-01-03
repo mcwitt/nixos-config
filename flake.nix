@@ -8,6 +8,8 @@
     base16.inputs.nixpkgs.follows = "nixpkgs";
     base16-emacs.url = "github:base16-project/base16-emacs";
     base16-emacs.flake = false;
+    base16-rofi.url = "github:tinted-theming/base16-rofi";
+    base16-rofi.flake = false;
     base16-schemes.url = "github:base16-project/base16-schemes";
     base16-schemes.flake = false;
     base16-tmux.url = "github:tinted-theming/base16-tmux";
