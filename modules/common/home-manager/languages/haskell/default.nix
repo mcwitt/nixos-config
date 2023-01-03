@@ -85,11 +85,6 @@ in
                                                 ))
       '';
 
-      lsp-haskell = {
-        enable = true;
-        hook = [ "(haskell-mode . lsp-deferred)" ];
-      };
-
       ob-haskell = {
         enable = true;
         after = [ "org" ];

@@ -26,7 +26,6 @@ in
         bindLocal.nix-mode-map = {
           "C-c C-z" = "nix-repl-show";
         };
-        hook = [ "(nix-mode . lsp-deferred)" ];
       };
 
       nix-repl = {

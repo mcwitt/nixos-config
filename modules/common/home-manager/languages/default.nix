@@ -11,7 +11,6 @@
     ./graphviz
     ./haskell
     ./idris
-    ./java
     ./js
     ./latex
     ./markdown

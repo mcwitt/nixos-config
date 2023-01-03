@@ -13,10 +13,7 @@ in
       go-mode = {
         enable = true;
         mode = [ ''"\\.go\\'"'' ];
-        hook = [ "(go-mode . lsp-deferred)" ];
       };
-
-      dap-go.enable = true;
     };
   };
 }

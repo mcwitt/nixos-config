@@ -21,16 +21,6 @@ in
         ];
       };
 
-      lsp-metals = {
-        enable = true;
-        hook = [ "(scala-mode . lsp-deferred)" ];
-      };
-
-      ob-ammonite = {
-        enable = true;
-        after = [ "org" ];
-      };
-
       sbt-mode = {
         enable = true;
         command = [ "sbt-start" "sbt-command" ];

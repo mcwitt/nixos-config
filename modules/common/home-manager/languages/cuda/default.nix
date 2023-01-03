@@ -14,13 +14,6 @@ in
         mode = [ ''"\\.cuh?\\'"'' ];
       };
 
-      lsp-clangd = {
-        hook = [ "(cuda-mode . lsp-deferred)" ];
-        config = ''
-          (add-to-list 'lsp-language-id-configuration '(cuda-mode . "cpp"))
-        '';
-      };
-
       yasnippet-snippets.package = ps: ps.yasnippet-snippets.overrideAttrs (oldAttrs: {
         patches =
           let

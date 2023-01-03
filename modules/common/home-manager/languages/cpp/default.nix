@@ -16,19 +16,6 @@ in
           ''"CMakeLists.txt\\'"''
         ];
       };
-
-      lsp-clangd = {
-        enable = true;
-        hook = [
-          "(c-mode . lsp-deferred)"
-          "(c++-mode . lsp-deferred)"
-        ];
-      };
-
-      lsp-cmake = {
-        enable = true;
-        hook = [ "(cmake-mode . lsp-deferred)" ];
-      };
     };
 
     programs.vscode.extensions = [
