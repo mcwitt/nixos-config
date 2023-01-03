@@ -189,7 +189,5 @@
     };
   };
 
-  xresources.extraConfig = builtins.readFile "${inputs.solarized}/xresources/solarized";
-
   xsession.enable = true;
 }

@@ -220,7 +220,6 @@
 
       update.mode = "none";
       extensions.autoUpdate = false;
-      workbench.colorTheme = "Solarized Dark";
 
       editor = {
         fontFamily = "'Iosevka'";
