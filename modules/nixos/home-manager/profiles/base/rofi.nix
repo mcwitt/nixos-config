@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, inputs, lib, pkgs, ... }:
 {
 
   home.packages = [
@@ -18,7 +18,7 @@
 
     plugins = [ pkgs.rofi-calc ];
 
-    theme = "solarized";
+    theme = config.scheme inputs.base16-rofi;
 
     extraConfig = {
       modi = lib.concatStringsSep "," [
