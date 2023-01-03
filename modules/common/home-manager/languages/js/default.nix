@@ -25,7 +25,6 @@ in
       typescript-mode = {
         enable = true;
         mode = [ ''"\\.tsx?\\'"'' ];
-        hook = [ "(typescript-mode . lsp-deferred)" ];
       };
 
       web-mode = {

@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, ... }:
 with lib;
 let cfg = config.languages.terraform;
 in
@@ -8,14 +8,6 @@ in
   config = mkIf cfg.enable {
 
     programs.emacs.init.usePackage = {
-
-      lsp-terraform = {
-        enable = true;
-        config = ''
-          (setq lsp-terraform-server "${pkgs.terraform-ls}")
-        '';
-      };
-
       terraform-mode = {
         enable = true;
         mode = [ ''"\\.tf\\'"'' ];

@@ -302,14 +302,29 @@
       hook = [ "(csv-mode . csv-align-mode)" ];
     };
 
-    dap-mode.enable = true;
-
     dockerfile-mode = {
       enable = true;
       mode = [ ''"Dockerfile\\'"'' ];
     };
 
     edit-indirect.enable = true;
+
+    eglot = {
+      enable = true;
+      hook = map (mode: "(${mode} . eglot-ensure)") [
+        "c-mode"
+        "c++-mode"
+        "cuda-mode"
+        "elm-mode"
+        "go-mode"
+        "haskell-mode"
+        "java-mode"
+        "javascript-mode"
+        "python-mode"
+        "scala-mode"
+        "typescript-mode"
+      ];
+    };
 
     eldoc = {
       enable = true;
@@ -549,26 +564,6 @@
       enable = true;
       command = [ "logview-mode" ];
       mode = [ ''("\\.log\\(?:\\.[0-9]+\\)?\\'" . logview-mode)'' ];
-    };
-
-    lsp-mode = {
-      enable = true;
-      init = ''
-        ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
-        (setq lsp-keymap-prefix "C-c l")
-      '';
-      command = [ "lsp" "lsp-deferred" ];
-      hook = [ "(lsp-mode . lsp-enable-which-key-integration)" ];
-    };
-
-    lsp-ui = {
-      enable = true;
-      command = [ "lsp-ui-mode" ];
-    };
-
-    lsp-treemacs = {
-      enable = true;
-      command = [ "lsp-treemacs-errors-list" ];
     };
 
     magit = {

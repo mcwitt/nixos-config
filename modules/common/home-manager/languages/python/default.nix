@@ -45,22 +45,9 @@ in
         '';
       };
 
-      dap-python.enable = true;
-
       ligature.config = ''
         (ligature-set-ligatures 'python-mode '("->" "==" ">=" "<="))
       '';
-
-      lsp-pyright = {
-        enable = true;
-        hook = [
-          ''
-            (python-mode . (lambda ()
-                              (require 'lsp-pyright)
-                              (lsp-deferred)))
-          ''
-        ];
-      };
 
       py-isort = {
         enable = true;

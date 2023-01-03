@@ -7,12 +7,7 @@ in
 
   config = mkIf cfg.enable {
 
-    programs.emacs.init.usePackage = {
-      rust-mode = {
-        enable = true;
-        hook = [ "(rust-mode . lsp-deferred)" ];
-      };
-    };
+    programs.emacs.init.usePackage.rust-mode.enable = true;
 
     programs.vscode = {
       extensions = with pkgs.vscode-extensions; [

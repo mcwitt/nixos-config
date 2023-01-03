@@ -13,11 +13,6 @@ in
         mode = [ ''"\\.elm\\'"'' ];
       };
 
-      lsp-elm = {
-        enable = true;
-        hook = [ "(elm-mode . lsp-deferred)" ];
-      };
-
       subword.hook = [ "(elm-mode . subword-mode)" ];
     };
 

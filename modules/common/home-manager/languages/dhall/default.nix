@@ -8,12 +8,6 @@ in
   config = mkIf cfg.enable {
 
     programs.emacs.init.usePackage = {
-
-      lsp-dhall = {
-        enable = true;
-        hook = [ "(dhall-mode . lsp-deferred)" ];
-      };
-
       dhall-mode = {
         enable = true;
         mode = [ ''"\\.dhall\\'"'' ];
