@@ -35,7 +35,7 @@
   };
 
   outputs =
-    inputs@{ self
+    { self
     , nixpkgs
     , flake-utils
     , home-manager
@@ -44,8 +44,17 @@
     , pre-commit-hooks
     , unison-nix
     , ...
-    }:
-    let inherit (nixpkgs) lib;
+    } @ inputs:
+    let
+      inherit (nixpkgs) lib;
+
+      overlays = [
+        self.overlays.default
+        emacs-overlay.overlay
+        nur.overlay
+        unison-nix.overlay
+      ];
+
       mkSpecialArgs = nurpkgs: {
         inherit inputs;
 
@@ -77,12 +86,7 @@
                 ({ config, ... }: {
                   nixpkgs = {
                     config.allowUnfree = true;
-                    overlays = [
-                      self.overlays.default
-                      emacs-overlay.overlay
-                      nur.overlay
-                      unison-nix.overlay
-                    ];
+                    inherit overlays;
                   };
 
                   users.users = builtins.listToAttrs (map
@@ -139,12 +143,7 @@
           pkgs = import nixpkgs {
             system = "x86_64-linux";
             config.allowUnfree = true;
-            overlays = [
-              self.overlays.default
-              emacs-overlay.overlay
-              nur.overlay
-              unison-nix.overlay
-            ];
+            inherit overlays;
           };
           extraSpecialArgs = mkSpecialArgs pkgs;
           modules = [
