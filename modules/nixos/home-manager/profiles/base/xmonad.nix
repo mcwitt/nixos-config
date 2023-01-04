@@ -109,7 +109,7 @@
           . ewmh
           $ def
             { borderWidth = 5,
-              normalBorderColor = "${s.base01}",
+              normalBorderColor = "${s.base02}",
               focusedBorderColor = "${s.magenta}",
               layoutHook = myLayoutHook,
               logHook =
@@ -118,7 +118,7 @@
                     { ppOutput = hPutStrLn xmobarProc,
                       ppCurrent = xmobarColor "${s.green}" "" . wrap "[" "]",
                       ppVisible = xmobarColor "${s.yellow}" "" . wrap "(" ")",
-                      ppHidden = xmobarColor "${s.base01}" "" . wrap "*" "",
+                      ppHidden = xmobarColor "${s.base02}" "" . wrap "*" "",
                       ppSep = "<fc=${s.base05}> | </fc>",
                       ppLayout = xmobarColor "${s.base05}" "",
                       ppTitle = xmobarColor "${s.green}" "" . shorten 80
