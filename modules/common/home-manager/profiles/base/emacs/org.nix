@@ -71,9 +71,6 @@
 
     citar = {
       enable = true;
-      bind = {
-        "C-c r" = "citar-insert-citation";
-      };
       bindLocal.minibuffer-local-map = {
         "M-b" = "citar-insert-preset";
       };
