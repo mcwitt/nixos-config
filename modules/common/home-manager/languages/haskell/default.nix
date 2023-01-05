@@ -47,7 +47,6 @@ in
         };
         config = ''
           (setq haskell-interactive-popup-errors nil)
-          (setq-default flycheck-disabled-checkers '(haskell-stack-ghc))
         '';
       };
 
@@ -59,11 +58,6 @@ in
       haskell-cabal = {
         enable = true;
         mode = [ ''("\\.cabal\\'" . haskell-cabal-mode)'' ];
-      };
-
-      flycheck-haskell = {
-        enable = true;
-        hook = [ "(haskell-mode . flycheck-haskell-setup)" ];
       };
 
       format-all.hook = [ "(haskell-mode . (lambda () (format-all-mode -1)))" ];

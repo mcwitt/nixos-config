@@ -466,20 +466,12 @@
       bind = { "C-=" = "er/expand-region"; };
     };
 
-    flycheck = {
+    flymake = {
       enable = true;
-      demand = true;
-      diminish = [ "flycheck-mode" ];
       bind = {
-        "M-n" = "flycheck-next-error";
-        "M-p" = "flycheck-previous-error";
+        "M-n" = "flymake-goto-next-error";
+        "M-p" = "flymake-goto-prev-error";
       };
-      config = ''
-        (setq flycheck-check-syntax-automatically '(save idle-change new-line))
-        (setq flycheck-idle-change-delay 0.5)
-        (setq flycheck-checker-error-threshold nil)
-        (global-flycheck-mode t)
-      '';
     };
 
     format-all = {
@@ -532,7 +524,6 @@
     json-mode = {
       enable = true;
       mode = [ ''"\\.json\\'"'' ];
-      hook = [ "(json-mode . flycheck-mode)" ];
     };
 
     kubernetes = {
@@ -622,12 +613,6 @@
         (setq pdf-view-use-scaling t)
         (setq-default pdf-view-display-size 'fit-page)
       '';
-    };
-
-    # needed by Flycheck
-    pkg-info = {
-      enable = true;
-      command = [ "pkg-info-version-info" ];
     };
 
     powerline = {
