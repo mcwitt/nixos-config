@@ -474,6 +474,18 @@
       };
     };
 
+    flymake-shellcheck = {
+      enable = true;
+      command = [ "flymake-shellcheck-load" ];
+      hook = [
+        ''
+          (sh-mode . (lambda ()
+                       (flymake-shellcheck-load)
+                       (flymake-mode)))
+        ''
+      ];
+    };
+
     format-all = {
       enable = true;
       diminish = [ "format-all-mode" ];
