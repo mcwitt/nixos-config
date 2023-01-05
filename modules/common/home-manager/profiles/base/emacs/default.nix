@@ -147,7 +147,7 @@
       enable = true;
       diminish = [ "beacon-mode" ];
       config = ''
-        (setq beacon-color "#b58900")
+        (setq beacon-color "${config.scheme.withHashtag.orange}")
         (beacon-mode 1)
       '';
     };

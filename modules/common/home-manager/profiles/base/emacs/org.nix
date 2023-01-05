@@ -1,4 +1,4 @@
-{ lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 {
   programs.emacs.init.prelude = ''
     (defvar org-notes-directory (file-name-as-directory "~/src/org-notes/"))
@@ -95,8 +95,8 @@
                          ,(all-the-icons-faicon "external-link-square" :v-adjust 0.02 :face 'citar-icon-dim)))))
 
         (defface citar-icon-dim
-          '((((background dark)) :foreground "#282c34")
-            (((background light)) :foreground "#fafafa"))
+          '((((background dark)) :foreground "${config.scheme.withHashtag.base01}")
+            (((background light)) :foreground "${config.scheme.withHashtag.base07}"))
           "Face for obscuring/dimming icons"
           :group 'all-the-icons-faces)
       '';
