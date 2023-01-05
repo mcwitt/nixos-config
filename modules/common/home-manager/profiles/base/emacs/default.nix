@@ -1,11 +1,11 @@
-{ config, inputs, lib, nurNoPkgs, pkgs, ... }: {
+{ config, inputs, nurNoPkgs, pkgs, ... }: {
 
   imports = [
     nurNoPkgs.repos.rycee.hmModules.emacs-init
     ./org.nix
   ];
 
-  programs.emacs.package = lib.mkDefault pkgs.emacsUnstable;
+  programs.emacs.package = pkgs.emacsUnstable;
 
   programs.emacs.overrides = final: prev: {
 
@@ -270,18 +270,10 @@
 
         ;; Optionally configure a function which returns the project root directory.
         ;; There are multiple reasonable alternatives to chose from.
-        ;;;; 1. project.el (project-roots)
         (setq consult-project-root-function
               (lambda ()
                 (when-let (project (project-current))
                   (car (project-roots project)))))
-        ;;;; 2. projectile.el (projectile-project-root)
-        ;; (autoload 'projectile-project-root "projectile")
-        ;; (setq consult-project-root-function #'projectile-project-root)
-        ;;;; 3. vc.el (vc-root-dir)
-        ;; (setq consult-project-root-function #'vc-root-dir)
-        ;;;; 4. locate-dominating-file
-        ;; (setq consult-project-root-function (lambda () (locate-dominating-file "." ".git")))
 
         (setq consult-ripgrep-command (string-join '("rg" "--null" "--line-buffered" "--color=ansi"
                                                      "--max-columns=1000"  "--no-heading" "--line-number"
@@ -642,28 +634,6 @@
       '';
     };
 
-    projectile = {
-      enable = true;
-      command = [ "projectile-mode" ];
-      bindKeyMap."C-c p" = "projectile-command-map";
-      config = ''
-        (setq projectile-enable-caching t)
-        (setq projectile-project-search-path '("~/src/"))
-        (setq projectile-require-project-root nil)
-
-        ;; https://emacs.stackexchange.com/a/26272/28931
-        (defun run-projectile-invalidate-cache (&rest _args)
-          ;; We ignore the args to `magit-checkout'.
-          (projectile-invalidate-cache nil))
-        (advice-add 'magit-checkout
-                    :after #'run-projectile-invalidate-cache)
-        (advice-add 'magit-branch-and-checkout ; This is `b c'.
-                    :after #'run-projectile-invalidate-cache)
-
-        (projectile-mode 1)
-      '';
-    };
-
     rainbow-delimiters = {
       enable = true;
       hook = [ "(prog-mode . rainbow-delimiters-mode)" ];
@@ -723,11 +693,6 @@
     treemacs-evil = {
       enable = true;
       after = [ "treemacs" "evil" ];
-    };
-
-    treemacs-projectile = {
-      enable = true;
-      after = [ "treemacs" "projectile" ];
     };
 
     treemacs-magit = {
