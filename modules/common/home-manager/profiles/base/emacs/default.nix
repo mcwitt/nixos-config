@@ -158,6 +158,11 @@
       bind = { "C-c B" = "browse-at-remote"; };
     };
 
+    command-log-mode = {
+      enable = true;
+      command = [ "command-log-mode" ];
+    };
+
     company = {
       enable = true;
       diminish = [ "company-mode" ];
