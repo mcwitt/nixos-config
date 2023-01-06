@@ -167,9 +167,6 @@
       enable = true;
       diminish = [ "company-mode" ];
       command = [ "company-mode" "company-doc-buffer" "global-company-mode" ];
-      bindLocal.company-active-map = {
-        "jk" = "company-complete";
-      };
       config = ''
         (global-company-mode)
       '';
