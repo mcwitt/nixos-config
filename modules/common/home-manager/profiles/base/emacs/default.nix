@@ -3,9 +3,10 @@
   imports = [
     nurNoPkgs.repos.rycee.hmModules.emacs-init
     ./org.nix
+    ./tree-sitter-workarounds.nix
   ];
 
-  programs.emacs.package = pkgs.emacsUnstable;
+  programs.emacs.package = pkgs.emacsGit;
 
   programs.emacs.overrides = final: prev: {
 
@@ -670,16 +671,6 @@
       enable = true;
       bind = { "C-c u" = "string-inflection-all-cycle"; };
     };
-
-    tree-sitter = {
-      enable = true;
-      config = ''
-        (global-tree-sitter-mode)
-        (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
-      '';
-    };
-
-    tree-sitter-langs.enable = true;
 
     treemacs = {
       enable = true;
