@@ -11,6 +11,7 @@
   programs.emacs.overrides = final: prev: {
 
     base16-theme = prev.base16-theme.overrideAttrs (old: {
+      src = inputs.base16-emacs;
       patchPhase = (old.patchPhase or "") + (
         let schemeFile = config.scheme.override { slug = "custom"; } inputs.base16-emacs;
         in ''
