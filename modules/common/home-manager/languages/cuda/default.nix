@@ -14,6 +14,10 @@ in
         mode = [ ''"\\.cuh?\\'"'' ];
       };
 
+      eglot.config = ''
+        (add-to-list 'eglot-server-programs '(cuda-mode "clangd"))
+      '';
+
       yasnippet-snippets.package = ps: ps.yasnippet-snippets.overrideAttrs (oldAttrs: {
         patches =
           let
