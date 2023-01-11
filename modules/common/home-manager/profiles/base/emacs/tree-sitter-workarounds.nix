@@ -7,6 +7,7 @@
         (add-to-list
          'eglot-server-programs
          (cons dst (cdr (assoc src eglot-server-programs)))))
+
       (eglot-alias-modes 'python-mode 'python-ts-mode)
       (eglot-alias-modes '(c++-mode c-mode) '(c++-ts-mode c-ts-mode))
     '';
