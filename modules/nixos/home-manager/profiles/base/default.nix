@@ -29,7 +29,6 @@
       let
         browserpass = "naepdomgkenhinolocfifgehidddafch";
         dark-reader = "eimadpbcbfnmbkopoojfekhnkhdbieeh";
-        https-everywhere = "gcbommkclmclpchllfjekcdonpmejbdp";
         link-to-text-fragment = "pbcodcjpfjdpcineamnnmbkkmkdpajjg";
         privacy-badger = "pkehgijcmpdhfbdbbnkijodmdjhbjlgp";
         ublock-origin = "cjpalhdlnbpafiamejdnhcphjbkeiagm";
@@ -38,7 +37,6 @@
       [
         browserpass
         dark-reader
-        https-everywhere
         link-to-text-fragment
         privacy-badger
         ublock-origin
@@ -55,7 +53,6 @@
     extensions = with pkgs.nur.repos.rycee.firefox-addons; [
       browserpass
       darkreader
-      https-everywhere
       privacy-badger
       ublock-origin
       vimium
