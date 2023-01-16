@@ -157,33 +157,28 @@
     enable = true;
     mimeApps = {
       enable = true;
-      defaultApplications = {
-        "application/pdf" = [ "org.pwmt.zathura.desktop" ];
-        "image/bmp" = [ "feh.desktop" ];
-        "image/gif" = [ "feh.desktop" ];
-        "image/jpeg" = [ "feh.desktop" ];
-        "image/jpg" = [ "feh.desktop" ];
-        "image/pjpeg" = [ "feh.desktop" ];
-        "image/png" = [ "feh.desktop" ];
-        "image/tiff" = [ "feh.desktop" ];
-        "image/webp" = [ "feh.desktop" ];
-        "image/x-bmp" = [ "feh.desktop" ];
-        "image/x-pcx" = [ "feh.desktop" ];
-        "image/x-png" = [ "feh.desktop" ];
-        "image/x-portable-anymap" = [ "feh.desktop" ];
-        "image/x-portable-bitmap" = [ "feh.desktop" ];
-        "image/x-portable-graymap" = [ "feh.desktop" ];
-        "image/x-portable-pixmap" = [ "feh.desktop" ];
-        "image/x-tga" = [ "feh.desktop" ];
-        "image/x-xbitmap" = [ "feh.desktop" ];
-        "text/plain" = [ "emacsclient.desktop" ];
-        "text/html" = [ "chromium-browser.desktop" ];
-        "x-scheme-handler/http" = [ "chromium-browser.desktop" ];
-        "x-scheme-handler/https" = [ "chromium-browser.desktop" ];
-        "x-scheme-handler/ftp" = [ "chromium-browser.desktop" ];
-        "x-scheme-handler/about" = [ "chromium-browser.desktop" ];
-        "x-scheme-handler/unknown" = [ "chromium-browser.desktop" ];
-      };
+      defaultApplications =
+        let
+          mkDefaults = apps: types: builtins.listToAttrs
+            (map (type: lib.nameValuePair type apps) types);
+        in
+        mkDefaults [ "feh.desktop" ] [
+          "image/bmp"
+          "image/gif"
+          "image/jpeg"
+          "image/jpg"
+          "image/png"
+          "image/webp"
+        ] //
+        mkDefaults [ "chromium-browser.desktop" ] [
+          "text/html"
+          "x-scheme-handler/http"
+          "x-scheme-handler/https"
+          "x-scheme-handler/ftp"
+        ] // {
+          "application/pdf" = [ "org.pwmt.zathura.desktop" ];
+          "text/plain" = [ "emacsclient.desktop" ];
+        };
     };
   };
 
