@@ -177,7 +177,6 @@
           excludes = [ "hardware-configuration\\.nix" ];
           hooks = {
             nixpkgs-fmt.enable = true;
-            nix-linter.enable = true;
           };
         };
       };
