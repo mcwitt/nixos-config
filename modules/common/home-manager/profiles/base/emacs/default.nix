@@ -525,11 +525,6 @@
       hook = [ "(prog-mode . hl-todo-mode)" ];
     };
 
-    imenu = {
-      enable = true;
-      bind = { "C-c i" = "imenu"; };
-    };
-
     ispell = {
       enable = true;
       config = ''
