@@ -222,6 +222,7 @@
       editor = {
         fontFamily = "'Iosevka'";
         fontLigatures = true;
+        formatOnSave = true;
       };
 
       vim = {
