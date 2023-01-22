@@ -16,7 +16,7 @@
     base16-tmux.flake = false;
     copilot-el.url = "github:zerolfx/copilot.el";
     copilot-el.flake = false;
-    home-manager.url = "github:nix-community/home-manager";
+    home-manager.url = "github:nix-community/home-manager/release-22.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     fish-kubectl-completions.url = "github:evanlucas/fish-kubectl-completions";
