@@ -82,9 +82,6 @@
         ;; use org-roam-bibtex
         (setq citar-file-open-note-function 'orb-bibtex-actions-edit-note)
 
-        ;; use consult-completing-read for enhanced interface
-        (advice-add #'completing-read-multiple :override #'consult-completing-read-multiple)
-
         ;; use icons - https://github.com/bdarcus/citar
         (setq citar-symbols
               `((file . (,(all-the-icons-icon-for-file "a.pdf" :face 'all-the-icons-dred) .
