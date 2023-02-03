@@ -21,30 +21,11 @@
       (ligature-set-ligatures 'python-ts-mode '("->" "==" ">=" "<="))
     '';
 
-    python-ts-mode = {
+    treesit-auto = {
       enable = true;
-      mode = [ ''"\\.py\\'"'' ];
-    };
-
-    c-ts-mode = {
-      enable = true;
-      mode = [
-        ''"\\.i\\'"''
-        ''"\\.lex\\'"''
-        ''"\\.y\\(acc\\)?\\'"''
-        ''"\\.c\\'"''
-        ''"\\.h\\'"''
-      ];
-    };
-
-    "c++-ts-mode" = {
-      enable = true;
-      mode = [
-        ''"\\.ii\\'"''
-        ''"\\.\\(CC?\\|HH?\\)\\'"''
-        ''"\\.[ch]\\(pp\\|xx\\|\\+\\+\\)\\'"''
-        ''"\\.\\(cc\\|hh\\)\\'"''
-      ];
+      config = ''
+        (global-treesit-auto-mode)
+      '';
     };
   };
 }
