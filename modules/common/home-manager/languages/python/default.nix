@@ -34,6 +34,13 @@ in
       '';
 
       py-isort.enable = true;
+
+      python-mode = {
+        enable = true;
+        config = ''
+          (setq python-flymake-command '("pylint" "--from-stdin" "stdin"))
+        '';
+      };
     };
 
     programs.git.ignores = lib.gitignores "Python";
