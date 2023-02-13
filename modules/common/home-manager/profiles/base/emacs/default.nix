@@ -311,10 +311,21 @@
 
     eglot = {
       enable = true;
+
       bindLocal.eglot-mode-map = {
         "C-c r" = "eglot-rename";
         "C-c h" = "eldoc";
       };
+
+      config = ''
+        ;; https://github.com/joaotavora/eglot/issues/268
+        (setq eglot-stay-out-of '(flymake))
+        (add-hook
+         'eglot--managed-mode-hook
+         (lambda ()
+           (add-hook 'flymake-diagnostic-functions 'eglot-flymake-backend nil t)
+           (flymake-mode)))
+      '';
     };
 
     eldoc = {
