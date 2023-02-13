@@ -101,6 +101,19 @@ in
       subword.hook = [ "(haskell-mode . subword-mode)" ];
     };
 
+    programs.neovim.coc.settings.languageserver.haskell = {
+      command = "haskell-language-server-wrapper";
+      args = [ "--lsp" ];
+      rootPatterns = [
+        "*.cabal"
+        "stack.yaml"
+        "cabal.project"
+        "package.yaml"
+        "hie.yaml"
+      ];
+      filetypes = [ "haskell" "lhaskell" ];
+    };
+
     programs.vscode = {
       extensions = with pkgs.vscode-extensions; [
         haskell.haskell
