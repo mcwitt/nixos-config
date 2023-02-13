@@ -33,23 +33,7 @@ in
         (ligature-set-ligatures 'python-mode '("->" "==" ">=" "<="))
       '';
 
-      py-isort = {
-        enable = true;
-        command = [
-          "py-isort-buffer"
-          "py-isort-region"
-        ];
-      };
-
-      python-mode = {
-        enable = true;
-        mode = [ ''"\\.py\\'"'' ];
-      };
-
-      pyvenv = {
-        enable = true;
-        command = [ "pyvenv-activate" ];
-      };
+      py-isort.enable = true;
     };
 
     programs.git.ignores = lib.gitignores "Python";
