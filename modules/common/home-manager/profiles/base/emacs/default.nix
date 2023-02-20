@@ -303,7 +303,10 @@
     copilot = {
       enable = true;
       command = [ "copilot-login" "copilot-mode" ];
-      bindLocal.copilot-mode-map = {
+      bind = {
+        "C-TAB" = "copilot-accept-completion-by-word";
+      };
+      bindLocal.copilot-completion-map = {
         "TAB" = "copilot-accept-completion";
       };
       config = ''
