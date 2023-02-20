@@ -20,11 +20,26 @@
       );
     });
 
-    copilot = final.trivialBuild {
-      pname = "copilot";
-      src = inputs.copilot-el;
-      packageRequires = with final; [ dash editorconfig s ];
-    };
+    copilot =
+      let src = inputs.copilot-el;
+      in final.melpaBuild rec {
+        pname = "copilot";
+        version = "20230220.0";
+        commit = src.rev;
+
+        inherit src;
+
+        packageRequires = with final; [ dash editorconfig s ];
+
+        recipe = pkgs.writeText "recipe" ''
+          (copilot
+          :repo "zerolfx/copilot.el"
+          :fetcher github
+          :files ("dist" "*.el"))
+        '';
+
+        meta.description = "Emacs plugin for GitHub Copilot";
+      };
 
     git-sync = final.trivialBuild {
       pname = "git-sync";
