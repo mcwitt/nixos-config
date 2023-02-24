@@ -685,30 +685,6 @@
       bind = { "C-c u" = "string-inflection-all-cycle"; };
     };
 
-    treemacs = {
-      enable = true;
-      bind = {
-        "M-0" = "treemacs-select-window";
-        "C-x t 1" = "treemacs-delete-other-windows";
-        "C-x t t" = "treemacs";
-        "C-x t B" = "treemacs-bookmark";
-        "C-x t C-t" = "treemacs-find-file";
-        "C-x t M-t" = "treemacs-find-tag";
-      };
-      config =
-        ''(setq treemacs-python-executable "${pkgs.python3}/bin/python")'';
-    };
-
-    treemacs-evil = {
-      enable = true;
-      after = [ "treemacs" "evil" ];
-    };
-
-    treemacs-magit = {
-      enable = true;
-      after = [ "treemacs" "magit" ];
-    };
-
     undo-tree = {
       enable = true;
       diminish = [ "undo-tree-mode" ];
