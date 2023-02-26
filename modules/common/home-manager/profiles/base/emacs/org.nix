@@ -192,6 +192,14 @@
     org-agenda = {
       enable = true;
       after = [ "org" ];
+      bindLocal.org-agenda-mode-map = {
+        "j" = "evil-next-line";
+        "k" = "evil-previous-line";
+        "C-u" = "evil-scroll-page-up";
+        "C-d" = "evil-scroll-page-down";
+        "C-w h" = "evil-window-left";
+        "C-w l" = "evil-window-right";
+      };
       config = ''
         (setq org-agenda-files
               (list org-notes-gtd-inbox-file
