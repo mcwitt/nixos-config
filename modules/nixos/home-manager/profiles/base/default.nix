@@ -9,6 +9,7 @@
     libnotify
     mplayer
     signal-desktop
+    spotify
     xfce.thunar
   ];
 
