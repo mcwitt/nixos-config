@@ -328,8 +328,6 @@
     edit-indirect.enable = true;
 
     eglot = {
-      enable = true;
-
       bindLocal.eglot-mode-map = {
         "C-c r" = "eglot-rename";
         "C-c h" = "eldoc";
