@@ -1,70 +1,18 @@
 { config, lib, pkgs, ... }:
 {
-  programs.xmobar = let s = config.scheme.withHashtag; in {
-    enable = true;
-    rc.commands = [
-      ''
-        Run DynNetwork [ "--template" , "<dev>: <tx>kB/s|<rx>kB/s"
-                       , "--Low"      , "1000"
-                       , "--High"     , "5000"
-                       , "--low"      , "${s.green}"
-                       , "--normal"   , "${s.yellow}"
-                       , "--high"     , "${s.red}"
-                       ] 10
-      ''
-      ''
-        Run MultiCpu   [ "--template" , "Cpu: <total0>% <total1>% <total2>% <total3>% <total4>% <total5>% <total6>% <total7>%"
-                       , "--Low"      , "50"
-                       , "--High"     , "85"
-                       , "--low"      , "${s.green}"
-                       , "--normal"   , "${s.yellow}"
-                       , "--high"     , "${s.red}"
-                       , "--ppad"     , "3"
-                       ] 10
-      ''
-      ''
-        Run CoreTemp   [ "--template" , "Temp: <core0>°C <core1>°C <core2>°C <core3>°C"
-                       , "--Low"      , "70"
-                       , "--High"     , "80"
-                       , "--low"      , "${s.green}"
-                       , "--normal"   , "${s.yellow}"
-                       , "--high"     , "${s.red}"
-                       ] 50
-      ''
-      ''
-        Run Memory     [ "--template" ,"Mem: <usedratio>%"
-                       , "--Low"      , "20"
-                       , "--High"     , "90"
-                       , "--low"      , "${s.green}"
-                       , "--normal"   , "${s.yellow}"
-                       , "--high"     , "${s.red}"
-                       ] 10
-      ''
-      ''Run Date "<fc=${s.base05}>%F (%a) %T</fc>" "date" 10''
-      ''Run StdinReader''
-    ];
-    rc.extraConfig = let inherit (lib) mkDefault; in {
-      position = mkDefault "Top";
-      font = mkDefault ''"Iosevka Comfy 20"''; # HACK: doesn't scale on hidpi
-      template = mkDefault ''"<fc=${s.green}>%StdinReader%</fc> | %multicpu% | %coretemp% | %memory% | %dynnetwork% }{ %date% "'';
-      bgColor = ''"${s.base00}"'';
-      fgColor = ''"${s.base05}"'';
-      borderColor = ''"${s.base00}"'';
-      sepChar = ''"%"'';
-      alignSep = ''"}{"'';
-      lowerOnStart = true;
-      hideOnStart = false;
-      allDesktops = true;
-      overrideRedirect = true;
-      pickBroadest = false;
-      persistent = true;
-    };
-  };
-
   xsession.windowManager.xmonad = {
     enable = true;
+
     enableContribAndExtras = true;
-    config = let s = config.scheme.withHashtag; in pkgs.writeText "xmonad.hs" ''
+
+    extraPackages = ps: [ ps.dbus ];
+
+    config = with config.scheme.withHashtag; pkgs.writeText "xmonad.hs" ''
+      {-# LANGUAGE ImportQualifiedPost #-}
+
+      import Codec.Binary.UTF8.String qualified as UTF8
+      import DBus qualified as D
+      import DBus.Client qualified as D
       import Data.List (isInfixOf)
       import Data.Ratio ((%))
       import XMonad
@@ -75,8 +23,8 @@
       import XMonad.Layout.BoringWindows (boringWindows, focusDown, focusMaster, focusUp)
       import XMonad.Layout.Minimize
       import XMonad.Layout.MultiToggle (Toggle (Toggle), mkToggle, single)
-      import XMonad.Layout.NoBorders (smartBorders)
       import XMonad.Layout.Reflect (REFLECTX (REFLECTX))
+      import XMonad.Layout.Spacing
       import XMonad.Prompt
       import XMonad.Util.EZConfig (additionalKeys, additionalKeysP)
       import XMonad.Util.Run (hPutStrLn, spawnPipe)
@@ -85,9 +33,9 @@
         let tall = Tall 1 (1 % 50) (3 % 5)
             layouts = tall ||| Mirror tall ||| Full
             minimizeBoring = minimize . boringWindows
-         in avoidStruts
+         in spacingWithEdge 8
+              . avoidStruts
               . mkToggle (single REFLECTX)
-              . smartBorders
               . minimizeBoring
               $ layouts
 
@@ -102,27 +50,33 @@
             searchPredicate = isInfixOf
           }
 
+      myLogHook :: D.Client -> PP
+      myLogHook dbus = def {ppOutput = dbusOutput dbus}
+
+      dbusOutput :: D.Client -> String -> IO ()
+      dbusOutput dbus str = do
+        let signal = (D.signal objectPath interfaceName memberName) {D.signalBody = [D.toVariant $ UTF8.decodeString str]}
+        D.emit dbus signal
+        where
+          objectPath = D.objectPath_ "/org/xmonad/Log"
+          interfaceName = D.interfaceName_ "org.xmonad.Log"
+          memberName = D.memberName_ "Update"
+
       main = do
-        xmobarProc <- spawnPipe "xmobar"
+        dbus <- D.connectSession
+        D.requestName
+          dbus
+          (D.busName_ "org.xmonad.Log")
+          [D.nameAllowReplacement, D.nameReplaceExisting, D.nameDoNotQueue]
         xmonad
           . docks
           . ewmh
           $ def
             { borderWidth = 5,
-              normalBorderColor = "${s.base02}",
-              focusedBorderColor = "${s.magenta}",
+              normalBorderColor = "${base00}",
+              focusedBorderColor = "${base0D}",
               layoutHook = myLayoutHook,
-              logHook =
-                dynamicLogWithPP
-                  xmobarPP
-                    { ppOutput = hPutStrLn xmobarProc,
-                      ppCurrent = xmobarColor "${s.green}" "" . wrap "[" "]",
-                      ppVisible = xmobarColor "${s.yellow}" "" . wrap "(" ")",
-                      ppHidden = xmobarColor "${s.base02}" "" . wrap "*" "",
-                      ppSep = "<fc=${s.base05}> | </fc>",
-                      ppLayout = xmobarColor "${s.base05}" "",
-                      ppTitle = xmobarColor "${s.green}" "" . shorten 80
-                    },
+              logHook = dynamicLogWithPP (myLogHook dbus),
               manageHook = manageDocks,
               modMask = mod4Mask,
               terminal = "wezterm"
@@ -134,8 +88,8 @@
                                ((mod4Mask + shiftMask, xK_backslash), withLastMinimized maximizeWindowAndFocus),
                                ((mod4Mask, xK_f), sendMessage $ Toggle REFLECTX),
                                ((mod4Mask, xK_b), sendMessage ToggleStruts),
-                               ((mod4Mask, xK_g), spawn "rofi -show window"),
-                               ((mod4Mask, xK_p), spawn "rofi -show drun"),
+                               ((mod4Mask, xK_g), spawn "rofi -show-icons -show window"),
+                               ((mod4Mask, xK_p), spawn "rofi -show-icons -show drun"),
                                ((mod4Mask + shiftMask, xK_p), spawn "rofi -show run"),
                                ((mod4Mask, xK_o), spawn "rofi-pass"),
                                ((mod4Mask, xK_i), spawn "rofi -show ssh"),
