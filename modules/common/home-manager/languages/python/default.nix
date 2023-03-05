@@ -38,7 +38,7 @@ in
       python-mode = {
         enable = true;
         config = ''
-          (setq python-flymake-command '("pylint" "--from-stdin" "stdin"))
+          (setq py-split-window-on-execute nil)
         '';
       };
     };
