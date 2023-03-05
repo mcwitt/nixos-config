@@ -127,8 +127,22 @@
 
   services.gpg-agent = {
     enable = true;
-    defaultCacheTtl = 14400; # 4 hours
-    maxCacheTtl = 14400;
+    defaultCacheTtl = 4 * 60 * 60;
+    maxCacheTtl = 4 * 60 * 60;
+    pinentryFlavor = null;
+    extraConfig =
+      let
+        pinentry-rofi-with-env = pkgs.writeShellApplication {
+          name = "pinentry-rofi-with-env";
+          runtimeInputs = with pkgs; [ coreutils rofi ];
+          text = ''
+            "${pkgs.pinentry-rofi}/bin/pinentry-rofi" "$@"
+          '';
+        };
+      in
+      ''
+        pinentry-program ${pinentry-rofi-with-env}/bin/pinentry-rofi-with-env
+      '';
   };
 
   services.org-notes-sync = {
