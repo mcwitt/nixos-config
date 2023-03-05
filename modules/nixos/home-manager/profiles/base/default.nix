@@ -1,6 +1,7 @@
-{ config, lib, pkgs, ... }:
+{ config, inputs, lib, pkgs, ... }:
 {
   imports = [
+    ./polybar.nix
     ./rofi.nix
     ./xmonad.nix
   ];
@@ -76,7 +77,7 @@
 
   services.dunst = {
     enable = true;
-    settings = {
+    settings = with config.scheme.withHashtag; {
       global = {
         browser = "${config.programs.chromium.package}/bin/chromium-browser";
         font = "Iosevka Comfy 10";
@@ -85,18 +86,18 @@
         text_icon_padding = 10;
       };
       urgency_low = {
-        background = "#002b36";
-        foreground = "#93a1a1";
+        background = base01;
+        foreground = base05;
         timeout = 5;
       };
       urgency_normal = {
-        background = "#002b36";
-        foreground = "#859900";
+        background = base01;
+        foreground = base0D;
         timeout = 10;
       };
       urgency_critical = {
-        background = "#002b36";
-        foreground = "#dc322f";
+        background = base01;
+        foreground = base08;
         timeout = 20;
       };
     };
@@ -138,18 +139,23 @@
 
   services.password-store-sync.enable = true;
 
+  services.picom = {
+    enable = true;
+    backend = "glx";
+    activeOpacity = 1.0;
+    inactiveOpacity = 0.9;
+    fade = true;
+    fadeDelta = 3;
+    settings = {
+      corner-radius = 6.0;
+      focus-exclude = [ "class_g = 'Rofi'" ];
+      rounded-corners-exclude = [ "class_g = 'Rofi'" ];
+    };
+  };
+
   services.random-background = {
     enable = true;
     imageDirectory = "%h/.background-images";
-  };
-
-  services.stalonetray = {
-    enable = true;
-    config = {
-      background = config.scheme.withHashtag.base00;
-      kludges = "force_icons_size";
-      transparent = false;
-    };
   };
 
   home.shellAliases.open = "${pkgs.xdg-utils}/bin/xdg-open";

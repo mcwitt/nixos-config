@@ -10,6 +10,8 @@
     experimental-features = nix-command flakes
   '';
 
+  nixpkgs.config.pulseaudio = true;
+
   programs.fish.enable = true;
 
   programs.mtr.enable = true;
