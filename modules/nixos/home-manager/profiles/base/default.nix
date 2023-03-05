@@ -21,6 +21,8 @@
     x11.enable = true;
   };
 
+  home.shellAliases.open = "${pkgs.xdg-utils}/bin/xdg-open";
+
   programs.chromium = {
     enable = true;
     package = pkgs.chromium.override {
@@ -158,7 +160,10 @@
     imageDirectory = "%h/.background-images";
   };
 
-  home.shellAliases.open = "${pkgs.xdg-utils}/bin/xdg-open";
+  services.udiskie = {
+    enable = true;
+    tray = "always";
+  };
 
   xdg = {
     enable = true;
