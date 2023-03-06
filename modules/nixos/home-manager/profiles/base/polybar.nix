@@ -152,15 +152,15 @@
         "module/eth" = {
           "inherit" = "network-base";
           interface-type = "wired";
-          label-connected = "%{F${colors.base0D}}%ifname%%{F-} %local_ip%";
+          label-connected = "%{F${colors.base0D}}%ifname%%{F-} %upspeed:7% %downspeed:7%";
+          speed-unit = "";
         };
 
         "module/date" = {
           type = "internal/date";
           interval = 1;
 
-          date = "%H:%M";
-          date-alt = "%Y-%m-%d %H:%M:%S";
+          date = "%Y-%m-%d %a %H:%M:%S";
 
           label = "%date%";
           label-foreground = ''''${colors.primary}'';
