@@ -139,8 +139,8 @@
         "C-c o s" = "org-notes-save-and-sync";
       };
       bindLocal.org-mode-map = {
-        "C-c C-x l d" = "org-toggle-link-display";
-        "C-c C-x l i" = "org-insert-link";
+        "C-c C-x k d" = "org-toggle-link-display";
+        "C-c C-x k i" = "org-insert-link";
       };
       hook = [
         "(org-mode . turn-on-visual-line-mode)"
@@ -238,6 +238,14 @@
                 ("f" "Flash card" entry
                  (file+headline org-notes-flashcards-file "Flash cards")
                  "* %?\n:PROPERTIES:\n:ANKI_NOTE_TYPE: %^{Note type|Basic}\n:ANKI_DECK: %^{Deck|Misc}\n:END:\n** Front\n** Back")))
+      '';
+    };
+
+    org-capture-pop-frame = {
+      enable = true;
+      config = ''
+        ;; Don't show menu bar in new frame
+        (add-to-list 'ocpf-frame-parameters '(menu-bar-lines . 0))
       '';
     };
 
