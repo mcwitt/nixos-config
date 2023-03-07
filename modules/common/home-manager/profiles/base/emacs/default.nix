@@ -3,7 +3,6 @@
   imports = [
     nurNoPkgs.repos.rycee.hmModules.emacs-init
     ./org.nix
-    ./tree-sitter-workarounds.nix
   ];
 
   programs.emacs.package = pkgs.emacsGit;
