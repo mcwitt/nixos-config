@@ -1,4 +1,4 @@
-{ config, inputs, nurNoPkgs, pkgs, ... }: {
+{ config, inputs, lib, nurNoPkgs, pkgs, ... }: {
 
   imports = [
     nurNoPkgs.repos.rycee.hmModules.emacs-init
@@ -328,6 +328,9 @@
     edit-indirect.enable = true;
 
     eglot = {
+      enable = true;
+      package = _: null; # use built-in package
+
       bindLocal.eglot-mode-map = {
         "C-c r" = "eglot-rename";
         "C-c h" = "eldoc";
