@@ -4,18 +4,6 @@ let inherit (final) system;
   pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${system};
 in
 {
-  vscode-extensions = prev.vscode-extensions // {
-    NVIDIA.nsight-vscode-edition = final.vscode-utils.buildVscodeMarketplaceExtension {
-      mktplcRef = {
-        name = "nsight-vscode-edition";
-        publisher = "NVIDIA";
-        version = "2021.1.30130113";
-        sha256 = "sha256-vpM0T4UGSasBNtk53//vqXUTSCVt1JsFCHPloI53U0Q=";
-      };
-      meta = { license = final.lib.licenses.unfree; };
-    };
-  };
-
   inherit (pkgs-unstable) wezterm;
 
   lib = prev.lib.extend

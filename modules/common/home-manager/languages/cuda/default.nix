@@ -39,11 +39,6 @@ in
     };
 
     programs.vscode = {
-
-      extensions = [
-        pkgs.vscode-extensions.NVIDIA.nsight-vscode-edition
-      ];
-
       userSettings.files.associations = {
         "*.cu" = "cpp";
         "*.cuh" = "cpp";
