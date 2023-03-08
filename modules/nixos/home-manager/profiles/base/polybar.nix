@@ -3,11 +3,6 @@
   services.polybar = {
     enable = true;
 
-    package = pkgs.polybar.override {
-      alsaSupport = true;
-      githubSupport = true;
-    };
-
     script = ''
       polybar &
     '';
@@ -55,7 +50,7 @@
           font = [ "Iosevka Comfy:size=10;4" ];
 
           modules-left = lib.concatStringsSep " " [ "xworkspaces" "xwindow" ];
-          modules-right = lib.concatStringsSep " " [ "filesystem" "pulseaudio" "xkeyboard" "memory" "cpu" "wlan" "eth" "date" ];
+          modules-right = lib.concatStringsSep " " [ "filesystem" "pulseaudio" "memory" "cpu" "eth" "date" ];
 
           cursor-click = "pointer";
           cursor-scroll = "ns-resize";
