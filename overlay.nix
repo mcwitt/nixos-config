@@ -1,5 +1,8 @@
 { inputs }:
 final: prev:
+let inherit (final) system;
+  pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${system};
+in
 {
   vscode-extensions = prev.vscode-extensions // {
     NVIDIA.nsight-vscode-edition = final.vscode-utils.buildVscodeMarketplaceExtension {
@@ -12,6 +15,8 @@ final: prev:
       meta = { license = final.lib.licenses.unfree; };
     };
   };
+
+  inherit (pkgs-unstable) wezterm;
 
   lib = prev.lib.extend
     (final: _: {
