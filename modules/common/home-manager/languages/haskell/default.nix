@@ -30,6 +30,8 @@ in
 
     programs.emacs.init.usePackage = {
 
+      eglot.hook = [ "(haskell-mode . eglot-ensure)" ];
+
       haskell = {
         enable = true;
         command = [ "interactive-haskell-mode" ];

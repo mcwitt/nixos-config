@@ -29,6 +29,8 @@ in
 
     programs.emacs.init.usePackage = {
 
+      eglot.hook = [ "(python-mode . eglot-ensure)" ];
+
       ligature.config = ''
         (ligature-set-ligatures 'python-mode '("->" "==" ">=" "<="))
       '';
