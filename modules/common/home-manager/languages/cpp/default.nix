@@ -9,6 +9,11 @@ in
 
     programs.emacs.init.usePackage = {
 
+      eglot.hook = [
+        "(c-mode . eglot-ensure)"
+        "(c++-mode . eglot-ensure)"
+      ];
+
       cmake-mode = {
         enable = true;
         mode = [

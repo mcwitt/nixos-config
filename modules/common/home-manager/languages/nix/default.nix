@@ -18,6 +18,8 @@ in
 
     programs.emacs.init.usePackage = {
 
+      eglot.hook = [ "(nix-mode . eglot-ensure)" ];
+
       nix-mode = {
         enable = true;
         mode = [ ''"\\.nix\\'"'' ];

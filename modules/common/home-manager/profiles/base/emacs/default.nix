@@ -330,6 +330,8 @@
       enable = true;
       package = _: null; # use built-in package
 
+      command = [ "eglot" ];
+
       bindLocal.eglot-mode-map = {
         "C-c r" = "eglot-rename";
         "C-c h" = "eldoc";
