@@ -11,6 +11,7 @@
       let
         windowMargin = 8;
         colors = config.scheme.withHashtag;
+        runTermAppOnClick = bin: label: "%{A1:${pkgs.wezterm}/bin/wezterm start ${bin}:}${label}%{A}";
       in
       with config.scheme.withHashtag; {
         "colors" = {
@@ -126,7 +127,7 @@
           interval = 2;
           format-prefix = "RAM ";
           format-prefix-foreground = ''''${colors.primary}'';
-          label = "%percentage_used:2%%";
+          label = runTermAppOnClick "${pkgs.htop}/bin/htop" "%percentage_used:2%%";
         };
 
         "module/cpu" = {
@@ -134,7 +135,7 @@
           interval = 2;
           format-prefix = "CPU ";
           format-prefix-foreground = ''''${colors.primary}'';
-          label = "%percentage-sum:3%%";
+          label = runTermAppOnClick "${pkgs.htop}/bin/htop" "%percentage-sum:3%%";
         };
 
         "network-base" = {
