@@ -50,7 +50,7 @@
 
           font = [ "Iosevka Comfy:size=10;4" ];
 
-          modules-left = "xworkspaces xwindow";
+          modules-left = "xworkspaces xmonad xwindow";
           modules-right = "filesystem memory cpu eth pulseaudio date";
 
           cursor-click = "pointer";
@@ -94,6 +94,12 @@
           type = "internal/xwindow";
           label = "%title%";
           label-maxlen = 80;
+        };
+
+        "module/xmonad" = {
+          type = "custom/script";
+          exec = "${pkgs.xmonad-log}/bin/xmonad-log";
+          tail = true;
         };
 
         "module/filesystem" = {
