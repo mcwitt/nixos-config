@@ -49,8 +49,8 @@
 
           font = [ "Iosevka Comfy:size=10;4" ];
 
-          modules-left = lib.concatStringsSep " " [ "xworkspaces" "xwindow" ];
-          modules-right = lib.concatStringsSep " " [ "filesystem" "pulseaudio" "memory" "cpu" "eth" "date" ];
+          modules-left = "xworkspaces xwindow";
+          modules-right = "filesystem memory cpu eth pulseaudio date";
 
           cursor-click = "pointer";
           cursor-scroll = "ns-resize";
@@ -91,7 +91,8 @@
 
         "module/xwindow" = {
           type = "internal/xwindow";
-          label = "%title:0:60:...%";
+          label = "%title%";
+          label-maxlen = 80;
         };
 
         "module/filesystem" = {
