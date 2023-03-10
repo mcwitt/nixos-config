@@ -51,7 +51,8 @@
           font = [ "Iosevka Comfy:size=10;4" ];
 
           modules-left = "xworkspaces xmonad xwindow";
-          modules-right = "filesystem memory cpu eth pulseaudio date";
+          modules-center = "date";
+          modules-right = "network filesystem memory cpu pulseaudio";
 
           cursor-click = "pointer";
           cursor-scroll = "ns-resize";
@@ -130,7 +131,7 @@
 
         "module/memory" = {
           type = "internal/memory";
-          interval = 2;
+          interval = 1;
           format-prefix = "RAM ";
           format-prefix-foreground = ''''${colors.primary}'';
           label = runTermAppOnClick "${pkgs.htop}/bin/htop" "%percentage_used:2%%";
@@ -138,25 +139,18 @@
 
         "module/cpu" = {
           type = "internal/cpu";
-          interval = 2;
+          interval = 1;
           format-prefix = "CPU ";
           format-prefix-foreground = ''''${colors.primary}'';
           label = runTermAppOnClick "${pkgs.htop}/bin/htop" "%percentage-sum:3%%";
         };
 
-        "network-base" = {
+        "module/network" = {
           type = "internal/network";
-          interval = 5;
-          format-connected = "<label-connected>";
-          format-disconnected = "<label-disconnected>";
-          label-disconnected = "%{F${colors.base0D}}%ifname%%{F${colors.base03}} disconnected";
-        };
-
-        "module/eth" = {
-          "inherit" = "network-base";
           interface-type = "wired";
-          label-connected = "%{F${colors.base0D}}%ifname%%{F-} %upspeed:7% %downspeed:7%";
-          speed-unit = "";
+          interval = 1;
+          label-connected = "%{F${colors.base0D}}%ifname%%{F-} %netspeed:8%";
+          label-disconnected = "%{F${colors.base0D}}%ifname%%{F${colors.base03}} disconnected";
         };
 
         "module/date" = {
