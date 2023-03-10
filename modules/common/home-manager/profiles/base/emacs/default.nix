@@ -600,6 +600,11 @@
       };
     };
 
+    magit-extras = {
+      enable = true;
+      demand = true; # e.g. to add entry to `project-switch-commands'
+    };
+
     marginalia = {
       enable = true;
       bind."M-A" = "marginalia-cycle";
