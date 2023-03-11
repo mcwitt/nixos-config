@@ -655,16 +655,6 @@
       '';
     };
 
-    powerline = {
-      enable = true;
-      config = ''
-        (powerline-center-evil-theme)
-        (defadvice load-theme (after powerline-reset-after-load-theme activate)
-          "Reset powerline after switching theme."
-          (powerline-reset))
-      '';
-    };
-
     rainbow-delimiters = {
       enable = true;
       hook = [ "(prog-mode . rainbow-delimiters-mode)" ];
