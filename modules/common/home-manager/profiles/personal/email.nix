@@ -40,6 +40,14 @@ in
     programs.emacs.init.usePackage = {
       mu4e.enable = true;
 
+      mu4e-column-faces = {
+        enable = true;
+        after = [ "mu4e" ];
+        config = ''
+          (mu4e-column-faces-mode)
+        '';
+      };
+
       smtpmail = let gmail = config.accounts.email.accounts."mcwitt@gmail.com"; in {
         enable = true;
         config = ''
