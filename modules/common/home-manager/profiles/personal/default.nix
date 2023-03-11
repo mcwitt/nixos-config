@@ -3,6 +3,8 @@ with lib;
 let cfg = config.profiles.personal;
 in
 {
+  imports = [ ./email.nix ];
+
   options.profiles.personal.enable =
     mkEnableOption "Profile for use on machines I own";
 
