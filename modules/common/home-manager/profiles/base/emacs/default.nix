@@ -538,9 +538,6 @@
     forge = {
       enable = true;
       after = [ "magit" ];
-      config = ''
-        (setq forge-add-default-bindings nil)
-      '';
     };
 
     frames-only-mode = {
