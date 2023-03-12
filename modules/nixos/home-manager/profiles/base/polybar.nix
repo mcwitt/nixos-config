@@ -50,7 +50,7 @@
 
           font = [ "Iosevka Comfy:size=10;4" ];
 
-          modules-left = "xworkspaces xmonad xwindow";
+          modules-left = "xworkspaces xmonad";
           modules-center = "date";
           modules-right = "network filesystem memory cpu pulseaudio";
 
@@ -86,9 +86,7 @@
           label-urgent-background = ''''${colors.alert}'';
           label-urgent-padding = 1;
 
-          label-empty = "%name%";
-          label-empty-foreground = ''''${colors.disabled}'';
-          label-empty-padding = 1;
+          label-empty = ""; # hide empty workspaces
         };
 
         "module/xwindow" = {
