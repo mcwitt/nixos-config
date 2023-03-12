@@ -14,11 +14,12 @@
       import qualified DBus as D
       import qualified DBus.Client as D
       import Data.Bifunctor (first)
+      import Data.Maybe (catMaybes)
       import Data.Ratio ((%))
       import Graphics.X11.ExtraTypes.XF86
       import XMonad
       import XMonad.Actions.Minimize (maximizeWindowAndFocus, minimizeWindow, withLastMinimized, withMinimized)
-      import XMonad.Hooks.DynamicLog (PP, dynamicLogWithPP, ppLayout, ppOrder, ppOutput)
+      import XMonad.Hooks.DynamicLog (PP (..), dynamicLogWithPP, shorten, wrap)
       import XMonad.Hooks.EwmhDesktops (ewmh)
       import XMonad.Hooks.ManageDocks (avoidStruts, docks, manageDocks)
       import XMonad.Layout.BoringWindows (boringWindows, focusDown, focusMaster, focusUp)
@@ -82,23 +83,25 @@
       mkPolybarLogHook :: (String -> IO ()) -> X ()
       mkPolybarLogHook output = do
         windowCount <- withWindowSet (pure . length . W.index)
-        minimizedWindowCount <- withMinimized (pure . length)
+        minimizedCount <- withMinimized (pure . length)
         dynamicLogWithPP $
           def
-            { ppOutput = output,
+            { ppSep = color "${base03}" " | ",
+              ppTitle = shorten 80,
               ppLayout =
-                ( ++
-                    ' ' :
-                    show windowCount
-                      ++ if minimizedWindowCount > 0
-                        then " " ++ polybarColor "${base0A}" ("(" ++ show minimizedWindowCount ++ ")")
-                        else ""
-                )
-                  . polybarColor "${base0D}",
-              ppOrder = \(_ : layout : _) -> [layout]
+                let windowCountLabel =
+                      unwords $
+                        catMaybes
+                          [ color "${base0B}" . show <$> positive windowCount,
+                            color "${base0A}" . wrap "(" ")" . show <$> positive minimizedCount
+                          ]
+                 in (++ " " ++ windowCountLabel) . color "${base0D}",
+              ppOrder = \(_ : l : win : _) -> [l, win],
+              ppOutput = output
             }
         where
-          polybarColor c s = "%{F" ++ c ++ "}" ++ s ++ "%{F-}"
+          positive n = if n > 0 then Just n else Nothing
+          color c = wrap ("%{F" ++ c ++ "}") "%{F-}"
 
       setupLogOutput :: IO (String -> IO ())
       setupLogOutput = do
