@@ -536,7 +536,7 @@
     };
 
     forge = {
-      enable = true;
+      enable = false;
       after = [ "magit" ];
     };
 
