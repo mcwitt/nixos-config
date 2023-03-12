@@ -1,10 +1,11 @@
 { inputs }:
 final: prev:
-let inherit (final) system;
-  pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${system};
+let
+  inherit (final) system;
+  pkgsUnstable = inputs.nixpkgs-unstable.legacyPackages.${system};
 in
 {
-  inherit (pkgs-unstable) wezterm;
+  inherit (pkgsUnstable) wezterm;
 
   lib = prev.lib.extend
     (final: _: {
