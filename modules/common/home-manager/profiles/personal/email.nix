@@ -17,16 +17,12 @@ in
 
       mbsync = {
         enable = true;
-
         create = "maildir";
-
         extraConfig.channel = {
           Patterns = [
             "*"
             "![Gmail]*"
             "[Gmail]/Sent Mail"
-            "[Gmail]/Starred"
-            "[Gmail]/All Mail"
           ];
         };
       };
