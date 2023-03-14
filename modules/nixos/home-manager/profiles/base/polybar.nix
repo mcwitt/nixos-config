@@ -19,8 +19,9 @@
           background-alt = colors.base02;
           foreground = colors.base05;
           primary = colors.base0D;
-          secondary = colors.base0A;
+          secondary = colors.base0F;
           alert = colors.base08;
+          warn = colors.base0A;
           disabled = colors.base03;
         };
 
@@ -48,7 +49,7 @@
           separator = "|";
           separator-foreground = ''''${colors.disabled}'';
 
-          font = [ "Iosevka Comfy:size=10;4" ];
+          font = [ "Iosevka Comfy:size=10;5" ];
 
           modules-left = "xworkspaces xmonad";
           modules-center = "date";
@@ -138,8 +139,18 @@
         "module/cpu" = {
           type = "internal/cpu";
           interval = 1;
-          format-prefix = "CPU ";
           format-prefix-foreground = ''''${colors.primary}'';
+          format = "<ramp-coreload>";
+          ramp-coreload = [
+            "%{F${colors.base0B}}▁%{F-}"
+            "%{F${colors.base0B}}▂%{F-}"
+            "%{F${colors.base0A}}▃%{F-}"
+            "%{F${colors.base0A}}▄%{F-}"
+            "%{F${colors.base09}}▅%{F-}"
+            "%{F${colors.base09}}▆%{F-}"
+            "%{F${colors.base08}}▇%{F-}"
+            "%{F${colors.base08}}█%{F-}"
+          ];
           label = runTermAppOnClick "${pkgs.htop}/bin/htop" "%percentage-sum:3%%";
         };
 
