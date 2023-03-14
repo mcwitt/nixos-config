@@ -164,7 +164,6 @@
     fadeDelta = 3;
     settings = {
       corner-radius = 6;
-      focus-exclude = [ "class_g = 'Rofi'" ];
       rounded-corners-exclude = [ "class_g = 'Rofi'" ];
     };
   };
