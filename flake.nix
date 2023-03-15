@@ -56,17 +56,14 @@
         unison-nix.overlay
       ];
 
-      mkSpecialArgs = system: {
+      mkSpecialArgs = pkgs: {
         inherit inputs;
 
         # gross hack to use modules from NUR
         # https://discourse.nixos.org/t/importing-nur-home-manager-modules-in-nix-flakes/16457
         nurNoPkgs = import inputs.nur {
           pkgs = null;
-          nurpkgs = import nixpkgs {
-            inherit system overlays;
-            config.allowUnfree = true;
-          };
+          nurpkgs = pkgs;
         };
       };
     in
@@ -104,7 +101,7 @@
                   home-manager = {
                     useGlobalPkgs = true;
                     useUserPackages = true;
-                    extraSpecialArgs = mkSpecialArgs system;
+                    extraSpecialArgs = mkSpecialArgs pkgs;
 
                     users = builtins.listToAttrs (map
                       (user: lib.nameValuePair user {
@@ -143,7 +140,12 @@
 
       homeConfigurations."matt@linux" =
         lib.makeOverridable home-manager.lib.homeManagerConfiguration rec {
-          extraSpecialArgs = mkSpecialArgs "x86_64-linux";
+          pkgs = import nixpkgs {
+            system = "x86_64-linux";
+            config.allowUnfree = true;
+            inherit overlays;
+          };
+          extraSpecialArgs = mkSpecialArgs pkgs;
           modules = [
             self.homeManagerModules.common
             self.homeManagerModules.nixos
