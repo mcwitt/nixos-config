@@ -13,6 +13,8 @@ in
       realName = "Matt Wittmann";
       flavor = "gmail.com"; # sets imap and smtp server parameters
 
+      passwordCommand = lib.mkDefault "true"; # should be overridden with the real command
+
       mu.enable = true;
 
       mbsync = {
