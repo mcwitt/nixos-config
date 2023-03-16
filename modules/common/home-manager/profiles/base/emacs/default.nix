@@ -338,14 +338,6 @@
       };
 
       config = ''
-        ;; https://github.com/joaotavora/eglot/issues/268
-        (setq eglot-stay-out-of '(flymake))
-        (add-hook
-         'eglot--managed-mode-hook
-         (lambda ()
-           (add-hook 'flymake-diagnostic-functions 'eglot-flymake-backend nil t)
-           (flymake-mode)))
-
         ;; https://github.com/joaotavora/eglot/discussions/898
         (add-hook 'eglot-managed-mode-hook
                 (lambda ()
