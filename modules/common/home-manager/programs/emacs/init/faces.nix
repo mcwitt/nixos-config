@@ -10,10 +10,10 @@
       (set-face-attribute 'default
                           nil
                           :height ${builtins.toString config.programs.emacs.init.faces.height}
-                          :family "Iosevka Comfy")
+                          :family "${config.stylix.fonts.monospace.name}")
       (set-face-attribute 'variable-pitch
                           nil
-                          :family "DejaVu Sans")
+                          :family "${config.stylix.fonts.sansSerif.name}")
     '';
   };
 }

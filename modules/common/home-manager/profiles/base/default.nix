@@ -125,7 +125,7 @@
 
   programs.wezterm = {
     enable = true;
-    colorSchemes.custom = with config.scheme.withHashtag; {
+    colorSchemes.custom = with config.lib.stylix.colors; {
       # https://github.com/chriskempson/base16-shell/blob/master/templates/default.mustache
       ansi = [ base00 red green yellow blue magenta cyan base05 ];
       brights = [ base03 red green yellow blue magenta cyan base07 ];
@@ -140,7 +140,7 @@
     };
     extraConfig = ''
       return {
-        font = wezterm.font 'Iosevka Comfy',
+        font = wezterm.font '${config.stylix.fonts.monospace.name}',
         font_size = 10.0,
         color_scheme = 'custom',
         hide_tab_bar_if_only_one_tab = true,
@@ -185,7 +185,7 @@
   programs.tmux = {
     enable = true;
     keyMode = "vi";
-    extraConfig = builtins.readFile (config.scheme inputs.base16-tmux);
+    extraConfig = builtins.readFile (config.lib.stylix.scheme inputs.base16-tmux);
   };
 
   programs.vscode = {
@@ -217,7 +217,7 @@
       extensions.autoUpdate = false;
 
       editor = {
-        fontFamily = "'Iosevka'";
+        fontFamily = "'${config.stylix.fonts.monospace.name}'";
         fontLigatures = true;
         formatOnSave = true;
       };

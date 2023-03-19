@@ -10,10 +10,10 @@
     settings =
       let
         windowMargin = 8;
-        colors = config.scheme.withHashtag;
+        inherit (config.lib.stylix) colors;
         runTermAppOnClick = bin: label: "%{A1:${pkgs.wezterm}/bin/wezterm start ${bin}:}${label}%{A}";
       in
-      with config.scheme.withHashtag; {
+      {
         "colors" = {
           background = colors.base01;
           background-alt = colors.base02;
@@ -49,7 +49,7 @@
           separator = "|";
           separator-foreground = ''''${colors.disabled}'';
 
-          font = [ "Iosevka Comfy:size=10;5" ];
+          font = [ "${config.stylix.fonts.monospace.name}:size=10;5" ];
 
           modules-left = "xworkspaces xmonad";
           modules-center = "date";
