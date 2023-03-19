@@ -5,14 +5,8 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
-    base16.url = "github:SenchoPens/base16.nix";
-    base16.inputs.nixpkgs.follows = "nixpkgs";
-    base16-emacs.url = "github:tinted-theming/base16-emacs";
-    base16-emacs.flake = false;
     base16-rofi.url = "github:tinted-theming/base16-rofi";
     base16-rofi.flake = false;
-    base16-schemes.url = "github:tinted-theming/base16-schemes";
-    base16-schemes.flake = false;
     base16-tmux.url = "github:tinted-theming/base16-tmux";
     base16-tmux.flake = false;
     copilot-el.url = "github:zerolfx/copilot.el";
@@ -32,6 +26,7 @@
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     nur.url = "github:nix-community/NUR";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
+    stylix.url = "github:danth/stylix";
     unison-nix.url = "github:ceedubs/unison-nix";
   };
 
@@ -43,6 +38,7 @@
     , emacs-overlay
     , nur
     , pre-commit-hooks
+    , stylix
     , unison-nix
     , ...
     } @ inputs:

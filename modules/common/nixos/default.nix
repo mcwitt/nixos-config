@@ -1,5 +1,7 @@
 { pkgs, ... }: {
 
+  imports = [ ./style.nix ];
+
   nix.gc = {
     automatic = true;
     dates = "weekly";

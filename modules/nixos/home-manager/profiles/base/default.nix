@@ -70,7 +70,7 @@
 
   programs.urxvt = {
     enable = true;
-    fonts = [ "xft:Iosevka Comfy:size=10:antialias=true" ];
+    fonts = [ "xft:${config.stylix.fonts.monospace.name}:size=10:antialias=true" ];
   };
 
   programs.vscode.package = pkgs.vscodium-fhs;
@@ -82,25 +82,9 @@
     settings = with config.scheme.withHashtag; {
       global = {
         browser = "${config.programs.chromium.package}/bin/chromium-browser";
-        font = "Iosevka Comfy 10";
         markup = "full";
         max_icon_size = 100;
         text_icon_padding = 10;
-      };
-      urgency_low = {
-        background = base01;
-        foreground = base05;
-        timeout = 5;
-      };
-      urgency_normal = {
-        background = base01;
-        foreground = base0D;
-        timeout = 10;
-      };
-      urgency_critical = {
-        background = base01;
-        foreground = base08;
-        timeout = 20;
       };
     };
   };
@@ -166,11 +150,6 @@
       corner-radius = 6;
       rounded-corners-exclude = [ "class_g = 'Rofi'" ];
     };
-  };
-
-  services.random-background = {
-    enable = true;
-    imageDirectory = "%h/.background-images";
   };
 
   services.udiskie = {
