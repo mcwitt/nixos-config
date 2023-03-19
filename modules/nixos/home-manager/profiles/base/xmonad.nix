@@ -7,7 +7,7 @@
 
     extraPackages = ps: [ ps.dbus ];
 
-    config = with config.scheme.withHashtag; pkgs.writeText "xmonad.hs" ''
+    config = with config.lib.stylix.colors.withHashtag; pkgs.writeText "xmonad.hs" ''
       {-# LANGUAGE TupleSections #-}
 
       import qualified Codec.Binary.UTF8.String as UTF8

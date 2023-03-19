@@ -1,4 +1,8 @@
 { config, lib, ... }:
+
+let
+  dpi = 200;
+in
 {
   home.pointerCursor = {
     size = 64;
@@ -7,12 +11,12 @@
 
   home.stateVersion = "21.11";
 
-  programs.rofi.font = lib.mkForce "Iosevka Comfy 24"; # HACK since dpi setting in Xresources seems ignored
+  programs.rofi.extraConfig.dpi = dpi;
 
   services.blueman-applet.enable = true;
 
   xresources.properties = {
-    "*dpi" = 200;
-    "Xft.dpi" = 200;
+    "*dpi" = dpi;
+    "Xft.dpi" = dpi;
   };
 }

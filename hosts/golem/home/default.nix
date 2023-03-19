@@ -1,4 +1,8 @@
 { lib, ... }:
+
+let
+  dpi = 183;
+in
 {
   home.stateVersion = "21.11";
 
@@ -10,10 +14,10 @@
     in
     [ overlay ];
 
-  programs.rofi.font = lib.mkForce "Iosevka Comfy 20"; # HACK since dpi setting in Xresources seems ignored
+  programs.rofi.extraConfig.dpi = dpi;
 
   xresources.properties = {
-    "*dpi" = 183;
-    "Xft.dpi" = 183;
+    "*dpi" = dpi;
+    "Xft.dpi" = dpi;
   };
 }

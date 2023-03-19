@@ -9,16 +9,6 @@
 
   programs.emacs.overrides = final: prev: {
 
-    base16-theme = prev.base16-theme.overrideAttrs (old: {
-      src = inputs.base16-emacs;
-      patchPhase = (old.patchPhase or "") + (
-        let schemeFile = config.scheme.override { slug = "custom"; } inputs.base16-emacs;
-        in ''
-          cp ${schemeFile} build/base16-custom-theme.el
-        ''
-      );
-    });
-
     copilot =
       let src = inputs.copilot-el;
       in final.melpaBuild rec {
@@ -152,18 +142,11 @@
       };
     };
 
-    base16-theme = {
-      enable = true;
-      config = ''
-        (load-theme 'base16-custom t)
-      '';
-    };
-
     beacon = {
       enable = true;
       diminish = [ "beacon-mode" ];
       config = ''
-        (setq beacon-color "${config.scheme.withHashtag.orange}")
+        (setq beacon-color "${config.lib.stylix.colors.orange}")
         (beacon-mode 1)
       '';
     };

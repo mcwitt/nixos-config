@@ -92,8 +92,8 @@
                          ,(all-the-icons-faicon "external-link-square" :v-adjust 0.02 :face 'citar-icon-dim)))))
 
         (defface citar-icon-dim
-          '((((background dark)) :foreground "${config.scheme.withHashtag.base01}")
-            (((background light)) :foreground "${config.scheme.withHashtag.base07}"))
+          '((((background dark)) :foreground "${config.lib.stylix.colors.base01}")
+            (((background light)) :foreground "${config.lib.stylix.colors.base07}"))
           "Face for obscuring/dimming icons"
           :group 'all-the-icons-faces)
       '';
