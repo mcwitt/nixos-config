@@ -7,6 +7,8 @@
     flake-utils.url = "github:numtide/flake-utils";
     base16-rofi.url = "github:tinted-theming/base16-rofi";
     base16-rofi.flake = false;
+    base16-schemes.url = "github:tinted-theming/base16-schemes";
+    base16-schemes.flake = false;
     base16-tmux.url = "github:tinted-theming/base16-tmux";
     base16-tmux.flake = false;
     copilot-el.url = "github:zerolfx/copilot.el";

@@ -8,8 +8,11 @@ in
 {
   imports = [ inputs.stylix.nixosModules.stylix ];
 
+  stylix.base16Scheme = "${inputs.base16-schemes}/nord.yaml";
+
   stylix.image = carinaNebula;
 
+  # only relevant when stylix.base16Scheme not specified
   stylix.polarity = "dark";
 
   stylix.fonts.monospace = {
