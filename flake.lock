@@ -37,6 +37,22 @@
         "type": "github"
       }
     },
+    "base16-schemes": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1679099775,
+        "narHash": "sha256-pKVNxhnkaKKkN5GVKaV3tlt6/2tbbf7N19QKPtO8X8o=",
+        "owner": "tinted-theming",
+        "repo": "base16-schemes",
+        "rev": "c3ada2e5fae34d8cad29cd34af4de1d4cd83b390",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tinted-theming",
+        "repo": "base16-schemes",
+        "type": "github"
+      }
+    },
     "base16-tmux": {
       "flake": false,
       "locked": {
@@ -546,6 +562,7 @@
     "root": {
       "inputs": {
         "base16-rofi": "base16-rofi",
+        "base16-schemes": "base16-schemes",
         "base16-tmux": "base16-tmux",
         "copilot-el": "copilot-el",
         "emacs-overlay": "emacs-overlay",
