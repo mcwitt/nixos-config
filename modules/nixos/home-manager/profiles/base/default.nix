@@ -1,25 +1,9 @@
-{ config, inputs, lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 {
-  imports = [
-    ./polybar.nix
-    ./rofi.nix
-    ./xmonad.nix
-  ];
-
   home.packages = with pkgs; [
-    libnotify
-    mplayer
     signal-desktop
     spotify
-    xfce.thunar
   ];
-
-  home.pointerCursor = {
-    package = pkgs.vanilla-dmz;
-    name = "Vanilla-DMZ";
-    size = lib.mkDefault 48;
-    x11.enable = true;
-  };
 
   home.shellAliases.open = "${pkgs.xdg-utils}/bin/xdg-open";
 
@@ -77,56 +61,15 @@
 
   programs.zathura.enable = true;
 
-  services.dunst = {
-    enable = true;
-    settings = with config.scheme.withHashtag; {
-      global = {
-        browser = "${config.programs.chromium.package}/bin/chromium-browser";
-        markup = "full";
-        max_icon_size = 100;
-        text_icon_padding = 10;
-      };
-    };
-  };
-
   services.emacs = {
     enable = true;
     client.enable = true;
-  };
-
-  services.flameshot = {
-    enable = true;
-    settings.General.showStartupLaunchMessage = false;
-  };
-
-  services.gammastep = {
-    enable = true;
-    tray = true;
-    provider = "geoclue2";
-    settings.general = {
-      adjustment-method = "randr";
-      brightness-night = 0.6;
-    };
   };
 
   services.gpg-agent = {
     enable = true;
     defaultCacheTtl = 4 * 60 * 60;
     maxCacheTtl = 4 * 60 * 60;
-    pinentryFlavor = null;
-    extraConfig =
-      let
-        pinentry-rofi-with-env = pkgs.writeShellApplication {
-          name = "pinentry-rofi-with-env";
-          runtimeInputs = with pkgs; [ coreutils rofi ];
-          text = ''
-            "${pkgs.pinentry-rofi}/bin/pinentry-rofi" "$@"
-          '';
-        };
-      in
-      ''
-        pinentry-program ${pinentry-rofi-with-env}/bin/pinentry-rofi-with-env
-      '';
   };
 
   services.org-notes-sync = {
@@ -138,53 +81,4 @@
   services.pass-secret-service.enable = true;
 
   services.password-store-sync.enable = true;
-
-  services.picom = {
-    enable = true;
-    backend = "glx";
-    activeOpacity = 1.0;
-    inactiveOpacity = 0.9;
-    fade = true;
-    fadeDelta = 3;
-    settings = {
-      corner-radius = 6;
-      rounded-corners-exclude = [ "class_g = 'Rofi'" ];
-    };
-  };
-
-  services.udiskie = {
-    enable = true;
-    tray = "always";
-  };
-
-  xdg = {
-    enable = true;
-    mimeApps = {
-      enable = true;
-      defaultApplications =
-        let
-          mkDefaults = apps: types: builtins.listToAttrs
-            (map (type: lib.nameValuePair type apps) types);
-        in
-        mkDefaults [ "feh.desktop" ] [
-          "image/bmp"
-          "image/gif"
-          "image/jpeg"
-          "image/jpg"
-          "image/png"
-          "image/webp"
-        ] //
-        mkDefaults [ "chromium-browser.desktop" ] [
-          "text/html"
-          "x-scheme-handler/http"
-          "x-scheme-handler/https"
-          "x-scheme-handler/ftp"
-        ] // {
-          "application/pdf" = [ "org.pwmt.zathura.desktop" ];
-          "text/plain" = [ "emacsclient.desktop" ];
-        };
-    };
-  };
-
-  xsession.enable = true;
 }

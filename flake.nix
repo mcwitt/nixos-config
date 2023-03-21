@@ -45,7 +45,7 @@
     , ...
     } @ inputs:
     let
-      inherit (nixpkgs) lib;
+      lib = nixpkgs.lib.extend (import ./lib.nix { inherit inputs; });
 
       overlays = [
         self.overlays.default
@@ -79,6 +79,10 @@
               specialArgs = { inherit inputs; };
               modules = [
                 home-manager.nixosModules.home-manager
+
+                inputs.stylix.nixosModules.stylix
+                ./modules/style.nix
+
                 self.nixosModules.common
                 self.nixosModules.nixos
 
@@ -120,7 +124,7 @@
             users = [ "matt" ];
             extraNixosModules = [
               ./hosts/golem/configuration
-              { home-manager.users.matt.profiles.personal.enable = true; }
+              { home-manager.users.matt.profiles = lib.setAll { enable = true; } [ "desktop" "personal" ]; }
             ];
             extraHmModules = [ ./hosts/golem/home ];
           };
@@ -130,7 +134,7 @@
             users = [ "matt" ];
             extraNixosModules = [
               ./hosts/karakuri/configuration
-              { home-manager.users.matt.profiles.personal.enable = true; }
+              { home-manager.users.matt.profiles = lib.setAll { enable = true; } [ "desktop" "personal" ]; }
             ];
             extraHmModules = [ ./hosts/karakuri/home ];
           };
@@ -145,13 +149,17 @@
           };
           extraSpecialArgs = mkSpecialArgs pkgs;
           modules = [
+            stylix.homeManagerModules.stylix
+            ./modules/style.nix
+
             self.homeManagerModules.common
             self.homeManagerModules.nixos
+
             {
               home.username = "matt";
               home.homeDirectory = "/home/matt";
               home.stateVersion = "22.11";
-              profiles.personal.enable = lib.mkDefault true;
+              profiles = lib.setAll { enable = lib.mkDefault true; } [ "desktop" "personal" ];
             }
           ];
         };
