@@ -35,6 +35,11 @@ in
         (ligature-set-ligatures 'python-mode '("->" "==" ">=" "<="))
       '';
 
+      project.config = ''
+        (dolist (marker '("setup.py" "setup.cfg" "pyproject.toml"))
+          (add-to-list 'my/project-root-markers marker))
+      '';
+
       py-isort.enable = true;
 
       python-mode = {
