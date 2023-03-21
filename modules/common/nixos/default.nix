@@ -1,6 +1,4 @@
-{ pkgs, ... }: {
-
-  imports = [ ./style.nix ];
+{ inputs, pkgs, ... }: {
 
   nix.gc = {
     automatic = true;
