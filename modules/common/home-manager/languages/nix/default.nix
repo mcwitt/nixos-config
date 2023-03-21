@@ -33,6 +33,10 @@ in
         command = [ "nix-repl" "nix-repl-show" ];
       };
 
+      project.config = ''
+        (add-to-list 'my/project-root-markers "flake.nix")
+      '';
+
       subword.hook = [ "(nix-mode . subword-mode)" ];
     };
 
