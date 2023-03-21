@@ -91,6 +91,11 @@ in
         hook = [ "(haskell-mode . ormolu-format-on-save-mode)" ];
       };
 
+      project.config = ''
+        (dolist (marker '("*?.cabal" "stack.yaml" "cabal.project" "package.yaml" "hie.yaml"))
+          (add-to-list 'my/project-root-markers marker))
+      '';
+
       reformatter = {
         enable = true;
         config = ''
