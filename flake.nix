@@ -142,11 +142,7 @@
 
       homeConfigurations."matt@linux" =
         lib.makeOverridable home-manager.lib.homeManagerConfiguration rec {
-          pkgs = import nixpkgs {
-            system = "x86_64-linux";
-            config.allowUnfree = true;
-            inherit overlays;
-          };
+          pkgs = nixpkgs.legacyPackages.x86_64-linux;
           extraSpecialArgs = mkSpecialArgs pkgs;
           modules = [
             stylix.homeManagerModules.stylix
@@ -156,9 +152,17 @@
             self.homeManagerModules.nixos
 
             {
-              home.username = "matt";
-              home.homeDirectory = "/home/matt";
-              home.stateVersion = "22.11";
+              home = {
+                username = "matt";
+                home.homeDirectory = "/home/matt";
+                home.stateVersion = "22.11";
+              };
+
+              nixpkgs = {
+                config.allowUnfree = true;
+                inherit overlays;
+              };
+
               profiles = lib.setAll { enable = lib.mkDefault true; } [ "desktop" "personal" ];
             }
           ];
