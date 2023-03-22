@@ -69,12 +69,9 @@
     secret-key-files = [ "/etc/nix/golem.secret.key" ];
   };
 
-  profiles = {
-    personal.enable = true;
-    moonlander = {
-      enable = true;
-      allowedUsers = [ "matt" ];
-    };
+  profiles.moonlander = {
+    enable = true;
+    allowedUsers = [ "matt" ];
   };
 
   services.printing = {
