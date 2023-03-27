@@ -74,10 +74,7 @@ in
       inactiveOpacity = 0.9;
       fade = true;
       fadeDelta = 3;
-      settings = {
-        corner-radius = 6;
-        rounded-corners-exclude = [ "class_g = 'Rofi'" ];
-      };
+      shadow = true;
     };
 
     services.polybar.enable = true;

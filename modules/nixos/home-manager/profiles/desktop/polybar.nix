@@ -17,8 +17,8 @@
         in
         {
           "colors" = {
-            background = colors.base01;
-            background-alt = colors.base02;
+            background = colors.base00;
+            background-alt = colors.base01;
             foreground = colors.base05;
             primary = colors.base0D;
             secondary = colors.base0F;
@@ -27,21 +27,18 @@
             disabled = colors.base03;
           };
 
-          "bar/main" = rec {
-            offset-x = 2 * windowMargin;
-            width = "100%:-${toString (2 * offset-x)}";
+          "bar/main" = {
+            width = "100%";
             height = "20pt";
-            radius = 6;
 
             dpi = 0; # automatically choose dpi
 
-            background = ''''${colors.background}'';
+            background = "#E6${colors.base00}"; # 90% opacity
             foreground = ''''${colors.foreground}'';
 
             line-size = 5;
 
-            border-size = 5;
-            border-color = colors.base00;
+            border-size = 0;
 
             padding-left = 0;
             padding-right = 1;
