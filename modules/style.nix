@@ -15,9 +15,16 @@
     # only relevant when stylix.base16Scheme not specified
     polarity = "dark";
 
-    fonts.monospace = {
-      package = pkgs.iosevka-comfy.comfy;
-      name = "Iosevka Comfy";
+    fonts = {
+      monospace = {
+        package = pkgs.iosevka-comfy.comfy;
+        name = "Iosevka Comfy";
+      };
+
+      sizes = {
+        desktop = 10;
+        applications = 10;
+      };
     };
   };
 }
