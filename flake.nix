@@ -28,7 +28,7 @@
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     nur.url = "github:nix-community/NUR";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
-    stylix.url = "github:danth/stylix";
+    stylix.url = "github:danth/stylix/release-22.11";
     unison-nix.url = "github:ceedubs/unison-nix";
   };
 
