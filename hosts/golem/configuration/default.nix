@@ -84,7 +84,6 @@
     videoDrivers = [ "nvidia" ];
     desktopManager.xterm.enable = true;
     layout = "us";
-    dpi = 183;
     xrandrHeads = [
       {
         primary = true;
