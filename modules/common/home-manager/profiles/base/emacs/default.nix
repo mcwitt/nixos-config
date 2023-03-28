@@ -282,6 +282,14 @@
       '';
     };
 
+    consult-eglot = {
+      enable = true;
+      after = [ "consult" ];
+      bindLocal.eglot-mode-map = {
+        "C-M-." = "consult-eglot-symbols";
+      };
+    };
+
     copilot = {
       enable = true;
       command = [ "copilot-login" "copilot-mode" ];
