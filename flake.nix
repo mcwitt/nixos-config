@@ -15,7 +15,7 @@
     copilot-el.flake = false;
     home-manager.url = "github:nix-community/home-manager/release-22.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
-    emacs-overlay.url = "github:nix-community/emacs-overlay";
+    emacs-overlay.url = "github:nix-community/emacs-overlay/be34ec53d305a01049f25b25740aeea6e5fa1005";
     fish-kubectl-completions.url = "github:evanlucas/fish-kubectl-completions";
     fish-kubectl-completions.flake = false;
     "fzf.fish".url = "github:PatrickF1/fzf.fish";
