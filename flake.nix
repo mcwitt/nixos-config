@@ -144,8 +144,15 @@
 
       homeConfigurations."matt@linux" =
         lib.makeOverridable home-manager.lib.homeManagerConfiguration rec {
-          pkgs = nixpkgs.legacyPackages.x86_64-linux;
+
+          pkgs = import nixpkgs {
+            system = "x86_64-linux";
+            config.allowUnfree = true;
+            inherit overlays;
+          };
+
           extraSpecialArgs = mkSpecialArgs pkgs;
+
           modules = [
             self.homeManagerModules.common
             self.homeManagerModules.nixos
@@ -153,22 +160,19 @@
             stylix.homeManagerModules.stylix
             self.nixosModules.stylix
 
-            {
+            ({ config, ... }: {
               home = {
-                username = "matt";
-                home.homeDirectory = "/home/matt";
-                home.stateVersion = "22.11";
+                username = lib.mkDefault "matt";
+                homeDirectory = "/home/${config.home.username}";
+                stateVersion = lib.mkDefault "22.11";
               };
-
-              nixpkgs = {
-                config.allowUnfree = true;
-                inherit overlays;
-              };
-
-              profiles = lib.setAll { enable = lib.mkDefault true; } [ "desktop" "personal" ];
-            }
+            })
           ];
         };
+
+      homeConfigurations."matt@linux-desktop" = self.homeConfigurations."matt@linux".override (old: {
+        modules = old.modules ++ [{ profiles = lib.setAll { enable = lib.mkDefault true; } [ "desktop" "personal" ]; }];
+      });
 
       nixosModules = {
         common = import ./modules/common/nixos;
