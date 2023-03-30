@@ -146,7 +146,7 @@
       enable = true;
       diminish = [ "beacon-mode" ];
       config = ''
-        (setq beacon-color "${config.lib.stylix.colors.orange}")
+        (setq beacon-color "${config.lib.stylix.colors.withHashtag.orange}")
         (beacon-mode 1)
       '';
     };
