@@ -83,7 +83,7 @@
                 home-manager.nixosModules.home-manager
 
                 inputs.stylix.nixosModules.stylix
-                ./modules/style.nix
+                self.nixosModules.stylix
 
                 self.nixosModules.common
                 self.nixosModules.nixos
@@ -147,11 +147,11 @@
           pkgs = nixpkgs.legacyPackages.x86_64-linux;
           extraSpecialArgs = mkSpecialArgs pkgs;
           modules = [
-            stylix.homeManagerModules.stylix
-            ./modules/style.nix
-
             self.homeManagerModules.common
             self.homeManagerModules.nixos
+
+            stylix.homeManagerModules.stylix
+            self.nixosModules.stylix
 
             {
               home = {
@@ -173,6 +173,7 @@
       nixosModules = {
         common = import ./modules/common/nixos;
         nixos = import ./modules/nixos/nixos;
+        stylix = import ./modules/stylix;
       };
 
       homeManagerModules = {
