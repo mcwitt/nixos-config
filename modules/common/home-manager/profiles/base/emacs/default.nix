@@ -234,7 +234,7 @@
         (setq evil-want-integration t)
         (setq evil-want-keybinding nil)
         (setq evil-respect-visual-line-mode t)
-        (setq evil-undo-system 'undo-tree)
+        (setq evil-undo-system 'undo-fu)
       '';
       config = ''
         (evil-mode)
@@ -483,13 +483,17 @@
       bind = { "C-c u" = "string-inflection-all-cycle"; };
     };
 
-    undo-tree = {
+    undo-fu.enable = true;
+
+    vundo = {
       enable = true;
-      diminish = [ "undo-tree-mode" ];
-      config = ''
-        (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo")))
-        (global-undo-tree-mode)
-      '';
+      bind = { "C-x u" = "vundo"; };
+      bindLocal.vundo-mode-map = {
+        "h" = "vundo-backward";
+        "l" = "vundo-forward";
+        "k" = "vundo-previous";
+        "j" = "vundo-next";
+      };
     };
 
     which-key = {
