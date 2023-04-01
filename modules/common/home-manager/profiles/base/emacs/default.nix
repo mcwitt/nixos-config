@@ -116,7 +116,6 @@
 
     all-the-icons-dired = {
       enable = true;
-      command = [ "all-the-icons-dired-mode" ];
       hook = [ "(dired-mode . all-the-icons-dired-mode)" ];
     };
 
@@ -165,7 +164,6 @@
     company = {
       enable = true;
       diminish = [ "company-mode" ];
-      command = [ "company-mode" "company-doc-buffer" "global-company-mode" ];
       config = ''
         (global-company-mode)
       '';
@@ -356,11 +354,6 @@
       command = [ "eldoc-mode" ];
     };
 
-    elisp-format = {
-      enable = true;
-      command = [ "elisp-format-region" "elisp-format-buffer" ];
-    };
-
     emacs.init = ''
       ;; Add prompt indicator to `completing-read-multiple'.
       (defun crm-indicator (args)
@@ -508,7 +501,6 @@
 
     flymake-shellcheck = {
       enable = true;
-      command = [ "flymake-shellcheck-load" ];
       hook = [
         ''
           (sh-mode . (lambda ()
@@ -560,11 +552,6 @@
     json-mode = {
       enable = true;
       mode = [ ''"\\.json\\'"'' ];
-    };
-
-    kubernetes = {
-      enable = true;
-      command = [ "kubernetes-overview" ];
     };
 
     ligature = {
