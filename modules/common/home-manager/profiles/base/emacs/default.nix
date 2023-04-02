@@ -259,16 +259,6 @@
       diminish = [ "evil-commentary-mode" ];
     };
 
-    evil-escape = {
-      enable = true;
-      after = [ "evil" ];
-      diminish = [ "evil-escape-mode" ];
-      init = ''(setq-default evil-escape-key-sequence "fd")'';
-      config = ''
-        (evil-escape-mode)
-      '';
-    };
-
     evil-org = {
       enable = true;
       after = [ "evil" "org" ];
@@ -333,7 +323,7 @@
     };
 
     forge = {
-      enable = false;
+      enable = true;
       after = [ "magit" ];
     };
 
@@ -361,6 +351,16 @@
     json-mode = {
       enable = true;
       mode = [ ''"\\.json\\'"'' ];
+    };
+
+    key-chord = {
+      enable = true;
+      config = ''
+        ;; Escape insert mode with "fd"
+        (setq key-chord-two-keys-delay 0.1)
+        (key-chord-define evil-insert-state-map "fd" 'evil-normal-state)
+        (key-chord-mode 1)
+      '';
     };
 
     ligature = {
@@ -515,7 +515,7 @@
     };
 
     yasnippet = {
-      enable = true;
+      enable = false; # enable when fix for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=61917 merged
       diminish = [ "yas-minor-mode" ];
       config = ''
         (yas-global-mode 1)
