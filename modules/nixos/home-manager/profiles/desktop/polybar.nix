@@ -52,7 +52,7 @@
 
             modules-left = "xworkspaces xmonad";
             modules-center = "date";
-            modules-right = "network filesystem memory cpu pulseaudio";
+            modules-right = lib.mkDefault "wired-network filesystem memory cpu pulseaudio";
 
             cursor-click = "pointer";
             cursor-scroll = "ns-resize";
@@ -153,12 +153,20 @@
             label = runTermAppOnClick "${pkgs.htop}/bin/htop" "%percentage-sum:3%%";
           };
 
-          "module/network" = {
+          "module/wired-network" = {
             type = "internal/network";
             interface-type = "wired";
             interval = 1;
             label-connected = "%{F${colors.base0D}}%ifname%%{F-} %netspeed:8%";
             label-disconnected = "%{F${colors.base0D}}%ifname%%{F${colors.base03}} disconnected";
+          };
+
+          "module/wireless-network" = {
+            type = "internal/network";
+            interface-type = "wireless";
+            interval = 1;
+            label-connected = "%{F${colors.base0D}}%essid%%{F-} %netspeed:8%";
+            label-disconnected = "%{F${colors.base03}}disconnected";
           };
 
           "module/date" = {
