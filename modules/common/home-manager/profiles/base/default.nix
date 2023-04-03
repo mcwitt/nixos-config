@@ -128,7 +128,7 @@
 
   programs.wezterm = {
     enable = true;
-    colorSchemes.custom = with config.lib.stylix.colors; {
+    colorSchemes.custom = with config.lib.stylix.colors.withHashtag; {
       # https://github.com/chriskempson/base16-shell/blob/master/templates/default.mustache
       ansi = [ base00 red green yellow blue magenta cyan base05 ];
       brights = [ base03 red green yellow blue magenta cyan base07 ];

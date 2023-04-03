@@ -11,9 +11,9 @@
 
       settings =
         let
-          windowMargin = 8;
-          inherit (config.lib.stylix) colors;
+          colors = config.lib.stylix.colors.withHashtag;
           runTermAppOnClick = bin: label: "%{A1:${pkgs.wezterm}/bin/wezterm start ${bin}:}${label}%{A}";
+          windowMargin = 8;
         in
         {
           "colors" = {
@@ -33,7 +33,7 @@
 
             dpi = 0; # automatically choose dpi
 
-            background = "#E6${colors.base00}"; # 90% opacity
+            background = "#E6${config.lib.stylix.colors.base00}"; # 90% opacity
             foreground = ''''${colors.foreground}'';
 
             line-size = 5;
