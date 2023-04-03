@@ -42,7 +42,7 @@
 
     # https://github.com/carnager/rofi-pass/issues/226
     xdg.configFile."rofi-pass/config".text = ''
-      help_color="${config.lib.stylix.colors.base0D}"
+      help_color="${config.lib.stylix.colors.withHashtag.base0D}"
     '';
   };
 }
