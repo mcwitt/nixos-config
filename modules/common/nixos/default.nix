@@ -14,8 +14,6 @@
     enableDefaultFonts = true;
     fonts = with pkgs; [
       emacs-all-the-icons-fonts
-      fira-code-symbols
-      iosevka
       iosevka-comfy.comfy
       joypixels
       (nerdfonts.override { fonts = [ "FiraCode" "Iosevka" ]; })
