@@ -2,19 +2,24 @@
 {
   imports = [ ./emacs ./neovim ];
 
-  home.packages = with pkgs;
-    [
-      delta
-      difftastic
-      git-annex
-      git-crypt
-      git-remote-gcrypt
-      nix-du
-      pre-commit
-      proselint
-      ripgrep
-      yq
-    ];
+  home.packages = with pkgs; [
+    delta
+    difftastic
+    fd
+    ffmpeg
+    fzf
+    git-annex
+    htop
+    imagemagick
+    ncdu
+    nix-du
+    (parallel-full.override { willCite = true; })
+    pre-commit
+    proselint
+    ripgrep
+    xclip
+    yq
+  ];
 
   home.shellAliases = {
     cdr = ''cd "$(${pkgs.git}/bin/git rev-parse --show-toplevel)"'';
