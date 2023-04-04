@@ -49,6 +49,8 @@
     consult = {
       enable = true;
 
+      command = [ "consult-ripgrep" ];
+
       bind = {
         "C-c M-x" = "consult-mode-command";
         "C-c h" = "consult-history";
@@ -121,6 +123,9 @@
         ;; Use Consult to select xref locations with preview
         (setq xref-show-xrefs-function #'consult-xref
               xref-show-definitions-function #'consult-xref)
+
+        ;; Override project-find-regexp with consult-ripgrep
+        (advice-add #'project-find-regexp :override #'consult-ripgrep)
       '';
 
       config = ''
