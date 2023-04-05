@@ -172,14 +172,6 @@
     };
   };
 
-  programs.readline = {
-    enable = true;
-    extraConfig = ''
-      set editing-mode vi
-      set keymap vi
-    '';
-  };
-
   programs.starship = {
     enable = true;
     settings.directory.fish_style_pwd_dir_length = 1;
