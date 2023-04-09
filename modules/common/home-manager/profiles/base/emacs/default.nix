@@ -515,7 +515,7 @@
     };
 
     yasnippet = {
-      enable = false; # enable when fix for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=61917 merged
+      enable = true;
       diminish = [ "yas-minor-mode" ];
       config = ''
         (yas-global-mode 1)
