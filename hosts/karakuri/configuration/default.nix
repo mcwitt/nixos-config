@@ -45,6 +45,15 @@
   services.xserver = {
     enable = true;
     desktopManager.xterm.enable = true;
+    displayManager.lightdm = {
+      enable = true;
+      greeters.gtk = {
+        enable = true;
+        extraConfig = ''
+          xft-dpi=200
+        '';
+      };
+    };
     layout = "us";
     libinput = {
       enable = true;
