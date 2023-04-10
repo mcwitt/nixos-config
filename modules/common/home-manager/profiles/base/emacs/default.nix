@@ -485,6 +485,13 @@
 
     undo-fu.enable = true;
 
+    undo-fu-session = {
+      enable = true;
+      config = ''
+        (undo-fu-session-global-mode)
+      '';
+    };
+
     vundo = {
       enable = true;
       bind = { "C-x u" = "vundo"; };
