@@ -142,37 +142,62 @@
           };
         };
 
-      homeConfigurations.matt =
-        lib.makeOverridable home-manager.lib.homeManagerConfiguration rec {
-
-          pkgs = import nixpkgs {
-            system = "x86_64-linux";
+      homeConfigurations =
+        let
+          pkgsFor = system: import nixpkgs {
+            inherit system;
             config.allowUnfree = true;
             inherit overlays;
           };
+        in
+        {
+          matt = lib.makeOverridable home-manager.lib.homeManagerConfiguration rec {
 
-          extraSpecialArgs = mkSpecialArgs pkgs;
+            pkgs = pkgsFor "x86_64-linux";
 
-          modules = [
-            self.homeManagerModules.common
-            self.homeManagerModules.nixos
+            extraSpecialArgs = mkSpecialArgs pkgs;
 
-            stylix.homeManagerModules.stylix
-            self.nixosModules.stylix
+            modules = [
+              self.homeManagerModules.common
+              self.homeManagerModules.nixos
 
-            ({ config, ... }: {
-              home = {
-                username = lib.mkDefault "matt";
-                homeDirectory = "/home/${config.home.username}";
-                stateVersion = lib.mkDefault "22.11";
-              };
-            })
-          ];
+              stylix.homeManagerModules.stylix
+              self.nixosModules.stylix
+
+              ({ config, ... }: {
+                home = {
+                  username = lib.mkDefault "matt";
+                  homeDirectory = "/home/${config.home.username}";
+                  stateVersion = lib.mkDefault "22.11";
+                };
+              })
+            ];
+          };
+
+          "matt@desktop" = self.homeConfigurations.matt.override (old: {
+            modules = old.modules ++ [{ profiles = lib.setAll { enable = lib.mkDefault true; } [ "desktop" "personal" ]; }];
+          });
+
+          "matt@macos" = lib.makeOverridable home-manager.lib.homeManagerConfiguration rec {
+
+            pkgs = pkgsFor "x86_64-darwin";
+
+            extraSpecialArgs = mkSpecialArgs pkgs;
+
+            modules = [
+              self.homeManagerModules.common
+              stylix.homeManagerModules.stylix
+
+              ({ config, ... }: {
+                home = {
+                  username = lib.mkDefault "matt";
+                  homeDirectory = "/Users/${config.home.username}";
+                  stateVersion = lib.mkDefault "22.11";
+                };
+              })
+            ];
+          };
         };
-
-      homeConfigurations."matt@desktop" = self.homeConfigurations.matt.override (old: {
-        modules = old.modules ++ [{ profiles = lib.setAll { enable = lib.mkDefault true; } [ "desktop" "personal" ]; }];
-      });
 
       nixosModules = {
         common = import ./modules/common/nixos;
