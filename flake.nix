@@ -142,7 +142,7 @@
           };
         };
 
-      homeConfigurations."matt@linux" =
+      homeConfigurations.matt =
         lib.makeOverridable home-manager.lib.homeManagerConfiguration rec {
 
           pkgs = import nixpkgs {
@@ -170,7 +170,7 @@
           ];
         };
 
-      homeConfigurations."matt@linux-desktop" = self.homeConfigurations."matt@linux".override (old: {
+      homeConfigurations."matt@desktop" = self.homeConfigurations.matt.override (old: {
         modules = old.modules ++ [{ profiles = lib.setAll { enable = lib.mkDefault true; } [ "desktop" "personal" ]; }];
       });
 
