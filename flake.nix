@@ -59,7 +59,7 @@
 
         # gross hack to use modules from NUR
         # https://discourse.nixos.org/t/importing-nur-home-manager-modules-in-nix-flakes/16457
-        nurNoPkgs = import inputs.nur {
+        nurNoPkgs = import nur {
           pkgs = null;
           nurpkgs = pkgs;
         };
@@ -82,7 +82,7 @@
               modules = [
                 home-manager.nixosModules.home-manager
 
-                inputs.stylix.nixosModules.stylix
+                stylix.nixosModules.stylix
                 self.nixosModules.stylix
 
                 self.nixosModules.common
