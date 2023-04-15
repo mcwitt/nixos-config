@@ -48,11 +48,14 @@
             separator = "|";
             separator-foreground = ''''${colors.disabled}'';
 
-            font = [ "${config.stylix.fonts.monospace.name}:size=10;5" ];
+            font = let inherit (config.stylix) fonts; in [
+              "${fonts.monospace.name}:size=${toString fonts.sizes.desktop};5"
+              "Iosevka Nerd Font:size=${toString fonts.sizes.desktop};5"
+            ];
 
             modules-left = "xworkspaces xmonad";
             modules-center = "date";
-            modules-right = lib.mkDefault "wired-network filesystem memory cpu pulseaudio";
+            modules-right = lib.mkDefault "wired-network filesystem memory pulseaudio cpu";
 
             cursor-click = "pointer";
             cursor-scroll = "ns-resize";
@@ -99,6 +102,7 @@
             type = "custom/script";
             exec = "${pkgs.xmonad-log}/bin/xmonad-log";
             tail = true;
+            format = "  <label>";
           };
 
           "module/filesystem" = {
@@ -107,7 +111,7 @@
 
             mount = [ "/" ];
 
-            label-mounted = "%{F${colors.base0D}}%mountpoint%%{F-} %percentage_used%%";
+            label-mounted = "%mountpoint% %percentage_used%%";
 
             label-unmounted = "%mountpoint% not mounted";
             label-unmounted-foreground = ''''${colors.disabled}'';
@@ -116,29 +120,25 @@
           "module/pulseaudio" = {
             type = "internal/pulseaudio";
 
-            format-volume-prefix = "VOL ";
-            format-volume-prefix-foreground = ''''${colors.primary}'';
-            format-volume = "<label-volume>";
-
+            format-volume = "<ramp-volume> <label-volume>";
+            ramp-volume = [ " " ];
             label-volume = "%percentage%%";
 
-            label-muted = "muted";
-            label-muted-foreground = ''''${colors.disabled}'';
-
+            format-muted = "<label-muted>";
+            format-muted-prefix = " ";
+            label-muted = "";
           };
 
           "module/memory" = {
             type = "internal/memory";
             interval = 1;
-            format-prefix = "RAM ";
-            format-prefix-foreground = ''''${colors.primary}'';
-            label = runTermAppOnClick "${pkgs.htop}/bin/htop" "%percentage_used:2%%";
+            format-prefix = "  ";
+            label = runTermAppOnClick "${pkgs.htop}/bin/htop" "%percentage_used%%";
           };
 
           "module/cpu" = {
             type = "internal/cpu";
             interval = 1;
-            format-prefix-foreground = ''''${colors.primary}'';
             format = "<ramp-coreload>";
             ramp-coreload = [
               "%{F${colors.base0B}}▁%{F-}"
@@ -150,33 +150,82 @@
               "%{F${colors.base08}}▇%{F-}"
               "%{F${colors.base08}}█%{F-}"
             ];
-            label = runTermAppOnClick "${pkgs.htop}/bin/htop" "%percentage-sum:3%%";
           };
 
           "module/wired-network" = {
             type = "internal/network";
             interface-type = "wired";
             interval = 1;
-            label-connected = "%{F${colors.base0D}}%ifname%%{F-} %netspeed:8%";
-            label-disconnected = "%{F${colors.base0D}}%ifname%%{F${colors.base03}} disconnected";
+
+            format-connected-prefix = "  ";
+            label-connected = "%ifname% %netspeed%";
+
+            format-disconnected-prefix = "  ";
+            label-disconnected = "%ifname% disconnected";
+            label-disconnected-foreground = ''''${colors.disabled}'';
           };
 
           "module/wireless-network" = {
             type = "internal/network";
             interface-type = "wireless";
             interval = 1;
-            label-connected = "%{F${colors.base0D}}%essid%%{F-} %netspeed:8%";
-            label-disconnected = "%{F${colors.base03}}disconnected";
+
+            format-connected = "<ramp-signal> <label-connected>";
+            ramp-signal = [ " " ];
+            label-connected = "%essid% %netspeed%";
+
+            format-disconnected-prefix = "  ";
+            label-disconnected = "disconnected";
+            label-disconnected-foreground = ''''${colors.disabled}'';
           };
 
           "module/date" = {
             type = "internal/date";
             interval = 1;
+            date = "%Y-%m-%d %a";
+            time = " %H:%M:%S";
+            label = "  %date%   %time%";
+          };
 
-            date = "%Y-%m-%d %a %H:%M:%S";
+          "module/battery" = {
+            type = "internal/battery";
+            battery = "BAT0";
+            adapter = "ADP1";
 
-            label = "%date%";
-            label-foreground = ''''${colors.primary}'';
+            time-format = "%H:%M";
+
+            ramp-capacity = [
+              "  "
+              "  "
+              "  "
+              "  "
+              "  "
+            ];
+
+            format-discharging = "<ramp-capacity> <label-discharging>";
+            label-discharging = "%percentage%% T−%time%";
+
+            format-charging = "<animation-charging> <label-charging>";
+            label-charging = "%percentage%% T−%time%";
+            animation-charging = [
+              "  "
+              "  "
+              "  "
+              "  "
+              "  "
+            ];
+
+            format-full = "<ramp-capacity> <label-full>";
+            label-full = "%percentage%% T−%time%";
+
+            low-at = 5;
+            format-low = "<animation-low> <label-low>";
+            label-low = "%percentage%% T−%time%";
+            label-low-foreground = ''''${colors.alert}'';
+            animation-low = [
+              "%{F${colors.base08}}  %{F-}"
+              "%{F${colors.base08}}  %{F-}"
+            ];
           };
 
           "settings" = {
