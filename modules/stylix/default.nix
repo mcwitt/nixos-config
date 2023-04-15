@@ -2,6 +2,7 @@
 {
   stylix = {
     base16Scheme = "${inputs.base16-schemes}/nord.yaml";
+    # polarity = "dark"; # only relevant when stylix.base16Scheme not specified
 
     image =
       let
@@ -12,12 +13,9 @@
       in
       carinaNebula;
 
-    # only relevant when stylix.base16Scheme not specified
-    polarity = "dark";
-
     fonts = {
       monospace = {
-        package = pkgs.iosevka-comfy.comfy;
+        package = pkgs.nerdifyFont pkgs.iosevka-comfy.comfy;
         name = "Iosevka Comfy";
       };
 
