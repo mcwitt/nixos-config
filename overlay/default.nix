@@ -7,5 +7,7 @@ in
 {
   inherit (pkgsUnstable) wezterm;
 
-  lib = prev.lib.extend (import ./lib.nix { inherit inputs; });
+  lib = prev.lib.extend (import ../lib.nix { inherit inputs; });
+
+  nerdifyFont = final.callPackage ./nerdify-font.nix { };
 }

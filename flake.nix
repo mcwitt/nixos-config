@@ -68,7 +68,7 @@
     {
       inherit lib;
 
-      overlays.default = import ./overlay.nix { inherit inputs; };
+      overlays.default = import ./overlay { inherit inputs; };
 
       nixosConfigurations =
         let

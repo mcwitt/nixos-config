@@ -5,20 +5,7 @@
     dates = "weekly";
   };
 
-  nixpkgs.config = {
-    allowUnfree = true;
-    joypixels.acceptLicense = true;
-  };
-
-  fonts = {
-    enableDefaultFonts = true;
-    fonts = with pkgs; [
-      emacs-all-the-icons-fonts
-      iosevka-comfy.comfy
-      joypixels
-      (nerdfonts.override { fonts = [ "FiraCode" "Iosevka" ]; })
-    ];
-  };
+  fonts.enableDefaultFonts = true;
 
   environment.systemPackages = with pkgs; [
     (aspellWithDicts (ds: [ ds.en ]))

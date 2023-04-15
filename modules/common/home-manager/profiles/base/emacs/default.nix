@@ -4,7 +4,10 @@
     nurNoPkgs.repos.rycee.hmModules.emacs-init
     ./completion
     ./org.nix
+    ./theme.nix
   ];
+
+  home.packages = [ pkgs.emacs-all-the-icons-fonts ];
 
   programs.emacs.package = pkgs.emacsGit;
 
@@ -46,16 +49,6 @@
       (scroll-bar-mode -1)
       (tool-bar-mode -1)
       (tooltip-mode -1)
-
-      (defun emoji-set-font (frame)
-        "Adjust the font settings of FRAME so Emacs can display emoji properly."
-        (if (eq system-type 'darwin)
-            ;; For NS/Cocoa
-            (set-fontset-font t 'symbol (font-spec :family "Apple Color Emoji") frame 'prepend)
-          ;; For Linux
-          (set-fontset-font t 'symbol (font-spec :family "JoyPixels") frame 'prepend)))
-      (emoji-set-font nil)
-      (add-hook 'after-make-frame-functions 'emoji-set-font)
     '';
 
     prelude = ''

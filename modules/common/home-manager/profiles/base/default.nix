@@ -2,6 +2,8 @@
 {
   imports = [ ./emacs ./neovim ];
 
+  fonts.fontconfig.enable = true;
+
   home.packages = with pkgs; [
     delta
     difftastic

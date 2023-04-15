@@ -1,7 +1,4 @@
 { nurNoPkgs, ... }:
 {
-  imports = [
-    ./faces.nix
-    nurNoPkgs.repos.rycee.hmModules.emacs-init
-  ];
+  imports = [ nurNoPkgs.repos.rycee.hmModules.emacs-init ];
 }
