@@ -94,10 +94,10 @@
                   let windowCountLabel =
                         unwords $
                           catMaybes
-                            [ color "${base0B}" . show <$> positive windowCount,
+                            [ show <$> positive windowCount,
                               color "${base0A}" . wrap "(" ")" . show <$> positive minimizedCount
                             ]
-                   in (++ " " ++ windowCountLabel) . color "${base0D}",
+                   in (++ " " ++ windowCountLabel),
                 ppOrder = \(_ : l : win : _) -> [l, win],
                 ppOutput = output
               }
