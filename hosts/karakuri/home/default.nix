@@ -15,16 +15,6 @@ in
       dpi = lib.mkForce dpi; # workaround; auto-detection fails
       modules-right = "wireless-network filesystem memory battery cpu pulseaudio";
     };
-
-    "module/battery" = {
-      type = "internal/battery";
-      battery = "BAT0";
-      adapter = "ADP1";
-
-      time-format = "%H:%M";
-      label-charging = "%{F${colors.base0D}}BAT%{F-} %{F${colors.base0B}}AC%{F-} %percentage%% T−%time%";
-      label-discharging = "%{F${colors.base0D}}BAT%{F-} %percentage%% T−%time%";
-    };
   };
 
   xresources.properties = {
