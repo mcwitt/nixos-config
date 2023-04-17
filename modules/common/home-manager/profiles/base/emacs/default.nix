@@ -9,7 +9,7 @@
 
   home.packages = [ pkgs.emacs-all-the-icons-fonts ];
 
-  programs.emacs.package = pkgs.emacsGit;
+  programs.emacs.package = pkgs.emacsUnstable;
 
   programs.emacs.overrides = final: prev: {
 
