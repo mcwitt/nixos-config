@@ -51,7 +51,7 @@ in
           toolz
         ];
       };
-    } // lib.setAll { enable = true; } [
+    } // lib.genAttrs [
       "R"
       "agda"
       "coq"
@@ -72,7 +72,8 @@ in
       "sql"
       "terraform"
       "unison"
-    ];
+    ]
+      (_: { enable = true; });
 
     programs.git = {
       userName = "Matt Wittmann";
