@@ -44,14 +44,14 @@
 
   programs.emacs.init = {
 
-    prelude = with config.stylix.fonts; ''
+    prelude = let inherit (config.stylix) fonts; in ''
       (set-face-attribute 'default
                           nil
-                          :family "${monospace.name}")
-                          :height ${builtins.toString (sizes.applications * 10)}
+                          :family "${fonts.monospace.name}")
+                          :height ${toString (fonts.sizes.applications * 10)}
       (set-face-attribute 'variable-pitch
                           nil
-                          :family "${sansSerif.name}")
+                          :family "${fonts.sansSerif.name}")
     '';
 
     usePackage.base16-stylix-theme = {

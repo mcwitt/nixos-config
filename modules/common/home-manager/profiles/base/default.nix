@@ -143,10 +143,10 @@
       selection_bg = base05;
       selection_fg = base00;
     };
-    extraConfig = ''
+    extraConfig = let inherit (config.stylix) fonts; in ''
       return {
-        font = wezterm.font '${config.stylix.fonts.monospace.name}',
-        font_size = 10.0,
+        font = wezterm.font '${fonts.monospace.name}',
+        font_size = ${toString fonts.sizes.applications},
         color_scheme = 'custom',
         hide_tab_bar_if_only_one_tab = true,
         check_for_updates = false,

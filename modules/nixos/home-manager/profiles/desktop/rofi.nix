@@ -10,7 +10,8 @@
       enable = true;
 
       # Stylix doesn't use correct syntax "<name> <size>"
-      font = lib.mkForce "${config.stylix.fonts.monospace.name} 10";
+      font = let inherit (config.stylix) fonts; in
+        lib.mkForce "${fonts.monospace.name} ${toString fonts.sizes.desktop}";
 
       # This installs a copy of rofi without plugins but still using
       # global config, leading to "missing plugin" startup errors. Work
