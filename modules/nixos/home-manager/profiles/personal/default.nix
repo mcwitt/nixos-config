@@ -13,5 +13,7 @@ with lib;
       zoom-us
       zulip
     ];
+
+    programs.spotify.enable = true;
   };
 }

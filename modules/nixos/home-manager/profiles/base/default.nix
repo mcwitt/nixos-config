@@ -1,9 +1,6 @@
 { config, lib, pkgs, ... }:
 {
-  home.packages = with pkgs; [
-    signal-desktop
-    spotify
-  ];
+  home.packages = with pkgs; [ signal-desktop ];
 
   home.shellAliases.open = "${pkgs.xdg-utils}/bin/xdg-open";
 
