@@ -51,7 +51,8 @@
 
   programs.urxvt = {
     enable = true;
-    fonts = [ "xft:${config.stylix.fonts.monospace.name}:size=10:antialias=true" ];
+    fonts = let inherit (config.stylix) fonts; in
+      [ "xft:${fonts.monospace.name}:size=${toString fonts.sizes.applications}:antialias=true" ];
   };
 
   programs.vscode.package = pkgs.vscodium-fhs;
