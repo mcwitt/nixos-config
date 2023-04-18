@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ lib, pkgs, ... }:
 
 let
   dpi = 183;
@@ -6,13 +6,7 @@ in
 {
   home.stateVersion = "21.11";
 
-  nixpkgs.overlays =
-    let
-      overlay = _: prev: {
-        spotify = prev.spotify.override { deviceScaleFactor = 2.0; };
-      };
-    in
-    [ overlay ];
+  programs.spotify.package = pkgs.spotify.override { deviceScaleFactor = 1.8; };
 
   programs.rofi.extraConfig.dpi = dpi;
 
