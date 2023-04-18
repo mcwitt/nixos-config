@@ -126,7 +126,7 @@
             users = [ "matt" ];
             extraNixosModules = [
               ./hosts/golem/configuration
-              { home-manager.users.matt.profiles = lib.setAll { enable = true; } [ "desktop" "personal" ]; }
+              { home-manager.users.matt.profiles = nixpkgs.lib.genAttrs [ "desktop" "personal" ] (_: { enable = true; }); }
             ];
             extraHmModules = [ ./hosts/golem/home ];
           };
@@ -136,7 +136,7 @@
             users = [ "matt" ];
             extraNixosModules = [
               ./hosts/karakuri/configuration
-              { home-manager.users.matt.profiles = lib.setAll { enable = true; } [ "desktop" "personal" ]; }
+              { home-manager.users.matt.profiles = nixpkgs.lib.genAttrs [ "desktop" "personal" ] (_: { enable = true; }); }
             ];
             extraHmModules = [ ./hosts/karakuri/home ];
           };
@@ -175,7 +175,7 @@
           };
 
           "matt@desktop" = self.homeConfigurations.matt.override (old: {
-            modules = old.modules ++ [{ profiles = lib.setAll { enable = lib.mkDefault true; } [ "desktop" "personal" ]; }];
+            modules = old.modules ++ [{ profiles = nixpkgs.lib.genAttrs [ "desktop" "personal" ] (_: { enable = lib.mkDefault true; }); }];
           });
 
           "matt@macos" = lib.makeOverridable home-manager.lib.homeManagerConfiguration rec {
