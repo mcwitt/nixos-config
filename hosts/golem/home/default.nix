@@ -6,7 +6,10 @@ in
 {
   home.stateVersion = "21.11";
 
-  programs.spotify.package = pkgs.spotify.override { deviceScaleFactor = 1.8; };
+  # TODO: clean up when https://github.com/NixOS/nixpkgs/issues/227449 fixed
+  programs.spotify.package = pkgs.spotify.override {
+    callPackage = p: attrs: pkgs.callPackage p (attrs // { deviceScaleFactor = 1.8; });
+  };
 
   programs.rofi.extraConfig.dpi = dpi;
 

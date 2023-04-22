@@ -51,8 +51,6 @@
     }];
   };
 
-  hardware.video.hidpi.enable = true;
-
   location = {
     latitude = 37.8044;
     longitude = -122.2712;

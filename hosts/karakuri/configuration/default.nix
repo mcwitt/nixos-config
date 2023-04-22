@@ -22,8 +22,6 @@
     package = pkgs.pulseaudioFull;
   };
 
-  hardware.video.hidpi.enable = true;
-
   networking = {
     hostName = "karakuri";
     networkmanager.enable = true;

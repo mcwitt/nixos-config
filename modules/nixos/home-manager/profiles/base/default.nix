@@ -35,15 +35,15 @@
 
   programs.firefox = {
     enable = true;
-    extensions = with pkgs.nur.repos.rycee.firefox-addons; [
-      browserpass
-      darkreader
-      privacy-badger
-      ublock-origin
-      vimium
-    ];
-    profiles.default.settings = {
-      "network.protocol-handler.expose.org-protocol" = true;
+    profiles.default = {
+      settings."network.protocol-handler.expose.org-protocol" = true;
+      extensions = with pkgs.nur.repos.rycee.firefox-addons; [
+        browserpass
+        darkreader
+        privacy-badger
+        ublock-origin
+        vimium
+      ];
     };
   };
 
