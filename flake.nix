@@ -161,7 +161,7 @@
               self.homeManagerModules.nixos
 
               stylix.homeManagerModules.stylix
-              self.nixosModules.stylix
+              self.homeManagerModules.stylix
 
               ({ config, ... }: {
                 home = {
@@ -185,7 +185,9 @@
 
             modules = [
               self.homeManagerModules.common
+
               stylix.homeManagerModules.stylix
+              self.homeManagerModules.stylix
 
               ({ config, ... }: {
                 home = {
@@ -193,6 +195,10 @@
                   homeDirectory = "/Users/${config.home.username}";
                   stateVersion = lib.mkDefault "22.11";
                 };
+
+                programs.wezterm.enable = lib.mkForce false; # TODO: broken on x86_64-darwin
+
+                stylix.targets.swaylock.enable = false; # swaylock unsupported on x86_64-darwin; unclear why this is needed
               })
             ];
           };
@@ -208,6 +214,7 @@
         common = import ./modules/common/home-manager;
         nixos = import ./modules/nixos/home-manager;
         darwin = import ./modules/darwin/home-manager;
+        stylix = import ./modules/stylix;
       };
 
     } // flake-utils.lib.eachDefaultSystem (system: {
