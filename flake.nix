@@ -2,8 +2,7 @@
   description = "NixOS configuration";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     base16-rofi.url = "github:tinted-theming/base16-rofi";
     base16-rofi.flake = false;
@@ -13,7 +12,7 @@
     base16-tmux.flake = false;
     copilot-el.url = "github:zerolfx/copilot.el";
     copilot-el.flake = false;
-    home-manager.url = "github:nix-community/home-manager/release-22.11";
+    home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     fish-kubectl-completions.url = "github:evanlucas/fish-kubectl-completions";
@@ -28,7 +27,7 @@
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     nur.url = "github:nix-community/NUR";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
-    stylix.url = "github:danth/stylix/release-22.11";
+    stylix.url = "github:danth/stylix";
     unison-nix.url = "github:ceedubs/unison-nix";
   };
 
