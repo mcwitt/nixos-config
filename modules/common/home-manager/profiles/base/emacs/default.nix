@@ -144,6 +144,21 @@
       bind = { "C-c B" = "browse-at-remote"; };
     };
 
+    code-cells = {
+      enable = true;
+      bindLocal.code-cells-mode-map = { "C-c C-c" = "code-cells-eval"; };
+      hook = [ "(python-mode . code-cells-mode-maybe)" ];
+      config = ''
+        ;; https://github.com/astoff/code-cells.el#speed-keys
+        (let ((map code-cells-mode-map))
+          (define-key map [remap evil-search-next] (code-cells-speed-key 'code-cells-forward-cell)) ;; n
+          (define-key map [remap evil-paste-after] (code-cells-speed-key 'code-cells-backward-cell)) ;; p
+          (define-key map [remap evil-backward-word-begin] (code-cells-speed-key 'code-cells-eval-above)) ;; b
+          (define-key map [remap evil-forward-word-end] (code-cells-speed-key 'code-cells-eval)) ;; e
+          (define-key map [remap evil-jump-forward] (code-cells-speed-key 'outline-cycle))) ;; TAB
+      '';
+    };
+
     command-log-mode = {
       enable = true;
       command = [ "command-log-mode" ];
