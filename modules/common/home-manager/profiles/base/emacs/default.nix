@@ -3,6 +3,7 @@
   imports = [
     nurNoPkgs.repos.rycee.hmModules.emacs-init
     ./completion
+    ./jupyter.nix
     ./lsp.nix
     ./org.nix
     ./theme.nix
