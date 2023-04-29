@@ -28,11 +28,6 @@ in
         };
       };
 
-      nix-repl = {
-        enable = true;
-        command = [ "nix-repl" "nix-repl-show" ];
-      };
-
       project.config = ''
         (add-to-list 'my/project-root-markers "flake.nix")
       '';
