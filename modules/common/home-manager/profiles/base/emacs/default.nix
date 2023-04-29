@@ -371,6 +371,9 @@
 
     magit = {
       enable = true;
+      init = lib.optionalString config.programs.emacs.init.usePackage.forge.enable ''
+        (setq forge-add-default-bindings nil)
+      '';
       bind = {
         "C-x g" = "magit-status";
         "C-x M-g" = "magit-dispatch";
