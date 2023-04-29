@@ -44,6 +44,9 @@
 
   programs.emacs.init = {
     enable = true;
+
+    packageQuickstart = true; # ensure package autoloads are available
+
     recommendedGcSettings = true;
 
     earlyInit = ''

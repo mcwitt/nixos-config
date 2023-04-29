@@ -32,12 +32,6 @@ in
 
       eglot.hook = [ "(haskell-mode . eglot-ensure)" ];
 
-      haskell = {
-        enable = true;
-        command = [ "interactive-haskell-mode" ];
-        hook = [ "(haskell-mode . interactive-haskell-mode)" ];
-      };
-
       haskell-mode = {
         enable = true;
         mode = [
@@ -50,16 +44,6 @@ in
         config = ''
           (setq haskell-interactive-popup-errors nil)
         '';
-      };
-
-      haskell-doc = {
-        enable = true;
-        command = [ "haskell-doc-current-info" ];
-      };
-
-      haskell-cabal = {
-        enable = true;
-        mode = [ ''("\\.cabal\\'" . haskell-cabal-mode)'' ];
       };
 
       format-all.hook = [ "(haskell-mode . (lambda () (format-all-mode -1)))" ];
@@ -80,11 +64,6 @@ in
                                                 "+++" "***" "|||" "&&&"
                                                 ))
       '';
-
-      ob-haskell = {
-        enable = true;
-        after = [ "org" ];
-      };
 
       ormolu = {
         enable = true;
