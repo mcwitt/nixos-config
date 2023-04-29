@@ -6,7 +6,7 @@
     ./jupyter.nix
     ./lsp.nix
     ./org.nix
-    ./theme.nix
+    ./theme
   ];
 
   home.packages = [ pkgs.emacs-all-the-icons-fonts ];
