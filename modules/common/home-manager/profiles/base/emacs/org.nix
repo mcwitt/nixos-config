@@ -128,7 +128,7 @@
 
     org = {
       enable = true;
-      package = ps: ps.elpaPackages.org;
+      package = _: null; # use built-in package
       bind = {
         "C-c o a" = "org-agenda";
         "C-c o c" = "org-capture";
