@@ -316,7 +316,9 @@
 
     frames-only-mode = {
       enable = true;
-      config = ''
+      config = lib.optionalString config.programs.emacs.init.usePackage.format-all.enable ''
+        (add-to-list 'frames-only-mode-use-window-functions 'format-all--buffer-from-hook)
+      '' + ''
         (frames-only-mode 1)
       '';
     };
