@@ -65,7 +65,8 @@
       (setq auto-save-file-name-transforms
             `((".*" ,temporary-file-directory t)))
 
-      (setq split-height-threshold 100)
+      ;; Always split horizontally (i.e. vertical stack)
+      (setq split-width-threshold nil)
 
       ;; Prompt for y/n instead of yes/no
       (defalias 'yes-or-no-p 'y-or-n-p)
