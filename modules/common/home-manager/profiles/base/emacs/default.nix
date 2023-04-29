@@ -148,7 +148,7 @@
     code-cells = {
       enable = true;
       bindLocal.code-cells-mode-map = { "C-c C-c" = "code-cells-eval"; };
-      hook = [ "(python-mode . code-cells-mode-maybe)" ];
+      hook = lib.optional config.languages.python.enable "(python-mode . code-cells-mode-maybe)";
       config = ''
         ;; https://github.com/astoff/code-cells.el#speed-keys
         (let ((map code-cells-mode-map))
