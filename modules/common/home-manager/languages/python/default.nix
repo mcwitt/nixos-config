@@ -47,13 +47,6 @@ in
           (add-to-list 'safe-local-eval-forms '(add-hook 'before-save-hook #'py-isort-before-save))
         '';
       };
-
-      python-mode = {
-        enable = true;
-        config = ''
-          (setq py-split-window-on-execute nil)
-        '';
-      };
     };
 
     programs.git.ignores = lib.gitignores "Python";
