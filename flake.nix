@@ -51,8 +51,10 @@
         unison-nix.overlay
       ];
 
-      mkSpecialArgs = pkgs: {
+      mkExtraSpecialArgs = pkgs: {
         inherit inputs;
+
+        lib = nixpkgs.lib.extend (final: prev: import ./lib.nix { inherit inputs; } final prev // home-manager.lib);
 
         # gross hack to use modules from NUR
         # https://discourse.nixos.org/t/importing-nur-home-manager-modules-in-nix-flakes/16457
@@ -99,7 +101,7 @@
                   home-manager = {
                     useGlobalPkgs = true;
                     useUserPackages = true;
-                    extraSpecialArgs = mkSpecialArgs pkgs;
+                    extraSpecialArgs = mkExtraSpecialArgs pkgs;
 
                     users = builtins.listToAttrs (map
                       (user: lib.nameValuePair user {
@@ -159,7 +161,7 @@
 
             pkgs = pkgsFor "x86_64-linux";
 
-            extraSpecialArgs = mkSpecialArgs pkgs;
+            extraSpecialArgs = mkExtraSpecialArgs pkgs;
 
             modules = [
               self.homeManagerModules.common
@@ -191,7 +193,7 @@
 
             pkgs = pkgsFor "x86_64-darwin";
 
-            extraSpecialArgs = mkSpecialArgs pkgs;
+            extraSpecialArgs = mkExtraSpecialArgs pkgs;
 
             modules = [
               self.homeManagerModules.common
