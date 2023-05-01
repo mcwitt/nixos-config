@@ -8,11 +8,7 @@ in
   config = mkIf cfg.enable {
 
     programs.emacs.init.usePackage = {
-      elm-mode = {
-        enable = true;
-        mode = [ ''"\\.elm\\'"'' ];
-      };
-
+      elm-mode.enable = true;
       subword.hook = [ "(elm-mode . subword-mode)" ];
     };
 

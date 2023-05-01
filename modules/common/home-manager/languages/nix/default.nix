@@ -22,7 +22,6 @@ in
 
       nix-mode = {
         enable = true;
-        mode = [ ''"\\.nix\\'"'' ];
         bindLocal.nix-mode-map = {
           "C-c C-z" = "nix-repl-show";
         };

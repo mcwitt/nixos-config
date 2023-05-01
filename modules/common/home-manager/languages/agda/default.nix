@@ -9,10 +9,6 @@ in
 
     programs.emacs.init.usePackage.agda2-mode = {
       enable = true;
-      mode = [
-        ''"\\.agda\\'"''
-        ''"\\.lagda\\(\\.md\\)?\\'"''
-      ];
       bindLocal.agda2-mode-map = {
         "M-." = "agda2-goto-definition-keyboard";
         "M-," = "agda2-go-back";

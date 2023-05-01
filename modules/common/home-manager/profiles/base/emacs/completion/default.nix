@@ -48,7 +48,6 @@
 
     consult = {
       enable = true;
-
       command = [ "consult-ripgrep" ];
 
       bind = {

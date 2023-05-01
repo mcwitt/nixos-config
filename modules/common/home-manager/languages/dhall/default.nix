@@ -7,12 +7,7 @@ in
 
   config = mkIf cfg.enable {
 
-    programs.emacs.init.usePackage = {
-      dhall-mode = {
-        enable = true;
-        mode = [ ''"\\.dhall\\'"'' ];
-      };
-    };
+    programs.emacs.init.usePackage.dhall-mode.enable = true;
 
     programs.vscode.extensions = with pkgs.vscode-extensions.dhall; [
       dhall-lang

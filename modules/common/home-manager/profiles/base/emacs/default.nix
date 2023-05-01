@@ -183,16 +183,9 @@
       '';
     };
 
-    csv-mode = {
-      enable = true;
-      mode = [ ''"\\.[Cc][Ss][Vv]\\'"'' ];
-      hook = [ "(csv-mode . csv-align-mode)" ];
-    };
+    csv-mode.enable = true;
 
-    dockerfile-mode = {
-      enable = true;
-      mode = [ ''"Dockerfile\\'"'' ];
-    };
+    dockerfile-mode.enable = true;
 
     edit-indirect.enable = true;
 
@@ -341,10 +334,7 @@
       '';
     };
 
-    json-mode = {
-      enable = true;
-      mode = [ ''"\\.json\\'"'' ];
-    };
+    json-mode.enable = true;
 
     key-chord = {
       enable = true;
@@ -409,7 +399,6 @@
 
     pdf-tools = {
       enable = true;
-      mode = [ ''("\\.pdf\\'" . pdf-view-mode)'' ];
       hook = [ "(pdf-view-mode . (lambda () (linum-mode -1)))" ];
       config = ''
         (pdf-tools-install t t)
@@ -514,7 +503,6 @@
 
     yaml-mode = {
       enable = true;
-      mode = [ ''"\\.ya?ml\\'"'' ];
       hook = [ "(yaml-mode . (lambda () (mixed-pitch-mode -1)))" ];
     };
 

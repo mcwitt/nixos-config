@@ -8,10 +8,7 @@ in
   config = mkIf cfg.enable {
 
     programs.emacs.init.usePackage = {
-      terraform-mode = {
-        enable = true;
-        mode = [ ''"\\.tf\\'"'' ];
-      };
+      terraform-mode.enable = true;
     };
   };
 }
