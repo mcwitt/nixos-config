@@ -44,8 +44,6 @@
     , ...
     } @ inputs:
     let
-      lib = nixpkgs.lib.extend (import ./lib.nix { inherit inputs; });
-
       overlays = [
         self.overlays.default
         emacs-overlay.overlay
@@ -65,14 +63,12 @@
       };
     in
     {
-      inherit lib;
-
       overlays.default = import ./overlay { inherit inputs; };
 
       nixosConfigurations =
         let
-          makeNixosSystem = lib.makeOverridable ({ system, users, extraNixosModules, extraHmModules }:
-            lib.nixosSystem {
+          makeNixosSystem = nixpkgs.lib.makeOverridable ({ system, users, extraNixosModules, extraHmModules }:
+            nixpkgs.lib.nixosSystem {
               inherit system;
 
               specialArgs = { inherit inputs; };
@@ -86,7 +82,7 @@
                 self.nixosModules.common
                 self.nixosModules.nixos
 
-                ({ config, pkgs, ... }: {
+                ({ config, lib, pkgs, ... }: {
                   nixpkgs = {
                     config.allowUnfree = true;
                     inherit overlays;
@@ -159,7 +155,7 @@
           };
         in
         {
-          matt = lib.makeOverridable home-manager.lib.homeManagerConfiguration rec {
+          matt = nixpkgs.lib.makeOverridable home-manager.lib.homeManagerConfiguration rec {
 
             pkgs = pkgsFor "x86_64-linux";
 
@@ -172,7 +168,7 @@
               stylix.homeManagerModules.stylix
               self.homeManagerModules.stylix
 
-              ({ config, ... }: {
+              ({ config, lib, ... }: {
                 home = {
                   username = lib.mkDefault "matt";
                   homeDirectory = "/home/${config.home.username}";
@@ -191,7 +187,7 @@
             }];
           });
 
-          "matt@macos" = lib.makeOverridable home-manager.lib.homeManagerConfiguration rec {
+          "matt@macos" = nixpkgs.lib.makeOverridable home-manager.lib.homeManagerConfiguration rec {
 
             pkgs = pkgsFor "x86_64-darwin";
 
@@ -203,7 +199,7 @@
               stylix.homeManagerModules.stylix
               self.homeManagerModules.stylix
 
-              ({ config, ... }: {
+              ({ config, lib, ... }: {
                 home = {
                   username = lib.mkDefault "matt";
                   homeDirectory = "/Users/${config.home.username}";
