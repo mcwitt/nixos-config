@@ -14,13 +14,7 @@ in
         "(c++-mode . eglot-ensure)"
       ];
 
-      cmake-mode = {
-        enable = true;
-        mode = [
-          ''"\\.cmake\\'"''
-          ''"CMakeLists.txt\\'"''
-        ];
-      };
+      cmake-mode.enable = true;
     };
 
     programs.vscode.extensions = [

@@ -34,10 +34,6 @@ in
 
       haskell-mode = {
         enable = true;
-        mode = [
-          ''("\\.hs\\'" . haskell-mode)''
-          ''("\\.lhs\\'" . haskell-literate-mode)''
-        ];
         bindLocal.haskell-mode-map = {
           "C-c C-h" = "haskell-hoogle-lookup-from-local";
         };

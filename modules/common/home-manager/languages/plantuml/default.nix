@@ -19,7 +19,6 @@ in
 
       plantuml-mode = {
         enable = true;
-        mode = [ ''"\\.plantuml\\'"'' ];
         config = ''
           (setq plantuml-jar-path "${pkgs.plantuml}/lib/plantuml.jar"
                 plantuml-default-exec-mode 'jar)

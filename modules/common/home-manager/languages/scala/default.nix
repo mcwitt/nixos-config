@@ -22,10 +22,7 @@ in
         '';
       };
 
-      scala-mode = {
-        enable = true;
-        mode = [ ''"\\.s\\(c\\|cala\\|bt\\)\\'"'' ];
-      };
+      scala-mode.enable = true;
 
       subword.hook = [ "(scala-mode . subword-mode)" ];
     };

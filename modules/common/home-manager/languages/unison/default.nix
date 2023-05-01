@@ -8,10 +8,7 @@ in
   config = mkIf cfg.enable {
     home.packages = [ pkgs.unison-ucm ];
 
-    programs.emacs.init.usePackage.unisonlang-mode = {
-      enable = true;
-      mode = [ "\\.u\\'" ];
-    };
+    programs.emacs.init.usePackage.unisonlang-mode.enable = true;
 
     programs.neovim.plugins = [ pkgs.vimPlugins.vim-unison ];
   };

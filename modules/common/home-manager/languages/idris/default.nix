@@ -9,12 +9,7 @@ in
 
     home.packages = [ pkgs.idris2 ];
 
-    programs.emacs = {
-      init.usePackage.idris-mode = {
-        enable = true;
-        mode = [ ''"\\.idr\\'"'' ];
-      };
-    };
+    programs.emacs.init.usePackage.idris-mode.enable = true;
 
     programs.neovim.plugins = [ pkgs.vimPlugins.idris2-vim ];
   };

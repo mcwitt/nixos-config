@@ -16,24 +16,9 @@ in
     home.sessionPath = [ "${prefix}/bin" ];
 
     programs.emacs.init.usePackage = {
-
-      js2-mode = {
-        enable = true;
-        mode = [ ''"\\.js\\'"'' ];
-      };
-
-      typescript-mode = {
-        enable = true;
-        mode = [ ''"\\.tsx?\\'"'' ];
-      };
-
-      web-mode = {
-        enable = true;
-        mode = [
-          ''"\\.html\\'"''
-          ''"\\.jsx\\'"''
-        ];
-      };
+      js2-mode.enable = true;
+      typescript-mode.enable = true;
+      web-mode.enable = true;
     };
   };
 }

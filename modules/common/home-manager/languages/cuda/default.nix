@@ -9,10 +9,7 @@ in
 
     programs.emacs.init.usePackage = {
 
-      cuda-mode = {
-        enable = true;
-        mode = [ ''"\\.cuh?\\'"'' ];
-      };
+      cuda-mode.enable = true;
 
       eglot = {
         hook = [ "(cuda-mode . eglot-ensure)" ];

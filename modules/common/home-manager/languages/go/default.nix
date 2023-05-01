@@ -9,11 +9,6 @@ in
 
     programs.go.enable = true;
 
-    programs.emacs.init.usePackage = {
-      go-mode = {
-        enable = true;
-        mode = [ ''"\\.go\\'"'' ];
-      };
-    };
+    programs.emacs.init.usePackage.go-mode.enable = true;
   };
 }
