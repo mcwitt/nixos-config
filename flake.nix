@@ -72,9 +72,6 @@
       nixosConfigurations =
         let
           makeNixosSystem = lib.makeOverridable ({ system, users, extraNixosModules, extraHmModules }:
-            let
-              pkgs = nixpkgs.legacyPackages.${system};
-            in
             lib.nixosSystem {
               inherit system;
               specialArgs = { inherit inputs; };
@@ -87,7 +84,7 @@
                 self.nixosModules.common
                 self.nixosModules.nixos
 
-                ({ config, ... }: {
+                ({ config, pkgs, ... }: {
                   nixpkgs = {
                     config.allowUnfree = true;
                     inherit overlays;
