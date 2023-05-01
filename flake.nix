@@ -74,7 +74,9 @@
           makeNixosSystem = lib.makeOverridable ({ system, users, extraNixosModules, extraHmModules }:
             lib.nixosSystem {
               inherit system;
+
               specialArgs = { inherit inputs; };
+
               modules = [
                 home-manager.nixosModules.home-manager
 
@@ -122,7 +124,12 @@
             users = [ "matt" ];
             extraNixosModules = [
               ./hosts/golem/configuration
-              { home-manager.users.matt.profiles = nixpkgs.lib.genAttrs [ "desktop" "personal" ] (_: { enable = true; }); }
+              {
+                home-manager.users.matt.profiles = {
+                  desktop.enable = true;
+                  personal.enable = true;
+                };
+              }
             ];
             extraHmModules = [ ./hosts/golem/home ];
           };
@@ -132,7 +139,12 @@
             users = [ "matt" ];
             extraNixosModules = [
               ./hosts/karakuri/configuration
-              { home-manager.users.matt.profiles = nixpkgs.lib.genAttrs [ "desktop" "personal" ] (_: { enable = true; }); }
+              {
+                home-manager.users.matt.profiles = {
+                  desktop.enable = true;
+                  personal.enable = true;
+                };
+              }
             ];
             extraHmModules = [ ./hosts/karakuri/home ];
           };
@@ -171,7 +183,12 @@
           };
 
           "matt@desktop" = self.homeConfigurations.matt.override (old: {
-            modules = old.modules ++ [{ profiles = nixpkgs.lib.genAttrs [ "desktop" "personal" ] (_: { enable = lib.mkDefault true; }); }];
+            modules = old.modules ++ [{
+              profiles = {
+                desktop.enable = true;
+                personal.enable = true;
+              };
+            }];
           });
 
           "matt@macos" = lib.makeOverridable home-manager.lib.homeManagerConfiguration rec {
