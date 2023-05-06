@@ -334,11 +334,6 @@
       '';
     };
 
-    org-superstar = {
-      enable = true;
-      hook = [ "(org-mode . org-superstar-mode)" ];
-    };
-
     org-variable-pitch = {
       enable = true;
       config = ''
