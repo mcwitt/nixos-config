@@ -2,7 +2,6 @@
   programs.emacs.init.usePackage = {
     eglot = {
       enable = true;
-      package = _: null; # use built-in package
       command = [ "eglot" ];
 
       bindLocal.eglot-mode-map = {
