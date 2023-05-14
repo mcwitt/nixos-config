@@ -191,7 +191,6 @@
 
     eldoc = {
       enable = true;
-      package = _: null; # use built-in package
       diminish = [ "eldoc-mode" ];
     };
 
@@ -279,7 +278,6 @@
 
     flymake = {
       enable = true;
-      package = _: null; # use built-in package
       bind = {
         "M-n" = "flymake-goto-next-error";
         "M-p" = "flymake-goto-prev-error";
@@ -409,7 +407,6 @@
 
     project = {
       enable = true;
-      package = _: null; # use built-in package
       init = ''
         ;; Improved functionality for finding project root directories
         ;; Adapted from https://andreyorst.gitlab.io/posts/2022-07-16-project-el-enhancements/
