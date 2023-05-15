@@ -71,15 +71,6 @@ in
           (add-to-list 'my/project-root-markers marker))
       '';
 
-      reformatter = {
-        enable = true;
-        config = ''
-          (reformatter-define cabal-fmt
-              :program "cabal-fmt"
-              :lighter " CabalFmt")
-        '';
-      };
-
       subword.hook = [ "(haskell-mode . subword-mode)" ];
     };
 
