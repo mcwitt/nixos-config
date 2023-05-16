@@ -64,7 +64,7 @@
 
   nix.settings = {
     trusted-users = [ "root" "@wheel" ];
-    secret-key-files = [ "/etc/nix/golem.secret.key" ];
+    secret-key-files = [ "/etc/nix/secret-key" ];
   };
 
   profiles.moonlander = {
