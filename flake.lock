@@ -69,6 +69,22 @@
         "type": "github"
       }
     },
+    "breadcrumb": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1684280186,
+        "narHash": "sha256-jp3Q7AF3fHtlcpWlrgz50NtGaWFSSbkINAyZyOfXT4Y=",
+        "owner": "joaotavora",
+        "repo": "breadcrumb",
+        "rev": "07b8e96ed48de8977b8f687f3b121fd0f2896c22",
+        "type": "github"
+      },
+      "original": {
+        "owner": "joaotavora",
+        "repo": "breadcrumb",
+        "type": "github"
+      }
+    },
     "copilot-el": {
       "flake": false,
       "locked": {
@@ -514,6 +530,7 @@
         "base16-rofi": "base16-rofi",
         "base16-schemes": "base16-schemes",
         "base16-tmux": "base16-tmux",
+        "breadcrumb": "breadcrumb",
         "copilot-el": "copilot-el",
         "emacs-overlay": "emacs-overlay",
         "fish-kubectl-completions": "fish-kubectl-completions",
