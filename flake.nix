@@ -10,6 +10,8 @@
     base16-schemes.flake = false;
     base16-tmux.url = "github:tinted-theming/base16-tmux";
     base16-tmux.flake = false;
+    breadcrumb.url = "github:joaotavora/breadcrumb";
+    breadcrumb.flake = false;
     copilot-el.url = "github:zerolfx/copilot.el";
     copilot-el.flake = false;
     home-manager.url = "github:nix-community/home-manager";

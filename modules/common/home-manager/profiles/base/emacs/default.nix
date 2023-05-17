@@ -15,6 +15,11 @@
 
   programs.emacs.overrides = final: prev: {
 
+    breadcrumb = final.trivialBuild {
+      pname = "breadcrumb";
+      src = inputs.breadcrumb;
+    };
+
     copilot =
       let src = inputs.copilot-el;
       in final.melpaBuild rec {
@@ -140,6 +145,13 @@
       config = ''
         (setq beacon-color "${config.lib.stylix.colors.withHashtag.orange}")
         (beacon-mode 1)
+      '';
+    };
+
+    breadcrumb = {
+      enable = true;
+      config = ''
+        (breadcrumb-mode)
       '';
     };
 
