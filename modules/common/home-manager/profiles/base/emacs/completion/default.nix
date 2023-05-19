@@ -1,8 +1,14 @@
 {
   imports = [
+    ./company.nix
     ./corfu.nix
     ./vertico.nix
   ];
+
+  # use company instead of corfu until sync issue with eglot is resolved
+  # https://github.com/joaotavora/eglot/discussions/1127
+  programs.emacs.init.completion.company.enable = true;
+  # programs.emacs.init.completion.corfu.enable = true;
 
   programs.emacs.init.usePackage = {
 
