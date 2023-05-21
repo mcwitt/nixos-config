@@ -488,6 +488,22 @@
         "type": "github"
       }
     },
+    "nordic-wallpapers": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1683782789,
+        "narHash": "sha256-JHWyuSJ3ihhX/84KW8ztZh09eWq0JH1Oj9MbqPHp1ks=",
+        "owner": "linuxdotexe",
+        "repo": "nordic-wallpapers",
+        "rev": "2339404ab827f617268cf0f10aad144a69bdccfe",
+        "type": "github"
+      },
+      "original": {
+        "owner": "linuxdotexe",
+        "repo": "nordic-wallpapers",
+        "type": "github"
+      }
+    },
     "nur": {
       "locked": {
         "lastModified": 1684078972,
@@ -542,6 +558,7 @@
         "home-manager": "home-manager",
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs_3",
+        "nordic-wallpapers": "nordic-wallpapers",
         "nur": "nur",
         "pre-commit-hooks": "pre-commit-hooks",
         "stylix": "stylix",
