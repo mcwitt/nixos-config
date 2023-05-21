@@ -3,7 +3,7 @@
   programs.neovim = {
     enable = true;
     coc.enable = true;
-    extraPackages = [ pkgs.nodejs-16_x ];
+    extraPackages = [ pkgs.nodejs ];
     vimAlias = true;
     vimdiffAlias = true;
     withPython3 = true;
