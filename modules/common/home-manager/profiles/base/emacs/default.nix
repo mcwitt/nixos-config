@@ -182,7 +182,7 @@
     };
 
     copilot = {
-      enable = false;
+      enable = true;
       command = [ "copilot-login" "copilot-mode" ];
       bind = {
         "C-TAB" = "copilot-accept-completion-by-word";
