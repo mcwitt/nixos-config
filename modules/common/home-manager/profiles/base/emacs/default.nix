@@ -191,7 +191,7 @@
         "TAB" = "copilot-accept-completion";
       };
       config = ''
-        (setq copilot-node-executable "${pkgs.nodejs-16_x}/bin/node")
+        (setq copilot-node-executable "${pkgs.nodejs}/bin/node")
       '';
     };
 
