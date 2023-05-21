@@ -17,7 +17,7 @@
     fonts = {
       monospace = {
         package = pkgs.nerdifyFont pkgs.iosevka-comfy.comfy;
-        name = "Iosevka Comfy";
+        name = "IosevkaComfy Nerd Font";
       };
 
       sizes = {
