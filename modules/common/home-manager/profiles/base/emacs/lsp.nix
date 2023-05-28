@@ -1,5 +1,6 @@
 {
   programs.emacs.init.usePackage = {
+
     eglot = {
       enable = true;
       command = [ "eglot" ];
