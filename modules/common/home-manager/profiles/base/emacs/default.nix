@@ -253,6 +253,17 @@
       diminish = [ "evil-commentary-mode" ];
     };
 
+    evil-escape = {
+      enable = true;
+      init = ''
+        (setq-default evil-escape-key-sequence "fd")
+        (setq-default evil-escape-delay 0.2)
+      '';
+      config = ''
+        (evil-escape-mode)
+      '';
+    };
+
     evil-org = {
       enable = true;
       after = [ "evil" "org" ];
@@ -345,16 +356,6 @@
     };
 
     json-mode.enable = true;
-
-    key-chord = {
-      enable = true;
-      config = ''
-        ;; Escape insert mode with "fd"
-        (setq key-chord-two-keys-delay 0.1)
-        (key-chord-define evil-insert-state-map "fd" 'evil-normal-state)
-        (key-chord-mode 1)
-      '';
-    };
 
     ligature = {
       enable = true;
