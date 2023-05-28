@@ -8,10 +8,7 @@ in
 
   programs.rofi.extraConfig.dpi = dpi;
 
-  # TODO: clean up when https://github.com/NixOS/nixpkgs/issues/227449 fixed
-  programs.spotify.package = pkgs.spotify.override {
-    callPackage = p: attrs: pkgs.callPackage p (attrs // { deviceScaleFactor = 2.0; });
-  };
+  programs.spotify.package = pkgs.spotify.override { deviceScaleFactor = 2.0; };
 
   services.blueman-applet.enable = true;
 
