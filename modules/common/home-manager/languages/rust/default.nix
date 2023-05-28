@@ -7,7 +7,12 @@ in
 
   config = mkIf cfg.enable {
 
-    programs.emacs.init.usePackage.rust-mode.enable = true;
+    programs.emacs.init.usePackage.rust-mode = {
+      enable = true;
+      init = ''
+        (add-to-list 'major-mode-remap-alist '(rust-mode . rust-ts-mode))
+      '';
+    };
 
     programs.vscode = {
       extensions = with pkgs.vscode-extensions; [

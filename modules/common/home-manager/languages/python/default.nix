@@ -47,6 +47,15 @@ in
           (add-to-list 'safe-local-eval-forms '(add-hook 'before-save-hook #'py-isort-before-save))
         '';
       };
+
+      # Use python.el, NOT python-mode.el
+      python = {
+        enable = true;
+        package = _: null; # use built-in package
+        init = ''
+          (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
+        '';
+      };
     };
 
     programs.git.ignores = lib.gitignores "Python";
