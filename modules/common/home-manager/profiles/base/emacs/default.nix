@@ -96,6 +96,9 @@
       ;; Highlight end-of-line whitespace only in prog-mode
       (add-hook 'prog-mode-hook (lambda () (setq-local show-trailing-whitespace t)))
 
+      ;; Use maximum fontification settings with treesit (a.k.a. "angry fruit salad")
+      (setq treesit-font-lock-level 4)
+
       ;; Open URLs with Chromium
       (setq browse-url-browser-function 'browse-url-chromium)
 
@@ -197,8 +200,6 @@
     };
 
     csv-mode.enable = true;
-
-    dockerfile-mode.enable = true;
 
     edit-indirect.enable = true;
 
@@ -345,7 +346,12 @@
       '';
     };
 
-    json-mode.enable = true;
+    json-mode = {
+      enable = true;
+      init = ''
+        (add-to-list 'major-mode-remap-alist '(json-mode . json-ts-mode))
+      '';
+    };
 
     ligature = {
       enable = true;
@@ -504,6 +510,9 @@
     yaml-mode = {
       enable = true;
       hook = [ "(yaml-mode . (lambda () (mixed-pitch-mode -1)))" ];
+      init = ''
+        (add-to-list 'major-mode-remap-alist '(yaml-mode . yaml-ts-mode))
+      '';
     };
 
     yasnippet = {
