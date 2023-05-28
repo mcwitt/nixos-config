@@ -3,6 +3,7 @@
   imports = [
     nurNoPkgs.repos.rycee.hmModules.emacs-init
     ./completion
+    ./format-all.nix
     ./jupyter.nix
     ./lsp.nix
     ./org.nix
@@ -318,15 +319,6 @@
       ];
     };
 
-    format-all = {
-      enable = true;
-      diminish = [ "format-all-mode" ];
-      hook = [
-        "(prog-mode . format-all-mode)"
-        "(format-all-mode . format-all-ensure-formatter)"
-      ];
-    };
-
     forge = {
       enable = true;
       after = [ "magit" ];
@@ -334,9 +326,7 @@
 
     frames-only-mode = {
       enable = true;
-      config = lib.optionalString config.programs.emacs.init.usePackage.format-all.enable ''
-        (add-to-list 'frames-only-mode-use-window-functions 'format-all--buffer-from-hook)
-      '' + ''
+      config = ''
         (frames-only-mode 1)
       '';
     };
