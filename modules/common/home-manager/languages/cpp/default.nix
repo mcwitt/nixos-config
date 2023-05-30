@@ -10,8 +10,8 @@ in
     programs.emacs.init.usePackage = {
 
       eglot.hook = [
-        "(c-mode . eglot-ensure)"
-        "(c++-mode . eglot-ensure)"
+        "(c-ts-mode . eglot-ensure)"
+        "(c++-ts-mode . eglot-ensure)"
       ];
 
       cc-mode = {
