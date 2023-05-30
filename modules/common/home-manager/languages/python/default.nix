@@ -29,10 +29,10 @@ in
 
     programs.emacs.init.usePackage = {
 
-      eglot.hook = [ "(python-mode . eglot-ensure)" ];
+      eglot.hook = [ "(python-ts-mode . eglot-ensure)" ];
 
       ligature.config = ''
-        (ligature-set-ligatures 'python-mode '("->" "==" ">=" "<="))
+        (ligature-set-ligatures 'python-ts-mode '("->" "==" ">=" "<="))
       '';
 
       project.config = ''
