@@ -29,6 +29,8 @@ in
 
     programs.emacs.init.usePackage = {
 
+      code-cells.hook = [ "(python-ts-mode . code-cells-mode-maybe)" ];
+
       eglot.hook = [ "(python-ts-mode . eglot-ensure)" ];
 
       ligature.config = ''
