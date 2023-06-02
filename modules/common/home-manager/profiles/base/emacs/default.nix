@@ -266,6 +266,7 @@
       config = ''
         (evil-escape-mode)
       '';
+      diminish = [ "evil-escape-mode" ];
     };
 
     evil-org = {
