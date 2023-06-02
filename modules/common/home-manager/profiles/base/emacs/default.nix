@@ -1,8 +1,9 @@
-{ config, inputs, lib, nurNoPkgs, pkgs, ... }: {
+{ config, inputs, nurNoPkgs, pkgs, ... }: {
 
   imports = [
     nurNoPkgs.repos.rycee.hmModules.emacs-init
     ./completion
+    ./forge.nix
     ./format-all.nix
     ./jupyter.nix
     ./lsp.nix
@@ -170,7 +171,6 @@
     code-cells = {
       enable = true;
       bindLocal.code-cells-mode-map = { "C-c C-c" = "code-cells-eval"; };
-      hook = lib.optional config.languages.python.enable "(python-mode . code-cells-mode-maybe)";
       config = ''
         ;; https://github.com/astoff/code-cells.el#speed-keys
         (let ((map code-cells-mode-map))
@@ -322,11 +322,6 @@
       ];
     };
 
-    forge = {
-      enable = true;
-      after = [ "magit" ];
-    };
-
     frames-only-mode = {
       enable = true;
       config = ''
@@ -370,9 +365,6 @@
 
     magit = {
       enable = true;
-      init = lib.optionalString config.programs.emacs.init.usePackage.forge.enable ''
-        (setq forge-add-default-bindings nil)
-      '';
       bind = {
         "C-x g" = "magit-status";
         "C-x M-g" = "magit-dispatch";
