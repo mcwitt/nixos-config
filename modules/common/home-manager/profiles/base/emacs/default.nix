@@ -210,6 +210,11 @@
       diminish = [ "eldoc-mode" ];
     };
 
+    electric-pair-mode = {
+      enable = true;
+      hook = [ "(prog-mode . electric-pair-mode)" ];
+    };
+
     envrc = {
       enable = true;
       demand = true;
@@ -281,12 +286,6 @@
         (require 'evil-org-agenda)
         (evil-org-agenda-set-keys)
       '';
-    };
-
-    evil-smartparens = {
-      enable = true;
-      after = [ "evil" "smartparens" ];
-      hook = [ "(smartparens-enabled . evil-smartparens-mode)" ];
     };
 
     evil-surround = {
@@ -453,11 +452,6 @@
       config = ''
         (savehist-mode)
       '';
-    };
-
-    smartparens = {
-      enable = true;
-      diminish = [ "smartparens-mode" ];
     };
 
     subword = {
