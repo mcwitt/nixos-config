@@ -47,14 +47,14 @@ in
           hypothesis
           matplotlib
           pandas
-          # seaborn
+          seaborn
           toolz
         ];
       };
     } // lib.genAttrs [
       "R"
       "agda"
-      "coq"
+      # "coq"
       "cpp"
       "cuda"
       "dhall"
