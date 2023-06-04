@@ -23,9 +23,6 @@ in
       evil.init = ''
         (setq evil-want-abbrev-expand-on-insert-exit nil)
       '';
-
-      # otherwise undo-tree is disabled in coq-mode
-      undo-tree.hook = [ "(coq-mode . (lambda () (undo-tree-mode 1)))" ];
     };
   };
 }
