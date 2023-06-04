@@ -12,7 +12,7 @@
 
   home.packages = [ pkgs.emacs-all-the-icons-fonts ];
 
-  programs.emacs.package = pkgs.emacsUnstable;
+  programs.emacs.package = pkgs.emacs-unstable;
 
   programs.emacs.overrides = final: prev: {
 
