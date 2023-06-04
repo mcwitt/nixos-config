@@ -14,6 +14,8 @@
 
   programs.emacs.package = pkgs.emacsUnstable;
 
+  programs.emacs.extraPackages = epkgs: [ epkgs.treesit-grammars.with-all-grammars ];
+
   programs.emacs.overrides = final: prev: {
 
     breadcrumb = final.trivialBuild {
