@@ -8,8 +8,6 @@ in
 
   config = mkIf cfg.enable {
 
-    home.packages = [ pkgs.texlive.combined.scheme-full ];
-
     programs.emacs.init.usePackage = {
 
       latex = {
