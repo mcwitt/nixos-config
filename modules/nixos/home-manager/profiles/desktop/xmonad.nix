@@ -25,9 +25,11 @@
         import XMonad.Hooks.EwmhDesktops (ewmh)
         import XMonad.Hooks.ManageDocks (avoidStruts, docks, manageDocks)
         import XMonad.Layout.BoringWindows (boringWindows, focusDown, focusMaster, focusUp)
+        import XMonad.Layout.Grid (Grid (..))
         import XMonad.Layout.Minimize (minimize)
         import XMonad.Layout.Renamed (Rename (CutWordsLeft), renamed)
         import XMonad.Layout.Spacing (spacingWithEdge)
+        import XMonad.Layout.ThreeColumns (ThreeCol (..))
         import qualified XMonad.StackSet as W
         import XMonad.Util.EZConfig (additionalKeys, additionalKeysP)
 
@@ -71,15 +73,19 @@
                                          ]
                                  )
 
-        myLayoutHook = do
+        myLayoutHook =
           diminish (spacingWithEdge 8)
             . diminish minimize
             . boringWindows
             . avoidStruts
             $ layout
           where
-            layout = tall ||| Full
-            tall = Tall 1 (1 % 50) (3 % 5)
+            layout =
+              Tall 1 (1 % 50) (3 % 5)
+                ||| ThreeCol 1 (3 % 100) (1 % 2)
+                ||| Grid
+                ||| Full
+
             diminish = (renamed [CutWordsLeft 1] .)
 
         mkPolybarLogHook :: (String -> IO ()) -> X ()
