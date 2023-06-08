@@ -7,7 +7,6 @@
 
       bindLocal.eglot-mode-map = {
         "C-c r" = "eglot-rename";
-        "C-c h" = "eldoc";
       };
 
       config = ''
