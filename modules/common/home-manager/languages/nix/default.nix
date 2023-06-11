@@ -8,12 +8,12 @@ in
   config = mkIf cfg.enable {
     home.packages = with pkgs; [
       cachix
+      nil
       niv
       nix-info
       nix-prefetch-git
       nix-prefetch-github
       nixpkgs-fmt
-      rnix-lsp
     ];
 
     programs.emacs.init.usePackage = {
