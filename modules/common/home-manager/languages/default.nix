@@ -12,7 +12,6 @@
     ./haskell
     ./idris
     ./js
-    ./latex
     ./markdown
     ./nix
     ./plantuml
@@ -22,6 +21,7 @@
     ./shell
     ./sql
     ./terraform
+    ./tex
     ./unison
   ];
 }
