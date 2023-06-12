@@ -63,7 +63,6 @@ in
       "graphviz"
       "idris"
       "js"
-      "latex"
       "markdown"
       "plantuml"
       "rust"
@@ -71,6 +70,7 @@ in
       "shell"
       "sql"
       "terraform"
+      "tex"
       "unison"
     ]
       (_: { enable = true; });

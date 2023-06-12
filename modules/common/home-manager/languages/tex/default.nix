@@ -1,18 +1,18 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, ... }:
 with lib;
-let cfg = config.languages.latex;
+let cfg = config.languages.tex;
 in
 {
-  options.languages.latex.enable =
-    mkEnableOption "LaTeX language environment";
+  options.languages.tex.enable =
+    mkEnableOption "TeX language environment";
 
   config = mkIf cfg.enable {
 
     programs.emacs.init.usePackage = {
 
-      latex = {
+      tex = {
         enable = true;
-        package = epkgs: epkgs.auctex;
+        package = ps: ps.auctex;
         config = ''
           (add-to-list 'TeX-view-program-selection '(output-pdf "PDF Tools"))
         '';
