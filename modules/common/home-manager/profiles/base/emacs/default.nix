@@ -274,6 +274,14 @@
       diminish = [ "evil-escape-mode" ];
     };
 
+    evil-numbers = {
+      enable = true;
+      bind = {
+        "C-c +" = "evil-numbers/inc-at-pt";
+        "C-c -" = "evil-numbers/dec-at-pt";
+      };
+    };
+
     evil-org = {
       enable = true;
       after = [ "evil" "org" ];
