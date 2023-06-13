@@ -8,7 +8,7 @@
     delta
     difftastic
     fd
-    ffmpeg
+    (ffmpeg.override { withFullDeps = true; })
     fzf
     git-annex
     htop
