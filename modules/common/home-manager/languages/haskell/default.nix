@@ -1,32 +1,37 @@
 { config, lib, pkgs, ... }:
-with lib;
 let cfg = config.languages.haskell;
 in
 {
   options.languages.haskell = {
-    enable = mkEnableOption "Haskell language environment";
+    enable = lib.mkEnableOption "Haskell language environment";
 
-    globalPackages = mkOption {
+    globalPackages = lib.mkOption {
       default = _: [ ];
-      type = hm.types.selectorFunction;
+      type = lib.hm.types.selectorFunction;
       defaultText = "hpkgs: []";
-      example = literalExample "hpkgs: [ hpkgs.aeson hpkgs.lens ]";
+      example = lib.literalExample "hpkgs: [ hpkgs.aeson hpkgs.lens ]";
       description = ''
         Packages to install globally.
       '';
     };
 
-    hoogle.enable = mkEnableOption
+    hls.enable = lib.mkEnableOption "Enable haskell-language-server globally.";
+
+    hoogle.enable = lib.mkEnableOption
       "Install a local hoogle with docs for packages in globalPackages.";
+
+    ormolu.enable = lib.mkEnableOption "Enable ormolu formatter globally.";
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     home.packages =
       let
         ghcWithPackages' = with pkgs.haskellPackages; if cfg.hoogle.enable then ghcWithHoogle else ghcWithPackages;
         ghcEnv = ghcWithPackages' cfg.globalPackages;
       in
-      [ ghcEnv ];
+      [ ghcEnv ]
+      ++ lib.optional cfg.hls.enable pkgs.haskell-language-server
+      ++ lib.optional cfg.ormolu.enable pkgs.ormolu;
 
     programs.emacs.init.usePackage = {
 
