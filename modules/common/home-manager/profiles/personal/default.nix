@@ -13,7 +13,9 @@ in
 
       haskell = {
         enable = true;
+        hls.enable = true;
         hoogle.enable = true;
+        ormolu.enable = true;
         globalPackages = ps: with ps; [
           aeson
           array
