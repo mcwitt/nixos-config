@@ -23,6 +23,7 @@ in
       in
       [
         pkgs.black
+        pkgs.isort
         pkgs.pyright
         pythonEnv
       ];
