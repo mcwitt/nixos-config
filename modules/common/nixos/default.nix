@@ -5,7 +5,7 @@
     dates = "weekly";
   };
 
-  fonts.enableDefaultFonts = true;
+  fonts.enableDefaultPackages = true;
 
   environment.systemPackages = with pkgs; [
     (aspellWithDicts (ds: [ ds.en ]))
