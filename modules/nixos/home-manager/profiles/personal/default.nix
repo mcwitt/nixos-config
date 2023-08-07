@@ -8,7 +8,7 @@ with lib;
       element-desktop
       gimp
       inkscape
-      peek
+      # peek # broken 2023-08-07
       slack
       zoom-us
       zulip
