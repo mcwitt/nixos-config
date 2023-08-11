@@ -28,6 +28,7 @@
           };
 
           "bar/main" = {
+            monitor = ''''${env:MONITOR:}'';
             width = "100%";
             height = "20pt";
 
