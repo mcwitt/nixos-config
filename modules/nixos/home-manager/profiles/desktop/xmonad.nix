@@ -27,6 +27,8 @@
         import XMonad.Layout.BoringWindows (boringWindows, focusDown, focusMaster, focusUp)
         import XMonad.Layout.Grid (Grid (..))
         import XMonad.Layout.Minimize (minimize)
+        import XMonad.Layout.MultiToggle (Toggle (Toggle), mkToggle, single)
+        import XMonad.Layout.MultiToggle.Instances
         import XMonad.Layout.Renamed (Rename (CutWordsLeft), renamed)
         import XMonad.Layout.Spacing (spacingWithEdge)
         import XMonad.Layout.ThreeColumns (ThreeCol (..))
@@ -53,6 +55,7 @@
                                   ("M-m", focusMaster),
                                   ("M-\\", withFocused minimizeWindow),
                                   ("M-S-\\", withLastMinimized maximizeWindowAndFocus),
+                                  ("M-x", sendMessage $ Toggle MIRROR),
                                   ("M-g", spawn "rofi -show-icons -show window"),
                                   ("M-p", spawn "rofi -show-icons -show drun"),
                                   ("M-S-p", spawn "rofi -show-icons -show run"),
@@ -78,6 +81,7 @@
             . diminish minimize
             . boringWindows
             . avoidStruts
+            . mkToggle (single MIRROR)
             $ layout
           where
             layout =
