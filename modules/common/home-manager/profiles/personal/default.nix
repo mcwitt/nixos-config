@@ -49,7 +49,6 @@ in
           hypothesis
           matplotlib
           pandas
-          seaborn
           toolz
         ];
       };
