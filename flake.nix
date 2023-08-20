@@ -150,6 +150,12 @@
             ];
             extraHmModules = [ ./hosts/karakuri/home ];
           };
+
+          raspi3 = nixpkgs.lib.nixosSystem {
+            system = "aarch64-linux";
+            modules = [ ./hosts/raspi3/configuration.nix ];
+            specialArgs = { inherit (inputs) rpi-ad-blocker; };
+          };
         };
 
       homeConfigurations =
