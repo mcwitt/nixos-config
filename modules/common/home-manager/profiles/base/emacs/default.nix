@@ -490,6 +490,9 @@
         "k" = "vundo-previous";
         "j" = "vundo-next";
       };
+      config = ''
+        (setq vundo-glyph-alist vundo-unicode-symbols)
+      '';
     };
 
     which-key = {
