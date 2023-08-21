@@ -62,7 +62,7 @@ in
       "elm"
       "go"
       "graphviz"
-      "idris"
+      # "idris"
       "js"
       "markdown"
       "plantuml"
