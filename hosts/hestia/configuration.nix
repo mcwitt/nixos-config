@@ -3,6 +3,7 @@
 {
   imports = [
     ./hardware-configuration.nix
+    ./home-assistant.nix
   ];
 
   boot.loader.grub.enable = false;
@@ -21,6 +22,8 @@
     gc.dates = "weekly";
     settings.trusted-public-keys = [ "golem:eibXP6qvkaDB9Jvh/MkR4D/dVL7HYDBJI2srJZgVhGE=" ];
   };
+
+  services.home-assistant.enable = true;
 
   services.openssh = {
     enable = true;
