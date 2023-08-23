@@ -19,7 +19,7 @@
   nix = {
     gc.automatic = true;
     gc.dates = "weekly";
-    settings.trusted-public-keys = [ "golem:ccFn2QC8Jpctrhlv6Z7SCXYJnvl1eJcvWpLb9tJ/Gck=" ];
+    settings.trusted-public-keys = [ "golem:eibXP6qvkaDB9Jvh/MkR4D/dVL7HYDBJI2srJZgVhGE=" ];
   };
 
   services.openssh = {
