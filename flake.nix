@@ -136,6 +136,12 @@
             extraHmModules = [ ./hosts/golem/home ];
           };
 
+          hestia = nixpkgs.lib.nixosSystem rec {
+            system = "aarch64-linux";
+            modules = [ ./hosts/hestia/configuration.nix ];
+            specialArgs = { inherit (self.packages.${system}) blocked-hosts; };
+          };
+
           karakuri = makeNixosSystem {
             system = "x86_64-linux";
             users = [ "matt" ];
