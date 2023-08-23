@@ -16,6 +16,10 @@
       "esphome"
       "met"
       "radio_browser"
+
+      "cast"
+      "flume"
+      "zha"
     ];
 
     openFirewall = true;
