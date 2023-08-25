@@ -25,6 +25,15 @@
 
   services.home-assistant.enable = true;
 
+  services.avahi = {
+    enable = true;
+    nssmdns = true;
+    publish = {
+      enable = true;
+      addresses = true;
+    };
+  };
+
   services.openssh = {
     enable = true;
     settings.PermitRootLogin = "prohibit-password";
