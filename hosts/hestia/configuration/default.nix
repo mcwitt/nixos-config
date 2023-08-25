@@ -4,6 +4,8 @@
   imports = [
     ./hardware-configuration.nix
     ./home-assistant.nix
+    ./sonos.nix
+    ./zigbee2mqtt.nix
   ];
 
   boot.loader.grub.enable = false;
@@ -24,6 +26,15 @@
   };
 
   services.home-assistant.enable = true;
+
+  services.avahi = {
+    enable = true;
+    nssmdns = true;
+    publish = {
+      enable = true;
+      addresses = true;
+    };
+  };
 
   services.openssh = {
     enable = true;
