@@ -23,6 +23,7 @@
 
       "cast"
       "flume"
+      "roomba"
     ];
 
     openFirewall = true;
