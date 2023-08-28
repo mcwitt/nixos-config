@@ -12,7 +12,7 @@
         name = "Home";
       };
 
-      zha = { };
+      mqtt = { };
     };
 
     extraComponents = [

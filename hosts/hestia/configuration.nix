@@ -4,6 +4,7 @@
   imports = [
     ./hardware-configuration.nix
     ./home-assistant.nix
+    ./zigbee2mqtt.nix
   ];
 
   boot.loader.grub.enable = false;
