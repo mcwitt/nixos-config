@@ -21,7 +21,6 @@
       "met"
       "radio_browser"
 
-      "cast"
       "flume"
       "roomba"
     ];
