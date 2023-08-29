@@ -1,5 +1,7 @@
 { pkgs, ... }:
 {
+  imports = [ ./sonos.nix ];
+
   services.home-assistant = {
     config = {
       # Includes dependencies for a basic setup
@@ -13,6 +15,8 @@
       };
 
       mqtt = { };
+
+      sonos = { };
     };
 
     extraComponents = [

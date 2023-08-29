@@ -138,7 +138,7 @@
 
           hestia = nixpkgs.lib.nixosSystem rec {
             system = "aarch64-linux";
-            modules = [ ./hosts/hestia/configuration.nix ];
+            modules = [ ./hosts/hestia/configuration ];
             specialArgs = { inherit (self.packages.${system}) blocked-hosts; };
           };
 

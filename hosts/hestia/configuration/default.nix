@@ -4,6 +4,7 @@
   imports = [
     ./hardware-configuration.nix
     ./home-assistant.nix
+    ./sonos.nix
     ./zigbee2mqtt.nix
   ];
 
