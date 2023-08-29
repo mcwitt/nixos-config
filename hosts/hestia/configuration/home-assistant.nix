@@ -25,6 +25,9 @@
       "met"
       "radio_browser"
 
+      # Integrations that do not support yaml configuration
+      "brother"
+      "cast"
       "flume"
       "google_translate" # text-to-speech provider
       "roomba"
