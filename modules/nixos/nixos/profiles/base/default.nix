@@ -1,6 +1,6 @@
 { pkgs, ... }: {
 
-  imports = [ ./hoogle.nix ];
+  imports = [ ./home-assistant.nix ./hoogle.nix ];
 
   i18n.defaultLocale = "en_US.UTF-8";
 
