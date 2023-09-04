@@ -116,6 +116,8 @@
                       })
                       users);
                   };
+
+                  profiles.base.enable = true;
                 })
               ] ++ extraNixosModules;
             });
@@ -131,6 +133,7 @@
                   desktop.enable = true;
                   personal.enable = true;
                 };
+                profiles.personal.enable = true;
               }
             ];
             extraHmModules = [ ./hosts/golem/home ];
@@ -138,7 +141,10 @@
 
           hestia = nixpkgs.lib.makeOverridable nixpkgs.lib.nixosSystem rec {
             system = "aarch64-linux";
-            modules = [ ./hosts/hestia/configuration ];
+            modules = [
+              self.nixosModules.common
+              ./hosts/hestia/configuration
+            ];
             specialArgs = { inherit (self.packages.${system}) blocked-hosts; };
           };
 
@@ -152,6 +158,7 @@
                   desktop.enable = true;
                   personal.enable = true;
                 };
+                profiles.personal.enable = true;
               }
             ];
             extraHmModules = [ ./hosts/karakuri/home ];

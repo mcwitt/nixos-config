@@ -56,6 +56,11 @@
     longitude = -122.2712;
   };
 
+  moonlander = {
+    enable = true;
+    allowedUsers = [ "matt" ];
+  };
+
   networking = {
     hostName = "golem";
     useDHCP = false;
@@ -67,10 +72,6 @@
     secret-key-files = [ "/etc/nix/secret-key" ];
   };
 
-  profiles.moonlander = {
-    enable = true;
-    allowedUsers = [ "matt" ];
-  };
 
   services.printing = {
     enable = true;
