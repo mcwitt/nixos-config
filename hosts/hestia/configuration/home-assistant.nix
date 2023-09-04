@@ -5,6 +5,7 @@
   services.home-assistant = {
     config = {
       default_config = { };
+      homeassistant.auth_mfa_modules = [{ type = "totp"; }];
       mqtt = { };
       sonos = { };
       wake_on_lan = { };
@@ -22,8 +23,13 @@
       "cast"
       "flume"
       "google_translate" # text-to-speech provider
+      "otp"
       "roomba"
       "speedtestdotnet"
+    ];
+
+    extraPackages = python3Packages: with python3Packages; [
+      pyqrcode # needed for totp setup
     ];
 
     openFirewall = true;
