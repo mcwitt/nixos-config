@@ -2,6 +2,7 @@
 { pkgs, ... }:
 {
   imports = [
+    ./duckdns.nix
     ./hardware-configuration.nix
     ./home-assistant.nix
     ./sonos.nix
@@ -25,6 +26,8 @@
     settings.trusted-public-keys = [ "golem:eibXP6qvkaDB9Jvh/MkR4D/dVL7HYDBJI2srJZgVhGE=" ];
   };
 
+  services.duckdns.enable = true;
+
   services.home-assistant.enable = true;
 
   services.avahi = {
@@ -38,7 +41,7 @@
 
   services.openssh = {
     enable = true;
-    settings.PermitRootLogin = "prohibit-password";
+    settings.PasswordAuthentication = false;
   };
 
   system.stateVersion = "22.11";
