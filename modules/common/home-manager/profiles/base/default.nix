@@ -17,7 +17,7 @@
     nix-du
     (parallel-full.override { willCite = true; })
     pre-commit
-    prettier
+    nodePackages.prettier
     proselint
     ripgrep
     xclip
