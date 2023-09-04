@@ -22,6 +22,7 @@
       "flume"
       "google_translate" # text-to-speech provider
       "roomba"
+      "speedtestdotnet"
     ];
 
     openFirewall = true;
