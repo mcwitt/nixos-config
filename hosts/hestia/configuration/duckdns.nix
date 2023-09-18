@@ -18,7 +18,7 @@ in
       services.duckdns = {
         description = "DuckDNS updater service";
         script = ''
-          token=$(echo ${cfg.tokenPath})
+          token=$(cat ${cfg.tokenPath})
           ${pkgs.curl}/bin/curl "https://www.duckdns.org/update?domains=${cfg.domain}&token=$token"
         '';
         serviceConfig.User = "duckdns";
