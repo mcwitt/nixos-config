@@ -26,8 +26,6 @@
     settings.trusted-public-keys = [ "golem:eibXP6qvkaDB9Jvh/MkR4D/dVL7HYDBJI2srJZgVhGE=" ];
   };
 
-  services.duckdns.enable = true;
-
   services.home-assistant.enable = true;
 
   services.avahi = {
