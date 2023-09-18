@@ -2,8 +2,6 @@
 {
   networking.firewall.allowedTCPPorts = [ config.services.zigbee2mqtt.settings.frontend.port ];
 
-  services.mosquitto.enable = true;
-
   services.zigbee2mqtt = {
     enable = true;
 
