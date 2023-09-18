@@ -21,6 +21,7 @@
 
     breadcrumb = final.trivialBuild {
       pname = "breadcrumb";
+      version = inputs.breadcrumb.rev;
       src = inputs.breadcrumb;
     };
 
@@ -47,6 +48,7 @@
 
     git-sync = final.trivialBuild {
       pname = "git-sync";
+      version = inputs.git-sync-el.rev;
       src = inputs.git-sync-el;
     };
   };
