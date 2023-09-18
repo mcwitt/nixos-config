@@ -1,15 +1,16 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, ... }:
 {
   programs.emacs.overrides = final: prev: {
 
     base16-theme = final.trivialBuild rec {
       pname = "base16-theme";
+      version = "3.1";
 
       src = pkgs.fetchFromGitHub {
         owner = "tinted-theming";
         repo = "base16-emacs";
-        rev = "4843c8bb359746ed3a5dd269b1ab86410f9fffc1";
-        hash = "sha256-RJpZ0vb5zCEEELDbn6JkyIjK4hrjEEdQFaik3xmE8dM=";
+        rev = "refs/tags/${version}";
+        hash = "sha256-QLe9ywRv6Cne4Z0xPiCFp6owRFJQCHiCrfPl5bdTCfs=";
       };
 
       patches = [ ./base16-emacs/0001-Replace-nil-with-unspecified.patch ];
@@ -18,6 +19,7 @@
     # https://github.com/danth/stylix/blob/c80d054fd4b62a4e8e1accf9c22b2e622737aadd/modules/emacs/hm.nix#L14-L55
     base16-stylix-theme = final.trivialBuild {
       pname = "base16-stylix-theme";
+      version = "0.1";
       src = with config.lib.stylix.colors.withHashtag;
         pkgs.writeText "base16-stylix-theme.el" ''
           (require 'base16-theme)
