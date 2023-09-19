@@ -8,7 +8,9 @@
       homeassistant.auth_mfa_modules = [{ type = "totp"; }];
       mqtt = { };
       sonos = { };
+      thread = { };
       wake_on_lan = { };
+      zha = { };
     };
 
     extraComponents = [
@@ -23,7 +25,9 @@
       "cast"
       "flume"
       "google_translate" # text-to-speech provider
+      "ipp"
       "otp"
+      "purpleair"
       "roomba"
       "speedtestdotnet"
     ];
