@@ -4,8 +4,7 @@
   imports = [
     ./duckdns.nix
     ./hardware-configuration.nix
-    ./home-assistant.nix
-    ./sonos.nix
+    ./home-assistant
     ./zigbee2mqtt.nix
   ];
 

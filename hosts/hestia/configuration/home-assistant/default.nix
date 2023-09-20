@@ -1,6 +1,9 @@
 { pkgs, ... }:
 {
-  imports = [ ./sonos.nix ];
+  imports = [
+    ./sonos.nix
+    ./wake-up-light.nix
+  ];
 
   services.home-assistant = {
     config = {
