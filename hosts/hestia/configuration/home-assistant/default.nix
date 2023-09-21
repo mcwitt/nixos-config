@@ -10,7 +10,6 @@
       default_config = { };
       homeassistant.auth_mfa_modules = [{ type = "totp"; }];
       mqtt = { };
-      sonos = { };
       thread = { };
       wake_on_lan = { };
       zha = { };
