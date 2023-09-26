@@ -32,8 +32,7 @@ in
         in
         ''
           mkdir -p ${builtins.dirOf cfg.path}
-          rm -f ${cfg.path}
-          ln -s ${src} ${cfg.path}
+          ln -fns ${src} ${cfg.path}
         '';
     };
 }

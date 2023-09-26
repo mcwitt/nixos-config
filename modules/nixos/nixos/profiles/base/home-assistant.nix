@@ -1,7 +1,11 @@
 {
   # user for home-assistant to log in as
-  users.users.hass = {
-    isNormalUser = true;
-    extraGroups = [ "wheel" ];
+  users = {
+    users.hass = {
+      isSystemUser = true;
+      group = "hass";
+      extraGroups = [ "wheel" ];
+    };
+    groups.hass = { };
   };
 }
