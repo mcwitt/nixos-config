@@ -1,6 +1,7 @@
 { pkgs, ... }:
 {
   imports = [
+    ./eero.nix
     ./postgresql.nix
     ./wake-up-light.nix
   ];
@@ -42,7 +43,10 @@
 
     package = (pkgs.home-assistant.override {
 
-      extraPackages = ps: with ps; [ psycopg2 ]; # TODO: move this to postgresql module
+      extraPackages = ps: with ps; [
+        psycopg2 # TODO: move to postgresql module
+        pypng # TODO: move to eero module
+      ];
 
       packageOverrides = final: prev: with final; {
         androidtvremote2 = buildPythonPackage rec {

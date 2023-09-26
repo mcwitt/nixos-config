@@ -14,6 +14,8 @@
     breadcrumb.flake = false;
     copilot-el.url = "github:zerolfx/copilot.el";
     copilot-el.flake = false;
+    home-assistant-eero.url = "github:schmittx/home-assistant-eero";
+    home-assistant-eero.flake = false;
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     emacs-overlay.url = "github:nix-community/emacs-overlay/c724333b2d3235b01101d62908ed1d43d18ac515";
@@ -145,7 +147,7 @@
               self.nixosModules.common
               ./hosts/hestia/configuration
             ];
-            specialArgs = { inherit (self.packages.${system}) blocked-hosts; };
+            specialArgs = { inherit inputs; };
           };
 
           karakuri = makeNixosSystem {
