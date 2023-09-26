@@ -13,7 +13,10 @@
 
   console.useXkbConfig = true;
 
-  environment.systemPackages = [ pkgs.vim ];
+  environment.systemPackages = with pkgs; [
+    home-assistant-cli
+    vim
+  ];
 
   i18n.defaultLocale = "en_US.UTF-8";
 
