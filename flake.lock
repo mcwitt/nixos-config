@@ -105,16 +105,17 @@
         "nixpkgs-stable": "nixpkgs-stable"
       },
       "locked": {
-        "lastModified": 1695667627,
-        "narHash": "sha256-3scmlAWduBQJELvQtAknQ6M2g5hnb0kY1stTOFeTk30=",
+        "lastModified": 1695032245,
+        "narHash": "sha256-FXUBdn1xH4HqUzKiYZGvwW5BX1AbDgw8w+WDI7rLkZE=",
         "owner": "nix-community",
         "repo": "emacs-overlay",
-        "rev": "d1a316b529df678413ba05c970c0c9bdcb6c0d37",
+        "rev": "c724333b2d3235b01101d62908ed1d43d18ac515",
         "type": "github"
       },
       "original": {
         "owner": "nix-community",
         "repo": "emacs-overlay",
+        "rev": "c724333b2d3235b01101d62908ed1d43d18ac515",
         "type": "github"
       }
     },
@@ -338,6 +339,22 @@
       "original": {
         "owner": "hercules-ci",
         "repo": "gitignore.nix",
+        "type": "github"
+      }
+    },
+    "home-assistant-eero": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1695300935,
+        "narHash": "sha256-jGNj2BWS8iIO+1lu5L4MBJqrRMnYs0RS7ll9eP18Pw4=",
+        "owner": "schmittx",
+        "repo": "home-assistant-eero",
+        "rev": "2468e9fc3322d59a6265158b3b0eec536b2f590f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "schmittx",
+        "repo": "home-assistant-eero",
         "type": "github"
       }
     },
@@ -590,6 +607,7 @@
         "git-sync-el": "git-sync-el",
         "gitignore": "gitignore",
         "gitignore.nix": "gitignore.nix",
+        "home-assistant-eero": "home-assistant-eero",
         "home-manager": "home-manager",
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs_3",
