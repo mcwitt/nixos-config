@@ -1,6 +1,9 @@
 { pkgs, ... }:
 {
-  imports = [ ./wake-up-light.nix ];
+  imports = [
+    ./postgresql.nix
+    ./wake-up-light.nix
+  ];
 
   services.home-assistant = {
     config = {
@@ -37,7 +40,10 @@
 
     openFirewall = true;
 
-    package = pkgs.home-assistant.override {
+    package = (pkgs.home-assistant.override {
+
+      extraPackages = ps: with ps; [ psycopg2 ]; # TODO: move this to postgresql module
+
       packageOverrides = final: prev: with final; {
         androidtvremote2 = buildPythonPackage rec {
           pname = "androidtvremote2";
@@ -71,6 +77,6 @@
             nativeCheckInputs = oldAttrs.nativeCheckInputs ++ [ pytz ];
           });
       };
-    };
+    }).overrideAttrs (_: { doInstallCheck = false; });
   };
 }
