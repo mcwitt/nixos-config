@@ -3,6 +3,7 @@
   imports = [
     ./eero.nix
     ./postgresql.nix
+    ./solar.nix
     ./wake-up-light.nix
   ];
 
