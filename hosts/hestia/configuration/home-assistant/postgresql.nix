@@ -13,4 +13,10 @@
       };
     }];
   };
+
+  services.postgresqlBackup = {
+    enable = true;
+    databases = [ "hass" ];
+    startAt = "*-*-* 01:15:00";
+  };
 }
