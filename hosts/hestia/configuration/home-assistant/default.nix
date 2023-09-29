@@ -30,6 +30,7 @@
       "flume"
       "google_translate" # text-to-speech provider
       "ipp"
+      "opower"
       "otp"
       "purpleair"
       "roomba"
