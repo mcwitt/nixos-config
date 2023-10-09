@@ -2,5 +2,6 @@
   imports = [
     ./hardware
     ./profiles
+    ./services
   ];
 }
