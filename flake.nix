@@ -145,6 +145,7 @@
             system = "aarch64-linux";
             modules = [
               self.nixosModules.common
+              self.nixosModules.nixos
               ./hosts/hestia/configuration
             ];
             specialArgs = { inherit inputs; };
