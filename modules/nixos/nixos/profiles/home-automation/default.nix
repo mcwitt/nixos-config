@@ -38,7 +38,6 @@ in
 
         thread = { };
         wake_on_lan = { };
-        zha = { };
       };
 
       wakeUpLight.enable = true;
@@ -61,6 +60,7 @@ in
         "purpleair"
         "roomba"
         "speedtestdotnet"
+        "zha"
       ];
 
       extraPackages = python3Packages: with python3Packages; [
