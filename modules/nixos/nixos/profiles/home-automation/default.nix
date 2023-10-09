@@ -45,6 +45,7 @@ in
         wake_on_lan = { };
       };
 
+      inovelliVzm31sn.enable = true;
       wakeUpLight.enable = true;
 
       extraComponents = [
