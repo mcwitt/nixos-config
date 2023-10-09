@@ -141,7 +141,17 @@
             extraHmModules = [ ./hosts/golem/home ];
           };
 
-          hestia = nixpkgs.lib.makeOverridable nixpkgs.lib.nixosSystem rec {
+          hal = nixpkgs.lib.makeOverridable nixpkgs.lib.nixosSystem {
+            system = "aarch64-linux";
+            modules = [
+              self.nixosModules.common
+              self.nixosModules.nixos
+              ./hosts/hal/configuration
+            ];
+            specialArgs = { inherit inputs; };
+          };
+
+          hestia = nixpkgs.lib.makeOverridable nixpkgs.lib.nixosSystem {
             system = "aarch64-linux";
             modules = [
               self.nixosModules.common
