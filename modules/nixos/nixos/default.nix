@@ -1,6 +1,6 @@
 {
   imports = [
-    ./moonlander.nix
+    ./hardware
     ./profiles
   ];
 }
