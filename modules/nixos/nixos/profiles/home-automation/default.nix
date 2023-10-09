@@ -22,6 +22,11 @@ in
       config = {
         default_config = { };
 
+        # Allow adding automations via the UI
+        # Note: automations added in config must be in labeled blocks
+        # See https://www.home-assistant.io/docs/automation/yaml/
+        automation = "!include automations.yaml";
+
         homeassistant.auth_mfa_modules = [{ type = "totp"; }];
 
         mqtt = { };
