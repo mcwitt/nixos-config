@@ -1,10 +1,8 @@
-# https://nixos.wiki/wiki/NixOS_on_ARM#Installation
 { pkgs, ... }:
 {
   imports = [
     ./hardware-configuration.nix
     ./home-assistant
-    ./zigbee2mqtt.nix
   ];
 
   boot.loader.grub.enable = false;
@@ -41,6 +39,11 @@
   services.openssh = {
     enable = true;
     settings.PasswordAuthentication = false;
+  };
+
+  services.zigbee2mqtt = {
+    enable = true;
+    settings.serial.port = "/dev/serial/by-id/usb-ITEAD_SONOFF_Zigbee_3.0_USB_Dongle_Plus_V2_20230602161357-if00";
   };
 
   system.stateVersion = "22.11";
