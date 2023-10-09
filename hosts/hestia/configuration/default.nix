@@ -1,9 +1,6 @@
 { pkgs, ... }:
 {
-  imports = [
-    ./hardware-configuration.nix
-    ./home-assistant
-  ];
+  imports = [ ./hardware-configuration.nix ];
 
   boot.loader.grub.enable = false;
   boot.loader.generic-extlinux-compatible.enable = true;
@@ -25,7 +22,7 @@
     settings.trusted-public-keys = [ "golem:eibXP6qvkaDB9Jvh/MkR4D/dVL7HYDBJI2srJZgVhGE=" ];
   };
 
-  services.home-assistant.enable = true;
+  profiles.home-automation.enable = true;
 
   services.avahi = {
     enable = true;
@@ -41,10 +38,7 @@
     settings.PasswordAuthentication = false;
   };
 
-  services.zigbee2mqtt = {
-    enable = true;
-    settings.serial.port = "/dev/serial/by-id/usb-ITEAD_SONOFF_Zigbee_3.0_USB_Dongle_Plus_V2_20230602161357-if00";
-  };
+  services.zigbee2mqtt.settings.serial.port = "/dev/serial/by-id/usb-ITEAD_SONOFF_Zigbee_3.0_USB_Dongle_Plus_V2_20230602161357-if00";
 
   system.stateVersion = "22.11";
 
