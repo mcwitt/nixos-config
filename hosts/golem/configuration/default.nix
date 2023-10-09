@@ -25,6 +25,11 @@
     settings.General.ControllerMode = "bredr";
   };
 
+  hardware.moonlander = {
+    enable = true;
+    allowedUsers = [ "matt" ];
+  };
+
   hardware.nvidia.modesetting.enable = true;
 
   hardware.opengl = {
@@ -54,11 +59,6 @@
   location = {
     latitude = 37.8044;
     longitude = -122.2712;
-  };
-
-  moonlander = {
-    enable = true;
-    allowedUsers = [ "matt" ];
   };
 
   networking = {

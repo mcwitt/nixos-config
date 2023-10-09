@@ -1,9 +1,9 @@
 { config, lib, pkgs, ... }:
 with lib;
-let cfg = config.moonlander;
+let cfg = config.hardware.moonlander;
 in
 {
-  options.moonlander = {
+  options.hardware.moonlander = {
     enable = mkEnableOption "Config for Moonlander keyboard";
     allowedUsers = mkOption {
       default = [ ];
