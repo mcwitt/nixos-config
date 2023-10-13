@@ -118,6 +118,8 @@ in
       }).overrideAttrs (_: { doInstallCheck = false; });
     };
 
+    services.paperless.enable = true;
+
     services.zigbee2mqtt.enable = true;
   };
 }
