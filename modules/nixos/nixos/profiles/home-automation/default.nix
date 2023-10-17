@@ -66,6 +66,7 @@ in
         "purpleair"
         "roomba"
         "speedtestdotnet"
+        "wled"
         "zha"
       ];
 
