@@ -121,6 +121,8 @@ in
 
     services.paperless.enable = true;
 
+    services.vaultwarden.enable = true;
+
     services.zigbee2mqtt.enable = true;
   };
 }
