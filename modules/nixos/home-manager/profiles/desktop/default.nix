@@ -14,24 +14,17 @@ in
   config = lib.mkIf cfg.enable {
     home.packages = with pkgs; [ xfce.thunar ];
 
-    home.pointerCursor = {
-      package = pkgs.vanilla-dmz;
-      name = "Vanilla-DMZ";
-      size = lib.mkDefault 48;
-      x11.enable = true;
-    };
+    home.pointerCursor.x11.enable = true;
 
     programs.rofi.enable = true;
 
     services.dunst = {
       enable = true;
-      settings = with config.scheme.withHashtag; {
-        global = {
-          browser = "${config.programs.chromium.package}/bin/chromium-browser";
-          markup = "full";
-          max_icon_size = 100;
-          text_icon_padding = 10;
-        };
+      settings.global = {
+        browser = "${config.programs.chromium.package}/bin/chromium-browser";
+        markup = "full";
+        max_icon_size = 100;
+        text_icon_padding = 10;
       };
     };
 
