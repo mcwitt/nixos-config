@@ -80,7 +80,7 @@ in
       userName = "Matt Wittmann";
       userEmail = "mcwitt@gmail.com";
       signing = {
-        key = "AEAD22D9F95347ED";
+        key = "981FF1A67C955E2E";
         signByDefault = true;
       };
     };
