@@ -132,6 +132,7 @@
               ./hosts/golem/configuration
               {
                 home-manager.users.matt.profiles = {
+                  base.enable = true;
                   desktop.enable = true;
                   personal.enable = true;
                 };
@@ -168,6 +169,7 @@
               ./hosts/karakuri/configuration
               {
                 home-manager.users.matt.profiles = {
+                  base.enable = true;
                   desktop.enable = true;
                   personal.enable = true;
                 };

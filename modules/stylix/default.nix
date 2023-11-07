@@ -4,6 +4,8 @@
     base16Scheme = "${inputs.base16-schemes}/nord.yaml";
     # polarity = "dark"; # only relevant when stylix.base16Scheme not specified
 
+    cursor.size = 48;
+
     image =
       let
         carinaNebula = builtins.fetchurl {
