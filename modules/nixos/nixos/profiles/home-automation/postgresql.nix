@@ -7,16 +7,11 @@
     services.postgresql = {
       enable = true;
 
-      # https://github.com/NixOS/nixpkgs/issues/216989
-      package = pkgs.postgresql_14;
-
       ensureDatabases = [ "hass" ];
 
       ensureUsers = [{
         name = "hass";
-        ensurePermissions = {
-          "DATABASE hass" = "ALL PRIVILEGES";
-        };
+        ensureDBOwnership = true;
       }];
     };
 
