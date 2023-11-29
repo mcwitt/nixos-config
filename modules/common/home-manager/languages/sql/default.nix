@@ -6,7 +6,7 @@ in
   options.languages.sql.enable = mkEnableOption "SQL language environment";
 
   config = mkIf cfg.enable {
-    home.packages = with pkgs; [ pgcli pgformatter ];
+    home.packages = with pkgs; [ pgformatter ];
 
     programs.emacs.init.usePackage.ob-sql = {
       enable = true;
