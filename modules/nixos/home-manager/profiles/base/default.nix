@@ -1,7 +1,5 @@
 { config, lib, pkgs, ... }:
 {
-  imports = [ ./password-store.nix ];
-
   options.profiles.base.enable = lib.mkEnableOption "Base configuration enabled on most machines";
 
   config = lib.mkIf config.profiles.base.enable {
