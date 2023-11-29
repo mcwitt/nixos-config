@@ -9,10 +9,6 @@
 
     programs.chromium = {
       enable = true;
-      package = pkgs.chromium.override {
-        # enable Chromecast
-        commandLineArgs = "--load-media-router-component-extension=1";
-      };
       extensions =
         let
           browserpass = "naepdomgkenhinolocfifgehidddafch";
