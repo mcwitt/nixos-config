@@ -18,7 +18,7 @@
     home-assistant-eero.flake = false;
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
-    emacs-overlay.url = "github:nix-community/emacs-overlay/c724333b2d3235b01101d62908ed1d43d18ac515";
+    emacs-overlay.url = "github:nix-community/emacs-overlay";
     fish-kubectl-completions.url = "github:evanlucas/fish-kubectl-completions";
     fish-kubectl-completions.flake = false;
     "fzf.fish".url = "github:PatrickF1/fzf.fish";
