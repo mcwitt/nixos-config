@@ -11,7 +11,7 @@
       enable = true;
       extensions =
         let
-          browserpass = "naepdomgkenhinolocfifgehidddafch";
+          bitwarden = "nngceckbapebfimnlniiiahkandclblb";
           dark-reader = "eimadpbcbfnmbkopoojfekhnkhdbieeh";
           link-to-text-fragment = "pbcodcjpfjdpcineamnnmbkkmkdpajjg";
           privacy-badger = "pkehgijcmpdhfbdbbnkijodmdjhbjlgp";
@@ -19,7 +19,7 @@
           vimium = "dbepggeogbaibhgnhhndojpepiihcmeb";
         in
         [
-          browserpass
+          bitwarden
           dark-reader
           link-to-text-fragment
           privacy-badger

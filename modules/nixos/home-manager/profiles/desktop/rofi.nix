@@ -2,10 +2,6 @@
 {
   config = lib.mkIf config.profiles.desktop.enable {
 
-    home.packages = [
-      (pkgs.rofi-pass.override { rofi = config.programs.rofi.finalPackage; })
-    ];
-
     programs.rofi = {
       enable = true;
 
