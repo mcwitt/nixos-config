@@ -59,7 +59,7 @@
                                   ("M-g", spawn "rofi -show-icons -show window"),
                                   ("M-p", spawn "rofi -show-icons -show drun"),
                                   ("M-S-p", spawn "rofi -show-icons -show run"),
-                                  ("M-o", spawn "rofi-pass"),
+                                  ("M-o", spawn "rofi-rbw --keybindings Ctrl-1:type:username:password,Ctrl-2:type:password,Ctrl-3:copy:password,Ctrl-4:type:totp"),
                                   ("M-i", spawn "rofi -show ssh"),
                                   ("M-;", spawn "rofi -show emoji"),
                                   ("M-'", spawn "rofi -show calc -no-show-match -no-sort"),
