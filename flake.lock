@@ -178,6 +178,22 @@
         "type": "github"
       }
     },
+    "bhyve-home-assistant": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1700689984,
+        "narHash": "sha256-gJyQTTAogQ9M9A3J5kuX2G/fLy1mOfEplYcV6SLbH1E=",
+        "owner": "sebr",
+        "repo": "bhyve-home-assistant",
+        "rev": "97c119594abf8fc2cce7048cf99bc545c5b82445",
+        "type": "github"
+      },
+      "original": {
+        "owner": "sebr",
+        "repo": "bhyve-home-assistant",
+        "type": "github"
+      }
+    },
     "breadcrumb": {
       "flake": false,
       "locked": {
@@ -709,6 +725,7 @@
         "base16-rofi": "base16-rofi",
         "base16-schemes": "base16-schemes",
         "base16-tmux": "base16-tmux",
+        "bhyve-home-assistant": "bhyve-home-assistant",
         "breadcrumb": "breadcrumb",
         "copilot-el": "copilot-el",
         "emacs-overlay": "emacs-overlay",
