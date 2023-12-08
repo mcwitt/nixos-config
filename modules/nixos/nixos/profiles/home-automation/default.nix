@@ -7,6 +7,7 @@ in
 
 {
   imports = [
+    ./bhyve.nix
     ./eero.nix
     ./postgresql.nix
     ./solar.nix

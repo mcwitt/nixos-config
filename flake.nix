@@ -10,6 +10,8 @@
     base16-schemes.flake = false;
     base16-tmux.url = "github:tinted-theming/base16-tmux";
     base16-tmux.flake = false;
+    bhyve-home-assistant.url = "github:sebr/bhyve-home-assistant";
+    bhyve-home-assistant.flake = false;
     breadcrumb.url = "github:joaotavora/breadcrumb";
     breadcrumb.flake = false;
     copilot-el.url = "github:zerolfx/copilot.el";
