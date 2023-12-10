@@ -85,6 +85,7 @@
 
               modules = [
                 home-manager.nixosModules.home-manager
+                nur.nixosModules.nur
 
                 stylix.nixosModules.stylix
                 self.nixosModules.stylix
@@ -147,6 +148,7 @@
           hal = nixpkgs.lib.makeOverridable nixpkgs.lib.nixosSystem {
             system = "aarch64-linux";
             modules = [
+              nur.nixosModules.nur
               self.nixosModules.common
               self.nixosModules.nixos
               ./hosts/hal/configuration
