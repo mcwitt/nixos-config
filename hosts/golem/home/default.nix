@@ -4,8 +4,6 @@ let
   dpi = 183;
 in
 {
-  imports = [ ./feh.nix ];
-
   home.stateVersion = "21.11";
 
   programs.spotify.package = pkgs.spotify.override { deviceScaleFactor = 1.8; };

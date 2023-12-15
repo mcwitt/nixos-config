@@ -114,22 +114,6 @@
         "type": "github"
       }
     },
-    "base16-schemes": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1696158499,
-        "narHash": "sha256-5yIHgDTPjoX/3oDEfLSQ0eJZdFL1SaCfb9d6M0RmOTM=",
-        "owner": "tinted-theming",
-        "repo": "base16-schemes",
-        "rev": "a9112eaae86d9dd8ee6bb9445b664fba2f94037a",
-        "type": "github"
-      },
-      "original": {
-        "owner": "tinted-theming",
-        "repo": "base16-schemes",
-        "type": "github"
-      }
-    },
     "base16-tmux": {
       "flake": false,
       "locked": {
@@ -723,7 +707,6 @@
     "root": {
       "inputs": {
         "base16-rofi": "base16-rofi",
-        "base16-schemes": "base16-schemes",
         "base16-tmux": "base16-tmux",
         "bhyve-home-assistant": "bhyve-home-assistant",
         "breadcrumb": "breadcrumb",

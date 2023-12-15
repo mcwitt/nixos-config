@@ -1,7 +1,7 @@
 { inputs, pkgs, ... }:
 {
   stylix = {
-    base16Scheme = "${inputs.base16-schemes}/nord.yaml";
+    base16Scheme = "${pkgs.base16-schemes}/share/themes/nord.yaml";
     # polarity = "dark"; # only relevant when stylix.base16Scheme not specified
 
     cursor.size = 48;

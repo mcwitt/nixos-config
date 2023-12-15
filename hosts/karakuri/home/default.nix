@@ -12,7 +12,7 @@ in
 
   services.blueman-applet.enable = true;
 
-  services.polybar.settings = let colors = config.lib.stylix.colors.withHashtag; in {
+  services.polybar.settings = {
     "bar/main" = {
       dpi = lib.mkForce dpi; # workaround; auto-detection fails
       modules-right = "wireless-network filesystem memory battery cpu pulseaudio";
