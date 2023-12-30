@@ -46,7 +46,9 @@
 
   languages.nix.enable = true;
 
-  programs.bat.enable = true;
+  # causes failure at activation
+  # https://github.com/nix-community/home-manager/issues/4826
+  # programs.bat.enable = true;
 
   programs.bash.enable = true;
 
