@@ -2,7 +2,7 @@
   description = "NixOS configuration";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
     flake-utils.url = "github:numtide/flake-utils";
     base16-rofi.url = "github:tinted-theming/base16-rofi";
     base16-rofi.flake = false;
@@ -16,7 +16,7 @@
     copilot-el.flake = false;
     home-assistant-eero.url = "github:schmittx/home-assistant-eero";
     home-assistant-eero.flake = false;
-    home-manager.url = "github:nix-community/home-manager";
+    home-manager.url = "github:nix-community/home-manager/release-23.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     fish-kubectl-completions.url = "github:evanlucas/fish-kubectl-completions";
