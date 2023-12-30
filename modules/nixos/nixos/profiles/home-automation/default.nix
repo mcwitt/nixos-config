@@ -69,6 +69,7 @@ in
         "speedtestdotnet"
         "wled"
         "zha"
+        "zwave_js"
       ];
 
       extraPackages = python3Packages: with python3Packages; [
@@ -125,5 +126,7 @@ in
     services.vaultwarden.enable = true;
 
     services.zigbee2mqtt.enable = true;
+
+    services.zwave-js.enable = true;
   };
 }
