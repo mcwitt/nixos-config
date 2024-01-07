@@ -164,6 +164,12 @@
               self.nixosModules.common
               self.nixosModules.nixos
               ./hosts/hestia/configuration
+              {
+                nixpkgs = {
+                  config.allowUnfree = true;
+                  inherit overlays;
+                };
+              }
             ];
             specialArgs = { inherit inputs; };
           };

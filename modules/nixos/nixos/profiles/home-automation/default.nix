@@ -140,7 +140,5 @@ in
     services.vaultwarden.enable = true;
 
     services.zigbee2mqtt.enable = true;
-
-    services.zwave-js.enable = true;
   };
 }
