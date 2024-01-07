@@ -16,7 +16,7 @@ in
 
     androidDevices = lib.mkOption {
       description = "Android devices to receive notifications";
-      type = with lib.types; listOf string;
+      type = with lib.types; listOf str;
       default = [ "pixel_8_pro" ];
     };
   };
