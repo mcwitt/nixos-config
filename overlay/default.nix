@@ -1,9 +1,13 @@
 { inputs }: final: prev:
 {
-  home-assistant-custom-components = prev.home-assistant-custom-components // {
-    bhyve = final.home-assistant.python.pkgs.callPackage ../packages/servers/home-assistant/custom-components/bhyve.nix { };
-    eero = final.home-assistant.python.pkgs.callPackage ../packages/servers/home-assistant/custom-components/eero.nix { };
-  };
+  home-assistant-custom-components = prev.home-assistant-custom-components // (
+    let pythonPackages = final.home-assistant.python.pkgs;
+    in {
+      bhyve = pythonPackages.callPackage ../packages/servers/home-assistant/custom-components/bhyve.nix { };
+      eero = pythonPackages.callPackage ../packages/servers/home-assistant/custom-components/eero.nix { };
+      alarmo = pythonPackages.callPackage ../packages/servers/home-assistant/custom-components/alarmo.nix { };
+    }
+  );
 
   nerdifyFont = final.callPackage ./nerdify-font.nix { };
 }

@@ -148,7 +148,12 @@
               self.nixosModules.common
               self.nixosModules.nixos
               ./hosts/hal/configuration
-              { nixpkgs = { inherit overlays; }; }
+              {
+                nixpkgs = {
+                  config.allowUnfree = true;
+                  inherit overlays;
+                };
+              }
             ];
             specialArgs = { inherit inputs; };
           };
