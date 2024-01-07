@@ -7,8 +7,6 @@ in
 
 {
   imports = [
-    ./bhyve.nix
-    ./eero.nix
     ./postgresql.nix
     ./solar.nix
   ];
@@ -57,6 +55,11 @@ in
         wake_on_lan = { };
       };
 
+      customComponents = with pkgs.home-assistant-custom-components; [
+        bhyve
+        eero
+      ];
+
       inovelliVzm31sn.enable = true;
       wakeUpLight.enable = true;
 
@@ -93,7 +96,6 @@ in
 
         extraPackages = ps: with ps; [
           psycopg2 # TODO: move to postgresql module
-          pypng # TODO: move to eero module
         ];
 
         packageOverrides = final: prev: with final; {
