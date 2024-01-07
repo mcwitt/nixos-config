@@ -28,6 +28,9 @@ in
         # See https://www.home-assistant.io/docs/automation/yaml/
         automation = "!include automations.yaml";
 
+        # Allow adding scenes via the UI
+        scene = "!include scenes.yaml";
+
         homeassistant.auth_mfa_modules = [{ type = "totp"; }];
 
         mqtt = { };
