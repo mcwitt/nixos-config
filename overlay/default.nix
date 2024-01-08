@@ -5,7 +5,6 @@
     in {
       bhyve = pythonPackages.callPackage ../packages/servers/home-assistant/custom-components/bhyve.nix { };
       eero = pythonPackages.callPackage ../packages/servers/home-assistant/custom-components/eero.nix { };
-      alarmo = pythonPackages.callPackage ../packages/servers/home-assistant/custom-components/alarmo.nix { };
     }
   );
 

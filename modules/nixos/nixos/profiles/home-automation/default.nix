@@ -56,7 +56,6 @@ in
       };
 
       customComponents = with pkgs.home-assistant-custom-components; [
-        alarmo
         bhyve
         eero
       ];
