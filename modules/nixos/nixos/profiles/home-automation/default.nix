@@ -11,15 +11,7 @@ in
     ./solar.nix
   ];
 
-  options.profiles.home-automation = {
-    enable = mkEnableOption "Services for home automation";
-
-    androidDevices = lib.mkOption {
-      description = "Android devices to receive notifications";
-      type = with lib.types; listOf str;
-      default = [ "pixel_8_pro" ];
-    };
-  };
+  options.profiles.home-automation.enable = mkEnableOption "Services for home automation";
 
   config = mkIf cfg.enable {
 
