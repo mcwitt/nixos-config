@@ -44,7 +44,6 @@ in
     };
 
     services.gpg-agent = {
-      pinentryFlavor = null;
       extraConfig =
         let
           pinentry-rofi-with-env = pkgs.writeShellApplication {
