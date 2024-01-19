@@ -72,7 +72,6 @@ in
       "sql"
       "terraform"
       "tex"
-      "unison"
     ]
       (_: { enable = true; });
 
