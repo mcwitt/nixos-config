@@ -22,6 +22,5 @@
     ./sql
     ./terraform
     ./tex
-    ./unison
   ];
 }

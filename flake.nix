@@ -32,7 +32,6 @@
     nur.url = "github:nix-community/NUR";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     stylix.url = "github:danth/stylix";
-    unison-nix.url = "github:ceedubs/unison-nix";
   };
 
   outputs =
@@ -44,7 +43,6 @@
     , nur
     , pre-commit-hooks
     , stylix
-    , unison-nix
     , ...
     } @ inputs:
     let
@@ -52,7 +50,6 @@
         self.overlays.default
         emacs-overlay.overlay
         nur.overlay
-        unison-nix.overlay
       ];
 
       mkExtraSpecialArgs = pkgs: {
