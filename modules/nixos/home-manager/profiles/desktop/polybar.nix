@@ -37,7 +37,7 @@
             background = "#E6${config.lib.stylix.colors.base00}"; # 90% opacity
             foreground = ''''${colors.foreground}'';
 
-            line-size = 5;
+            line-size = 3;
 
             border-size = 0;
 
@@ -51,7 +51,7 @@
 
             font = let inherit (config.stylix) fonts; in [
               "${fonts.monospace.name}:size=${toString fonts.sizes.desktop};5"
-              "Iosevka Nerd Font:size=${toString fonts.sizes.desktop};5"
+              "${fonts.sansSerif.name}:size=${toString fonts.sizes.desktop};5"
             ];
 
             modules-left = "xworkspaces xmonad";

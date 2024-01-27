@@ -67,6 +67,11 @@ in
       fade = true;
       fadeDelta = 3;
       shadow = true;
+      settings.blur = {
+        method = "gaussian";
+        size = 10;
+        deviation = 5.0;
+      };
     };
 
     services.polybar.enable = true;

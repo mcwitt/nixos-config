@@ -37,7 +37,7 @@
           import XMonad.Layout.MultiToggle (Toggle (Toggle), mkToggle, single)
           import XMonad.Layout.MultiToggle.Instances
           import XMonad.Layout.Renamed (Rename (CutWordsLeft), renamed)
-          import XMonad.Layout.Spacing (spacingWithEdge)
+          import XMonad.Layout.Spacing (smartSpacingWithEdge)
           import XMonad.Layout.ThreeColumns (ThreeCol (..))
           import XMonad.StackSet qualified as W
           import XMonad.Util.EZConfig (additionalKeys, additionalKeysP)
@@ -48,7 +48,7 @@
               . docks
               . ewmh
               $ def
-                { borderWidth = 5,
+                { borderWidth = 3,
                   normalBorderColor = "${colors.withHashtag.base00}",
                   focusedBorderColor = "${colors.withHashtag.base0D}",
                   layoutHook = myLayoutHook,
@@ -94,7 +94,7 @@
               }
 
           myLayoutHook =
-            diminish (spacingWithEdge 8)
+            diminish (smartSpacingWithEdge 5)
               . diminish minimize
               . boringWindows
               . avoidStruts
@@ -102,7 +102,7 @@
               $ layout
             where
               layout =
-                Tall 1 (1 % 50) (3 % 5)
+                Tall 1 (3 % 100) (3 % 5)
                   ||| ThreeCol 1 (3 % 100) (1 % 2)
                   ||| Grid
                   ||| Full
