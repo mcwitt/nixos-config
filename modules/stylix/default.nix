@@ -26,9 +26,21 @@
         name = "IosevkaComfy Nerd Font";
       };
 
+      sansSerif = {
+        package = pkgs.nerdifyFont pkgs.iosevka-comfy.comfy-duo;
+        name = "IosevkaComfyDuo Nerd Font";
+      };
+
+      serif = {
+        package = pkgs.nerdifyFont pkgs.iosevka-comfy.comfy-motion-duo;
+        name = "IosevkaComfyMotionDuo Nerd Font";
+      };
+
       sizes = {
-        desktop = 10;
-        applications = 10;
+        applications = 9;
+        desktop = 9;
+        popups = 9;
+        terminal = 9;
       };
     };
   };
