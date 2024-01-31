@@ -26,10 +26,7 @@
     settings.General.ControllerMode = "bredr";
   };
 
-  hardware.moonlander = {
-    enable = true;
-    allowedUsers = [ "matt" ];
-  };
+  hardware.keyboard.zsa.enable = true;
 
   hardware.nvidia.modesetting.enable = true;
 
