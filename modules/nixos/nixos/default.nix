@@ -1,6 +1,5 @@
 {
   imports = [
-    ./hardware
     ./profiles
     ./services
   ];
