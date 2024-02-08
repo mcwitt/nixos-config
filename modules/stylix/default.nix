@@ -1,7 +1,7 @@
-{ inputs, pkgs, ... }:
+{ inputs, lib, pkgs, ... }:
 {
   stylix = {
-    base16Scheme = "${pkgs.base16-schemes}/share/themes/nord.yaml";
+    base16Scheme = lib.mkDefault "${pkgs.base16-schemes}/share/themes/nord.yaml";
     # polarity = "dark"; # only relevant when stylix.base16Scheme not specified
 
     cursor.size = 48;
@@ -18,7 +18,7 @@
           sha256 = "sha256:0lc8177x7msa06k4s1v9slqm4ap5rc6gpc8d2ck3km4xx7bn3x9g";
         };
       in
-      mountain-cabin;
+      lib.mkDefault mountain-cabin;
 
     fonts = {
       monospace = {
