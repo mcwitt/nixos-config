@@ -29,6 +29,7 @@
           import XMonad.Actions.EasyMotion qualified as EM
           import XMonad.Actions.Minimize (maximizeWindowAndFocus, minimizeWindow, withLastMinimized, withMinimized)
           import XMonad.Hooks.DynamicLog (PP (..), dynamicLogWithPP, shorten, wrap)
+          import XMonad.Hooks.DynamicProperty (dynamicTitle)
           import XMonad.Hooks.EwmhDesktops (ewmh)
           import XMonad.Hooks.ManageDocks (avoidStruts, docks, manageDocks)
           import XMonad.Layout.BoringWindows (boringWindows, focusDown, focusMaster, focusUp)
@@ -53,7 +54,8 @@
                   focusedBorderColor = "${colors.withHashtag.base0D}",
                   layoutHook = myLayoutHook,
                   logHook = mkPolybarLogHook logOutput,
-                  manageHook = manageDocks,
+                  manageHook = myManageHook,
+                  handleEventHook = myHandleEventHook,
                   modMask = mod4Mask,
                   terminal = "wezterm"
                 }
@@ -150,6 +152,28 @@
                     memberName = D.memberName_ "Update"
 
             pure logOutput
+
+          myManageHook = manageZoomHook <+> manageDocks
+
+          myHandleEventHook = dynamicTitle manageZoomHook <+> handleEventHook def
+
+          -- https://www.peterstuart.org/posts/2021-09-06-xmonad-zoom/
+          manageZoomHook =
+            composeAll
+              [ (className =? zoomClassName) <&&> shouldFloat <$> title --> doFloat,
+                (className =? zoomClassName) <&&> shouldSink <$> title --> doSink
+              ]
+            where
+              zoomClassName = "zoom"
+              tileTitles =
+                [ "Zoom - Free Account", -- main window
+                  "Zoom - Licensed Account", -- main window
+                  "Zoom", -- meeting window on creation
+                  "Zoom Meeting" -- meeting window shortly after creation
+                ]
+              shouldFloat title = title `notElem` tileTitles
+              shouldSink title = title `elem` tileTitles
+              doSink = (ask >>= doF . W.sink) <+> doF W.swapDown
         '';
     };
   };
