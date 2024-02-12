@@ -30,7 +30,7 @@
           import XMonad.Actions.Minimize (maximizeWindowAndFocus, minimizeWindow, withLastMinimized, withMinimized)
           import XMonad.Hooks.DynamicLog (PP (..), dynamicLogWithPP, shorten, wrap)
           import XMonad.Hooks.DynamicProperty (dynamicTitle)
-          import XMonad.Hooks.EwmhDesktops (ewmh)
+          import XMonad.Hooks.EwmhDesktops (ewmh, ewmhFullscreen)
           import XMonad.Hooks.ManageDocks (avoidStruts, docks, manageDocks)
           import XMonad.Layout.BoringWindows (boringWindows, focusDown, focusMaster, focusUp)
           import XMonad.Layout.Grid (Grid (..))
@@ -47,6 +47,7 @@
             logOutput <- setupLogOutput
             xmonad
               . docks
+              . ewmhFullscreen
               . ewmh
               $ def
                 { borderWidth = 3,
