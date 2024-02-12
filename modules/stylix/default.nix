@@ -12,7 +12,6 @@
           url = "https://stsci-opo.org/STScI-01GA6KKWG229B16K4Q38CH3BXS.png";
           sha256 = "sha256:1a9lg35i4ipb7msp65gwlgf9al85idfvb8zfmgh7dwd39xvbd7z8";
         };
-        nord-valley = "${inputs.nordic-wallpapers}/wallpapers/nord_valley.png";
         mountain-cabin = builtins.fetchurl {
           url = "https://raw.githubusercontent.com/mcwitt/art/b406c51aa6f41856b2e76b558eac8f1c8eb79512/mountain-cabin.png";
           sha256 = "sha256:0lc8177x7msa06k4s1v9slqm4ap5rc6gpc8d2ck3km4xx7bn3x9g";
