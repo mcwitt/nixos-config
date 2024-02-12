@@ -26,8 +26,6 @@
     gitignore.url = "github:github/gitignore";
     gitignore.flake = false;
     "gitignore.nix".url = "github:hercules-ci/gitignore.nix";
-    nordic-wallpapers.url = "github:linuxdotexe/nordic-wallpapers";
-    nordic-wallpapers.flake = false;
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     nur.url = "github:nix-community/NUR";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
