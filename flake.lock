@@ -179,22 +179,6 @@
         "type": "github"
       }
     },
-    "breadcrumb": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1701036981,
-        "narHash": "sha256-toWIJ/rlKNsAxH/LLZRF084nQ5gfCJYWbB+9pJN8YgY=",
-        "owner": "joaotavora",
-        "repo": "breadcrumb",
-        "rev": "dcb6e2e82de2432d8eb75be74c8d6215fc97a2d3",
-        "type": "github"
-      },
-      "original": {
-        "owner": "joaotavora",
-        "repo": "breadcrumb",
-        "type": "github"
-      }
-    },
     "copilot-el": {
       "flake": false,
       "locked": {
@@ -397,24 +381,6 @@
         "type": "github"
       }
     },
-    "gitignore.nix": {
-      "inputs": {
-        "nixpkgs": "nixpkgs_2"
-      },
-      "locked": {
-        "lastModified": 1703887061,
-        "narHash": "sha256-gGPa9qWNc6eCXT/+Z5/zMkyYOuRZqeFZBDbopNZQkuY=",
-        "owner": "hercules-ci",
-        "repo": "gitignore.nix",
-        "rev": "43e1aa1308018f37118e34d3a9cb4f5e75dc11d5",
-        "type": "github"
-      },
-      "original": {
-        "owner": "hercules-ci",
-        "repo": "gitignore.nix",
-        "type": "github"
-      }
-    },
     "gitignore_2": {
       "inputs": {
         "nixpkgs": [
@@ -559,20 +525,6 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1666603677,
-        "narHash": "sha256-apAEIj+z1iwMaMJ4tB21r/VTetfGDLDzuhXRHJknIAU=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "074da18a72269cc5a6cf444dce42daea5649b2fe",
-        "type": "github"
-      },
-      "original": {
-        "id": "nixpkgs",
-        "type": "indirect"
-      }
-    },
-    "nixpkgs_3": {
-      "locked": {
         "lastModified": 1706098335,
         "narHash": "sha256-r3dWjT8P9/Ah5m5ul4WqIWD8muj5F+/gbCdjiNVBKmU=",
         "owner": "nixos",
@@ -587,7 +539,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_4": {
+    "nixpkgs_3": {
       "locked": {
         "lastModified": 1704842529,
         "narHash": "sha256-OTeQA+F8d/Evad33JMfuXC89VMetQbsU4qcaePchGr4=",
@@ -603,7 +555,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_5": {
+    "nixpkgs_4": {
       "locked": {
         "lastModified": 1700856099,
         "narHash": "sha256-RnEA7iJ36Ay9jI0WwP+/y4zjEhmeN6Cjs9VOFBH7eVQ=",
@@ -639,7 +591,7 @@
         "flake-compat": "flake-compat",
         "flake-utils": "flake-utils_3",
         "gitignore": "gitignore_2",
-        "nixpkgs": "nixpkgs_4",
+        "nixpkgs": "nixpkgs_3",
         "nixpkgs-stable": "nixpkgs-stable_2"
       },
       "locked": {
@@ -660,7 +612,6 @@
       "inputs": {
         "base16-rofi": "base16-rofi",
         "base16-tmux": "base16-tmux",
-        "breadcrumb": "breadcrumb",
         "copilot-el": "copilot-el",
         "emacs-overlay": "emacs-overlay",
         "fish-kubectl-completions": "fish-kubectl-completions",
@@ -668,11 +619,10 @@
         "fzf.fish": "fzf.fish",
         "git-sync-el": "git-sync-el",
         "gitignore": "gitignore",
-        "gitignore.nix": "gitignore.nix",
         "home-assistant-eero": "home-assistant-eero",
         "home-manager": "home-manager",
         "nixos-hardware": "nixos-hardware",
-        "nixpkgs": "nixpkgs_3",
+        "nixpkgs": "nixpkgs_2",
         "nur": "nur",
         "pre-commit-hooks": "pre-commit-hooks",
         "stylix": "stylix"
@@ -691,7 +641,7 @@
         "base16-vim": "base16-vim",
         "flake-compat": "flake-compat_2",
         "home-manager": "home-manager_2",
-        "nixpkgs": "nixpkgs_5"
+        "nixpkgs": "nixpkgs_4"
       },
       "locked": {
         "lastModified": 1705668784,

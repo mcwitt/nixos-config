@@ -19,12 +19,6 @@
 
   programs.emacs.overrides = final: prev: {
 
-    breadcrumb = final.trivialBuild {
-      pname = "breadcrumb";
-      version = inputs.breadcrumb.rev;
-      src = inputs.breadcrumb;
-    };
-
     copilot =
       let src = inputs.copilot-el;
       in final.melpaBuild rec {
