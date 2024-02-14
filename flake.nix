@@ -25,7 +25,6 @@
     git-sync-el.flake = false;
     gitignore.url = "github:github/gitignore";
     gitignore.flake = false;
-    "gitignore.nix".url = "github:hercules-ci/gitignore.nix";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     nur.url = "github:nix-community/NUR";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
