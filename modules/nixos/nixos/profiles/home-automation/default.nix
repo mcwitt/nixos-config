@@ -7,6 +7,7 @@ in
 
 {
   imports = [
+    ./firefly.nix
     ./postgresql.nix
     ./solar.nix
   ];

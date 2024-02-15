@@ -9,6 +9,7 @@
     copilot-el.flake = false;
     copilot-el.url = "github:zerolfx/copilot.el";
     emacs-overlay.url = "github:nix-community/emacs-overlay";
+    firefly.url = "github:timhae/firefly";
     fish-kubectl-completions.flake = false;
     fish-kubectl-completions.url = "github:evanlucas/fish-kubectl-completions";
     flake-utils.url = "github:numtide/flake-utils";
