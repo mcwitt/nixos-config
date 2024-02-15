@@ -21,12 +21,14 @@
           import DBus qualified as D
           import DBus.Client qualified as D
           import Data.Bifunctor (first)
+          import Data.List (find)
           import Data.Maybe (catMaybes)
           import Data.Ratio ((%))
           import Graphics.X11.ExtraTypes.XF86
           import XMonad
           import XMonad.Actions.EasyMotion (selectWindow)
           import XMonad.Actions.EasyMotion qualified as EM
+          import XMonad.Actions.FocusNth (swapNth)
           import XMonad.Actions.Minimize (maximizeWindowAndFocus, minimizeWindow, withLastMinimized, withMinimized)
           import XMonad.Hooks.DynamicLog (PP (..), dynamicLogWithPP, shorten, wrap)
           import XMonad.Hooks.DynamicProperty (dynamicTitle)
@@ -63,7 +65,8 @@
                 `additionalKeysP` [ ("M-j", focusDown),
                                     ("M-k", focusUp),
                                     ("M-m", focusMaster),
-                                    ("M-o", selectWindow emConfig >>= (`whenJust` windows . W.focusWindow)),
+                                    ("M-o", easyFocus),
+                                    ("M-S-o", easySwap),
                                     ("M-\\", withFocused minimizeWindow),
                                     ("M-S-\\", withLastMinimized maximizeWindowAndFocus),
                                     ("M-x", sendMessage $ Toggle MIRROR),
@@ -175,6 +178,19 @@
               shouldFloat title = title `notElem` tileTitles
               shouldSink title = title `elem` tileTitles
               doSink = (ask >>= doF . W.sink) <+> doF W.swapDown
+
+          easyFocus :: X ()
+          easyFocus = do
+            win <- selectWindow emConfig
+            whenJust win (windows . W.focusWindow)
+
+          -- https://www.reddit.com/r/xmonad/comments/rnpron/comment/hptqkh6
+          easySwap :: X ()
+          easySwap = do
+            win <- selectWindow emConfig
+            stack <- gets $ W.index . windowset
+            let match = find ((win ==) . Just . fst) $ zip stack [0 ..]
+            whenJust match $ swapNth . snd
         '';
     };
   };
