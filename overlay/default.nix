@@ -17,6 +17,8 @@ let
   });
 in
 {
+  firefly-data-importer = final.callPackage ../packages/servers/firefly-data-importer { };
+
   home-assistant-custom-components = prev.home-assistant-custom-components // (
     let pythonPackages = final.home-assistant.python.pkgs;
     in {
