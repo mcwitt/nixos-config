@@ -1,4 +1,21 @@
 { inputs }: final: prev:
+let
+  inherit (final) lib;
+  inherit (lib) assertMsg versionOlder;
+
+  assertNotStale = overrideVersion: currentVersion:
+    assertMsg
+      (! versionOlder overrideVersion currentVersion)
+      "Stale override. Update override version if it still applies.";
+
+  overridePython = python: python.override (old: {
+    packageOverrides = lib.composeExtensions (old.packageOverrides or (_: _: { })) (pyFinal: pyPrev: {
+      # https://github.com/NixOS/nixpkgs/issues/262000
+      debugpy = assert assertNotStale "1.8.0" pyPrev.debugpy.version;
+        pyPrev.debugpy.overridePythonAttrs (_: { doCheck = false; });
+    });
+  });
+in
 {
   home-assistant-custom-components = prev.home-assistant-custom-components // (
     let pythonPackages = final.home-assistant.python.pkgs;
@@ -9,4 +26,6 @@
   );
 
   nerdifyFont = final.callPackage ./nerdify-font.nix { };
+
+  python311 = overridePython prev.python311;
 }
