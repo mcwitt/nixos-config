@@ -1,5 +1,5 @@
 # Adapted from https://github.com/RageKnify/Config/blob/79e9c0b1776d5fa6d2a5f2789a0a12b90838d8f6/nix/modules/system/firefly-data-importer.nix#L1
-{ config, lib, pkgs, ... }:
+{ config, inputs, lib, pkgs, ... }:
 with lib;
 let
   cfg = config.services.firefly-iii-data-importer;
@@ -149,24 +149,25 @@ in
       example = "config.age.secrets.fireflyEnvironment.path";
     };
 
-    nginx = {
-      recommendedHttpHeaders = mkOption {
-        type = types.bool;
-        default = true;
-        description =
-          lib.mdDoc "Enable additional recommended HTTP response headers";
-      };
-      hstsMaxAge = mkOption {
-        type = types.ints.positive;
-        default = 15552000;
-        description = lib.mdDoc ''
-          Value for the `max-age` directive of the HTTP
-          `Strict-Transport-Security` header.
+    nginx = mkOption {
+      type = types.submodule (
+        recursiveUpdate
+          (import "${inputs.nixpkgs}/nixos/modules/services/web-servers/nginx/vhost-options.nix" { inherit config lib; })
+          { }
+      );
+      default = { };
+      example = literalExpression ''
+        {
+          serverAliases = [
+            "firefly-data-importer.''${config.networking.domain}"
+          ];
 
-          See section 6.1.1 of IETF RFC 6797 for detailed information on this
-          directive and header.
-        '';
-      };
+          # To enable encryption and let Let's Encrypt take care of certificate
+          forceSSL = true;
+          enableACME = true;
+        }
+      '';
+      description = "With this option, you can customize the nginx virtualHost settings.";
     };
   };
 
@@ -275,51 +276,54 @@ in
 
       services.nginx.enable = mkDefault true;
 
-      services.nginx.virtualHosts.${cfg.hostName} = {
-        root = "${cfg.package}/share/php/firefly-iii-data-importer/public";
-        locations = {
-          "/".tryFiles = "$uri @rewriteapp";
-          "@rewriteapp".extraConfig = ''
-            # rewrite all to index.php
-            rewrite ^(.*)$ /index.php last;
-          '';
-          "~ \\.php$" = {
-            extraConfig = ''
-              fastcgi_split_path_info ^(.+\.php)(/.+)$;
-              fastcgi_pass unix:${fpm.socket};
-              include ${pkgs.nginx}/conf/fastcgi_params;
-              include ${pkgs.nginx}/conf/fastcgi.conf;
-              fastcgi_param HTTP_PROXY ""; # something something HTTPoxy
-              fastcgi_param HTTPS ${if cfg.https then "on" else "off"};
+      services.nginx.virtualHosts.${cfg.hostName} = mkMerge [
+        cfg.nginx
+        {
+          root = mkForce "${cfg.package}/share/php/firefly-iii-data-importer/public";
+          locations = {
+            "/".tryFiles = "$uri @rewriteapp";
+            "@rewriteapp".extraConfig = ''
+              # rewrite all to index.php
+              rewrite ^(.*)$ /index.php last;
             '';
+            "~ \\.php$" = {
+              extraConfig = ''
+                fastcgi_split_path_info ^(.+\.php)(/.+)$;
+                fastcgi_pass unix:${fpm.socket};
+                include ${pkgs.nginx}/conf/fastcgi_params;
+                include ${pkgs.nginx}/conf/fastcgi.conf;
+                fastcgi_param HTTP_PROXY ""; # something something HTTPoxy
+                fastcgi_param HTTPS ${if cfg.https then "on" else "off"};
+              '';
+            };
           };
-        };
-        extraConfig = ''
-          index index.php index.html /index.php$request_uri;
-          ${optionalString (cfg.nginx.recommendedHttpHeaders) ''
-            add_header X-Content-Type-Options nosniff;
-            add_header X-XSS-Protection "1; mode=block";
-            add_header X-Robots-Tag "noindex, nofollow";
-            add_header X-Download-Options noopen;
-            add_header X-Permitted-Cross-Domain-Policies none;
-            add_header X-Frame-Options sameorigin;
-            add_header Referrer-Policy no-referrer;
-          ''}
-          ${optionalString (cfg.https) ''
-            add_header Strict-Transport-Security "max-age=${
-              toString cfg.nginx.hstsMaxAge
-            }; includeSubDomains" always;
-          ''}
-          fastcgi_buffers 64 4K;
-          fastcgi_hide_header X-Powered-By;
-          gzip on;
-          gzip_vary on;
-          gzip_comp_level 4;
-          gzip_min_length 256;
-          gzip_proxied expired no-cache no-store private no_last_modified no_etag auth;
-          gzip_types application/atom+xml application/javascript application/json application/ld+json application/manifest+json application/rss+xml application/vnd.geo+json application/vnd.ms-fontobject application/x-font-ttf application/x-web-app-manifest+json application/xhtml+xml application/xml font/opentype image/bmp image/svg+xml image/x-icon text/cache-manifest text/css text/plain text/vcard text/vnd.rim.location.xloc text/vtt text/x-component text/x-cross-domain-policy;
-        '';
-      };
+          extraConfig = ''
+            index index.php index.html /index.php$request_uri;
+            ${optionalString (cfg.nginx.recommendedHttpHeaders) ''
+              add_header X-Content-Type-Options nosniff;
+              add_header X-XSS-Protection "1; mode=block";
+              add_header X-Robots-Tag "noindex, nofollow";
+              add_header X-Download-Options noopen;
+              add_header X-Permitted-Cross-Domain-Policies none;
+              add_header X-Frame-Options sameorigin;
+              add_header Referrer-Policy no-referrer;
+            ''}
+            ${optionalString (cfg.https) ''
+              add_header Strict-Transport-Security "max-age=${
+                toString cfg.nginx.hstsMaxAge
+              }; includeSubDomains" always;
+            ''}
+            fastcgi_buffers 64 4K;
+            fastcgi_hide_header X-Powered-By;
+            gzip on;
+            gzip_vary on;
+            gzip_comp_level 4;
+            gzip_min_length 256;
+            gzip_proxied expired no-cache no-store private no_last_modified no_etag auth;
+            gzip_types application/atom+xml application/javascript application/json application/ld+json application/manifest+json application/rss+xml application/vnd.geo+json application/vnd.ms-fontobject application/x-font-ttf application/x-web-app-manifest+json application/xhtml+xml application/xml font/opentype image/bmp image/svg+xml image/x-icon text/cache-manifest text/css text/plain text/vcard text/vnd.rim.location.xloc text/vtt text/x-component text/x-cross-domain-policy;
+          '';
+        }
+      ];
     }
   ]);
 }
