@@ -271,8 +271,10 @@ in
         isSystemUser = true;
         packages = [ wrappedArtisan ];
       };
-      users.groups.firefly-iii-data-importer.members =
-        [ "firefly-iii-data-importer" config.services.nginx.user ];
+      users.groups.firefly-iii-data-importer.members = [
+        "firefly-iii-data-importer"
+        config.services.nginx.user
+      ];
 
       services.nginx.enable = mkDefault true;
 
@@ -286,16 +288,14 @@ in
               # rewrite all to index.php
               rewrite ^(.*)$ /index.php last;
             '';
-            "~ \\.php$" = {
-              extraConfig = ''
-                fastcgi_split_path_info ^(.+\.php)(/.+)$;
-                fastcgi_pass unix:${fpm.socket};
-                include ${pkgs.nginx}/conf/fastcgi_params;
-                include ${pkgs.nginx}/conf/fastcgi.conf;
-                fastcgi_param HTTP_PROXY ""; # something something HTTPoxy
-                fastcgi_param HTTPS ${if cfg.https then "on" else "off"};
-              '';
-            };
+            "~ \\.php$".extraConfig = ''
+              fastcgi_split_path_info ^(.+\.php)(/.+)$;
+              fastcgi_pass unix:${fpm.socket};
+              include ${pkgs.nginx}/conf/fastcgi_params;
+              include ${pkgs.nginx}/conf/fastcgi.conf;
+              fastcgi_param HTTP_PROXY ""; # something something HTTPoxy
+              fastcgi_param HTTPS ${if cfg.https then "on" else "off"};
+            '';
           };
           extraConfig = ''
             index index.php index.html /index.php$request_uri;
