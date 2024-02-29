@@ -1,7 +1,7 @@
 {
   imports = [
     ./duckdns.nix
-    ./firefly-data-importer.nix
+    ./firefly-iii-data-importer.nix
     ./home-assistant
     ./zigbee2mqtt.nix
   ];
