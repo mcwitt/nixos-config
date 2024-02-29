@@ -299,11 +299,6 @@ in
           };
           extraConfig = ''
             index index.php index.html /index.php$request_uri;
-            ${optionalString (cfg.https) ''
-              add_header Strict-Transport-Security "max-age=${
-                toString cfg.nginx.hstsMaxAge
-              }; includeSubDomains" always;
-            ''}
             fastcgi_buffers 64 4K;
             fastcgi_hide_header X-Powered-By;
             gzip on;
