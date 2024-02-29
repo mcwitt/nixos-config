@@ -299,15 +299,6 @@ in
           };
           extraConfig = ''
             index index.php index.html /index.php$request_uri;
-            ${optionalString (cfg.nginx.recommendedHttpHeaders) ''
-              add_header X-Content-Type-Options nosniff;
-              add_header X-XSS-Protection "1; mode=block";
-              add_header X-Robots-Tag "noindex, nofollow";
-              add_header X-Download-Options noopen;
-              add_header X-Permitted-Cross-Domain-Policies none;
-              add_header X-Frame-Options sameorigin;
-              add_header Referrer-Policy no-referrer;
-            ''}
             ${optionalString (cfg.https) ''
               add_header Strict-Transport-Security "max-age=${
                 toString cfg.nginx.hstsMaxAge
