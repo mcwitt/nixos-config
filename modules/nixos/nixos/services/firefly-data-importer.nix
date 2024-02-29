@@ -15,9 +15,10 @@ let
         exec ${pkgs.util-linux}/bin/runuser -u "firefly-iii-data-importer" -- "$0" "$@"
       fi
 
-      ${builtins.concatStringsSep "\n" (builtins.attrValues
-        (builtins.mapAttrs (name: value: "export ${name}=${value}")
-          fireflyEnv))}
+      ${builtins.concatStringsSep "\n"
+        (builtins.concatMap
+          (x: if x.value != null then [ "export ${x.name}=${x.value}" ] else [ ])
+          (lib.attrsToList fireflyEnv))}
 
       exec ${pkgs.firefly-iii-data-importer}/share/php/firefly-iii-data-importer/artisan "$@"
     '';
@@ -40,14 +41,16 @@ let
     IMPORT_DIR_ALLOWLIST = cfg.importConfigDir;
 
     APP_ENV = "production";
-    ENABLE_MAIL_REPORT = "true";
-    MAIL_DESTINATION = cfg.reportsAddr;
-    MAIL_SENDMAIL_COMMAND = "\"/run/wrappers/bin/sendmail -t\"";
     DEFAULT_LOCALE = (builtins.substring 0 5 config.i18n.defaultLocale);
     TZ = config.time.timeZone;
 
     EXPECT_SECURE_URL = "true";
     APP_URL = "http${(optionalString cfg.https "s")}://${cfg.hostName}";
+
+  } // lib.optionalAttrs (cfg.reportsAddr != null) {
+    ENABLE_MAIL_REPORT = "true";
+    MAIL_DESTINATION = cfg.reportsAddr;
+    MAIL_SENDMAIL_COMMAND = "\"/run/wrappers/bin/sendmail -t\"";
   };
 in
 {
@@ -137,7 +140,8 @@ in
     };
 
     environmentFile = mkOption {
-      type = types.path;
+      type = types.nullOr types.path;
+      default = null;
       description = lib.mdDoc ''
         file containing enviroment variables, in the format of an EnvironmentFile as described by systemd.exec(5)
         useful for mail credentials
