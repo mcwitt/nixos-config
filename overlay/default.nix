@@ -1,9 +1,9 @@
 { inputs }: final: prev:
 let
   inherit (final) lib;
-  inherit (lib) assertMsg versionOlder;
 
   assertNotStale = overrideVersion: currentVersion:
+    let inherit (lib) assertMsg versionOlder; in
     assertMsg
       (! versionOlder overrideVersion currentVersion)
       "Stale override. Update override version if it still applies.";
