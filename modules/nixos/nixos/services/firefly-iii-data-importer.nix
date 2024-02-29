@@ -69,7 +69,7 @@ in
     datadir = mkOption {
       type = types.str;
       default = config.services.firefly-iii-data-importer.home;
-      defaultText = literalExpression "config.services.firefly.home";
+      defaultText = literalExpression "config.services.firefly-iii-data-importer.home";
       description = lib.mdDoc ''
         Firefly III data importer's data storage path.  Will be [](#opt-services.firefly.home) by default.
       '';
