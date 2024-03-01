@@ -169,6 +169,19 @@ in
       '';
       description = "With this option, you can customize the nginx virtualHost settings.";
     };
+
+    # User management
+    user = mkOption {
+      default = "firefly-iii-data-importer";
+      description = "User Firefly III Data Importer runs as.";
+      type = types.str;
+    };
+
+    group = mkOption {
+      default = "firefly-iii-data-importer";
+      description = "Group Firefly III Data Importer runs as.";
+      type = types.str;
+    };
   };
 
   config = mkIf cfg.enable (mkMerge [
@@ -194,8 +207,8 @@ in
           unitConfig.ConditionPathExists = "!${datadir}/cache";
           serviceConfig = {
             Type = "oneshot";
-            User = "firefly-iii-data-importer";
-            Group = "firefly-iii-data-importer";
+            User = cfg.user;
+            Group = cfg.group;
             EnvironmentFile = cfg.environmentFile;
           };
           script =
@@ -230,8 +243,8 @@ in
             "phpfpm-firefly-iii-data-importer.service"
           ];
           serviceConfig.Type = "oneshot";
-          serviceConfig.User = "firefly-iii-data-importer";
-          serviceConfig.Group = "firefly-iii-data-importer";
+          serviceConfig.User = cfg.user;
+          serviceConfig.Group = cfg.group;
           serviceConfig.EnvironmentFile = cfg.environmentFile;
           environment = fireflyEnv;
           script = ''
