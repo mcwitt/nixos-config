@@ -261,6 +261,11 @@ in
         };
       };
 
+      systemd.tmpfiles.rules = [
+        "d ${cfg.datadir}                            0710 ${cfg.user} ${cfg.group} - -"
+        "d ${cfg.datadir}/storage                    0700 ${cfg.user} ${cfg.group} - -"
+      ];
+
       services.phpfpm.pools.firefly-iii-data-importer = {
         user = "firefly-iii-data-importer";
         group = "firefly-iii-data-importer";
