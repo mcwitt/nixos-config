@@ -48,7 +48,11 @@ in
           httpx
           hypothesis
           matplotlib
+          notebook
           pandas
+          scipy
+          seaborn
+          sympy
           toolz
         ];
       };
