@@ -15,6 +15,8 @@ in
       '';
     };
 
+    cabal-install.enable = lib.mkEnableOption "Enable cabal-install globally.";
+
     hls.enable = lib.mkEnableOption "Enable haskell-language-server globally.";
 
     hoogle.enable = lib.mkEnableOption
@@ -30,6 +32,7 @@ in
         ghcEnv = ghcWithPackages' cfg.globalPackages;
       in
       [ ghcEnv ]
+      ++ lib.optional cfg.cabal-install.enable pkgs.cabal-install
       ++ lib.optional cfg.hls.enable pkgs.haskell-language-server
       ++ lib.optional cfg.ormolu.enable pkgs.ormolu;
 
