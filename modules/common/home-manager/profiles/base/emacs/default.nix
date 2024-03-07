@@ -62,6 +62,9 @@
     '';
 
     prelude = ''
+      ;; Make package archives unavailable (use Nix)
+      (setq package-archives nil)
+
       (setq custom-file "~/.emacs.d/custom.el")
 
       (setq user-full-name "Matt Wittmann"
@@ -101,8 +104,8 @@
       ;; Open URLs with Chromium
       (setq browse-url-browser-function 'browse-url-chromium)
 
-      ;; Make package archives unavailable (use Nix)
-      (setq package-archives nil)
+      ;; Enable smooth scrolling
+      (pixel-scroll-mode)
     '';
   };
 
