@@ -90,15 +90,6 @@
                                          ]
                                  )
 
-          emConfig =
-            def
-              { EM.emFont = "xft:${fonts.monospace.name}:bold:size=18:antialias=true",
-                EM.bgCol = "${colors.withHashtag.base01}",
-                EM.borderCol = "${colors.withHashtag.base01}",
-                EM.overlayF = EM.fixedSize 100 100,
-                EM.txtCol = "${colors.withHashtag.base0A}"
-              }
-
           myLayoutHook =
             diminish (smartSpacingWithEdge 5)
               . diminish minimize
@@ -178,6 +169,16 @@
               shouldFloat title = title `notElem` tileTitles
               shouldSink title = title `elem` tileTitles
               doSink = (ask >>= doF . W.sink) <+> doF W.swapDown
+
+          emConfig =
+            def
+              { EM.emFont = "xft:${fonts.monospace.name}:bold:size=18:antialias=true",
+                EM.bgCol = "${colors.withHashtag.base01}",
+                EM.borderCol = "${colors.withHashtag.base01}",
+                EM.cancelKey = xK_Escape,
+                EM.overlayF = EM.fixedSize 100 100,
+                EM.txtCol = "${colors.withHashtag.base0A}"
+              }
 
           easyFocus :: X ()
           easyFocus = do
