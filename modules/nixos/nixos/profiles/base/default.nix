@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }: {
+{ config, inputs, lib, pkgs, ... }: {
 
   config = lib.mkIf config.profiles.base.enable {
     i18n.defaultLocale = "en_US.UTF-8";
@@ -9,6 +9,8 @@
         keep-derivations = true
         experimental-features = nix-command flakes
       '';
+
+      registry.nixpkgs.flake = inputs.nixpkgs;
 
       settings = {
         substituters = [
