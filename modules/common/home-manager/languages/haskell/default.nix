@@ -15,14 +15,8 @@ in
       '';
     };
 
-    cabal-install.enable = lib.mkEnableOption "Enable cabal-install globally.";
-
-    hls.enable = lib.mkEnableOption "Enable haskell-language-server globally.";
-
     hoogle.enable = lib.mkEnableOption
       "Install a local hoogle with docs for packages in globalPackages.";
-
-    ormolu.enable = lib.mkEnableOption "Enable ormolu formatter globally.";
   };
 
   config = lib.mkIf cfg.enable {
@@ -31,10 +25,15 @@ in
         ghcWithPackages' = with pkgs.haskellPackages; if cfg.hoogle.enable then ghcWithHoogle else ghcWithPackages;
         ghcEnv = ghcWithPackages' cfg.globalPackages;
       in
-      [ ghcEnv ]
-      ++ lib.optional cfg.cabal-install.enable pkgs.cabal-install
-      ++ lib.optional cfg.hls.enable pkgs.haskell-language-server
-      ++ lib.optional cfg.ormolu.enable pkgs.ormolu;
+      [
+        ghcEnv
+        pkgs.haskellPackages.cabal-fmt
+        pkgs.cabal-install
+        pkgs.haskell-language-server
+        pkgs.hlint
+        pkgs.ormolu
+        pkgs.haskellPackages.weeder
+      ];
 
     programs.emacs.init.usePackage = {
 

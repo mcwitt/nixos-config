@@ -13,10 +13,7 @@ in
 
       haskell = {
         enable = true;
-        cabal-install.enable = true;
-        hls.enable = true;
         hoogle.enable = true;
-        ormolu.enable = true;
         globalPackages = ps: with ps; [
           aeson
           array
