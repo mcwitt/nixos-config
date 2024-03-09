@@ -46,9 +46,9 @@
 
   languages.nix.enable = true;
 
-  # causes failure at activation
+  # NOTE: if hm activation fails, delete ~/cache
   # https://github.com/nix-community/home-manager/issues/4826
-  # programs.bat.enable = true;
+  programs.bat.enable = true;
 
   programs.bash.enable = true;
 
