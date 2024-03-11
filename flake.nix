@@ -6,8 +6,6 @@
     base16-rofi.url = "github:tinted-theming/base16-rofi";
     base16-tmux.flake = false;
     base16-tmux.url = "github:tinted-theming/base16-tmux";
-    copilot-el.flake = false;
-    copilot-el.url = "github:zerolfx/copilot.el";
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     fish-kubectl-completions.flake = false;
     fish-kubectl-completions.url = "github:evanlucas/fish-kubectl-completions";

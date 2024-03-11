@@ -20,24 +20,25 @@
   programs.emacs.overrides = final: prev: {
 
     copilot =
-      let src = inputs.copilot-el;
-      in final.melpaBuild rec {
+      let rev = "4e203efaa1f4047c800a026ba496d3bda8b67119";
+      in final.trivialBuild {
         pname = "copilot";
-        version = "20230220.0";
-        commit = src.rev;
+        version = rev;
+        commit = rev;
 
-        inherit src;
+        src = pkgs.fetchFromGitHub {
+          owner = "zerolfx";
+          repo = "copilot.el";
+          inherit rev;
+          hash = "sha256-BLIyJ9z4yI2Iv5eqrmULJ5VXoGnlXSVJx+5lVQyIoO8=";
+        };
 
-        packageRequires = with final; [ dash editorconfig s ];
+        packageRequires = with final; [ dash editorconfig f s ];
 
-        recipe = pkgs.writeText "recipe" ''
-          (copilot
-          :repo "zerolfx/copilot.el"
-          :fetcher github
-          :files ("dist" "*.el"))
-        '';
-
-        meta.description = "Emacs plugin for GitHub Copilot";
+        meta = {
+          description = "An unofficial Copilot plugin for Emacs";
+          license = null;
+        };
       };
 
     git-sync = final.trivialBuild {
@@ -188,15 +189,19 @@
 
     copilot = {
       enable = true;
-      command = [ "copilot-login" "copilot-mode" ];
+      command = [ "copilot-mode" ];
       bind = {
         "C-TAB" = "copilot-accept-completion-by-word";
       };
       bindLocal.copilot-completion-map = {
-        "TAB" = "copilot-accept-completion";
+        "C-<return>" = "copilot-accept-completion";
       };
       config = ''
         (setq copilot-node-executable "${pkgs.nodejs}/bin/node")
+
+        ;; needed because package uses executable-find to locate npm
+        ;; https://github.com/copilot-emacs/copilot.el/blob/4e203efaa1f4047c800a026ba496d3bda8b67119/copilot.el#L1001
+        (add-to-list 'exec-path "${pkgs.nodejs}/bin/")
       '';
     };
 

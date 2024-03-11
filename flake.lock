@@ -179,22 +179,6 @@
         "type": "github"
       }
     },
-    "copilot-el": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1708637353,
-        "narHash": "sha256-BT2II+3AYdagq1zQG82dGf7K2nIyTG0cFKbqdIixkbg=",
-        "owner": "zerolfx",
-        "repo": "copilot.el",
-        "rev": "fd4d7e8c1e95aa9d3967b19905c9b8c3e03f6a5c",
-        "type": "github"
-      },
-      "original": {
-        "owner": "zerolfx",
-        "repo": "copilot.el",
-        "type": "github"
-      }
-    },
     "emacs-overlay": {
       "inputs": {
         "flake-utils": "flake-utils",
@@ -612,7 +596,6 @@
       "inputs": {
         "base16-rofi": "base16-rofi",
         "base16-tmux": "base16-tmux",
-        "copilot-el": "copilot-el",
         "emacs-overlay": "emacs-overlay",
         "fish-kubectl-completions": "fish-kubectl-completions",
         "flake-utils": "flake-utils_2",
