@@ -386,22 +386,6 @@
         "type": "github"
       }
     },
-    "home-assistant-eero": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1703262400,
-        "narHash": "sha256-E09VUF2k0QdoP6+8q2F86dzuv+bRJyi+VbW925UmNyw=",
-        "owner": "schmittx",
-        "repo": "home-assistant-eero",
-        "rev": "fa90e86b28098eabea0b994dc2e9f6ed8675b4ae",
-        "type": "github"
-      },
-      "original": {
-        "owner": "schmittx",
-        "repo": "home-assistant-eero",
-        "type": "github"
-      }
-    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -602,7 +586,6 @@
         "fzf.fish": "fzf.fish",
         "git-sync-el": "git-sync-el",
         "gitignore": "gitignore",
-        "home-assistant-eero": "home-assistant-eero",
         "home-manager": "home-manager",
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs_2",

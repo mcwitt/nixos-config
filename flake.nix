@@ -16,8 +16,6 @@
     git-sync-el.url = "github:mcwitt/git-sync.el";
     gitignore.flake = false;
     gitignore.url = "github:github/gitignore";
-    home-assistant-eero.flake = false;
-    home-assistant-eero.url = "github:schmittx/home-assistant-eero";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     home-manager.url = "github:nix-community/home-manager/release-23.11";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
