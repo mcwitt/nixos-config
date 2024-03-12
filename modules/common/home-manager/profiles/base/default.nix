@@ -1,4 +1,4 @@
-{ config, inputs, lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 {
   imports = [ ./emacs ./neovim ];
 
@@ -73,7 +73,13 @@
       set fish_key_bindings fish_user_key_bindings
     '';
 
-    plugins = [{ name = "fzf.fish"; src = inputs."fzf.fish"; }];
+    plugins = [
+      {
+        name = "fzf.fish";
+        src = pkgs.fzf-fish;
+      }
+    ];
+
     shellAliases.cdr = lib.mkForce "cd (${pkgs.git}/bin/git rev-parse --show-toplevel)";
   };
 
@@ -106,7 +112,7 @@
       ];
     };
 
-    ignores = (lib.concatMap lib.gitignores [
+    ignores = (lib.concatMap pkgs.gitignores [
       "Global/Vim"
       "Global/Emacs"
     ]) ++ [ ".direnv/" ];
@@ -185,7 +191,7 @@
   programs.tmux = {
     enable = true;
     keyMode = "vi";
-    extraConfig = builtins.readFile (config.lib.stylix.scheme inputs.base16-tmux);
+    extraConfig = builtins.readFile (config.lib.stylix.scheme pkgs.base16-tmux);
   };
 
   programs.vscode = {

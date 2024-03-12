@@ -61,7 +61,7 @@ in
       };
     };
 
-    programs.git.ignores = lib.gitignores "Python";
+    programs.git.ignores = pkgs.gitignores "Python";
 
     programs.neovim.plugins = [ pkgs.vimPlugins.coc-pyright ];
 

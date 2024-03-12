@@ -1,4 +1,4 @@
-{ config, inputs, nurNoPkgs, pkgs, ... }: {
+{ config, nurNoPkgs, pkgs, ... }: {
 
   imports = [
     nurNoPkgs.repos.rycee.hmModules.emacs-init
@@ -24,7 +24,6 @@
       in final.trivialBuild {
         pname = "copilot";
         version = rev;
-        commit = rev;
 
         src = pkgs.fetchFromGitHub {
           owner = "zerolfx";
@@ -41,11 +40,19 @@
         };
       };
 
-    git-sync = final.trivialBuild {
-      pname = "git-sync";
-      version = inputs.git-sync-el.rev;
-      src = inputs.git-sync-el;
-    };
+    git-sync =
+      let rev = "9b27ee28e077a30654f87737d97af1d21fdb2e41";
+      in final.trivialBuild {
+        pname = "git-sync";
+        version = rev;
+
+        src = pkgs.fetchFromGitHub {
+          owner = "mcwitt";
+          repo = "git-sync.el";
+          inherit rev;
+          hash = "sha256-mTL9oeqsgqBAkdVSL4/DcNUoQUgDr3521G8hxEOJIjw=";
+        };
+      };
   };
 
   programs.emacs.init = {

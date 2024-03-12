@@ -1,4 +1,4 @@
-{ config, inputs, lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 with lib;
 let cfg = config.tools.kubernetes; in
 {
@@ -10,6 +10,6 @@ let cfg = config.tools.kubernetes; in
     home.shellAliases.k = "${pkgs.kubectl}/bin/kubectl";
 
     xdg.configFile."fish/completions/kubectl.fish".source = mkIf config.programs.fish.enable
-      "${inputs.fish-kubectl-completions}/completions/kubectl.fish";
+      "${pkgs.fish-kubectl-completions}/completions/kubectl.fish";
   };
 }

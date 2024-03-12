@@ -25,7 +25,7 @@
 
       # Override stylix-generated theme with additional tweaks
       theme = lib.mkForce (toString (pkgs.writeText "rofi-theme.rasi" ''
-        ${builtins.readFile (config.lib.stylix.scheme inputs.base16-rofi)}
+        ${builtins.readFile (config.lib.stylix.scheme pkgs.base16-rofi)}
         window {
           width: 33%;
           border-radius: 6px;

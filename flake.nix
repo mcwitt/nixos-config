@@ -2,20 +2,8 @@
   description = "NixOS configuration";
 
   inputs = {
-    base16-rofi.flake = false;
-    base16-rofi.url = "github:tinted-theming/base16-rofi";
-    base16-tmux.flake = false;
-    base16-tmux.url = "github:tinted-theming/base16-tmux";
     emacs-overlay.url = "github:nix-community/emacs-overlay";
-    fish-kubectl-completions.flake = false;
-    fish-kubectl-completions.url = "github:evanlucas/fish-kubectl-completions";
     flake-utils.url = "github:numtide/flake-utils";
-    "fzf.fish".flake = false;
-    "fzf.fish".url = "github:PatrickF1/fzf.fish";
-    git-sync-el.flake = false;
-    git-sync-el.url = "github:mcwitt/git-sync.el";
-    gitignore.flake = false;
-    gitignore.url = "github:github/gitignore";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     home-manager.url = "github:nix-community/home-manager/release-23.11";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
@@ -45,8 +33,6 @@
 
       mkExtraSpecialArgs = pkgs: {
         inherit inputs;
-
-        lib = nixpkgs.lib.extend (final: prev: import ./lib.nix { inherit inputs; } final prev // home-manager.lib);
 
         # gross hack to use modules from NUR
         # https://discourse.nixos.org/t/importing-nur-home-manager-modules-in-nix-flakes/16457

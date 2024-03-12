@@ -1,6 +1,5 @@
-{ inputs }:
 final: _: {
   gitignores = path:
     final.splitString "\n"
-      (builtins.readFile "${inputs.gitignore}/${path}.gitignore");
+      (builtins.readFile "${final.github-gitignore}/${path}.gitignore");
 }

@@ -9,5 +9,5 @@
     end
   '';
 
-  programs.git.ignores = pkgs.mcwitt.gitignore.ghGitIgnoreLines "Global/macOS";
+  programs.git.ignores = pkgs.gitignores "Global/macOS";
 }

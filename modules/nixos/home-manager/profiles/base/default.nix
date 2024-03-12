@@ -46,7 +46,7 @@
       };
     };
 
-    programs.git.ignores = lib.gitignores "Global/Linux";
+    programs.git.ignores = pkgs.gitignores "Global/Linux";
 
     programs.urxvt = {
       enable = true;
