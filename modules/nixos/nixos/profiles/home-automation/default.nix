@@ -53,6 +53,7 @@ in
       ];
 
       inovelliVzm31sn.enable = true;
+      lowBatteryNotifications.enable = true;
       wakeUpLight.enable = true;
 
       extraComponents = [
