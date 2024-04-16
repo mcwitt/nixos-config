@@ -33,6 +33,11 @@
       nssmdns = true;
     };
 
+    services.earlyoom = {
+      enable = true;
+      enableNotifications = true;
+    };
+
     services.hoogle = {
       enable = true;
       port = 8081;
