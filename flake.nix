@@ -45,126 +45,124 @@
     {
       overlays.default = import ./overlay { inherit inputs; };
 
-      nixosConfigurations =
-        let
-          makeNixosSystem = nixpkgs.lib.makeOverridable ({ system, users, extraNixosModules, extraHmModules }:
-            nixpkgs.lib.nixosSystem {
-              inherit system;
+      lib.makeNixosSystem = nixpkgs.lib.makeOverridable ({ system, users, extraNixosModules ? [ ], extraHmModules ? [ ] }:
+        nixpkgs.lib.nixosSystem {
+          inherit system;
 
-              specialArgs = { inherit inputs; };
+          specialArgs = { inherit inputs; };
 
-              modules = [
-                home-manager.nixosModules.home-manager
-                nur.nixosModules.nur
+          modules = [
+            home-manager.nixosModules.home-manager
+            nur.nixosModules.nur
 
-                stylix.nixosModules.stylix
-                self.nixosModules.stylix
+            stylix.nixosModules.stylix
+            self.nixosModules.stylix
 
-                self.nixosModules.common
-                self.nixosModules.nixos
+            self.nixosModules.common
+            self.nixosModules.nixos
 
-                ({ config, lib, pkgs, ... }: {
-                  nixpkgs = {
-                    config.allowUnfree = true;
-                    inherit overlays;
-                  };
+            ({ config, lib, pkgs, ... }: {
+              nixpkgs = {
+                config.allowUnfree = true;
+                inherit overlays;
+              };
 
-                  users.users = builtins.listToAttrs (map
-                    (user: lib.nameValuePair user {
-                      isNormalUser = true;
-                      extraGroups = [ "wheel" "docker" "video" ];
-                      shell = pkgs.fish;
-                    })
-                    users);
-
-                  home-manager = {
-                    useGlobalPkgs = true;
-                    useUserPackages = true;
-                    extraSpecialArgs = mkExtraSpecialArgs pkgs;
-
-                    users = builtins.listToAttrs (map
-                      (user: lib.nameValuePair user {
-                        imports = [
-                          self.homeManagerModules.common
-                          self.homeManagerModules.nixos
-                        ] ++ extraHmModules;
-                      })
-                      users);
-                  };
-
-                  profiles.base.enable = true;
+              users.users = builtins.listToAttrs (map
+                (user: lib.nameValuePair user {
+                  isNormalUser = true;
+                  extraGroups = [ "wheel" "docker" "video" ];
+                  shell = pkgs.fish;
                 })
-              ] ++ extraNixosModules;
-            });
-        in
-        {
-          golem = makeNixosSystem {
-            system = "x86_64-linux";
-            users = [ "matt" ];
-            extraNixosModules = [
-              ./hosts/golem/configuration
-              {
-                home-manager.users.matt.profiles = {
-                  base.enable = true;
-                  desktop.enable = true;
-                  personal.enable = true;
-                };
-                profiles.personal.enable = true;
-              }
-            ];
-            extraHmModules = [ ./hosts/golem/home ];
-          };
+                users);
 
-          hal = nixpkgs.lib.makeOverridable nixpkgs.lib.nixosSystem {
-            system = "aarch64-linux";
-            modules = [
-              nur.nixosModules.nur
-              self.nixosModules.common
-              self.nixosModules.nixos
-              ./hosts/hal/configuration
-              {
-                nixpkgs = {
-                  config.allowUnfree = true;
-                  inherit overlays;
-                };
-              }
-            ];
-            specialArgs = { inherit inputs; };
-          };
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                extraSpecialArgs = mkExtraSpecialArgs pkgs;
 
-          hestia = nixpkgs.lib.makeOverridable nixpkgs.lib.nixosSystem {
-            system = "aarch64-linux";
-            modules = [
-              self.nixosModules.common
-              self.nixosModules.nixos
-              ./hosts/hestia/configuration
-              {
-                nixpkgs = {
-                  config.allowUnfree = true;
-                  inherit overlays;
-                };
-              }
-            ];
-            specialArgs = { inherit inputs; };
-          };
+                users = builtins.listToAttrs (map
+                  (user: lib.nameValuePair user {
+                    imports = [
+                      self.homeManagerModules.common
+                      self.homeManagerModules.nixos
+                    ] ++ extraHmModules;
+                  })
+                  users);
+              };
 
-          karakuri = makeNixosSystem {
-            system = "x86_64-linux";
-            users = [ "matt" ];
-            extraNixosModules = [
-              ./hosts/karakuri/configuration
-              {
-                home-manager.users.matt.profiles = {
-                  base.enable = true;
-                  desktop.enable = true;
-                  personal.enable = true;
-                };
-                profiles.personal.enable = true;
-              }
-            ];
-            extraHmModules = [ ./hosts/karakuri/home ];
-          };
+              profiles.base.enable = true;
+            })
+          ] ++ extraNixosModules;
+        });
+
+      nixosConfigurations = {
+        golem = self.lib.makeNixosSystem {
+          system = "x86_64-linux";
+          users = [ "matt" ];
+          extraNixosModules = [
+            ./hosts/golem/configuration
+            {
+              home-manager.users.matt.profiles = {
+                base.enable = true;
+                desktop.enable = true;
+                personal.enable = true;
+              };
+              profiles.personal.enable = true;
+            }
+          ];
+          extraHmModules = [ ./hosts/golem/home ];
         };
+
+        hal = nixpkgs.lib.makeOverridable nixpkgs.lib.nixosSystem {
+          system = "aarch64-linux";
+          modules = [
+            nur.nixosModules.nur
+            self.nixosModules.common
+            self.nixosModules.nixos
+            ./hosts/hal/configuration
+            {
+              nixpkgs = {
+                config.allowUnfree = true;
+                inherit overlays;
+              };
+            }
+          ];
+          specialArgs = { inherit inputs; };
+        };
+
+        hestia = nixpkgs.lib.makeOverridable nixpkgs.lib.nixosSystem {
+          system = "aarch64-linux";
+          modules = [
+            self.nixosModules.common
+            self.nixosModules.nixos
+            ./hosts/hestia/configuration
+            {
+              nixpkgs = {
+                config.allowUnfree = true;
+                inherit overlays;
+              };
+            }
+          ];
+          specialArgs = { inherit inputs; };
+        };
+
+        karakuri = self.lib.makeNixosSystem {
+          system = "x86_64-linux";
+          users = [ "matt" ];
+          extraNixosModules = [
+            ./hosts/karakuri/configuration
+            {
+              home-manager.users.matt.profiles = {
+                base.enable = true;
+                desktop.enable = true;
+                personal.enable = true;
+              };
+              profiles.personal.enable = true;
+            }
+          ];
+          extraHmModules = [ ./hosts/karakuri/home ];
+        };
+      };
 
       homeConfigurations =
         let
