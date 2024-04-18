@@ -7,7 +7,7 @@ in
 
 {
   imports = [
-    ./postgresql.nix
+    ./recorder.nix
     ./solar.nix
   ];
 
@@ -88,7 +88,7 @@ in
       package = (pkgs.home-assistant.override {
 
         extraPackages = ps: with ps; [
-          psycopg2 # TODO: move to postgresql module
+          psycopg2 # TODO: move to recorder module
         ];
 
         packageOverrides = final: prev: with final; {
