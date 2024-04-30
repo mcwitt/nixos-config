@@ -2,13 +2,20 @@
 
   imports = [
     nurNoPkgs.repos.rycee.hmModules.emacs-init
-    ./completion
+    ./consult.nix
+    ./embark.nix
     ./forge.nix
     ./format-all.nix
     ./jupyter.nix
     ./lsp.nix
     ./org.nix
     ./theme
+    ./vertico.nix
+  ] ++ [
+    # use company instead of corfu until sync issue with eglot is resolved
+    # https://github.com/joaotavora/eglot/discussions/1127
+    ./company.nix
+    # ./corfu.nix
   ];
 
   home.packages = [ pkgs.emacs-all-the-icons-fonts ];
@@ -126,6 +133,13 @@
       '';
     };
 
+    all-the-icons-completion = {
+      enable = true;
+      config = ''
+        (all-the-icons-completion-mode)
+      '';
+    };
+
     all-the-icons-dired = {
       enable = true;
       hook = [ "(dired-mode . all-the-icons-dired-mode)" ];
@@ -173,6 +187,43 @@
       enable = true;
       command = [ "browse-at-remote" ];
       bind = { "C-c B" = "browse-at-remote"; };
+    };
+
+    cape = {
+      enable = true;
+
+      init = ''
+        ;; Add `completion-at-point-functions', used by `completion-at-point'.
+        ;; NOTE: The order matters!
+        (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+        (add-to-list 'completion-at-point-functions #'cape-file)
+        ;;(add-to-list 'completion-at-point-functions #'cape-elisp-block)
+        ;;(add-to-list 'completion-at-point-functions #'cape-history)
+        ;;(add-to-list 'completion-at-point-functions #'cape-keyword)
+        ;;(add-to-list 'completion-at-point-functions #'cape-tex)
+        ;;(add-to-list 'completion-at-point-functions #'cape-sgml)
+        ;;(add-to-list 'completion-at-point-functions #'cape-rfc1345)
+        ;;(add-to-list 'completion-at-point-functions #'cape-abbrev)
+        ;;(add-to-list 'completion-at-point-functions #'cape-dict)
+        ;;(add-to-list 'completion-at-point-functions #'cape-symbol)
+        ;;(add-to-list 'completion-at-point-functions #'cape-line)
+      '';
+
+      bind = {
+        "C-c p p" = "completion-at-point"; # capf
+        "C-c p t" = "complete-tag"; # etags
+        "C-c p d" = "cape-dabbrev"; # or dabbrev-completion
+        "C-c p h" = "cape-history";
+        "C-c p f" = "cape-file";
+        "C-c p k" = "cape-keyword";
+        "C-c p s" = "cape-symbol";
+        "C-c p a" = "cape-abbrev";
+        "C-c p l" = "cape-line";
+        "C-c p w" = "cape-dict";
+        "C-c p \\\\" = "cape-tex";
+        "C-c p &" = "cape-sgml";
+        "C-c p r" = "cape-rfc1345";
+      };
     };
 
     code-cells = {
@@ -396,6 +447,15 @@
       demand = true; # e.g. to add entry to `project-switch-commands'
     };
 
+    marginalia = {
+      enable = true;
+      bind."M-A" = "marginalia-cycle";
+      bindLocal.minibuffer-local-map."M-A" = "marginalia-cycle";
+      init = ''
+        (marginalia-mode)
+      '';
+    };
+
     mixed-pitch = {
       enable = true;
       hook = [ "(text-mode . mixed-pitch-mode)" ];
@@ -408,6 +468,15 @@
         "C-x | e" = "mc/edit-lines";
         "C-x | d" = "mc/mark-all-dwim";
       };
+    };
+
+    orderless = {
+      enable = true;
+      init = ''
+        (setq completion-styles '(orderless)
+              completion-category-defaults nil
+              completion-category-overrides '((file (styles . (partial-completion)))))
+      '';
     };
 
     pinentry = {
