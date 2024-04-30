@@ -4,8 +4,9 @@
     embark = {
       enable = true;
       bind = {
-        "C-." = "embark-act";
-        "C-;" = "embark-dwim";
+        # modify standard bindings to avoid colliding with evil-collection
+        "C-;" = "embark-act";
+        "C-'" = "embark-dwim";
         "C-h B" = "embark-bindings";
       };
       init = ''
