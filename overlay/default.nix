@@ -1,6 +1,6 @@
 { inputs }: final: prev:
 let
-  inherit (final) lib;
+  inherit (final) callPackage lib;
 
   assertNotStale = overrideVersion: currentVersion:
     let inherit (lib) assertMsg versionOlder; in
@@ -17,27 +17,27 @@ let
   });
 in
 {
-  base16-rofi = final.callPackage ../packages/data/themes/base16-rofi.nix { };
+  base16-rofi = callPackage ../packages/data/themes/base16-rofi.nix { };
 
-  base16-tmux = final.callPackage ../packages/data/themes/base16-tmux.nix { };
+  base16-tmux = callPackage ../packages/data/themes/base16-tmux.nix { };
 
-  fish-kubectl-completions = final.callPackage ../packages/shells/fish/fish-kubectl-completions.nix { };
+  fish-kubectl-completions = callPackage ../packages/shells/fish/fish-kubectl-completions.nix { };
 
-  fzf-fish = final.callPackage ../packages/shells/fish/fzf-fish.nix { };
+  fzf-fish = callPackage ../packages/shells/fish/fzf-fish.nix { };
 
-  github-gitignore = final.callPackage ../packages/data/misc/github-gitignore.nix { };
+  github-gitignore = callPackage ../packages/data/misc/github-gitignore.nix { };
 
-  gitignores = final.callPackage ../packages/development/misc/gitignores.nix { };
+  gitignores = callPackage ../packages/development/misc/gitignores.nix { };
 
   home-assistant-custom-components = prev.home-assistant-custom-components // (
-    let ps = final.home-assistant.python.pkgs;
+    let inherit (final.home-assistant.python.pkgs) callPackage;
     in {
-      bhyve = ps.callPackage ../packages/servers/home-assistant/custom-components/bhyve.nix { };
-      eero = ps.callPackage ../packages/servers/home-assistant/custom-components/eero.nix { };
+      bhyve = callPackage ../packages/servers/home-assistant/custom-components/bhyve.nix { };
+      eero = callPackage ../packages/servers/home-assistant/custom-components/eero.nix { };
     }
   );
 
-  nerdifyFont = final.callPackage ./nerdify-font.nix { };
+  nerdifyFont = callPackage ./nerdify-font.nix { };
 
   python311 = overridePython prev.python311;
 }
