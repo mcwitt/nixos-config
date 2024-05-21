@@ -82,11 +82,11 @@
                                     ("M-s", spawn "dm-tool switch-to-greeter")
                                   ]
                 `additionalKeys` ( first (noModMask,)
-                                     <$> [ (xF86XK_MonBrightnessUp, spawn "xbacklight -inc 2"),
-                                           (xF86XK_MonBrightnessDown, spawn "xbacklight -dec 2"),
+                                     <$> [ (xF86XK_MonBrightnessUp, spawn "xbacklight -inc 5"),
+                                           (xF86XK_MonBrightnessDown, spawn "xbacklight -dec 5"),
                                            (xF86XK_AudioMute, spawn "amixer -q set Master toggle"),
-                                           (xF86XK_AudioLowerVolume, spawn "amixer -q set Master 2%-"),
-                                           (xF86XK_AudioRaiseVolume, spawn "amixer -q set Master 2%+")
+                                           (xF86XK_AudioLowerVolume, spawn "amixer -q set Master 5%-"),
+                                           (xF86XK_AudioRaiseVolume, spawn "amixer -q set Master 5%+")
                                          ]
                                  )
 
@@ -99,8 +99,7 @@
               $ layout
             where
               layout =
-                Tall 1 (3 % 100) (3 % 5)
-                  ||| ThreeCol 1 (3 % 100) (1 % 2)
+                ThreeCol 1 (3 % 100) (1 % 2)
                   ||| Grid
                   ||| Full
 
