@@ -6,7 +6,8 @@
       command = [ "eglot" ];
 
       bindLocal.eglot-mode-map = {
-        "C-c r" = "eglot-rename";
+        "C-c l a" = "eglot-code-actions";
+        "C-c l r" = "eglot-rename";
       };
 
       config = ''
