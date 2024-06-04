@@ -26,7 +26,7 @@
 
   time.timeZone = "America/Los_Angeles";
 
-  services.xserver.layout = "us";
+  services.xserver.xkb.layout = "us";
 
   users.users.matt = {
     isNormalUser = true;
@@ -40,7 +40,7 @@
 
   services.avahi = {
     enable = true;
-    nssmdns = true;
+    nssmdns4 = true;
     publish = {
       enable = true;
       addresses = true;
@@ -53,7 +53,7 @@
   };
 
   # https://docs.paperless-ngx.com/setup/#less-powerful-devices
-  services.paperless.extraConfig = {
+  services.paperless.settings = {
     PAPERLESS_TASK_WORKERS = 2;
     PAPERLESS_THREADS_PER_WORKER = 1;
     PAPERLESS_CONVERT_MEMORY_LIMIT = "1gb";

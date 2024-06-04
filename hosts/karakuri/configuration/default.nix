@@ -17,6 +17,15 @@
 
   hardware.bluetooth.enable = true;
 
+  services.libinput = {
+    enable = true;
+    touchpad = {
+      accelSpeed = "0.5";
+      disableWhileTyping = true;
+      naturalScrolling = true;
+    };
+  };
+
   hardware.pulseaudio = {
     enable = true;
     package = pkgs.pulseaudioFull;
@@ -52,15 +61,7 @@
         '';
       };
     };
-    layout = "us";
-    libinput = {
-      enable = true;
-      touchpad = {
-        accelSpeed = "0.5";
-        disableWhileTyping = true;
-        naturalScrolling = true;
-      };
-    };
+    xkb.layout = "us";
   };
 
   sound = {
