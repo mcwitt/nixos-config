@@ -9,11 +9,7 @@ let
       "Stale override. Update override version if it still applies.";
 
   overridePython = python: python.override (old: {
-    packageOverrides = lib.composeExtensions (old.packageOverrides or (_: _: { })) (pyFinal: pyPrev: {
-      # https://github.com/NixOS/nixpkgs/issues/262000
-      debugpy = assert assertNotStale "1.8.0" pyPrev.debugpy.version;
-        pyPrev.debugpy.overridePythonAttrs (_: { doCheck = false; });
-    });
+    packageOverrides = lib.composeExtensions (old.packageOverrides or (_: _: { })) (pyFinal: pyPrev: { });
   });
 in
 {
