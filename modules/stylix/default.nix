@@ -1,7 +1,10 @@
-{ inputs, lib, pkgs, ... }:
+{ lib, pkgs, ... }:
 {
   stylix = {
-    base16Scheme = lib.mkDefault "${pkgs.base16-schemes}/share/themes/nord.yaml";
+    base16Scheme = lib.mkDefault {
+      yaml = "${pkgs.base16-schemes}/share/themes/nord.yaml";
+      use-ifd = "auto";
+    };
     # polarity = "dark"; # only relevant when stylix.base16Scheme not specified
 
     cursor.size = 48;
