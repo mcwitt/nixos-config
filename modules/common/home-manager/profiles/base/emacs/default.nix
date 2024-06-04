@@ -26,27 +26,6 @@
 
   programs.emacs.overrides = final: prev: {
 
-    copilot =
-      let rev = "4e203efaa1f4047c800a026ba496d3bda8b67119";
-      in final.trivialBuild {
-        pname = "copilot";
-        version = rev;
-
-        src = pkgs.fetchFromGitHub {
-          owner = "zerolfx";
-          repo = "copilot.el";
-          inherit rev;
-          hash = "sha256-BLIyJ9z4yI2Iv5eqrmULJ5VXoGnlXSVJx+5lVQyIoO8=";
-        };
-
-        packageRequires = with final; [ dash editorconfig f s ];
-
-        meta = {
-          description = "An unofficial Copilot plugin for Emacs";
-          license = null;
-        };
-      };
-
     git-sync =
       let rev = "9b27ee28e077a30654f87737d97af1d21fdb2e41";
       in final.trivialBuild {
