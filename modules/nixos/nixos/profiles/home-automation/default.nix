@@ -128,5 +128,7 @@ in
     };
 
     services.zigbee2mqtt.enable = true;
+
+    systemd.services.home-assistant.serviceConfig.Restart = lib.mkForce "always";
   };
 }
