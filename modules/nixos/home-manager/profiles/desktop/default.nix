@@ -1,4 +1,4 @@
-{ config, inputs, lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 let cfg = config.profiles.desktop;
 in
@@ -13,8 +13,6 @@ in
 
   config = lib.mkIf cfg.enable {
     home.packages = with pkgs; [ xfce.thunar ];
-
-    home.pointerCursor.x11.enable = true;
 
     programs.rofi.enable = true;
 
@@ -80,6 +78,8 @@ in
       enable = true;
       tray = "always";
     };
+
+    stylix.enable = true;
 
     xdg = {
       enable = true;
