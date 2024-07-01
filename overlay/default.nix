@@ -9,7 +9,11 @@ let
       "Stale override. Update override version if it still applies.";
 
   overridePython = python: python.override (old: {
-    packageOverrides = lib.composeExtensions (old.packageOverrides or (_: _: { })) (pyFinal: pyPrev: { });
+    packageOverrides = lib.composeExtensions (old.packageOverrides or (_: _: { })) (pyFinal: pyPrev:
+      let inherit (pyFinal) callPackage;
+      in {
+        aiosolaredge = callPackage ../packages/development/python-modules/aiosolaredge { };
+      });
   });
 in
 {
