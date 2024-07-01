@@ -52,4 +52,5 @@ in
   nerdifyFont = callPackage ./nerdify-font.nix { };
 
   python311 = overridePython prev.python311;
+  python312 = overridePython prev.python312;
 }
