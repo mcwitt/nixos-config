@@ -79,7 +79,8 @@ in
         "zwave_js"
       ];
 
-      extraPackages = python3Packages: with python3Packages; [
+      extraPackages = ps: with ps; [
+        aiosolaredge
         pyqrcode # needed for totp setup
       ];
 
@@ -91,28 +92,11 @@ in
           psycopg2 # TODO: move to recorder module
         ];
 
-        packageOverrides = final: prev: with final; {
-          androidtvremote2 = buildPythonPackage rec {
-            pname = "androidtvremote2";
-            version = "0.0.14";
-            format = "pyproject";
-            src = pkgs.fetchFromGitHub {
-              owner = "tronikos";
-              repo = "androidtvremote2";
-              rev = "refs/tags/v${version}";
-              hash = "sha256-m53TlNrrCjA4CqvR02Yph7Gr5Dt17VJFBX6MC3arWOI=";
-            };
-            nativeBuildInputs = [
-              setuptools
-            ];
-            propagatedBuildInputs = [
-              aiofiles
-              cryptography
-              protobuf
-            ];
-          };
-          pyflume = prev.pyflume.overridePythonAttrs
-            (oldAttrs: rec {
+        packageOverrides = final: prev:
+          let inherit (final) callPackage; in {
+            aiosolaredge = callPackage ../../../../../packages/development/python-modules/aiosolaredge { };
+
+            pyflume = prev.pyflume.overridePythonAttrs (oldAttrs: rec {
               version = "0.6.5"; # version pinned by home-assistant
               name = "${oldAttrs.pname}-${version}";
               src = pkgs.fetchFromGitHub {
@@ -121,9 +105,9 @@ in
                 rev = "v${version}";
                 hash = "sha256-kIE3y/qlsO9Y1MjEQcX0pfaBeIzCCHk4f1Xa215BBHo=";
               };
-              nativeCheckInputs = oldAttrs.nativeCheckInputs ++ [ pytz ];
+              nativeCheckInputs = oldAttrs.nativeCheckInputs ++ [ final.pytz ];
             });
-        };
+          };
       }).overrideAttrs (_: { doInstallCheck = false; });
     };
 
