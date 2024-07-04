@@ -33,5 +33,11 @@
       automatic = true;
       dates = "weekly";
     };
+
+    programs.gnupg.agent = {
+      enable = true;
+      pinentryPackage = pkgs.pinentry-gtk2;
+      enableSSHSupport = true;
+    };
   };
 }
