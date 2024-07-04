@@ -8,13 +8,13 @@
 buildHomeAssistantComponent rec {
   owner = "schmittx";
   domain = "eero";
-  version = "1.4.5";
+  version = "1.5.0";
 
   src = fetchFromGitHub {
     inherit owner;
     repo = "home-assistant-eero";
     rev = version;
-    hash = "sha256-E09VUF2k0QdoP6+8q2F86dzuv+bRJyi+VbW925UmNyw=";
+    hash = "sha256-hOF/UH/qUoCoQssmOC3dqLkaoO4B7WKFZbqSnqLpV/Q=";
   };
 
   propagatedBuildInputs = [
