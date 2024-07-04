@@ -88,10 +88,6 @@ in
 
       package = (pkgs.home-assistant.override {
 
-        extraPackages = ps: with ps; [
-          psycopg2 # TODO: move to recorder module
-        ];
-
         packageOverrides = final: prev:
           let inherit (final) callPackage; in {
             aiosolaredge = callPackage ../../../../../packages/development/python-modules/aiosolaredge { };
