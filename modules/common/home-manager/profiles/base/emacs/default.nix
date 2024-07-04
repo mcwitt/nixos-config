@@ -441,14 +441,6 @@
       diminish = [ "mixed-pitch-mode" ];
     };
 
-    multiple-cursors = {
-      enable = true;
-      bind = {
-        "C-x | e" = "mc/edit-lines";
-        "C-x | d" = "mc/mark-all-dwim";
-      };
-    };
-
     orderless = {
       enable = true;
       init = ''
