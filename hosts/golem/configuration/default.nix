@@ -19,7 +19,7 @@
 
   hardware.bluetooth = {
     enable = true;
-    settings.General.ControllerMode = "bredr";
+    powerOnBoot = true;
   };
 
   hardware.keyboard.zsa.enable = true;

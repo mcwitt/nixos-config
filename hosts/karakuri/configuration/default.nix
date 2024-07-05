@@ -15,7 +15,10 @@
 
   hardware.acpilight.enable = true;
 
-  hardware.bluetooth.enable = true;
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+  };
 
   services.libinput = {
     enable = true;
