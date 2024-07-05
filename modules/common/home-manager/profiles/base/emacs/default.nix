@@ -227,11 +227,11 @@
     copilot = {
       enable = true;
       command = [ "copilot-mode" ];
-      bind = {
-        "C-TAB" = "copilot-accept-completion-by-word";
-      };
       bindLocal.copilot-completion-map = {
-        "C-<return>" = "copilot-accept-completion";
+        "<tab>" = "copilot-accept-completion";
+        "TAB" = "copilot-accept-completion";
+        "C-<tab>" = "copilot-accept-completion-by-word";
+        "C-TAB" = "copilot-accept-completion-by-word";
       };
       config = ''
         (setq copilot-node-executable "${pkgs.nodejs}/bin/node")
