@@ -56,7 +56,7 @@
 
             modules-left = "xworkspaces xmonad";
             modules-center = "date";
-            modules-right = lib.mkDefault "wired-network filesystem memory cpu pulseaudio";
+            modules-right = lib.mkDefault "wired-network filesystem memory cpu pipewire pipewire-mic";
 
             cursor-click = "pointer";
             cursor-scroll = "ns-resize";
@@ -118,17 +118,73 @@
             label-unmounted-foreground = ''''${colors.disabled}'';
           };
 
-          "module/pulseaudio" = {
-            type = "internal/pulseaudio";
+          "module/pipewire" =
+            let
+              # https://github.com/polybar/polybar-scripts/blob/8a6a2c7fc6beb281515f81ccf5b9fafc830a3230/polybar-scripts/pipewire-simple/pipewire-simple.sh
+              script = pkgs.writeShellScript "pipewire.sh" ''
+                PATH=${lib.makeBinPath (with pkgs; [ coreutils gawk gnused pamixer pipewire pulseaudio ])}
 
-            format-volume = "<ramp-volume> <label-volume>";
-            ramp-volume = [ " " ];
-            label-volume = "%percentage%%";
+                getDefaultSink() {
+                    defaultSink=$(pactl info | awk -F : '/Default Sink:/{print $2}')
+                    description=$(pactl list sinks | sed -n "/''${defaultSink}/,/Description/s/^\s*Description: \(.*\)/\1/p")
+                    echo "''${description}"
+                }
 
-            format-muted = "<label-muted>";
-            format-muted-prefix = "  ";
-            label-muted = "muted";
-          };
+                VOLUME=$(pamixer --get-volume-human)
+                SINK=$(getDefaultSink)
+
+                case $1 in
+                    "--up")
+                        pamixer --increase 10
+                        ;;
+                    "--down")
+                        pamixer --decrease 10
+                        ;;
+                    "--mute")
+                        pamixer --toggle-mute
+                        ;;
+                    *)
+                        echo "''${VOLUME} ''${SINK}"
+                esac
+              '';
+            in
+            {
+              type = "custom/script";
+              exec = "${script} update";
+
+              interval = 1;
+              click-right = "exec ${lib.getExe pkgs.pavucontrol} &";
+              click-left = "${script} --mute &";
+              scroll-up = "${script} --up &";
+              scroll-down = "${script} --down &";
+
+              label = "%output:0:14:…%";
+              format-prefix = "  ";
+            };
+
+          "module/pipewire-mic" =
+            let
+              # https://github.com/polybar/polybar-scripts/blob/8a6a2c7fc6beb281515f81ccf5b9fafc830a3230/polybar-scripts/pipewire-simple/pipewire-simple.sh
+              script = pkgs.writeShellScript "pipewire-mic.sh" ''
+                PATH=${lib.makeBinPath (with pkgs; [ coreutils gawk gnused pipewire pulseaudio ])}
+                getDefaultSource() {
+                    defaultSource=$(pactl info | awk -F : '/Default Source:/{print $2}')
+                    description=$(pactl list sources | sed -n "/''${defaultSource}/,/Description/s/^\s*Description: \(.*\)/\1/p")
+                    echo "''${description}"
+                }
+                echo $(getDefaultSource)
+              '';
+            in
+            {
+              type = "custom/script";
+              exec = "${script} update";
+
+              interval = 1;
+              click-right = "exec ${lib.getExe pkgs.pavucontrol} &";
+
+              label = "%output:0:10:…%";
+              format-prefix = "  ";
+            };
 
           "module/memory" = {
             type = "internal/memory";

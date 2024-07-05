@@ -1,4 +1,4 @@
-{ inputs, pkgs, ... }:
+{ inputs, ... }:
 
 {
   imports = [
@@ -24,11 +24,6 @@
       disableWhileTyping = true;
       naturalScrolling = true;
     };
-  };
-
-  hardware.pulseaudio = {
-    enable = true;
-    package = pkgs.pulseaudioFull;
   };
 
   networking = {
