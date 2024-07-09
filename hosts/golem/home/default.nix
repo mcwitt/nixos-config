@@ -11,8 +11,8 @@ in
   programs.rofi.extraConfig.dpi = dpi;
 
   services.polybar.script = ''
-    MONITOR=DP-4 polybar &
-    MONITOR=DP-2 polybar &
+    MONITOR=DP-4 TRAY_POS="right" polybar &
+    MONITOR=DP-2 TRAY_POS="" polybar &
   '';
 
   xresources.properties = {

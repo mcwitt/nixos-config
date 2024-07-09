@@ -6,7 +6,7 @@
       enable = true;
 
       script = ''
-        polybar &
+        TRAY_POS="right" polybar &
       '';
 
       settings =
@@ -63,7 +63,7 @@
 
             enable-ipc = true;
 
-            tray-position = "right";
+            tray-position = ''''${env:TRAY_POS}'';
             tray-maxsize = 32;
 
             wm-restack = "generic";
@@ -96,7 +96,7 @@
           "module/xwindow" = {
             type = "internal/xwindow";
             label = "%title%";
-            label-maxlen = 80;
+            label-maxlen = 40;
           };
 
           "module/xmonad" = {
