@@ -24,22 +24,35 @@
 
   programs.emacs.extraPackages = epkgs: [ epkgs.treesit-grammars.with-all-grammars ];
 
-  programs.emacs.overrides = final: prev: {
+  programs.emacs.overrides = final: prev:
+    let inherit (final) trivialBuild; in {
 
-    git-sync =
-      let rev = "9b27ee28e077a30654f87737d97af1d21fdb2e41";
-      in final.trivialBuild {
+      copilot = trivialBuild {
+        pname = "copilot";
+        version = "0-unstable-2024-07-03";
+        src = pkgs.fetchFromGitHub {
+          owner = "zerolfx";
+          repo = "copilot.el";
+          rev = "e15bafa95b39091dbb2a99ad62e42f03a8d78f01";
+          sha256 = "sha256-jKm+oVMadHyeG93VFU3JG3qNROOJPDXs7w2pIO/2IyM=";
+        };
+        packageRequires = with final; [ dash editorconfig f jsonrpc pkgs.nodejs s ];
+        postInstall = ''
+          cp -r $src $LISPDIR
+        '';
+      };
+
+      git-sync = trivialBuild {
         pname = "git-sync";
-        version = rev;
-
+        version = "0-unstable-2022-10-01";
         src = pkgs.fetchFromGitHub {
           owner = "mcwitt";
           repo = "git-sync.el";
-          inherit rev;
+          rev = "9b27ee28e077a30654f87737d97af1d21fdb2e41";
           hash = "sha256-mTL9oeqsgqBAkdVSL4/DcNUoQUgDr3521G8hxEOJIjw=";
         };
       };
-  };
+    };
 
   programs.emacs.init = {
     enable = true;
@@ -92,14 +105,14 @@
       ;; Highlight end-of-line whitespace only in prog-mode
       (add-hook 'prog-mode-hook (lambda () (setq-local show-trailing-whitespace t)))
 
-      ;; Use maximum fontification settings with treesit (a.k.a. "angry fruit salad")
-      (setq treesit-font-lock-level 4)
+      ;; Controls level of treesit syntax highlighting
+      (setq treesit-font-lock-level 3)
 
       ;; Open URLs with Chromium
       (setq browse-url-browser-function 'browse-url-chromium)
 
       ;; Enable smooth scrolling
-      (pixel-scroll-mode)
+      ;; (pixel-scroll-mode)  ; disable for now, seems to interact poorly with breadcrumb-mode
     '';
   };
 
@@ -142,6 +155,7 @@
       demand = true;
       bind = {
         "C-:" = "avy-goto-char";
+        "C-\"" = "avy-goto-line";
         "M-g w" = "avy-goto-word-or-subword-1";
       };
     };

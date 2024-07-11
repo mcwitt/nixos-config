@@ -220,6 +220,17 @@
       '';
     };
 
+    org-ai = {
+      enable = true;
+      after = [ "org" ];
+      command = [ "org-ai-mode" "org-ai-global-mode" ];
+      hook = [ "(org-mode . org-ai-mode)" ];
+      config = ''
+        (setq org-ai-default-chat-model "gpt-3.5-turbo")
+        (org-ai-install-yasnippets)
+      '';
+    };
+
     org-capture = {
       enable = true;
       after = [ "org" ];
@@ -237,14 +248,6 @@
                 ("f" "Flash card" entry
                  (file+headline org-notes-flashcards-file "Flash cards")
                  "* %?\n:PROPERTIES:\n:ANKI_NOTE_TYPE: %^{Note type|Basic}\n:ANKI_DECK: %^{Deck|Misc}\n:END:\n** Front\n** Back")))
-      '';
-    };
-
-    org-capture-pop-frame = {
-      enable = true;
-      config = ''
-        ;; Don't show menu bar in new frame
-        (add-to-list 'ocpf-frame-parameters '(menu-bar-lines . 0))
       '';
     };
 
@@ -279,7 +282,6 @@
     org-roam = {
       enable = true;
       init = ''
-        (setq org-roam-v2-ack t)
         (setq org-roam-directory org-notes-notes-directory)
         (setq org-roam-dailies-directory "daily/")
         (setq org-roam-dailies-capture-templates
@@ -296,6 +298,9 @@
         "C-c n j" = "org-roam-dailies-capture-today";
       };
       config = ''
+        ;; more informative completion interface
+        (setq org-roam-node-display-template (concat "''${title:*} " (propertize "''${tags:10}" 'face 'org-tag)))
+
         (org-roam-db-autosync-mode)
         (require 'org-roam-protocol)
       '';
