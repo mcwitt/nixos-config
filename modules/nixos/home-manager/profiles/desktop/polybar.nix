@@ -37,7 +37,7 @@
             background = "#E6${config.lib.stylix.colors.base00}"; # 90% opacity
             foreground = ''''${colors.foreground}'';
 
-            line-size = 3;
+            line-size = 4;
 
             border-size = 0;
 
@@ -56,7 +56,7 @@
 
             modules-left = "xworkspaces xmonad";
             modules-center = "date";
-            modules-right = lib.mkDefault "wired-network filesystem memory cpu pipewire pipewire-mic";
+            modules-right = lib.mkDefault "wired-network filesystem memory cpu pipewire";
 
             cursor-click = "pointer";
             cursor-scroll = "ns-resize";
@@ -116,22 +116,18 @@
 
             label-unmounted = "%mountpoint% not mounted";
             label-unmounted-foreground = ''''${colors.disabled}'';
+
+            warn-percentage = 75;
+            format-warn-foreground = ''''${colors.alert}'';
           };
 
           "module/pipewire" =
             let
               # https://github.com/polybar/polybar-scripts/blob/8a6a2c7fc6beb281515f81ccf5b9fafc830a3230/polybar-scripts/pipewire-simple/pipewire-simple.sh
               script = pkgs.writeShellScript "pipewire.sh" ''
-                PATH=${lib.makeBinPath (with pkgs; [ coreutils gawk gnused pamixer pipewire pulseaudio ])}
-
-                getDefaultSink() {
-                    defaultSink=$(pactl info | awk -F : '/Default Sink:/{print $2}')
-                    description=$(pactl list sinks | sed -n "/''${defaultSink}/,/Description/s/^\s*Description: \(.*\)/\1/p")
-                    echo "''${description}"
-                }
+                PATH=${lib.makeBinPath (with pkgs; [ coreutils pamixer ])}
 
                 VOLUME=$(pamixer --get-volume-human)
-                SINK=$(getDefaultSink)
 
                 case $1 in
                     "--up")
@@ -144,7 +140,7 @@
                         pamixer --toggle-mute
                         ;;
                     *)
-                        echo "''${VOLUME} ''${SINK}"
+                        echo "''${VOLUME}"
                 esac
               '';
             in
@@ -158,32 +154,8 @@
               scroll-up = "${script} --up &";
               scroll-down = "${script} --down &";
 
-              label = "%output:0:14:…%";
-              format-prefix = "  ";
-            };
-
-          "module/pipewire-mic" =
-            let
-              # https://github.com/polybar/polybar-scripts/blob/8a6a2c7fc6beb281515f81ccf5b9fafc830a3230/polybar-scripts/pipewire-simple/pipewire-simple.sh
-              script = pkgs.writeShellScript "pipewire-mic.sh" ''
-                PATH=${lib.makeBinPath (with pkgs; [ coreutils gawk gnused pipewire pulseaudio ])}
-                getDefaultSource() {
-                    defaultSource=$(pactl info | awk -F : '/Default Source:/{print $2}')
-                    description=$(pactl list sources | sed -n "/''${defaultSource}/,/Description/s/^\s*Description: \(.*\)/\1/p")
-                    echo "''${description}"
-                }
-                echo $(getDefaultSource)
-              '';
-            in
-            {
-              type = "custom/script";
-              exec = "${script} update";
-
-              interval = 1;
-              click-right = "exec ${lib.getExe pkgs.pavucontrol} &";
-
-              label = "%output:0:10:…%";
-              format-prefix = "  ";
+              label = "%output%";
+              format-prefix = "󰕾  ";
             };
 
           "module/memory" = {
@@ -191,6 +163,8 @@
             interval = 1;
             format-prefix = "  ";
             label = runTermAppOnClick "${pkgs.htop}/bin/htop" "%percentage_used%%";
+            warn-percentage = 90;
+            format-warn-foreground = ''''${colors.alert}'';
           };
 
           "module/cpu" = {
@@ -241,7 +215,7 @@
             interval = 1;
             date = "%Y-%m-%d %a";
             time = " %H:%M:%S";
-            label = "  %date%   %time%";
+            label = "  %date% %time%";
           };
 
           "module/battery" = {
@@ -263,6 +237,7 @@
             label-discharging = "%percentage%% T−%time%";
 
             format-charging = "<animation-charging> <label-charging>";
+            format-charging-foreground = colors.base0D;
             label-charging = "%percentage%% T−%time%";
             animation-charging = [
               "  "
@@ -275,7 +250,7 @@
             format-full = "<ramp-capacity> <label-full>";
             label-full = "%percentage%%";
 
-            low-at = 5;
+            low-at = 10;
             format-low = "<animation-low> <label-low>";
             label-low = "%percentage%% T−%time%";
             label-low-foreground = ''''${colors.alert}'';

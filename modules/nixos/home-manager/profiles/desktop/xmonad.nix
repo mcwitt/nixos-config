@@ -31,9 +31,9 @@
           import XMonad.Actions.FocusNth (swapNth)
           import XMonad.Actions.Minimize (maximizeWindowAndFocus, minimizeWindow, withLastMinimized, withMinimized)
           import XMonad.Hooks.DynamicLog (PP (..), dynamicLogWithPP, shorten, wrap)
-          import XMonad.Hooks.DynamicProperty (dynamicTitle)
           import XMonad.Hooks.EwmhDesktops (ewmh, ewmhFullscreen)
           import XMonad.Hooks.ManageDocks (avoidStruts, docks, manageDocks)
+          import XMonad.Hooks.OnPropertyChange (onXPropertyChange)
           import XMonad.Layout.BoringWindows (boringWindows, focusDown, focusMaster, focusUp)
           import XMonad.Layout.Grid (Grid (..))
           import XMonad.Layout.Minimize (minimize)
@@ -52,7 +52,7 @@
               . ewmhFullscreen
               . ewmh
               $ def
-                { borderWidth = 3,
+                { borderWidth = 4,
                   normalBorderColor = "${colors.withHashtag.base00}",
                   focusedBorderColor = "${colors.withHashtag.base0D}",
                   layoutHook = myLayoutHook,
@@ -149,7 +149,7 @@
 
           myManageHook = manageZoomHook <+> manageDocks
 
-          myHandleEventHook = dynamicTitle manageZoomHook <+> handleEventHook def
+          myHandleEventHook = onXPropertyChange "WM_NAME" manageZoomHook <+> handleEventHook def
 
           -- https://www.peterstuart.org/posts/2021-09-06-xmonad-zoom/
           manageZoomHook =
