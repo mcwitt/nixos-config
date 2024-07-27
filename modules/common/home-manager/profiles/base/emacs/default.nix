@@ -3,6 +3,7 @@
   imports = [
     nurNoPkgs.repos.rycee.hmModules.emacs-init
     ./consult.nix
+    ./corfu.nix
     ./embark.nix
     ./forge.nix
     ./format-all.nix
@@ -11,11 +12,6 @@
     ./org.nix
     ./theme
     ./vertico.nix
-  ] ++ [
-    # use company instead of corfu until sync issue with eglot is resolved
-    # https://github.com/joaotavora/eglot/discussions/1127
-    ./company.nix
-    # ./corfu.nix
   ];
 
   home.packages = [ pkgs.emacs-all-the-icons-fonts ];
