@@ -79,7 +79,10 @@
                                     ("M-'", spawn "rofi -show calc -no-show-match -no-sort"),
                                     ("M-y", spawn "emacsclient -c -n -e '(switch-to-buffer nil)'"),
                                     ("M-u", spawn "chromium-browser"),
-                                    ("M-s", spawn "dm-tool switch-to-greeter")
+                                    ("M-s", spawn "dm-tool switch-to-greeter"),
+                                    ("M-S-3", spawn "flameshot screen"),
+                                    ("M-S-4", spawn "flameshot gui"),
+                                    ("M-S-5", spawn "flameshot launcher")
                                   ]
                 `additionalKeys` ( first (noModMask,)
                                      <$> [ (xF86XK_MonBrightnessUp, spawn "xbacklight -inc 5"),
