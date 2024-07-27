@@ -143,6 +143,8 @@
 
   programs.jq.enable = true;
 
+  programs.nushell.enable = true;
+
   programs.wezterm = {
     enable = true;
     colorSchemes.custom = with config.lib.stylix.colors.withHashtag; {
