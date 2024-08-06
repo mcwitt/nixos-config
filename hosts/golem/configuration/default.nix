@@ -26,6 +26,8 @@
 
   hardware.nvidia.modesetting.enable = true;
 
+  hardware.nvidia-container-toolkit.enable = true;
+
   hardware.opengl = {
     enable = true;
     driSupport32Bit = true;
@@ -92,6 +94,4 @@
   system.stateVersion = "21.11";
 
   time.timeZone = "America/Los_Angeles";
-
-  virtualisation.docker.enableNvidia = true;
 }
