@@ -30,7 +30,12 @@ in
 
     programs.emacs.init.usePackage = {
 
-      code-cells.hook = [ "(python-ts-mode . code-cells-mode-maybe)" ];
+      code-cells = {
+        hook = [ "(python-ts-mode . code-cells-mode-maybe)" ];
+        config = ''
+          (add-to-list 'code-cells-eval-region-commands '(python-ts-mode . python-shell-send-region))
+        '';
+      };
 
       eglot.hook = [ "(python-ts-mode . eglot-ensure)" ];
 
