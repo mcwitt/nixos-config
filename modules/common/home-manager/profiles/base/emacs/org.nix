@@ -352,5 +352,10 @@
         (setq org-pandoc-options-for-slidy '((mathjax t)))
       '';
     };
+
+    vulpea = {
+      enable = true;
+      hook = [ "(org-roam-db-autosync-mode . vulpea-db-autosync-enable)" ];
+    };
   };
 }
