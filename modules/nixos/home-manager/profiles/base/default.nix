@@ -70,7 +70,7 @@
     };
 
     services.org-notes-sync = {
-      enable = true;
+      enable = false; # XXX
       repoPath = "${config.home.homeDirectory}/src/org-notes/";
       frequency = "*:0/5";
     };
