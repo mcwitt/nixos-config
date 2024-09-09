@@ -220,17 +220,6 @@
       '';
     };
 
-    org-ai = {
-      enable = true;
-      after = [ "org" ];
-      command = [ "org-ai-mode" "org-ai-global-mode" ];
-      hook = [ "(org-mode . org-ai-mode)" ];
-      config = ''
-        (setq org-ai-default-chat-model "gpt-3.5-turbo")
-        (org-ai-install-yasnippets)
-      '';
-    };
-
     org-capture = {
       enable = true;
       after = [ "org" ];

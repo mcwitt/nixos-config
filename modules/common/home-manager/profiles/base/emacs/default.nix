@@ -390,6 +390,8 @@
 
     gist.enable = true;
 
+    gptel.enable = true;
+
     hl-todo = {
       enable = true;
       hook = [ "(prog-mode . hl-todo-mode)" ];
