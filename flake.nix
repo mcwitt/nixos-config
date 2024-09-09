@@ -80,6 +80,8 @@
                 useUserPackages = true;
                 extraSpecialArgs = mkExtraSpecialArgs pkgs;
 
+                backupFileExtension = "backup-before-home-manager";
+
                 users = builtins.listToAttrs (map
                   (user: lib.nameValuePair user {
                     imports = [
