@@ -18,11 +18,34 @@ in
 
     programs.emacs.init.usePackage = {
 
-      eglot.hook = [ "(nix-mode . eglot-ensure)" ];
+      eglot = {
+        hook = [
+          "(nix-mode . eglot-ensure)"
+          "(nix-ts-mode . eglot-ensure)"
+        ];
+        config = ''
+          (add-to-list 'eglot-server-programs `(nix-ts-mode . ,(assoc-default 'nix-mode eglot-server-programs)))
+        '';
+      };
+
+      format-all.config = ''
+        (add-to-list 'language-id--definitions '("Nix" nix-mode nix-ts-mode))
+      '';
 
       nix-mode = {
         enable = true;
         bindLocal.nix-mode-map = {
+          "C-c C-z" = "nix-repl-show";
+        };
+      };
+
+      nix-ts-mode = {
+        enable = true;
+        init = ''
+          (add-to-list 'major-mode-remap-alist '(nix-mode . nix-ts-mode))
+        '';
+        command = [ "nix-ts-mode" ];
+        bindLocal.nix-ts-mode-map = {
           "C-c C-z" = "nix-repl-show";
         };
       };
