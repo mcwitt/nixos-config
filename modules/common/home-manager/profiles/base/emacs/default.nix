@@ -390,7 +390,19 @@
 
     gist.enable = true;
 
-    gptel.enable = true;
+    gptel = {
+      enable = true;
+      bind = {
+        "C-c g g" = "gptel";
+        "C-c g s" = "gptel-send";
+        "C-c g m" = "gptel-menu";
+        "C-c g a" = "gptel-add-context";
+        "C-c g x" = "gptel-abort";
+      };
+      config = ''
+        (setq gptel-default-mode #'org-mode)
+      '';
+    };
 
     hl-todo = {
       enable = true;
