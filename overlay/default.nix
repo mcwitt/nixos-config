@@ -21,6 +21,32 @@ in
 
   base16-tmux = callPackage ../packages/data/themes/base16-tmux.nix { };
 
+  emacs-unstable = prev.emacs-unstable.overrideAttrs (old: {
+    patches = (old.patches or [ ]) ++ final.lib.optionals final.stdenv.isDarwin [
+      # https://github.com/d12frosted/homebrew-emacs-plus/tree/master/patches/emacs-29
+      (final.fetchpatch {
+        url = "https://raw.githubusercontent.com/d12frosted/homebrew-emacs-plus/master/patches/emacs-28/fix-window-role.patch";
+        hash = "sha256-+z/KfsBm1lvZTZNiMbxzXQGRTjkCFO4QPlEK35upjsE=";
+      })
+      (final.fetchpatch {
+        url = "https://raw.githubusercontent.com/d12frosted/homebrew-emacs-plus/master/patches/emacs-28/no-frame-refocus-cocoa.patch";
+        hash = "sha256-QLGplGoRpM4qgrIAJIbVJJsa4xj34axwT3LiWt++j/c=";
+      })
+      (final.fetchpatch {
+        url = "https://raw.githubusercontent.com/d12frosted/homebrew-emacs-plus/master/patches/emacs-29/poll.patch";
+        hash = "sha256-jN9MlD8/ZrnLuP2/HUXXEVVd6A+aRZNYFdZF8ReJGfY=";
+      })
+      (final.fetchpatch {
+        url = "https://raw.githubusercontent.com/d12frosted/homebrew-emacs-plus/master/patches/emacs-29/round-undecorated-frame.patch";
+        hash = "sha256-uYIxNTyfbprx5mCqMNFVrBcLeo+8e21qmBE3lpcnd+4=";
+      })
+      (final.fetchpatch {
+        url = "https://raw.githubusercontent.com/d12frosted/homebrew-emacs-plus/master/patches/emacs-28/system-appearance.patch";
+        hash = "sha256-oM6fXdXCWVcBnNrzXmF0ZMdp8j0pzkLE66WteeCutv8=";
+      })
+    ];
+  });
+
   fish-kubectl-completions = callPackage ../packages/shells/fish/fish-kubectl-completions.nix { };
 
   fzf-fish = callPackage ../packages/shells/fish/fzf-fish.nix { };
