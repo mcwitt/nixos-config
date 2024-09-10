@@ -64,6 +64,8 @@ in
           (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
         '';
       };
+
+      superword.hook = [ "(python-ts-mode . superword-mode)" ];
     };
 
     programs.git.ignores = pkgs.gitignores "Python";
