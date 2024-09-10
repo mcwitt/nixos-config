@@ -13,7 +13,6 @@
     git-annex
     htop
     imagemagick
-    ncdu
     nix-du
     (parallel-full.override { willCite = true; })
     pre-commit
@@ -142,6 +141,8 @@
   programs.home-manager.enable = true;
 
   programs.jq.enable = true;
+
+  programs.ncdu.enable = true;
 
   programs.nushell.enable = true;
 
