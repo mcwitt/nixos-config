@@ -50,6 +50,7 @@ in
       customComponents = with pkgs.home-assistant-custom-components; [
         bhyve
         eero
+        gehome
       ];
 
       inovelliVzm31sn.enable = true;
