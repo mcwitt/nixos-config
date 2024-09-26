@@ -12,12 +12,12 @@
 
       ;; Emacs 30 and newer: Disable Ispell completion function. As an alternative,
       ;; try `cape-dict'.
-      (text-mode-ispell-word-completion nil)
+      ;; (text-mode-ispell-word-completion nil)
 
-      ;; Emacs 28 and newer: Hide commands in M-x which do not apply to the current
-      ;; mode.  Corfu commands are hidden, since they are not used via M-x. This
-      ;; setting is useful beyond Corfu.
-      (read-extended-command-predicate #'command-completion-default-include-p))
+      ;; Hide commands in M-x which do not apply to the current mode.  Corfu
+      ;; commands are hidden, since they are not used via M-x. This setting is
+      ;; useful beyond Corfu.
+      (read-extended-command-predicate #'command-completion-default-include-p)
     '';
 
     corfu = {

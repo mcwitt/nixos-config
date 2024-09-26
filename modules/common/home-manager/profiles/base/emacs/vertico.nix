@@ -15,7 +15,7 @@
       (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
 
       ;; Enable recursive minibuffers
-      (setq enable-recursive-minibuffers t))
+      (setq enable-recursive-minibuffers t)
     '';
 
     vertico = {

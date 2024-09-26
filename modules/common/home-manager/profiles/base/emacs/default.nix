@@ -266,6 +266,8 @@
       hook = [ "(prog-mode . electric-pair-mode)" ];
     };
 
+    emacs.enable = true;
+
     envrc = {
       enable = true;
       demand = true;
