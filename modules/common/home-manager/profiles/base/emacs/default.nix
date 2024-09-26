@@ -1,4 +1,4 @@
-{ config, nurNoPkgs, pkgs, ... }: {
+{ config, inputs, nurNoPkgs, pkgs, ... }: {
 
   imports = [
     nurNoPkgs.repos.rycee.hmModules.emacs-init
@@ -16,7 +16,15 @@
 
   home.packages = [ pkgs.emacs-all-the-icons-fonts ];
 
-  programs.emacs.package = pkgs.emacs-unstable;
+  programs.emacs.package =
+    # work around build failure with nixos-24.05 branch
+    let
+      pkgsUnstable = import inputs.nixpkgs-unstable {
+        inherit (pkgs) system;
+        overlays = [ inputs.emacs-overlay.overlays.default ];
+      };
+    in
+    pkgsUnstable.emacs-unstable;
 
   programs.emacs.extraPackages = epkgs: [ epkgs.treesit-grammars.with-all-grammars ];
 

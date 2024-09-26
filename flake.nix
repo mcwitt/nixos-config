@@ -8,6 +8,7 @@
     home-manager.url = "github:nix-community/home-manager/release-24.05";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     nur.url = "github:nix-community/NUR";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     stylix.url = "github:danth/stylix/release-24.05";
