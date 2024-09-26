@@ -1,6 +1,11 @@
 { config, lib, pkgs, ... }:
 {
-  imports = [ ./emacs ./neovim ];
+  imports = [
+    ./emacs
+    ./git-annex.nix
+    ./jupyter.nix
+    ./neovim
+  ];
 
   fonts.fontconfig.enable = true;
 
@@ -10,7 +15,6 @@
     fd
     (ffmpeg.override { withFullDeps = true; })
     fzf
-    git-annex
     htop
     imagemagick
     nix-du
@@ -28,7 +32,6 @@
     ec = "${config.programs.emacs.finalPackage}/bin/emacsclient --create-frame";
     ff = "${pkgs.fd}/bin/fd";
     g = "${pkgs.git}/bin/git";
-    ga = "${pkgs.git-annex}/bin/git-annex";
     gb = "${pkgs.git}/bin/git b";
     gca = "${pkgs.git}/bin/git ca";
     gd = "${pkgs.git}/bin/git d";
