@@ -33,14 +33,14 @@
 
       copilot = trivialBuild {
         pname = "copilot";
-        version = "0-unstable-2024-07-03";
+        version = "0-unstable-2024-09-25";
         src = pkgs.fetchFromGitHub {
           owner = "zerolfx";
           repo = "copilot.el";
-          rev = "e15bafa95b39091dbb2a99ad62e42f03a8d78f01";
-          sha256 = "sha256-jKm+oVMadHyeG93VFU3JG3qNROOJPDXs7w2pIO/2IyM=";
+          rev = "b5878d6a8c741138b5efbf4fe1c594f3fd69dbdd";
+          sha256 = "sha256-02ywlMPku1FIritZjjtxbQW6MmPvSwmRCrudYsUb8bU=";
         };
-        packageRequires = with final; [ dash editorconfig f jsonrpc pkgs.nodejs s ];
+        packageRequires = with final; [ dash editorconfig f jsonrpc s ];
         postInstall = ''
           cp -r $src $LISPDIR
         '';
