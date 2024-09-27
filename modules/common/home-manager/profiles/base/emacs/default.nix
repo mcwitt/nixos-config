@@ -248,8 +248,13 @@
       bindLocal.copilot-completion-map = {
         "<tab>" = "copilot-accept-completion";
         "TAB" = "copilot-accept-completion";
-        "C-<tab>" = "copilot-accept-completion-by-word";
         "C-TAB" = "copilot-accept-completion-by-word";
+        "C-<tab>" = "copilot-accept-completion-by-word";
+        "C-RET" = "copilot-accept-completion-by-line";
+        "C-<return>" = "copilot-accept-completion-by-line";
+        "M-<up>" = "copilot-previous-completion";
+        "M-<down>" = "copilot-next-completion";
+        "C-g" = "copilot-clear-overlay";
       };
       config = ''
         (setq copilot-node-executable "${pkgs.nodejs}/bin/node")
