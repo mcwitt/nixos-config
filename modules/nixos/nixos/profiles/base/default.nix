@@ -26,6 +26,8 @@
 
     programs.mtr.enable = true;
 
+    programs.nix-ld.enable = true;
+
     services.avahi = {
       enable = true;
       nssmdns4 = true;
