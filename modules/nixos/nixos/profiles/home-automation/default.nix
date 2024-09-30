@@ -51,6 +51,11 @@ in
         bhyve
         eero
         gehome
+        scheduler-component
+      ];
+
+      customLovelaceModules = with pkgs.home-assistant-custom-lovelace-modules; [
+        scheduler-card
       ];
 
       inovelliVzm31sn.enable = true;
