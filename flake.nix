@@ -41,6 +41,11 @@
           pkgs = null;
           nurpkgs = pkgs;
         };
+
+        pkgsUnstable = import inputs.nixpkgs-unstable {
+          inherit overlays;
+          inherit (pkgs) system;
+        };
       };
     in
     {
@@ -50,7 +55,10 @@
         nixpkgs.lib.nixosSystem {
           inherit system;
 
-          specialArgs = { inherit inputs; };
+          specialArgs = {
+            inherit inputs;
+            pkgsUnstable = import inputs.nixpkgs-unstable { inherit overlays system; };
+          };
 
           modules = [
             home-manager.nixosModules.home-manager
