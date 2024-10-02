@@ -17,6 +17,7 @@
   outputs =
     { self
     , nixpkgs
+    , nixpkgs-unstable
     , flake-utils
     , home-manager
     , emacs-overlay
@@ -124,7 +125,7 @@
           extraHmModules = [ ./hosts/golem/home ];
         };
 
-        hal = nixpkgs.lib.makeOverridable nixpkgs.lib.nixosSystem {
+        hal = nixpkgs.lib.makeOverridable nixpkgs-unstable.lib.nixosSystem {
           system = "aarch64-linux";
           modules = [
             nur.nixosModules.nur
