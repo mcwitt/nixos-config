@@ -1,4 +1,3 @@
-{ lib, ... }:
 {
   programs.emacs.init.usePackage = {
 
@@ -9,10 +8,10 @@
         "(prog-mode . format-all-mode)"
         "(format-all-mode . format-all-ensure-formatter)"
       ];
+      extraConfig = ''
+        :custom
+        (format-all-show-errors 'never)
+      '';
     };
-
-    frames-only-mode.config = lib.mkBefore ''
-      (add-to-list 'frames-only-mode-use-window-functions 'format-all--buffer-from-hook)
-    '';
   };
 }
