@@ -38,8 +38,6 @@
     settings.PasswordAuthentication = false;
   };
 
-  services.zigbee2mqtt.settings.serial.port = "/dev/serial/by-id/usb-ITEAD_SONOFF_Zigbee_3.0_USB_Dongle_Plus_V2_20230602161357-if00";
-
   system.stateVersion = "22.11";
 
   time.timeZone = "America/Los_Angeles";

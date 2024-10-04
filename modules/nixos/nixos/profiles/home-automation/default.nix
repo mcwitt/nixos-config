@@ -9,6 +9,7 @@ in
   imports = [
     ./recorder.nix
     ./solar.nix
+    ./zigbee2mqtt.nix
   ];
 
   options.profiles.home-automation.enable = mkEnableOption "Services for home automation";
@@ -112,8 +113,6 @@ in
           };
       }).overrideAttrs (_: { doInstallCheck = false; });
     };
-
-    services.zigbee2mqtt.enable = true;
 
     systemd.services.home-assistant.serviceConfig.Restart = lib.mkForce "always";
   };
