@@ -28,6 +28,8 @@ in
         pythonEnv
       ];
 
+    programs.emacs.overrides = _: _: { python = null; }; # use built-in python.el
+
     programs.emacs.init.usePackage = {
 
       code-cells = {
@@ -59,7 +61,6 @@ in
       # Use python.el, NOT python-mode.el
       python = {
         enable = true;
-        package = _: null; # use built-in package
         init = ''
           (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
         '';
