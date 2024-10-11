@@ -37,6 +37,8 @@
         '';
       };
 
+      eglot = null; # use built-in package
+
       git-sync = trivialBuild {
         pname = "git-sync";
         version = "0-unstable-2022-10-01";
