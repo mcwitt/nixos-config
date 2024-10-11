@@ -268,6 +268,7 @@
 
       bindLocal.eglot-mode-map = {
         "C-c l a" = "eglot-code-actions";
+        "C-c l h" = "eglot-inlay-hints-mode";
         "C-c l r" = "eglot-rename";
       };
 
