@@ -1,4 +1,4 @@
-{ lib, config, pkgs, ... }:
+{ lib, config, pkgs, pkgsUnstable, ... }:
 with lib;
 let cfg = config.languages.python;
 in
@@ -24,7 +24,7 @@ in
       [
         pkgs.black
         pkgs.isort
-        pkgs.pyright
+        pkgsUnstable.basedpyright # not yet available in release channel
         pythonEnv
       ];
 
