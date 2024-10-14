@@ -168,12 +168,15 @@
           extraNixosModules = [
             ./hosts/karakuri/configuration
             {
+              profiles = {
+                desktop.enable = true;
+                personal.enable = true;
+              };
               home-manager.users.matt.profiles = {
                 base.enable = true;
                 desktop.enable = true;
                 personal.enable = true;
               };
-              profiles.personal.enable = true;
             }
           ];
           extraHmModules = [ ./hosts/karakuri/home ];
