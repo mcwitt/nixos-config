@@ -57,6 +57,7 @@ in
 
       customLovelaceModules = with pkgs.home-assistant-custom-lovelace-modules; [
         scheduler-card
+        valetudo-map-card
       ];
 
       inovelliVzm31sn.enable = true;

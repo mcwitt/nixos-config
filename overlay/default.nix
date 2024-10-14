@@ -68,12 +68,10 @@ in
     }
   );
 
-  home-assistant-custom-lovelace-modules = prev.home-assistant-custom-lovelace-modules // (
-    let inherit (final.home-assistant.python.pkgs) callPacakge;
-    in {
-      scheduler-card = callPackage ../packages/servers/home-assistant/custom-lovelace-modules/scheduler-card { };
-    }
-  );
+  home-assistant-custom-lovelace-modules = prev.home-assistant-custom-lovelace-modules // {
+    scheduler-card = callPackage ../packages/servers/home-assistant/custom-lovelace-modules/scheduler-card { };
+    valetudo-map-card = callPackage ../packages/servers/home-assistant/custom-lovelace-modules/valetudo-map-card { };
+  };
 
   nerdifyFont = callPackage ./nerdify-font.nix { };
 
