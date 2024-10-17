@@ -1,7 +1,11 @@
-{ pkgs, ... }:
+{ inputs, pkgs, ... }:
 
 {
-  imports = [ ./hardware-configuration.nix ];
+  imports = [
+    ./hardware-configuration.nix
+    "${inputs.nixos-hardware}/raspberry-pi/4"
+    ./bluetooth.nix
+  ];
 
   boot = {
     kernelPackages = pkgs.linuxKernel.packages.linux_rpi4;

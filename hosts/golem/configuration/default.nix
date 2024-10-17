@@ -17,10 +17,7 @@
     keyMap = "us";
   };
 
-  hardware.bluetooth = {
-    enable = true;
-    powerOnBoot = true;
-  };
+  hardware.bluetooth.enable = true;
 
   hardware.keyboard.zsa.enable = true;
 
