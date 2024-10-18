@@ -86,11 +86,11 @@
                 users);
 
               home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
+                backupFileExtension = "backup-before-home-manager";
+
                 extraSpecialArgs = mkExtraSpecialArgs pkgs;
 
-                backupFileExtension = "backup-before-home-manager";
+                useGlobalPkgs = true;
 
                 users = builtins.listToAttrs (map
                   (user: lib.nameValuePair user {
@@ -98,8 +98,12 @@
                       self.homeManagerModules.common
                       self.homeManagerModules.nixos
                     ] ++ extraHmModules;
+
+                    profiles.base.enable = true;
                   })
                   users);
+
+                useUserPackages = true;
               };
 
               profiles.base.enable = true;
@@ -120,7 +124,6 @@
               };
 
               home-manager.users.matt.profiles = {
-                base.enable = true;
                 desktop.enable = true;
                 personal.enable = true;
               };
@@ -173,7 +176,6 @@
                 personal.enable = true;
               };
               home-manager.users.matt.profiles = {
-                base.enable = true;
                 desktop.enable = true;
                 personal.enable = true;
               };
