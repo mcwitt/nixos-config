@@ -24,5 +24,8 @@
         };
       };
     };
+
+    # Workaround to ensure restart with exit code 0 on "error: z2m: Adapter disconnected, stopping"
+    systemd.services.zigbee2mqtt.serviceConfig.Restart = lib.mkForce "always";
   };
 }
