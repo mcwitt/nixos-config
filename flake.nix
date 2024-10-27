@@ -33,6 +33,13 @@
         nur.overlay
       ];
 
+      nixpkgsArgs = {
+        inherit overlays;
+        config.allowUnfree = true;
+      };
+
+      mkPkgs = { system, nixpkgs ? nixpkgs }: import nixpkgs ({ inherit system; } // nixpkgsArgs);
+
       mkExtraSpecialArgs = pkgs: {
         inherit inputs;
 
@@ -43,8 +50,8 @@
           nurpkgs = pkgs;
         };
 
-        pkgsUnstable = import inputs.nixpkgs-unstable {
-          inherit overlays;
+        pkgsUnstable = mkPkgs {
+          nixpkgs = inputs.nixpkgs-unstable;
           inherit (pkgs) system;
         };
       };
@@ -72,10 +79,7 @@
             self.nixosModules.nixos
 
             ({ config, lib, pkgs, ... }: {
-              nixpkgs = {
-                config.allowUnfree = true;
-                inherit overlays;
-              };
+              nixpkgs = nixpkgsArgs;
 
               users.users = builtins.listToAttrs (map
                 (user: lib.nameValuePair user {
@@ -139,12 +143,7 @@
             self.nixosModules.common
             self.nixosModules.nixos
             ./hosts/hal/configuration
-            {
-              nixpkgs = {
-                config.allowUnfree = true;
-                inherit overlays;
-              };
-            }
+            { nixpkgs = nixpkgsArgs; }
           ];
           specialArgs = { inherit inputs; };
         };
@@ -155,12 +154,7 @@
             self.nixosModules.common
             self.nixosModules.nixos
             ./hosts/hestia/configuration
-            {
-              nixpkgs = {
-                config.allowUnfree = true;
-                inherit overlays;
-              };
-            }
+            { nixpkgs = nixpkgsArgs; }
           ];
           specialArgs = { inherit inputs; };
         };
@@ -185,73 +179,65 @@
         };
       };
 
-      homeConfigurations =
-        let
-          pkgsFor = system: import nixpkgs {
-            inherit system;
-            config.allowUnfree = true;
-            inherit overlays;
-          };
-        in
-        {
-          matt = nixpkgs.lib.makeOverridable home-manager.lib.homeManagerConfiguration rec {
+      homeConfigurations = {
+        matt = nixpkgs.lib.makeOverridable home-manager.lib.homeManagerConfiguration rec {
 
-            pkgs = pkgsFor "x86_64-linux";
+          pkgs = mkPkgs { system = "x86_64-linux"; };
 
-            extraSpecialArgs = mkExtraSpecialArgs pkgs;
+          extraSpecialArgs = mkExtraSpecialArgs pkgs;
 
-            modules = [
-              self.homeManagerModules.common
-              self.homeManagerModules.nixos
+          modules = [
+            self.homeManagerModules.common
+            self.homeManagerModules.nixos
 
-              stylix.homeManagerModules.stylix
-              self.homeManagerModules.stylix
+            stylix.homeManagerModules.stylix
+            self.homeManagerModules.stylix
 
-              ({ config, lib, ... }: {
-                home = {
-                  username = lib.mkDefault "matt";
-                  homeDirectory = "/home/${config.home.username}";
-                  stateVersion = lib.mkDefault "22.11";
-                };
-              })
-            ];
-          };
-
-          "matt@desktop" = self.homeConfigurations.matt.override (old: {
-            modules = old.modules ++ [{
-              profiles = {
-                desktop.enable = true;
-                personal.enable = true;
+            ({ config, lib, ... }: {
+              home = {
+                username = lib.mkDefault "matt";
+                homeDirectory = "/home/${config.home.username}";
+                stateVersion = lib.mkDefault "22.11";
               };
-            }];
-          });
-
-          "matt@macos" = nixpkgs.lib.makeOverridable home-manager.lib.homeManagerConfiguration rec {
-
-            pkgs = pkgsFor "x86_64-darwin";
-
-            extraSpecialArgs = mkExtraSpecialArgs pkgs;
-
-            modules = [
-              self.homeManagerModules.common
-
-              stylix.homeManagerModules.stylix
-              self.homeManagerModules.stylix
-
-              ({ config, lib, ... }: {
-                home = {
-                  username = lib.mkDefault "matt";
-                  homeDirectory = "/Users/${config.home.username}";
-                  stateVersion = lib.mkDefault "22.11";
-                };
-
-                programs.wezterm.enable = lib.mkForce false; # TODO: broken on x86_64-darwin
-
-                stylix.targets.swaylock.enable = false; # swaylock unsupported on x86_64-darwin; unclear why this is needed
-              })
-            ];
-          };
+            })
+          ];
         };
+
+        "matt@desktop" = self.homeConfigurations.matt.override (old: {
+          modules = old.modules ++ [{
+            profiles = {
+              desktop.enable = true;
+              personal.enable = true;
+            };
+          }];
+        });
+
+        "matt@macos" = nixpkgs.lib.makeOverridable home-manager.lib.homeManagerConfiguration rec {
+
+          pkgs = mkPkgs { system = "x86_64-darwin"; };
+
+          extraSpecialArgs = mkExtraSpecialArgs pkgs;
+
+          modules = [
+            self.homeManagerModules.common
+
+            stylix.homeManagerModules.stylix
+            self.homeManagerModules.stylix
+
+            ({ config, lib, ... }: {
+              home = {
+                username = lib.mkDefault "matt";
+                homeDirectory = "/Users/${config.home.username}";
+                stateVersion = lib.mkDefault "22.11";
+              };
+
+              programs.wezterm.enable = lib.mkForce false; # TODO: broken on x86_64-darwin
+
+              stylix.targets.swaylock.enable = false; # swaylock unsupported on x86_64-darwin; unclear why this is needed
+            })
+          ];
+        };
+      };
 
       nixosModules = {
         common = import ./modules/common/nixos;
