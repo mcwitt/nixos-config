@@ -6,13 +6,13 @@
 buildHomeAssistantComponent rec {
   owner = "nielsfaber";
   domain = "scheduler";
-  version = "3.3.5";
+  version = "3.3.8";
 
   src = fetchFromGitHub {
     inherit owner;
     repo = "scheduler-component";
     rev = "v${version}";
-    hash = "sha256-NOSSNxtr4WJgWUIYf0W9xhzXwFjyEPux3FiG4J1zkq0=";
+    hash = "sha256-QN7rkNuj9IBbV2ths7ZdL/EkXFJUpjNbgJNUnAHjLBA=";
   };
 
   meta = with lib; {
