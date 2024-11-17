@@ -9,13 +9,13 @@
 buildHomeAssistantComponent rec {
   owner = "simbaja";
   domain = "gehome";
-  version = "0.6.11";
+  version = "0.6.12";
 
   src = fetchFromGitHub {
     inherit owner;
     repo = "ha_gehome";
     rev = "v${version}";
-    hash = "sha256-qo02Y9HQQl11oYVvf68Exof7scwyna7xeZerjRajh88=";
+    hash = "sha256-gtZah44NlT1jnbxnxqbo0uWnxP+mWYkl9RfJNvLV/xU=";
   };
 
   propagatedBuildInputs = [ gehomesdk magicattr slixmpp ];
