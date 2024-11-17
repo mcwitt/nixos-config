@@ -59,11 +59,6 @@
     xkb.layout = "us";
   };
 
-  sound = {
-    enable = true;
-    mediaKeys.enable = true;
-  };
-
   system.stateVersion = "21.11";
 
   time.timeZone = "America/Los_Angeles";

@@ -16,7 +16,7 @@ in
 
     programs.vscode = {
       extensions = with pkgs.vscode-extensions; [
-        matklad.rust-analyzer
+        rust-lang.rust-analyzer
       ];
     };
   };

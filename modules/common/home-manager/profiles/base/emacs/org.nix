@@ -70,7 +70,7 @@
     };
 
     citar = {
-      enable = true;
+      enable = false; # XXX disabled due to byte compilation error
       bindLocal.minibuffer-local-map = {
         "M-b" = "citar-insert-preset";
       };

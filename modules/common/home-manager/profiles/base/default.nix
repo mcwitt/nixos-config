@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, inputs, lib, pkgs, ... }:
 {
   imports = [
     ./emacs
@@ -151,6 +151,21 @@
 
   programs.wezterm = {
     enable = true;
+
+    # wezterm rendering broken in 24.11 as of 2024-11-17
+    # https://github.com/NixOS/nixpkgs/issues/336069
+    package =
+      let
+        nixpkgs = pkgs.fetchFromGitHub {
+          owner = "nixos";
+          repo = "nixpkgs";
+          rev = "nixos-24.05";
+          hash = "sha256-df3dJApLPhd11AlueuoN0Q4fHo/hagP75LlM5K1sz9g=";
+        };
+        pkgs' = import nixpkgs { inherit (pkgs) system; };
+      in
+      pkgs'.wezterm;
+
     colorSchemes.custom = with config.lib.stylix.colors.withHashtag; {
       # https://github.com/chriskempson/base16-shell/blob/master/templates/default.mustache
       ansi = [ base00 red green yellow blue magenta cyan base05 ];
@@ -202,7 +217,6 @@
   programs.tmux = {
     enable = true;
     keyMode = "vi";
-    extraConfig = builtins.readFile (config.lib.stylix.scheme pkgs.base16-tmux);
   };
 
   programs.vscode = {

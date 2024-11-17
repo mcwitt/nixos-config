@@ -1,4 +1,4 @@
-{ lib, config, pkgs, pkgsUnstable, ... }:
+{ lib, config, pkgs, ... }:
 with lib;
 let cfg = config.languages.python;
 in
@@ -24,11 +24,13 @@ in
       [
         pkgs.black
         pkgs.isort
-        pkgsUnstable.basedpyright # not yet available in release channel
+        pkgs.basedpyright
         pythonEnv
       ];
 
-    programs.emacs.overrides = _: _: { python = null; }; # use built-in python.el
+    programs.emacs.overrides = _: prev: {
+      python = null; # use built-in package
+    };
 
     programs.emacs.init.usePackage = {
 

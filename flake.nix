@@ -5,19 +5,17 @@
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     flake-utils.url = "github:numtide/flake-utils";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
-    home-manager.url = "github:nix-community/home-manager/release-24.05";
+    home-manager.url = "github:nix-community/home-manager/release-24.11";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
     nur.url = "github:nix-community/NUR";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
-    stylix.url = "github:danth/stylix/release-24.05";
+    stylix.url = "github:danth/stylix";
   };
 
   outputs =
     { self
     , nixpkgs
-    , nixpkgs-unstable
     , flake-utils
     , home-manager
     , emacs-overlay
@@ -49,11 +47,6 @@
           pkgs = null;
           nurpkgs = pkgs;
         };
-
-        pkgsUnstable = mkPkgs {
-          nixpkgs = inputs.nixpkgs-unstable;
-          inherit (pkgs) system;
-        };
       };
     in
     {
@@ -63,10 +56,7 @@
         nixpkgs.lib.nixosSystem {
           inherit system;
 
-          specialArgs = {
-            inherit inputs;
-            pkgsUnstable = import inputs.nixpkgs-unstable { inherit overlays system; };
-          };
+          specialArgs = { inherit inputs; };
 
           modules = [
             home-manager.nixosModules.home-manager
@@ -136,7 +126,7 @@
           extraHmModules = [ ./hosts/golem/home ];
         };
 
-        hal = nixpkgs.lib.makeOverridable nixpkgs-unstable.lib.nixosSystem {
+        hal = nixpkgs.lib.makeOverridable nixpkgs.lib.nixosSystem {
           system = "aarch64-linux";
           modules = [
             nur.nixosModules.nur

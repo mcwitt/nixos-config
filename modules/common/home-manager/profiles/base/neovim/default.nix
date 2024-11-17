@@ -8,15 +8,7 @@
     vimdiffAlias = true;
     withPython3 = true;
     plugins = with pkgs.vimPlugins; [
-      (copilot-vim.overrideAttrs (_: {
-        version = "1.4.2";
-        src = pkgs.fetchFromGitHub {
-          owner = "github";
-          repo = "copilot.vim";
-          rev = "c2e75a3a7519c126c6fdb35984976df9ae13f564";
-          sha256 = "sha256-V13La54aIb3hQNDE7BmOIIZWy7In5cG6kE0fti/wxVQ=";
-        };
-      }))
+      copilot-vim
       ctrlp-vim
       nvim-lightbulb
       syntastic
