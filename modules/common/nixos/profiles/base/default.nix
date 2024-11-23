@@ -9,6 +9,7 @@
     environment.systemPackages = with pkgs; [
       (aspellWithDicts (ds: [ ds.en ]))
       coreutils
+      dig
       file
       findutils
       gawk
