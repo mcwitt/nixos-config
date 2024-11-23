@@ -18,6 +18,7 @@
     htop
     imagemagick
     nix-du
+    nix-output-monitor
     (parallel-full.override { willCite = true; })
     pre-commit
     nodePackages.prettier
