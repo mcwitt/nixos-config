@@ -8,7 +8,6 @@
   console.useXkbConfig = true;
 
   environment.systemPackages = with pkgs; [
-    home-assistant-cli
     vim
   ];
 
@@ -21,8 +20,6 @@
     gc.dates = "weekly";
     settings.trusted-public-keys = [ "golem:eibXP6qvkaDB9Jvh/MkR4D/dVL7HYDBJI2srJZgVhGE=" ];
   };
-
-  profiles.home-automation.enable = true;
 
   services.avahi = {
     enable = true;

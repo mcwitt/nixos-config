@@ -133,7 +133,10 @@
             self.nixosModules.common
             self.nixosModules.nixos
             ./hosts/hal/configuration
-            { nixpkgs = nixpkgsArgs; }
+            {
+              nixpkgs = nixpkgsArgs;
+              profiles.home-automation.enable = true;
+            }
           ];
           specialArgs = { inherit inputs; };
         };
@@ -144,7 +147,25 @@
             self.nixosModules.common
             self.nixosModules.nixos
             ./hosts/hestia/configuration
-            { nixpkgs = nixpkgsArgs; }
+            {
+              nixpkgs = nixpkgsArgs;
+              profiles.home-automation.enable = true;
+            }
+          ];
+          specialArgs = { inherit inputs; };
+        };
+
+        hob = nixpkgs.lib.makeOverridable nixpkgs.lib.nixosSystem {
+          system = "aarch64-linux";
+          modules = [
+            nur.nixosModules.nur
+            self.nixosModules.common
+            self.nixosModules.nixos
+            ./hosts/hob/configuration
+            {
+              nixpkgs = nixpkgsArgs;
+              profiles.home-automation.enable = true;
+            }
           ];
           specialArgs = { inherit inputs; };
         };

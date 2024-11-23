@@ -3,28 +3,17 @@
 {
   imports = [
     ./hardware-configuration.nix
-    "${inputs.nixos-hardware}/raspberry-pi/4"
-    ./bluetooth.nix
+    "${inputs.nixos-hardware}/raspberry-pi/5"
   ];
 
-  boot = {
-    kernelPackages = pkgs.linuxKernel.packages.linux_rpi4;
-    initrd.availableKernelModules = [ "xhci_pci" "usbhid" "usb_storage" ];
-    loader = {
-      grub.enable = false;
-      generic-extlinux-compatible.enable = true;
-    };
-  };
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = false;
 
-  i18n.defaultLocale = "en_US.UTF-8";
+  networking.hostName = "hob";
 
-  networking.hostName = "hal";
-
-  nix = {
-    gc.automatic = true;
-    gc.dates = "weekly";
-    settings.trusted-public-keys = [ "golem:eibXP6qvkaDB9Jvh/MkR4D/dVL7HYDBJI2srJZgVhGE=" ];
-  };
+  nix.gc.automatic = true;
+  nix.gc.dates = "weekly";
+  nix.settings.trusted-public-keys = [ "golem:eibXP6qvkaDB9Jvh/MkR4D/dVL7HYDBJI2srJZgVhGE=" ];
 
   time.timeZone = "America/Los_Angeles";
 
@@ -36,7 +25,7 @@
   };
 
   environment.systemPackages = with pkgs; [
-    vim
+    vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
   ];
 
   services.avahi = {
@@ -62,7 +51,6 @@
     PAPERLESS_CONVERT_MEMORY_LIMIT = "1gb";
   };
 
-  system.stateVersion = "23.11";
-
-  hardware.enableRedistributableFirmware = true;
+  system.stateVersion = "24.11";
 }
+
