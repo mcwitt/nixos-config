@@ -133,10 +133,7 @@
             self.nixosModules.common
             self.nixosModules.nixos
             ./hosts/hal/configuration
-            {
-              nixpkgs = nixpkgsArgs;
-              profiles.home-automation.enable = true;
-            }
+            { nixpkgs = nixpkgsArgs; }
           ];
           specialArgs = { inherit inputs; };
         };
