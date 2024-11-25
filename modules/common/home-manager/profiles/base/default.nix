@@ -82,8 +82,8 @@
 
     plugins = [
       {
-        name = "fzf.fish";
-        src = pkgs.fzf-fish;
+        name = "fzf-fish";
+        inherit (pkgs.fishPlugins.fzf-fish) src;
       }
     ];
 

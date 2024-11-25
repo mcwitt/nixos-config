@@ -12,7 +12,6 @@ let
     packageOverrides = lib.composeExtensions (old.packageOverrides or (_: _: { })) (pyFinal: pyPrev:
       let inherit (pyFinal) callPackage;
       in {
-        aiosolaredge = callPackage ../packages/development/python-modules/aiosolaredge { };
         magicattr = callPackage ../packages/development/python-modules/magicattr { };
       });
   });
@@ -48,8 +47,6 @@ in
 
   fish-kubectl-completions = callPackage ../packages/shells/fish/fish-kubectl-completions.nix { };
 
-  fzf-fish = callPackage ../packages/shells/fish/fzf-fish.nix { };
-
   github-gitignore = callPackage ../packages/data/misc/github-gitignore.nix { };
 
   gitignores = callPackage ../packages/development/misc/gitignores.nix { };
@@ -68,7 +65,6 @@ in
 
   home-assistant-custom-lovelace-modules = prev.home-assistant-custom-lovelace-modules // {
     scheduler-card = callPackage ../packages/servers/home-assistant/custom-lovelace-modules/scheduler-card { };
-    valetudo-map-card = callPackage ../packages/servers/home-assistant/custom-lovelace-modules/valetudo-map-card { };
   };
 
   nerdifyFont = callPackage ./nerdify-font.nix { };
