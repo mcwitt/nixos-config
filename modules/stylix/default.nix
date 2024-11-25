@@ -19,8 +19,14 @@
           url = "https://raw.githubusercontent.com/mcwitt/art/b406c51aa6f41856b2e76b558eac8f1c8eb79512/mountain-cabin.png";
           sha256 = "sha256:0lc8177x7msa06k4s1v9slqm4ap5rc6gpc8d2ck3km4xx7bn3x9g";
         };
+        ngc602 = builtins.fetchurl {
+          url = "https://live.staticflickr.com/65535/54088897300_3e378b6a5f_o_d.png";
+          sha256 = "sha256:19wd9bvgp5hp3j0nfq69yf1yvn72zv7g2s8lp2ak18pihxsijcg1";
+        };
       in
-      lib.mkDefault mountain-cabin;
+      lib.mkDefault ngc602;
+
+    imageScalingMode = "stretch";
 
     fonts = {
       monospace = {
