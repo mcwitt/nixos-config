@@ -100,7 +100,7 @@
     };
 
     citar-org = {
-      enable = true;
+      inherit (config.programs.emacs.init.usePackage.citar) enable;
       demand = true;
       after = [ "org" ];
       bindLocal.org-mode-map = {
