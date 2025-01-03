@@ -10,7 +10,7 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
     nur.url = "github:nix-community/NUR";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
-    stylix.url = "github:danth/stylix";
+    stylix.url = "github:danth/stylix/release-24.11";
   };
 
   outputs =
@@ -28,7 +28,7 @@
       overlays = [
         self.overlays.default
         emacs-overlay.overlay
-        nur.overlay
+        nur.overlays.default
       ];
 
       nixpkgsArgs = {
@@ -60,7 +60,7 @@
 
           modules = [
             home-manager.nixosModules.home-manager
-            nur.nixosModules.nur
+            nur.modules.nixos.default
 
             stylix.nixosModules.stylix
             self.nixosModules.stylix
@@ -129,7 +129,7 @@
         hal = nixpkgs.lib.makeOverridable nixpkgs.lib.nixosSystem {
           system = "aarch64-linux";
           modules = [
-            nur.nixosModules.nur
+            nur.modules.nixos.default
             self.nixosModules.common
             self.nixosModules.nixos
             ./hosts/hal/configuration
@@ -155,7 +155,7 @@
         hob = nixpkgs.lib.makeOverridable nixpkgs.lib.nixosSystem {
           system = "aarch64-linux";
           modules = [
-            nur.nixosModules.nur
+            nur.modules.nixos.default
             self.nixosModules.common
             self.nixosModules.nixos
             ./hosts/hob/configuration

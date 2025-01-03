@@ -39,21 +39,6 @@
 
       eglot = null; # use built-in package
 
-      # Remove when https://github.com/NixOS/nixpkgs/pull/356376 merges
-      emacsql = prev.emacsql.overrideAttrs (old: {
-        src = pkgs.fetchFromGitHub {
-          owner = "magit";
-          repo = "emacsql";
-          rev = "937d45a1c3827667d2521aa36a2139de5740839b";
-          hash = "sha256-31O3ngXINErLA0PRSE701KJ3uH8E+oEhgrnluDpph9o=";
-        };
-        buildInputs = [ ];
-        postBuild = "";
-        postInstall =
-          let parts = lib.splitString "\n" old.postInstall;
-          in lib.concatStringsSep "\n" (lib.take (builtins.length parts - 3) parts);
-      });
-
       git-sync = trivialBuild {
         pname = "git-sync";
         version = "0-unstable-2022-10-01";
