@@ -71,4 +71,18 @@ in
 
   python311 = overridePython prev.python311;
   python312 = overridePython prev.python312;
+
+  # wezterm rendering broken in 24.11 as of 2024-11-17
+  # https://github.com/NixOS/nixpkgs/issues/336069
+  wezterm =
+    let
+      nixpkgs = final.fetchFromGitHub {
+        owner = "nixos";
+        repo = "nixpkgs";
+        rev = "nixos-24.05";
+        hash = "sha256-df3dJApLPhd11AlueuoN0Q4fHo/hagP75LlM5K1sz9g=";
+      };
+      pkgs = import nixpkgs { inherit (final) system; };
+    in
+    pkgs.wezterm;
 }
