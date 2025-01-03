@@ -12,10 +12,7 @@
     efi.canTouchEfiVariables = true;
   };
 
-  console = {
-    font = "${pkgs.terminus_font}/share/consolefonts/ter-u16n.psf.gz";
-    keyMap = "us";
-  };
+  console.keyMap = "us";
 
   hardware.bluetooth.enable = true;
 
