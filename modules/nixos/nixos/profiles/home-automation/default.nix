@@ -98,8 +98,6 @@ in
 
         packageOverrides = final: prev:
           let inherit (final) callPackage; in {
-            aiosolaredge = callPackage ../../../../../packages/development/python-modules/aiosolaredge { };
-
             pyflume = prev.pyflume.overridePythonAttrs (oldAttrs: rec {
               version = "0.6.5"; # version pinned by home-assistant
               name = "${oldAttrs.pname}-${version}";
