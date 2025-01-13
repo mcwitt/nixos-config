@@ -1,7 +1,5 @@
 { config, lib, pkgs, ... }:
 {
-  options.profiles.base.enable = lib.mkEnableOption "Base configuration enabled on most machines";
-
   config = lib.mkIf config.profiles.base.enable {
     home.packages = with pkgs; [ signal-desktop ];
 
