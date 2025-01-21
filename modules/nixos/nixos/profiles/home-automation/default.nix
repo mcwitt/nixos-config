@@ -7,6 +7,7 @@ in
 
 {
   imports = [
+    ./lifx.nix
     ./recorder.nix
     ./solar.nix
     ./zigbee2mqtt.nix
@@ -88,7 +89,6 @@ in
       ];
 
       extraPackages = ps: with ps; [
-        aiosolaredge
         pyqrcode # needed for totp setup
       ];
 
