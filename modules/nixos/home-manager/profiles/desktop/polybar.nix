@@ -188,10 +188,10 @@
             interface-type = "wired";
             interval = 1;
 
-            format-connected-prefix = "  ";
+            format-connected-prefix = "󰛳  ";
             label-connected = "%ifname% %netspeed%";
 
-            format-disconnected-prefix = "  ";
+            format-disconnected-prefix = "󰲛  ";
             label-disconnected = "%ifname% disconnected";
             label-disconnected-foreground = ''''${colors.disabled}'';
           };
