@@ -65,4 +65,7 @@
   system.stateVersion = "23.11";
 
   hardware.enableRedistributableFirmware = true;
+
+  # Enable GPU acceleration
+  hardware.raspberry-pi."4".fkms-3d.enable = true;
 }
