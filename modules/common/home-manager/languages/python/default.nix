@@ -10,7 +10,7 @@ in
       default = _: [ ];
       type = hm.types.selectorFunction;
       defaultText = "pypkgs: []";
-      example = literalExample "pypkgs: with pypkgs; [ black pandas requests ]";
+      example = literalExample "pypkgs: with pypkgs; [ pandas requests ]";
       description = ''
         Packages to install globally.
       '';
@@ -22,8 +22,7 @@ in
       let pythonEnv = pkgs.python3.withPackages cfg.globalPackages;
       in
       [
-        pkgs.black
-        pkgs.isort
+        pkgs.ruff
         pkgs.basedpyright
         pythonEnv
       ];
