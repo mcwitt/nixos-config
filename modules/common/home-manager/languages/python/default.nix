@@ -42,6 +42,8 @@ in
 
       eglot.hook = [ "(python-ts-mode . eglot-ensure)" ];
 
+      format-all.hook = [ "(python-mode . (lambda () (format-all-mode -1)))" ];
+
       ligature.config = ''
         (ligature-set-ligatures 'python-ts-mode '("->" "==" ">=" "<="))
       '';
@@ -64,6 +66,21 @@ in
         enable = true;
         init = ''
           (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
+        '';
+      };
+
+      reformatter = {
+        enable = true;
+        config = ''
+          (reformatter-define ruff-format
+            :program "ruff"
+            :args (list "format" "--stdin-filename" (or (buffer-file-name) input-file))
+            :lighter " RuffFmt")
+
+          (reformatter-define ruff-fix
+            :program "ruff"
+            :args (list "check" "--fix-only" "--stdin-filename" (or (buffer-file-name) input-file))
+            :lighter " RuffFix")
         '';
       };
 
