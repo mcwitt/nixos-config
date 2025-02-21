@@ -1,1 +1,6 @@
-{ imports = [ ./aws ./kubernetes ]; }
+{
+  imports = [
+    ./aws
+    ./kubernetes
+  ];
+}

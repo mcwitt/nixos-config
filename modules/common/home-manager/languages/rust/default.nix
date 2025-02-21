@@ -1,6 +1,12 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 with lib;
-let cfg = config.languages.rust;
+let
+  cfg = config.languages.rust;
 in
 {
   options.languages.rust.enable = mkEnableOption "Rust language environment";

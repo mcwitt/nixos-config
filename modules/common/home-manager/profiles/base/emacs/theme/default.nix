@@ -20,7 +20,8 @@
     base16-stylix-theme = final.trivialBuild {
       pname = "base16-stylix-theme";
       version = "0.1";
-      src = with config.lib.stylix.colors.withHashtag;
+      src =
+        with config.lib.stylix.colors.withHashtag;
         pkgs.writeText "base16-stylix-theme.el" ''
           (require 'base16-theme)
           (defvar base16-stylix-theme-colors
@@ -59,15 +60,19 @@
 
   programs.emacs.init = {
 
-    prelude = let inherit (config.stylix) fonts; in ''
-      (set-face-attribute 'default
-                          nil
-                          :family "${fonts.monospace.name}")
-                          :height ${toString (fonts.sizes.applications * 10)}
-      (set-face-attribute 'variable-pitch
-                          nil
-                          :family "${fonts.sansSerif.name}")
-    '';
+    prelude =
+      let
+        inherit (config.stylix) fonts;
+      in
+      ''
+        (set-face-attribute 'default
+                            nil
+                            :family "${fonts.monospace.name}")
+                            :height ${toString (fonts.sizes.applications * 10)}
+        (set-face-attribute 'variable-pitch
+                            nil
+                            :family "${fonts.sansSerif.name}")
+      '';
 
     usePackage.base16-stylix-theme = {
       enable = true;

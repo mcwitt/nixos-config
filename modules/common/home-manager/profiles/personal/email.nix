@@ -1,5 +1,6 @@
 { config, lib, ... }:
-let cfg = config.profiles.personal;
+let
+  cfg = config.profiles.personal;
 in
 {
   config = lib.mkIf cfg.enable {
@@ -46,15 +47,19 @@ in
         '';
       };
 
-      smtpmail = let gmail = config.accounts.email.accounts."mcwitt@gmail.com"; in {
-        enable = true;
-        config = ''
-          (setq send-mail-function 'smtpmail-send-it)
-          (setq smtpmail-smtp-server "${gmail.smtp.host}")
-          (setq smtpmail-smtp-service ${toString gmail.smtp.port})
-          (setq smtpmail-smtp-user "${gmail.address}")
-        '';
-      };
+      smtpmail =
+        let
+          gmail = config.accounts.email.accounts."mcwitt@gmail.com";
+        in
+        {
+          enable = true;
+          config = ''
+            (setq send-mail-function 'smtpmail-send-it)
+            (setq smtpmail-smtp-server "${gmail.smtp.host}")
+            (setq smtpmail-smtp-service ${toString gmail.smtp.port})
+            (setq smtpmail-smtp-user "${gmail.address}")
+          '';
+        };
     };
 
     programs.mu.enable = true;

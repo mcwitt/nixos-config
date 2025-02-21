@@ -1,5 +1,11 @@
-{ config, lib, pkgs, ... }:
-let cfg = config.languages.haskell;
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+let
+  cfg = config.languages.haskell;
 in
 {
   options.languages.haskell = {
@@ -15,14 +21,15 @@ in
       '';
     };
 
-    hoogle.enable = lib.mkEnableOption
-      "Install a local hoogle with docs for packages in globalPackages.";
+    hoogle.enable = lib.mkEnableOption "Install a local hoogle with docs for packages in globalPackages.";
   };
 
   config = lib.mkIf cfg.enable {
     home.packages =
       let
-        ghcWithPackages' = with pkgs.haskellPackages; if cfg.hoogle.enable then ghcWithHoogle else ghcWithPackages;
+        ghcWithPackages' =
+          with pkgs.haskellPackages;
+          if cfg.hoogle.enable then ghcWithHoogle else ghcWithPackages;
         ghcEnv = ghcWithPackages' cfg.globalPackages;
       in
       [
@@ -92,7 +99,10 @@ in
         "package.yaml"
         "hie.yaml"
       ];
-      filetypes = [ "haskell" "lhaskell" ];
+      filetypes = [
+        "haskell"
+        "lhaskell"
+      ];
     };
 
     programs.vscode = {

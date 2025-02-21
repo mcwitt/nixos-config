@@ -1,4 +1,11 @@
-{ config, inputs, lib, pkgs, ... }: {
+{
+  config,
+  inputs,
+  lib,
+  pkgs,
+  ...
+}:
+{
 
   config = lib.mkIf config.profiles.base.enable {
     i18n.defaultLocale = "en_US.UTF-8";
@@ -41,25 +48,26 @@
     services.hoogle = {
       enable = true;
       port = 8081;
-      packages = ps: with ps; [
-        aeson
-        # array
-        # containers
-        lens
-        lens-aeson
-        monad-loops
-        # mtl
-        optparse-generic
-        # parsec
-        random-fu
-        rvar
-        safe
-        split
-        streaming
-        # text
-        turtle
-        vector
-      ];
+      packages =
+        ps: with ps; [
+          aeson
+          # array
+          # containers
+          lens
+          lens-aeson
+          monad-loops
+          # mtl
+          optparse-generic
+          # parsec
+          random-fu
+          rvar
+          safe
+          split
+          streaming
+          # text
+          turtle
+          vector
+        ];
     };
 
     services.locate = {

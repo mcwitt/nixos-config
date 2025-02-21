@@ -1,6 +1,12 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
-let cfg = config.profiles.desktop;
+let
+  cfg = config.profiles.desktop;
 in
 {
   options.profiles.desktop.enable = lib.mkEnableOption "Profile for machines with graphical desktops";
@@ -91,8 +97,7 @@ in
         enable = true;
         defaultApplications =
           let
-            mkDefaults = apps: types: builtins.listToAttrs
-              (map (type: lib.nameValuePair type apps) types);
+            mkDefaults = apps: types: builtins.listToAttrs (map (type: lib.nameValuePair type apps) types);
           in
           mkDefaults [ "feh.desktop" ] [
             "image/bmp"
@@ -101,13 +106,14 @@ in
             "image/jpg"
             "image/png"
             "image/webp"
-          ] //
-          mkDefaults [ "chromium-browser.desktop" ] [
+          ]
+          // mkDefaults [ "chromium-browser.desktop" ] [
             "text/html"
             "x-scheme-handler/http"
             "x-scheme-handler/https"
             "x-scheme-handler/ftp"
-          ] // {
+          ]
+          // {
             "application/pdf" = [ "org.pwmt.zathura.desktop" ];
             "text/plain" = [ "emacsclient.desktop" ];
           };

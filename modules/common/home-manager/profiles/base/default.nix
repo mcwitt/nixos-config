@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
   options.profiles.base.enable = lib.mkEnableOption "Base configuration enabled on most machines";
 
@@ -122,10 +127,12 @@
         ];
       };
 
-      ignores = (lib.concatMap pkgs.gitignores [
-        "Global/Vim"
-        "Global/Emacs"
-      ]) ++ [ ".direnv/" ];
+      ignores =
+        (lib.concatMap pkgs.gitignores [
+          "Global/Vim"
+          "Global/Emacs"
+        ])
+        ++ [ ".direnv/" ];
 
       difftastic.enable = true;
 
@@ -158,8 +165,26 @@
 
       colorSchemes.custom = with config.lib.stylix.colors.withHashtag; {
         # https://github.com/chriskempson/base16-shell/blob/master/templates/default.mustache
-        ansi = [ base00 red green yellow blue magenta cyan base05 ];
-        brights = [ base03 red green yellow blue magenta cyan base07 ];
+        ansi = [
+          base00
+          red
+          green
+          yellow
+          blue
+          magenta
+          cyan
+          base05
+        ];
+        brights = [
+          base03
+          red
+          green
+          yellow
+          blue
+          magenta
+          cyan
+          base07
+        ];
 
         background = base00;
         cursor_bg = base05;
@@ -169,16 +194,20 @@
         selection_bg = base05;
         selection_fg = base00;
       };
-      extraConfig = let inherit (config.stylix) fonts; in ''
-        return {
-          font = wezterm.font "${fonts.monospace.name}",
-          font_size = ${toString fonts.sizes.applications},
-          color_scheme = "custom",
-          hide_tab_bar_if_only_one_tab = true,
-          check_for_updates = false,
-          audible_bell = "Disabled",
-        };
-      '';
+      extraConfig =
+        let
+          inherit (config.stylix) fonts;
+        in
+        ''
+          return {
+            font = wezterm.font "${fonts.monospace.name}",
+            font_size = ${toString fonts.sizes.applications},
+            color_scheme = "custom",
+            hide_tab_bar_if_only_one_tab = true,
+            check_for_updates = false,
+            audible_bell = "Disabled",
+          };
+        '';
     };
 
     programs.lsd = {
@@ -195,7 +224,12 @@
 
     programs.password-store = {
       enable = true;
-      package = pkgs.pass.withExtensions (exts: with exts; [ pass-update pass-otp ]);
+      package = pkgs.pass.withExtensions (
+        exts: with exts; [
+          pass-update
+          pass-otp
+        ]
+      );
       settings.PASSWORD_STORE_DIR = "${config.home.homeDirectory}/.password-store/";
     };
 
@@ -245,10 +279,15 @@
 
         vim = {
           hlsearch = true;
-          insertModeKeyBindings = [{
-            before = [ "f" "d" ];
-            after = [ "<Esc>" ];
-          }];
+          insertModeKeyBindings = [
+            {
+              before = [
+                "f"
+                "d"
+              ];
+              after = [ "<Esc>" ];
+            }
+          ];
         };
       };
     };

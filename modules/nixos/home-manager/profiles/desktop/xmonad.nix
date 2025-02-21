@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
   config = lib.mkIf config.profiles.desktop.enable {
 
@@ -10,7 +15,8 @@
       extraPackages = ps: [ ps.dbus ];
 
       config =
-        let inherit (config.stylix) fonts;
+        let
+          inherit (config.stylix) fonts;
           inherit (config.lib.stylix) colors;
         in
         pkgs.writeText "xmonad.hs" ''

@@ -31,4 +31,3 @@ in
     "Xft.dpi" = dpi;
   };
 }
-

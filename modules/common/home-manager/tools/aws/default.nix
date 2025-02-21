@@ -1,6 +1,12 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 with lib;
-let cfg = config.tools.aws;
+let
+  cfg = config.tools.aws;
 in
 {
   options.tools.aws.enable = mkEnableOption "AWS command-line tools";

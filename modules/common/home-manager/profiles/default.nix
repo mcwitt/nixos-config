@@ -1,1 +1,6 @@
-{ imports = [ ./base ./personal ]; }
+{
+  imports = [
+    ./base
+    ./personal
+  ];
+}

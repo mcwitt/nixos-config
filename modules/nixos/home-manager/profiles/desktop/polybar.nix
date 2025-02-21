@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
   config = lib.mkIf config.profiles.desktop.enable {
 
@@ -49,10 +54,14 @@
             separator = "|";
             separator-foreground = ''''${colors.disabled}'';
 
-            font = let inherit (config.stylix) fonts; in [
-              "${fonts.monospace.name}:size=${toString fonts.sizes.desktop};5"
-              "${fonts.sansSerif.name}:size=${toString fonts.sizes.desktop};5"
-            ];
+            font =
+              let
+                inherit (config.stylix) fonts;
+              in
+              [
+                "${fonts.monospace.name}:size=${toString fonts.sizes.desktop};5"
+                "${fonts.sansSerif.name}:size=${toString fonts.sizes.desktop};5"
+              ];
 
             modules-left = "xworkspaces xmonad";
             modules-center = "date";
@@ -125,7 +134,15 @@
             let
               # https://github.com/polybar/polybar-scripts/blob/8a6a2c7fc6beb281515f81ccf5b9fafc830a3230/polybar-scripts/pipewire-simple/pipewire-simple.sh
               script = pkgs.writeShellScript "pipewire.sh" ''
-                PATH=${lib.makeBinPath (with pkgs; [ coreutils pamixer ])}
+                PATH=${
+                  lib.makeBinPath (
+                    with pkgs;
+                    [
+                      coreutils
+                      pamixer
+                    ]
+                  )
+                }
 
                 VOLUME=$(pamixer --get-volume-human)
 

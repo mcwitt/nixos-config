@@ -1,6 +1,7 @@
 { config, lib, ... }:
 with lib;
-let cfg = config.languages.terraform;
+let
+  cfg = config.languages.terraform;
 in
 {
   options.languages.terraform.enable = mkEnableOption "Terraform language environment";

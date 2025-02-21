@@ -7,9 +7,10 @@
         "solaredge"
       ];
 
-      extraPackages = ps: with ps; [
-        aiosolaredge
-      ];
+      extraPackages =
+        ps: with ps; [
+          aiosolaredge
+        ];
     };
   };
 }

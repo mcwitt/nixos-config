@@ -1,6 +1,7 @@
 { config, lib, ... }:
 with lib;
-let cfg = config.languages.agda;
+let
+  cfg = config.languages.agda;
 in
 {
   options.languages.agda.enable = mkEnableOption "Agda language environment";

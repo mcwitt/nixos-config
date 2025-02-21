@@ -1,6 +1,12 @@
-{ lib, config, pkgs, ... }:
+{
+  lib,
+  config,
+  pkgs,
+  ...
+}:
 with lib;
-let cfg = config.languages.sql;
+let
+  cfg = config.languages.sql;
 in
 {
   options.languages.sql.enable = mkEnableOption "SQL language environment";

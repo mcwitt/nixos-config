@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
   config = lib.mkIf config.profiles.base.enable {
     home.packages = with pkgs; [ signal-desktop ];
@@ -48,7 +53,10 @@
 
     programs.urxvt = {
       enable = true;
-      fonts = let inherit (config.stylix) fonts; in
+      fonts =
+        let
+          inherit (config.stylix) fonts;
+        in
         [ "xft:${fonts.monospace.name}:size=${toString fonts.sizes.applications}:antialias=true" ];
     };
 

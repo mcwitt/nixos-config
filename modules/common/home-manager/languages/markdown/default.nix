@@ -1,10 +1,15 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 with lib;
-let cfg = config.languages.markdown;
+let
+  cfg = config.languages.markdown;
 in
 {
-  options.languages.markdown.enable =
-    mkEnableOption "Markdown language environment";
+  options.languages.markdown.enable = mkEnableOption "Markdown language environment";
 
   config = mkIf cfg.enable {
 
@@ -13,7 +18,10 @@ in
     programs.emacs.init.usePackage = {
       markdown-mode = {
         enable = true;
-        command = [ "markdown-mode" "gfm-mode" ];
+        command = [
+          "markdown-mode"
+          "gfm-mode"
+        ];
         hook = [
           "(markdown-mode . turn-on-visual-line-mode)"
           "(markdown-mode . turn-on-flyspell)"

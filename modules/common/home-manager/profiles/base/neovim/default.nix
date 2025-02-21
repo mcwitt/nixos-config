@@ -7,22 +7,26 @@
     vimAlias = true;
     vimdiffAlias = true;
     withPython3 = true;
-    plugins = with pkgs.vimPlugins; [
-      copilot-vim
-      ctrlp-vim
-      nvim-lightbulb
-      syntastic
-      tagbar
-      vim-airline
-      vim-autoformat
-      vim-fugitive
-      vim-gitgutter
-      vim-surround
-    ] ++ (
-      let nvim-treesitter = pkgs.vimPlugins.nvim-treesitter.withPlugins (_: pkgs.tree-sitter.allGrammars);
-      in [ nvim-treesitter ]
-    )
-    ;
+    plugins =
+      with pkgs.vimPlugins;
+      [
+        copilot-vim
+        ctrlp-vim
+        nvim-lightbulb
+        syntastic
+        tagbar
+        vim-airline
+        vim-autoformat
+        vim-fugitive
+        vim-gitgutter
+        vim-surround
+      ]
+      ++ (
+        let
+          nvim-treesitter = pkgs.vimPlugins.nvim-treesitter.withPlugins (_: pkgs.tree-sitter.allGrammars);
+        in
+        [ nvim-treesitter ]
+      );
     extraConfig = ''
       set expandtab
       set shiftwidth=2

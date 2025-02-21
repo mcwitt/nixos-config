@@ -1,10 +1,15 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 with lib;
-let cfg = config.languages.graphviz;
+let
+  cfg = config.languages.graphviz;
 in
 {
-  options.languages.graphviz.enable =
-    mkEnableOption "Graphviz Dot language environment";
+  options.languages.graphviz.enable = mkEnableOption "Graphviz Dot language environment";
 
   config = mkIf cfg.enable {
 

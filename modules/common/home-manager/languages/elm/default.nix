@@ -1,6 +1,12 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 with lib;
-let cfg = config.languages.elm;
+let
+  cfg = config.languages.elm;
 in
 {
   options.languages.elm.enable = mkEnableOption "Elm language environment";

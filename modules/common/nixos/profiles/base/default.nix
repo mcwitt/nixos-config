@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
   options.profiles.base.enable = lib.mkEnableOption "Base configuration enabled on most machines";
 

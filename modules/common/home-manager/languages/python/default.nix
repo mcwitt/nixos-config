@@ -1,6 +1,12 @@
-{ lib, config, pkgs, ... }:
+{
+  lib,
+  config,
+  pkgs,
+  ...
+}:
 with lib;
-let cfg = config.languages.python;
+let
+  cfg = config.languages.python;
 in
 {
   options.languages.python = {
@@ -19,7 +25,8 @@ in
 
   config = mkIf cfg.enable {
     home.packages =
-      let pythonEnv = pkgs.python3.withPackages cfg.globalPackages;
+      let
+        pythonEnv = pkgs.python3.withPackages cfg.globalPackages;
       in
       [
         pkgs.ruff
@@ -55,7 +62,11 @@ in
 
       py-isort = {
         enable = true;
-        command = [ "py-isort-buffer" "py-isort-region" "py-isort-before-save" ];
+        command = [
+          "py-isort-buffer"
+          "py-isort-region"
+          "py-isort-before-save"
+        ];
         init = ''
           (add-to-list 'safe-local-eval-forms '(add-hook 'before-save-hook #'py-isort-before-save))
         '';

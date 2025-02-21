@@ -1,6 +1,12 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 with lib;
-let cfg = config.services.org-notes-sync;
+let
+  cfg = config.services.org-notes-sync;
 in
 {
   options.services.org-notes-sync = {
@@ -20,13 +26,26 @@ in
 
   config = mkIf cfg.enable {
     systemd.user.services.org-notes-sync = {
-      Unit = { Description = "Sync org-notes directory with remotes"; };
+      Unit = {
+        Description = "Sync org-notes directory with remotes";
+      };
       Service = {
         Environment =
-          let paths = lib.makeBinPath (with pkgs; [ findutils git openssh ]);
-          in [ "PATH=${paths}" ];
+          let
+            paths = lib.makeBinPath (
+              with pkgs;
+              [
+                findutils
+                git
+                openssh
+              ]
+            );
+          in
+          [ "PATH=${paths}" ];
         ExecStart = toString (
-          let git-annex = pkgs.gitAndTools.git-annex; in
+          let
+            git-annex = pkgs.gitAndTools.git-annex;
+          in
           pkgs.writeShellScript "org-notes-sync" ''
             set -eo pipefail
             export AWS_ACCESS_KEY_ID=$(${pkgs.awscli2}/bin/aws configure get default.aws_access_key_id)
@@ -40,13 +59,17 @@ in
     };
 
     systemd.user.timers.org-notes-sync = {
-      Unit = { Description = "Periodically sync org-notes directory"; };
+      Unit = {
+        Description = "Periodically sync org-notes directory";
+      };
       Timer = {
         Unit = "org-notes-sync.service";
         OnCalendar = cfg.frequency;
         Persistent = true;
       };
-      Install = { WantedBy = [ "timers.target" ]; };
+      Install = {
+        WantedBy = [ "timers.target" ];
+      };
     };
   };
 }

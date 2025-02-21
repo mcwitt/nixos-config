@@ -1,4 +1,10 @@
-{ config, inputs, lib, pkgs, ... }:
+{
+  config,
+  inputs,
+  lib,
+  pkgs,
+  ...
+}:
 {
   config = lib.mkIf config.profiles.desktop.enable {
 
@@ -6,7 +12,10 @@
       enable = true;
 
       # Stylix doesn't use correct syntax "<name> <size>"
-      font = let inherit (config.stylix) fonts; in
+      font =
+        let
+          inherit (config.stylix) fonts;
+        in
         lib.mkForce "${fonts.monospace.name} ${toString fonts.sizes.desktop}";
 
       # This installs a copy of rofi without plugins but still using
@@ -24,17 +33,21 @@
       terminal = "${pkgs.wezterm}/bin/wezterm start";
 
       # Override stylix-generated theme with additional tweaks
-      theme = lib.mkForce (toString (pkgs.writeText "rofi-theme.rasi" ''
-        ${builtins.readFile (config.lib.stylix.scheme pkgs.base16-rofi)}
-        window {
-          width: 33%;
-          border-radius: 6px;
-        }
-        element-icon {
-          size: 1em;
-          margin: 0 0.25em 0 0;
-        }
-      ''));
+      theme = lib.mkForce (
+        toString (
+          pkgs.writeText "rofi-theme.rasi" ''
+            ${builtins.readFile (config.lib.stylix.scheme pkgs.base16-rofi)}
+            window {
+              width: 33%;
+              border-radius: 6px;
+            }
+            element-icon {
+              size: 1em;
+              margin: 0 0.25em 0 0;
+            }
+          ''
+        )
+      );
     };
 
     # https://github.com/carnager/rofi-pass/issues/226

@@ -1,8 +1,14 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 with lib;
 
-let cfg = config.profiles.home-automation;
+let
+  cfg = config.profiles.home-automation;
 in
 
 {
@@ -31,7 +37,7 @@ in
         # Allow adding scenes via the UI
         scene = "!include scenes.yaml";
 
-        homeassistant.auth_mfa_modules = [{ type = "totp"; }];
+        homeassistant.auth_mfa_modules = [ { type = "totp"; } ];
 
         mqtt = { };
 
@@ -88,29 +94,38 @@ in
         "zwave_js"
       ];
 
-      extraPackages = ps: with ps; [
-        pyqrcode # needed for totp setup
-      ];
+      extraPackages =
+        ps: with ps; [
+          pyqrcode # needed for totp setup
+        ];
 
       openFirewall = true;
 
-      package = (pkgs.home-assistant.override {
+      package =
+        (pkgs.home-assistant.override {
 
-        packageOverrides = final: prev:
-          let inherit (final) callPackage; in {
-            pyflume = prev.pyflume.overridePythonAttrs (oldAttrs: rec {
-              version = "0.6.5"; # version pinned by home-assistant
-              name = "${oldAttrs.pname}-${version}";
-              src = pkgs.fetchFromGitHub {
-                owner = "ChrisMandich";
-                repo = "PyFlume";
-                rev = "v${version}";
-                hash = "sha256-kIE3y/qlsO9Y1MjEQcX0pfaBeIzCCHk4f1Xa215BBHo=";
-              };
-              nativeCheckInputs = oldAttrs.nativeCheckInputs ++ [ final.pytz ];
-            });
-          };
-      }).overrideAttrs (_: { doInstallCheck = false; });
+          packageOverrides =
+            final: prev:
+            let
+              inherit (final) callPackage;
+            in
+            {
+              pyflume = prev.pyflume.overridePythonAttrs (oldAttrs: rec {
+                version = "0.6.5"; # version pinned by home-assistant
+                name = "${oldAttrs.pname}-${version}";
+                src = pkgs.fetchFromGitHub {
+                  owner = "ChrisMandich";
+                  repo = "PyFlume";
+                  rev = "v${version}";
+                  hash = "sha256-kIE3y/qlsO9Y1MjEQcX0pfaBeIzCCHk4f1Xa215BBHo=";
+                };
+                nativeCheckInputs = oldAttrs.nativeCheckInputs ++ [ final.pytz ];
+              });
+            };
+        }).overrideAttrs
+          (_: {
+            doInstallCheck = false;
+          });
     };
 
     systemd.services.home-assistant.serviceConfig.Restart = lib.mkForce "always";

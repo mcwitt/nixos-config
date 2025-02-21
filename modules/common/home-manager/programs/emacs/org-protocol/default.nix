@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 with lib;
 let
   cfg = config.programs.emacs.org-protocol;
@@ -14,8 +19,7 @@ let
   };
 in
 {
-  options.programs.emacs.org-protocol.enable =
-    mkEnableOption "Org-protocol desktop item";
+  options.programs.emacs.org-protocol.enable = mkEnableOption "Org-protocol desktop item";
 
   config = mkIf cfg.enable { home.packages = [ orgProtocolDesktopItem ]; };
 }

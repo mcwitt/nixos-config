@@ -1,9 +1,10 @@
-{ lib
-, buildHomeAssistantComponent
-, fetchFromGitHub
-, gehomesdk
-, magicattr
-, slixmpp
+{
+  lib,
+  buildHomeAssistantComponent,
+  fetchFromGitHub,
+  gehomesdk,
+  magicattr,
+  slixmpp,
 }:
 
 buildHomeAssistantComponent rec {
@@ -18,7 +19,11 @@ buildHomeAssistantComponent rec {
     hash = "sha256-gtZah44NlT1jnbxnxqbo0uWnxP+mWYkl9RfJNvLV/xU=";
   };
 
-  propagatedBuildInputs = [ gehomesdk magicattr slixmpp ];
+  propagatedBuildInputs = [
+    gehomesdk
+    magicattr
+    slixmpp
+  ];
 
   dontCheckManifest = true; # pinned slixmpp version not in nixpkgs
 

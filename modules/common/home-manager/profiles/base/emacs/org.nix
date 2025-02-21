@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
   programs.emacs.init.prelude = ''
     (defvar org-notes-directory (file-name-as-directory "~/src/org-notes/"))

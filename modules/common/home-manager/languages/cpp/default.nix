@@ -1,6 +1,12 @@
-{ lib, config, pkgs, ... }:
+{
+  lib,
+  config,
+  pkgs,
+  ...
+}:
 with lib;
-let cfg = config.languages.cpp;
+let
+  cfg = config.languages.cpp;
 in
 {
   options.languages.cpp.enable = mkEnableOption "C/C++ language environment";

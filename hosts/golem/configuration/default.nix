@@ -28,16 +28,17 @@
 
   hardware.printers = rec {
     ensureDefaultPrinter = "Brother_HL-L2340D_series";
-    ensurePrinters = [{
-      deviceUri =
-        "dnssd://Brother%20HL-L2340D%20series._ipp._tcp.local/?uuid=e3248000-80ce-11db-8000-40490f90f0a2";
-      model = "drv:///brlaser.drv/brl2340d.ppd";
-      name = ensureDefaultPrinter;
-      ppdOptions = {
-        Duplex = "DuplexNoTumble";
-        PageSize = "A4";
-      };
-    }];
+    ensurePrinters = [
+      {
+        deviceUri = "dnssd://Brother%20HL-L2340D%20series._ipp._tcp.local/?uuid=e3248000-80ce-11db-8000-40490f90f0a2";
+        model = "drv:///brlaser.drv/brl2340d.ppd";
+        name = ensureDefaultPrinter;
+        ppdOptions = {
+          Duplex = "DuplexNoTumble";
+          PageSize = "A4";
+        };
+      }
+    ];
   };
 
   location = {
@@ -52,10 +53,12 @@
   };
 
   nix.settings = {
-    trusted-users = [ "root" "@wheel" ];
+    trusted-users = [
+      "root"
+      "@wheel"
+    ];
     secret-key-files = [ "/etc/nix/secret-key" ];
   };
-
 
   services.printing = {
     enable = true;

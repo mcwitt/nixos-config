@@ -1,11 +1,20 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 with lib;
-let cfg = config.languages.plantuml;
+let
+  cfg = config.languages.plantuml;
 in
 {
   options.languages.plantuml.enable = mkEnableOption "PlantUML language environment";
   config = mkIf cfg.enable {
-    home.packages = with pkgs; [ openjdk plantuml ];
+    home.packages = with pkgs; [
+      openjdk
+      plantuml
+    ];
 
     programs.emacs.init.usePackage = {
 

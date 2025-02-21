@@ -1,6 +1,7 @@
 { config, lib, ... }:
 with lib;
-let cfg = config.languages.go;
+let
+  cfg = config.languages.go;
 in
 {
   options.languages.go.enable = mkEnableOption "Go language environment";

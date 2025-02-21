@@ -1,6 +1,12 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 with lib;
-let cfg = config.languages.idris;
+let
+  cfg = config.languages.idris;
 in
 {
   options.languages.idris.enable = mkEnableOption "Idris language environment";

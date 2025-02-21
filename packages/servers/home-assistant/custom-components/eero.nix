@@ -1,8 +1,9 @@
-{ lib
-, buildHomeAssistantComponent
-, fetchFromGitHub
-, pypng
-, pyqrcode
+{
+  lib,
+  buildHomeAssistantComponent,
+  fetchFromGitHub,
+  pypng,
+  pyqrcode,
 }:
 
 buildHomeAssistantComponent rec {

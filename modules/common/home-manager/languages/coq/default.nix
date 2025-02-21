@@ -1,6 +1,7 @@
 { config, lib, ... }:
 with lib;
-let cfg = config.languages.coq;
+let
+  cfg = config.languages.coq;
 in
 {
   options.languages.coq.enable = mkEnableOption "Coq language environment";
@@ -26,4 +27,3 @@ in
     };
   };
 }
-

@@ -1,10 +1,10 @@
 { config, lib, ... }:
 with lib;
-let cfg = config.languages.tex;
+let
+  cfg = config.languages.tex;
 in
 {
-  options.languages.tex.enable =
-    mkEnableOption "TeX language environment";
+  options.languages.tex.enable = mkEnableOption "TeX language environment";
 
   config = mkIf cfg.enable {
 

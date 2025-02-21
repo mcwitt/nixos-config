@@ -1,6 +1,12 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 with lib;
-let cfg = config.languages.dhall;
+let
+  cfg = config.languages.dhall;
 in
 {
   options.languages.dhall.enable = mkEnableOption "Dhall language environment";

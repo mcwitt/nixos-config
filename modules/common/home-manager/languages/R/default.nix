@@ -1,8 +1,14 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 with lib;
 let
   cfg = config.languages.R;
-  rEnv = with pkgs;
+  rEnv =
+    with pkgs;
     rWrapper.override {
       packages = with rPackages; [
         knitr

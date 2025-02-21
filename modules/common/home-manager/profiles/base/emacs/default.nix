@@ -1,4 +1,11 @@
-{ config, lib, nurNoPkgs, pkgs, ... }: {
+{
+  config,
+  lib,
+  nurNoPkgs,
+  pkgs,
+  ...
+}:
+{
 
   imports = [
     nurNoPkgs.repos.rycee.hmModules.emacs-init
@@ -19,8 +26,12 @@
 
   programs.emacs.extraPackages = epkgs: [ epkgs.treesit-grammars.with-all-grammars ];
 
-  programs.emacs.overrides = final: prev:
-    let inherit (final) trivialBuild; in {
+  programs.emacs.overrides =
+    final: prev:
+    let
+      inherit (final) trivialBuild;
+    in
+    {
 
       copilot = trivialBuild {
         pname = "copilot";
@@ -31,7 +42,13 @@
           rev = "b5878d6a8c741138b5efbf4fe1c594f3fd69dbdd";
           sha256 = "sha256-02ywlMPku1FIritZjjtxbQW6MmPvSwmRCrudYsUb8bU=";
         };
-        packageRequires = with final; [ dash editorconfig f jsonrpc s ];
+        packageRequires = with final; [
+          dash
+          editorconfig
+          f
+          jsonrpc
+          s
+        ];
         postInstall = ''
           cp -r $src $LISPDIR
         '';
@@ -176,7 +193,9 @@
     browse-at-remote = {
       enable = true;
       command = [ "browse-at-remote" ];
-      bind = { "C-c B" = "browse-at-remote"; };
+      bind = {
+        "C-c B" = "browse-at-remote";
+      };
     };
 
     cape = {
@@ -218,7 +237,9 @@
 
     code-cells = {
       enable = true;
-      bindLocal.code-cells-mode-map = { "C-c C-c" = "code-cells-eval"; };
+      bindLocal.code-cells-mode-map = {
+        "C-c C-c" = "code-cells-eval";
+      };
       config = ''
         ;; https://github.com/astoff/code-cells.el#speed-keys
         (let ((map code-cells-mode-map))
@@ -366,7 +387,10 @@
 
     evil-org = {
       enable = true;
-      after = [ "evil" "org" ];
+      after = [
+        "evil"
+        "org"
+      ];
       hook = [ "(org-mode . evil-org-mode)" ];
       init = ''
         ;; temporary workaround for https://github.com/Somelauw/evil-org-mode/issues/93
@@ -390,7 +414,9 @@
 
     expand-region = {
       enable = true;
-      bind = { "C-=" = "er/expand-region"; };
+      bind = {
+        "C-=" = "er/expand-region";
+      };
     };
 
     flymake = {
@@ -575,7 +601,9 @@
 
     string-inflection = {
       enable = true;
-      bind = { "C-c u" = "string-inflection-all-cycle"; };
+      bind = {
+        "C-c u" = "string-inflection-all-cycle";
+      };
     };
 
     undo-fu.enable = true;
@@ -589,7 +617,9 @@
 
     vundo = {
       enable = true;
-      bind = { "C-x u" = "vundo"; };
+      bind = {
+        "C-x u" = "vundo";
+      };
       bindLocal.vundo-mode-map = {
         "h" = "vundo-backward";
         "l" = "vundo-forward";

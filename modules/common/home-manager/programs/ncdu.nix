@@ -1,5 +1,11 @@
-{ config, lib, pkgs, ... }:
-let cfg = config.programs.ncdu;
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+let
+  cfg = config.programs.ncdu;
 in
 {
   options.programs.ncdu.enable = lib.mkEnableOption "Enable ncdu";
