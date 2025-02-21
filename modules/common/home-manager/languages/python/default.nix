@@ -49,7 +49,7 @@ in
 
       eglot.hook = [ "(python-ts-mode . eglot-ensure)" ];
 
-      format-all.hook = [ "(python-mode . (lambda () (format-all-mode -1)))" ];
+      format-all.hook = [ "(python-ts-mode . (lambda () (format-all-mode -1)))" ];
 
       ligature.config = ''
         (ligature-set-ligatures 'python-ts-mode '("->" "==" ">=" "<="))
