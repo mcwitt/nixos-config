@@ -14,16 +14,17 @@
   };
 
   outputs =
-    { self
-    , nixpkgs
-    , flake-utils
-    , home-manager
-    , emacs-overlay
-    , nur
-    , pre-commit-hooks
-    , stylix
-    , ...
-    } @ inputs:
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+      home-manager,
+      emacs-overlay,
+      nur,
+      pre-commit-hooks,
+      stylix,
+      ...
+    }@inputs:
     let
       overlays = [
         self.overlays.default
@@ -36,7 +37,12 @@
         config.allowUnfree = true;
       };
 
-      mkPkgs = { system, nixpkgs ? nixpkgs }: import nixpkgs ({ inherit system; } // nixpkgsArgs);
+      mkPkgs =
+        {
+          system,
+          nixpkgs ? nixpkgs,
+        }:
+        import nixpkgs ({ inherit system; } // nixpkgsArgs);
 
       mkExtraSpecialArgs = pkgs: {
         inherit inputs;
@@ -52,11 +58,19 @@
     {
       overlays.default = import ./overlay { inherit inputs; };
 
-      lib.makeNixosSystem = nixpkgs.lib.makeOverridable ({ system, users, extraNixosModules ? [ ], extraHmModules ? [ ] }:
+      lib.makeNixosSystem = nixpkgs.lib.makeOverridable (
+        {
+          system,
+          users,
+          extraNixosModules ? [ ],
+          extraHmModules ? [ ],
+        }:
         nixpkgs.lib.nixosSystem {
           inherit system;
 
-          specialArgs = { inherit inputs; };
+          specialArgs = {
+            inherit inputs;
+          };
 
           modules = [
             home-manager.nixosModules.home-manager
@@ -68,42 +82,61 @@
             self.nixosModules.common
             self.nixosModules.nixos
 
-            ({ config, lib, pkgs, ... }: {
-              nixpkgs = nixpkgsArgs;
+            (
+              {
+                config,
+                lib,
+                pkgs,
+                ...
+              }:
+              {
+                nixpkgs = nixpkgsArgs;
 
-              users.users = builtins.listToAttrs (map
-                (user: lib.nameValuePair user {
-                  isNormalUser = true;
-                  extraGroups = [ "wheel" "docker" "video" ];
-                  shell = pkgs.fish;
-                })
-                users);
+                users.users = builtins.listToAttrs (
+                  map (
+                    user:
+                    lib.nameValuePair user {
+                      isNormalUser = true;
+                      extraGroups = [
+                        "wheel"
+                        "docker"
+                        "video"
+                      ];
+                      shell = pkgs.fish;
+                    }
+                  ) users
+                );
 
-              home-manager = {
-                backupFileExtension = "backup-before-home-manager";
+                home-manager = {
+                  backupFileExtension = "backup-before-home-manager";
 
-                extraSpecialArgs = mkExtraSpecialArgs pkgs;
+                  extraSpecialArgs = mkExtraSpecialArgs pkgs;
 
-                useGlobalPkgs = true;
+                  useGlobalPkgs = true;
 
-                users = builtins.listToAttrs (map
-                  (user: lib.nameValuePair user {
-                    imports = [
-                      self.homeManagerModules.common
-                      self.homeManagerModules.nixos
-                    ] ++ extraHmModules;
+                  users = builtins.listToAttrs (
+                    map (
+                      user:
+                      lib.nameValuePair user {
+                        imports = [
+                          self.homeManagerModules.common
+                          self.homeManagerModules.nixos
+                        ] ++ extraHmModules;
 
-                    profiles.base.enable = true;
-                  })
-                  users);
+                        profiles.base.enable = true;
+                      }
+                    ) users
+                  );
 
-                useUserPackages = true;
-              };
+                  useUserPackages = true;
+                };
 
-              profiles.base.enable = true;
-            })
+                profiles.base.enable = true;
+              }
+            )
           ] ++ extraNixosModules;
-        });
+        }
+      );
 
       nixosConfigurations = {
         golem = self.lib.makeNixosSystem {
@@ -135,7 +168,9 @@
             ./hosts/hal/configuration
             { nixpkgs = nixpkgsArgs; }
           ];
-          specialArgs = { inherit inputs; };
+          specialArgs = {
+            inherit inputs;
+          };
         };
 
         hestia = nixpkgs.lib.makeOverridable nixpkgs.lib.nixosSystem {
@@ -149,7 +184,9 @@
               profiles.home-automation.enable = true;
             }
           ];
-          specialArgs = { inherit inputs; };
+          specialArgs = {
+            inherit inputs;
+          };
         };
 
         hob = nixpkgs.lib.makeOverridable nixpkgs.lib.nixosSystem {
@@ -164,7 +201,9 @@
               profiles.home-automation.enable = true;
             }
           ];
-          specialArgs = { inherit inputs; };
+          specialArgs = {
+            inherit inputs;
+          };
         };
 
         karakuri = self.lib.makeNixosSystem {
@@ -201,23 +240,28 @@
             stylix.homeManagerModules.stylix
             self.homeManagerModules.stylix
 
-            ({ config, lib, ... }: {
-              home = {
-                username = lib.mkDefault "matt";
-                homeDirectory = "/home/${config.home.username}";
-                stateVersion = lib.mkDefault "22.11";
-              };
-            })
+            (
+              { config, lib, ... }:
+              {
+                home = {
+                  username = lib.mkDefault "matt";
+                  homeDirectory = "/home/${config.home.username}";
+                  stateVersion = lib.mkDefault "22.11";
+                };
+              }
+            )
           ];
         };
 
         "matt@desktop" = self.homeConfigurations.matt.override (old: {
-          modules = old.modules ++ [{
-            profiles = {
-              desktop.enable = true;
-              personal.enable = true;
-            };
-          }];
+          modules = old.modules ++ [
+            {
+              profiles = {
+                desktop.enable = true;
+                personal.enable = true;
+              };
+            }
+          ];
         });
 
         "matt@macos" = nixpkgs.lib.makeOverridable home-manager.lib.homeManagerConfiguration rec {
@@ -232,17 +276,20 @@
             stylix.homeManagerModules.stylix
             self.homeManagerModules.stylix
 
-            ({ config, lib, ... }: {
-              home = {
-                username = lib.mkDefault "matt";
-                homeDirectory = "/Users/${config.home.username}";
-                stateVersion = lib.mkDefault "22.11";
-              };
+            (
+              { config, lib, ... }:
+              {
+                home = {
+                  username = lib.mkDefault "matt";
+                  homeDirectory = "/Users/${config.home.username}";
+                  stateVersion = lib.mkDefault "22.11";
+                };
 
-              programs.wezterm.enable = lib.mkForce false; # TODO: broken on x86_64-darwin
+                programs.wezterm.enable = lib.mkForce false; # TODO: broken on x86_64-darwin
 
-              stylix.targets.swaylock.enable = false; # swaylock unsupported on x86_64-darwin; unclear why this is needed
-            })
+                stylix.targets.swaylock.enable = false; # swaylock unsupported on x86_64-darwin; unclear why this is needed
+              }
+            )
           ];
         };
       };
@@ -260,20 +307,22 @@
         stylix = import ./modules/stylix;
       };
 
-    } // flake-utils.lib.eachDefaultSystem (system: {
+    }
+    // flake-utils.lib.eachDefaultSystem (system: {
 
       checks = {
         pre-commit-check = pre-commit-hooks.lib.${system}.run {
           src = ./.;
           excludes = [ "hardware-configuration\\.nix" ];
           hooks = {
-            nixpkgs-fmt.enable = true;
+            nixfmt-rfc-style.enable = true;
           };
         };
       };
 
       devShells.default = nixpkgs.legacyPackages.${system}.mkShell {
         inherit (self.checks.${system}.pre-commit-check) shellHook;
+        buildInputs = self.checks.${system}.pre-commit-check.enabledPackages;
       };
     });
 }

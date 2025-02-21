@@ -1,6 +1,12 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 with lib;
-let cfg = config.languages.nix;
+let
+  cfg = config.languages.nix;
 in
 {
   options.languages.nix.enable = mkEnableOption "Nix language environment";
@@ -13,7 +19,7 @@ in
       nix-info
       nix-prefetch-git
       nix-prefetch-github
-      nixpkgs-fmt
+      nixfmt-rfc-style
     ];
 
     programs.emacs.init.usePackage = {
@@ -44,6 +50,7 @@ in
         init = ''
           (add-to-list 'major-mode-remap-alist '(nix-mode . nix-ts-mode))
         '';
+        hook = [ ''(setq format-all-formatters '(("Nix" nixfmt)))'' ];
         command = [ "nix-ts-mode" ];
         bindLocal.nix-ts-mode-map = {
           "C-c C-z" = "nix-repl-show";
