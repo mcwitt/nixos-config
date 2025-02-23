@@ -1,6 +1,5 @@
 {
   config,
-  inputs,
   lib,
   pkgs,
   ...
@@ -11,42 +10,25 @@
     programs.rofi = {
       enable = true;
 
-      # Stylix doesn't use correct syntax "<name> <size>"
-      font =
-        let
-          inherit (config.stylix) fonts;
-        in
-        lib.mkForce "${fonts.monospace.name} ${toString fonts.sizes.desktop}";
-
-      # This installs a copy of rofi without plugins but still using
-      # global config, leading to "missing plugin" startup errors. Work
-      # around by overriding rofi-pass to use rofi.finalPackage
-
-      # pass.enable = true;
-
       plugins = with pkgs; [
         rofi-calc
         rofi-emoji
       ];
 
-      # NOTE: can remove "start" subcommand after https://github.com/wez/wezterm/commit/e8886752e87c3240df4148828797459776abfa7f
-      terminal = "${pkgs.wezterm}/bin/wezterm start";
+      terminal = "${pkgs.wezterm}/bin/wezterm";
 
-      theme = {
-        window = {
-          width = "33%";
-          border-radius = "6px";
+      theme =
+        let
+          inherit (config.lib.formats.rasi) mkLiteral;
+        in
+        {
+          window.width = mkLiteral "80ch";
+
+          element-icon = {
+            size = mkLiteral "1em";
+            margin = mkLiteral "0 0.25em 0 0";
+          };
         };
-        element-icon = {
-          size = "1em";
-          margin = "0 0.25em 0 0";
-        };
-      };
     };
-
-    # https://github.com/carnager/rofi-pass/issues/226
-    xdg.configFile."rofi-pass/config".text = ''
-      help_color="${config.lib.stylix.colors.withHashtag.base0D}"
-    '';
   };
 }
