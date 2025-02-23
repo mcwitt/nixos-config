@@ -40,6 +40,9 @@ in
 
       nix-mode = {
         enable = true;
+        init = ''
+          (add-to-list 'major-mode-remap-alist '(nix-mode . nix-ts-mode))
+        '';
         bindLocal.nix-mode-map = {
           "C-c C-z" = "nix-repl-show";
         };
@@ -47,10 +50,7 @@ in
 
       nix-ts-mode = {
         enable = true;
-        init = ''
-          (add-to-list 'major-mode-remap-alist '(nix-mode . nix-ts-mode))
-        '';
-        hook = [ ''(setq format-all-formatters '(("Nix" nixfmt)))'' ];
+        hook = [ ''(nix-ts-mode . (lambda () (setq format-all-formatters '(("Nix" nixfmt)))))'' ];
         command = [ "nix-ts-mode" ];
         bindLocal.nix-ts-mode-map = {
           "C-c C-z" = "nix-repl-show";
