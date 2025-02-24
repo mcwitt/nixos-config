@@ -22,7 +22,10 @@
           inherit (config.lib.formats.rasi) mkLiteral;
         in
         {
-          window.width = mkLiteral "80ch";
+          window = {
+            width = mkLiteral "80ch";
+            padding = mkLiteral "0.25em";
+          };
 
           element-icon = {
             size = mkLiteral "1em";
