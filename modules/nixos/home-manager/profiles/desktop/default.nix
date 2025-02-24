@@ -75,10 +75,15 @@ in
       fade = true;
       fadeDelta = 3;
       shadow = true;
-      settings.blur = {
-        method = "gaussian";
-        size = 10;
-        deviation = 5.0;
+      settings = {
+        blur = {
+          method = "gaussian";
+          size = 10;
+          deviation = 5.0;
+        };
+        blur-background-exclude = [
+          "class_g ?= 'zoom'"
+        ];
       };
     };
 
