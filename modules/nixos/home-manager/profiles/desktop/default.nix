@@ -12,7 +12,6 @@ in
   options.profiles.desktop.enable = lib.mkEnableOption "Profile for machines with graphical desktops";
 
   imports = [
-    ./emacs.nix
     ./polybar.nix
     ./rofi.nix
     ./xmonad.nix
