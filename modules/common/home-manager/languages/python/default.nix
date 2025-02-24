@@ -60,18 +60,6 @@ in
           (add-to-list 'my/project-root-markers marker))
       '';
 
-      py-isort = {
-        enable = true;
-        command = [
-          "py-isort-buffer"
-          "py-isort-region"
-          "py-isort-before-save"
-        ];
-        init = ''
-          (add-to-list 'safe-local-eval-forms '(add-hook 'before-save-hook #'py-isort-before-save))
-        '';
-      };
-
       # Use python.el, NOT python-mode.el
       python = {
         enable = true;
