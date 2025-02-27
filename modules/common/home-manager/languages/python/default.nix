@@ -70,6 +70,11 @@ in
 
       reformatter = {
         enable = true;
+        hook = [ "(python-ts-mode . ruff-format-on-save-mode)" ];
+        command = [
+          "ruff-format-on-save-mode"
+          "ruff-fix-on-save-mode"
+        ];
         config = ''
           (reformatter-define ruff-format
             :program "ruff"
