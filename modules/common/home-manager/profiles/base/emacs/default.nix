@@ -14,7 +14,6 @@
     ./forge.nix
     ./format-all.nix
     ./jupyter.nix
-    ./org.nix
     ./theme
     ./vertico.nix
   ];
@@ -384,23 +383,6 @@
       };
     };
 
-    evil-org = {
-      enable = true;
-      after = [
-        "evil"
-        "org"
-      ];
-      hook = [ "(org-mode . evil-org-mode)" ];
-      init = ''
-        ;; temporary workaround for https://github.com/Somelauw/evil-org-mode/issues/93
-        (fset 'evil-redirect-digit-argument 'ignore)
-      '';
-      config = ''
-        (require 'evil-org-agenda)
-        (evil-org-agenda-set-keys)
-      '';
-    };
-
     evil-surround = {
       enable = true;
       after = [ "evil" ];
@@ -440,11 +422,19 @@
     frames-only-mode = {
       enable = true;
       config = ''
+        (add-to-list 'frames-only-mode-use-window-functions #'org-capture)
         (frames-only-mode 1)
       '';
     };
 
     gist.enable = true;
+
+    git-auto-commit-mode = {
+      enable = true;
+      config = ''
+        (setq gac-debounce-interval 60)
+      '';
+    };
 
     gptel = {
       enable = true;
@@ -527,6 +517,19 @@
         (setq completion-styles '(orderless)
               completion-category-defaults nil
               completion-category-overrides '((file (styles . (partial-completion)))))
+      '';
+    };
+
+    org-roam = {
+      enable = true;
+      init = ''
+        (let ((d "~/src/notes"))
+          (progn
+            (make-directory d t)
+            (setq org-roam-directory (file-truename d))))
+      '';
+      config = ''
+        (org-roam-db-autosync-mode)
       '';
     };
 
