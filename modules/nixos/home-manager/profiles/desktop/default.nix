@@ -20,8 +20,6 @@ in
   config = lib.mkIf cfg.enable {
     home.packages = with pkgs; [ xfce.thunar ];
 
-    programs.rofi.enable = true;
-
     services.dunst = {
       enable = true;
       settings.global = {

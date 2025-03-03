@@ -27,8 +27,6 @@ let
     });
 in
 {
-  base16-rofi = callPackage ../packages/data/themes/base16-rofi.nix { };
-
   emacs-unstable = prev.emacs-unstable.overrideAttrs (old: {
     patches =
       (old.patches or [ ])
