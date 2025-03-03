@@ -124,6 +124,14 @@
       command = [ "turn-on-cdlatex" ];
     };
 
+    frames-only-mode = {
+      config = lib.mkBefore ''
+        ;; Prevent error when attempting to open in a new frame
+        ;; Must run before enabling mode
+        (add-to-list 'frames-only-mode-use-window-functions #'org-capture)
+      '';
+    };
+
     git-sync.enable = true;
 
     ob-restclient = {
