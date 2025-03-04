@@ -1,6 +1,0 @@
-{
-  imports = [
-    ./init
-    ./org-protocol
-  ];
-}

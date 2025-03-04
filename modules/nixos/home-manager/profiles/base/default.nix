@@ -31,14 +31,11 @@
         ];
     };
 
-    programs.emacs.org-protocol.enable = true;
-
     programs.feh.enable = true;
 
     programs.firefox = {
       enable = true;
       profiles.default = {
-        settings."network.protocol-handler.expose.org-protocol" = true;
         extensions = with pkgs.nur.repos.rycee.firefox-addons; [
           browserpass
           darkreader
