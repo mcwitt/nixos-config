@@ -433,6 +433,7 @@
       enable = true;
       config = ''
         (setq gac-debounce-interval 60)
+        (add-to-list 'safe-local-variable-values '(gac-automatically-push-p t))
       '';
     };
 
