@@ -1,13 +1,16 @@
+{ config, lib, ... }:
 {
-  programs.emacs.init.usePackage = {
+  config = lib.mkIf config.profiles.base.enable {
+    programs.emacs.init.usePackage = {
 
-    forge = {
-      enable = true;
-      after = [ "magit" ];
+      forge = {
+        enable = true;
+        after = [ "magit" ];
+      };
+
+      magit.init = ''
+        (setq forge-add-default-bindings nil)
+      '';
     };
-
-    magit.init = ''
-      (setq forge-add-default-bindings nil)
-    '';
   };
 }

@@ -1,5 +1,8 @@
+{ config, lib, ... }:
 {
-  programs.git.attributes = [
-    "*.ipynb -diff"
-  ];
+  config = lib.mkIf config.profiles.base.enable {
+    programs.git.attributes = [
+      "*.ipynb -diff"
+    ];
+  };
 }
