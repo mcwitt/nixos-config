@@ -35,12 +35,19 @@
       wget
     ];
 
-    nix.gc = {
-      automatic = true;
-      dates = "weekly";
-    };
+    nix = {
+      gc = {
+        automatic = true;
+        persistent = true;
+        dates = "03:00";
+        options = "--delete-older-than 30d";
+      };
 
-    nix.settings.auto-optimise-store = true;
+      optimise = {
+        automatic = true;
+        dates = [ "03:30" ];
+      };
+    };
 
     programs.gnupg.agent = {
       enable = true;
