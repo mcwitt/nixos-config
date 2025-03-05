@@ -15,6 +15,7 @@
     ./forge.nix
     ./format-all.nix
     ./jupyter.nix
+    ./org.nix
     ./theme
     ./vertico.nix
   ];
@@ -425,7 +426,6 @@
       frames-only-mode = {
         enable = true;
         config = ''
-          (add-to-list 'frames-only-mode-use-window-functions #'org-capture)
           (frames-only-mode 1)
         '';
       };
@@ -521,38 +521,6 @@
           (setq completion-styles '(orderless)
                 completion-category-defaults nil
                 completion-category-overrides '((file (styles . (partial-completion)))))
-        '';
-      };
-
-      org = {
-        enable = true;
-        bind = {
-          # Standard global bindings
-          # https://orgmode.org/manual/Activation.html#Activation-1
-          "C-c l" = "org-store-link";
-          "C-c a" = "org-agenda";
-          "C-c c" = "org-capture";
-        };
-      };
-
-      org-roam = {
-        enable = true;
-        init = ''
-          (let ((d "~/src/notes/org-roam"))
-            (progn
-              (make-directory d t)
-              (setq org-roam-directory (file-truename d))))
-
-          (setq org-roam-dailies-directory "daily/")
-
-          (setq org-roam-dailies-capture-templates
-                '(("d" "default" entry
-                   "* %?"
-                   :target (file+head "%<%Y-%m-%d>.org"
-                                      "#+title: %<%Y-%m-%d>\n"))))
-        '';
-        config = ''
-          (org-roam-db-autosync-mode)
         '';
       };
 
