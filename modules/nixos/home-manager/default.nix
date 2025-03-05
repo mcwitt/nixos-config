@@ -2,6 +2,5 @@
   imports = [
     ./languages
     ./profiles
-    ./services
   ];
 }

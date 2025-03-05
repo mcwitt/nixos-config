@@ -71,11 +71,5 @@
       defaultCacheTtl = 4 * 60 * 60;
       maxCacheTtl = 4 * 60 * 60;
     };
-
-    services.org-notes-sync = {
-      enable = false; # XXX
-      repoPath = "${config.home.homeDirectory}/src/org-notes/";
-      frequency = "*:0/5";
-    };
   };
 }
