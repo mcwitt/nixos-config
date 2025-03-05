@@ -524,7 +524,7 @@
     org-roam = {
       enable = true;
       init = ''
-        (let ((d "~/src/notes"))
+        (let ((d "~/src/notes/org-roam"))
           (progn
             (make-directory d t)
             (setq org-roam-directory (file-truename d))))
