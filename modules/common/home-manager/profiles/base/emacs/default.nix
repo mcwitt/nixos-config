@@ -521,6 +521,17 @@
       '';
     };
 
+    org = {
+      enable = true;
+      bind = {
+        # Standard global bindings
+        # https://orgmode.org/manual/Activation.html#Activation-1
+        "C-c l" = "org-store-link";
+        "C-c a" = "org-agenda";
+        "C-c c" = "org-capture";
+      };
+    };
+
     org-roam = {
       enable = true;
       init = ''
