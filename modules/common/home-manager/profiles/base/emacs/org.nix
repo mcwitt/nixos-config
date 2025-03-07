@@ -1,8 +1,4 @@
 { config, lib, ... }:
-let
-  orgDir = "${config.home.homeDirectory}/src/notes";
-  orgRoamDir = "${orgDir}/org-roam";
-in
 {
   config = lib.mkIf config.profiles.base.enable {
 
@@ -21,29 +17,42 @@ in
           "C-c a" = "org-agenda";
           "C-c c" = "org-capture";
         };
-        config = ''
-          (setq org-directory "${orgDir}")
-          (setq org-agenda-files '("${orgDir}/gtd.org"))
-
-          ;; Add +PROJECT to default stuck projects definition
-          (setq org-stuck-projects '("+LEVEL=2+PROJECT/-DONE" ("TODO" "NEXT" "NEXTACTION") nil ""))
-        '';
+        custom = {
+          org-directory = ''"~/org"'';
+          org-startup-indented = true;
+          org-agenda-files = '''("~/org/gtd.org")'';
+          org-agenda-custom-commands = ''
+            '(("n" "Agenda and NEXT TODOs"
+               ((agenda "")
+                (todo "NEXT")
+                (stuck ""))))
+          '';
+          org-agenda-prefix-format = ''
+            '((agenda . " %i %-12:c%?-12t% s")
+              (todo . " %i %-12:c%b")
+              (tags . " %i %-12:c")
+              (search . " %i %-12:c"))
+          '';
+          org-agenda-breadcrumbs-separator = ''"/"'';
+          org-stuck-projects = '''("+LEVEL=2+PROJECT/-DONE" ("NEXT") nil "")'';
+        };
       };
 
       org-roam = {
         enable = true;
         init = ''
-          (make-directory "${orgRoamDir}" t)
-          (setq org-roam-directory "${orgRoamDir}")
-
-          (setq org-roam-dailies-directory "daily/")
-
-          (setq org-roam-dailies-capture-templates
-                '(("d" "default" entry
-                   "* %?"
-                   :target (file+head "%<%Y-%m-%d>.org"
-                                      "#+title: %<%Y-%m-%d>\n"))))
+          (make-directory "~/org/roam" t)
         '';
+        custom = {
+          org-roam-directory = ''"~/org/roam"'';
+          org-roam-dailies-directory = ''"daily/"'';
+          org-roam-dailies-capture-templates = ''
+            '(("d" "default" entry
+               "* %?"
+               :target (file+head "%<%Y-%m-%d>.org"
+                                  "#+title: %<%Y-%m-%d>\n")))
+          '';
+        };
         config = ''
           (org-roam-db-autosync-mode)
         '';
