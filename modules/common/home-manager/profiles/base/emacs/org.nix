@@ -25,8 +25,25 @@ in
           (setq org-directory "${orgDir}")
           (setq org-agenda-files '("${orgDir}/gtd.org"))
 
-          ;; Add +PROJECT to default stuck projects definition
-          (setq org-stuck-projects '("+LEVEL=2+PROJECT/-DONE" ("TODO" "NEXT" "NEXTACTION") nil ""))
+          ;; Modify default stuck projects definition to
+          ;; * only apply to headlines with PROJECT tag
+          ;; * require subtree to contain a NEXT headline
+          (setq org-stuck-projects '("+LEVEL=2+PROJECT/-DONE" ("NEXT") nil ""))
+
+          ;; Show breadcrumbs in agenda
+          (setq org-agenda-breadcrumbs-separator "/")
+          (setq org-agenda-prefix-format
+              '((agenda . " %i %-12:c%?-12t% s")
+                  (todo . " %i %-12:c%b")
+                  (tags . " %i %-12:c")
+                  (search . " %i %-12:c")))
+
+          ;; Custom agenda command showing weekly agenda, NEXT TODOs, stuck projects
+          (setq org-agenda-custom-commands
+              '(("n" "Agenda and NEXTs"
+                  ((agenda "")
+                  (todo "NEXT")
+                  (stuck "")))))
         '';
       };
 
