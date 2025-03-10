@@ -38,6 +38,7 @@
             '(("t" "todo" entry (file "~/org/inbox.org") "* TODO %?")
               ("l" "link" entry (file "~/org/inbox.org") "* TODO %(org-cliplink-capture)" :immediate-finish t))
           '';
+          org-refile-targets = '''(("~/org/gtd.org" :maxlevel . 10))'';
           org-stuck-projects = '''("+LEVEL=2+PROJECT/-DONE" ("NEXT") nil "")'';
         };
       };
