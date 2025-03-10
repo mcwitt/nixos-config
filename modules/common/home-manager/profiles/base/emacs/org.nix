@@ -20,11 +20,15 @@
         custom = {
           org-directory = ''"~/org"'';
           org-startup-indented = true;
-          org-agenda-files = '''("~/org/gtd.org")'';
+          org-agenda-files = ''
+            '("~/org/gtd.org"
+              "~/org/inbox.org")
+          '';
           org-agenda-custom-commands = ''
             '(("n" "Agenda and NEXT TODOs"
                ((agenda "")
                 (todo "NEXT")
+                (tags-todo "CATEGORY=\"Inbox\"" ((org-agenda-overriding-header "Inbox")))
                 (stuck ""))))
           '';
           org-agenda-prefix-format = ''
