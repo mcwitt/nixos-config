@@ -52,6 +52,11 @@
         init = ''
           (make-directory "~/org/roam" t)
         '';
+        bind = {
+          "C-c n c" = "org-roam-capture";
+          "C-c n f" = "org-roam-node-find";
+          "C-c n i" = "org-roam-node-insert";
+        };
         custom = {
           org-roam-directory = ''"~/org/roam"'';
           org-roam-dailies-directory = ''"daily/"'';
