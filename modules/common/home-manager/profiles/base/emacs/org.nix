@@ -10,6 +10,10 @@
 
       org = {
         enable = true;
+        hook = [
+          "(org-mode . turn-on-visual-line-mode)"
+          "(org-mode . turn-on-flyspell)"
+        ];
         bind = {
           # Standard global bindings
           # [[info:org#Activation][org#Activation]]
