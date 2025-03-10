@@ -24,6 +24,7 @@
             '("~/org/gtd.org"
               "~/org/inbox.org")
           '';
+          org-agenda-block-separator = "?─";
           org-agenda-custom-commands = ''
             '(("n" "Agenda and NEXT TODOs"
                ((agenda "")
