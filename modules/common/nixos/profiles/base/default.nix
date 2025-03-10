@@ -12,7 +12,13 @@
     fonts.enableDefaultPackages = true;
 
     environment.systemPackages = with pkgs; [
-      (aspellWithDicts (ds: [ ds.en ]))
+      (aspellWithDicts (
+        ds: with ds; [
+          en
+          en-computers
+          en-science
+        ]
+      ))
       coreutils
       dig
       file
