@@ -57,17 +57,6 @@
         };
 
         eglot = null; # use built-in package
-
-        git-sync = trivialBuild {
-          pname = "git-sync";
-          version = "0-unstable-2022-10-01";
-          src = pkgs.fetchFromGitHub {
-            owner = "mcwitt";
-            repo = "git-sync.el";
-            rev = "9b27ee28e077a30654f87737d97af1d21fdb2e41";
-            hash = "sha256-mTL9oeqsgqBAkdVSL4/DcNUoQUgDr3521G8hxEOJIjw=";
-          };
-        };
       };
 
     programs.emacs.init = {
