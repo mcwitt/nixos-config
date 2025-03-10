@@ -34,8 +34,17 @@
               (search . " %i %-12:c"))
           '';
           org-agenda-breadcrumbs-separator = ''"/"'';
+          org-capture-templates = ''
+            '(("t" "todo" entry (file "~/org/inbox.org") "* TODO %?")
+              ("l" "link" entry (file "~/org/inbox.org") "* TODO %(org-cliplink-capture)" :immediate-finish t))
+          '';
           org-stuck-projects = '''("+LEVEL=2+PROJECT/-DONE" ("NEXT") nil "")'';
         };
+      };
+
+      org-cliplink = {
+        enable = true;
+        command = [ "org-cliplink-capture" ];
       };
 
       org-roam = {
