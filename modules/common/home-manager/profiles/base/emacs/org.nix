@@ -15,11 +15,13 @@
           "(org-mode . turn-on-flyspell)"
         ];
         bind = {
-          # Standard global bindings
-          # [[info:org#Activation][org#Activation]]
           "C-c l" = "org-store-link";
           "C-c a" = "org-agenda";
           "C-c c" = "org-capture";
+        };
+        bindLocal.org-agenda-mode-map = {
+          j = "evil-next-line";
+          k = "evil-previous-line";
         };
         custom = {
           org-directory = ''"~/org"'';
