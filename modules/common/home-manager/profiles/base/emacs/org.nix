@@ -10,19 +10,23 @@
 
       org = {
         enable = true;
+
         hook = [
           "(org-mode . turn-on-visual-line-mode)"
           "(org-mode . turn-on-flyspell)"
         ];
+
         bind = {
           "C-c l" = "org-store-link";
           "C-c a" = "org-agenda";
           "C-c c" = "org-capture";
         };
+
         bindLocal.org-agenda-mode-map = {
           j = "evil-next-line";
           k = "evil-previous-line";
         };
+
         custom = {
           org-directory = ''"~/org"'';
           org-startup-indented = true;
@@ -52,6 +56,26 @@
           org-refile-targets = '''(("~/org/gtd.org" :maxlevel . 10))'';
           org-stuck-projects = '''("+LEVEL=2+PROJECT/-DONE" ("NEXT") nil "")'';
         };
+
+        config = ''
+          (defun my/org-capture-frame-p ()
+            "Return whether the current frame is a dedicated capture frame."
+            (equal (frame-parameter nil 'name) "org-capture"))
+
+          (defun my/org-capture-delete-other-windows ()
+            "Delete other windows if the current frame is a dedicated capture frame."
+            (when (my/org-capture-frame-p)
+              (delete-other-windows)))
+
+          (add-hook 'org-capture-mode-hook #'my/org-capture-delete-other-windows)
+
+          (defun my/org-capture-cleanup ()
+            "Delete the frame if it is a dedicated capture frame."
+            (when (my/org-capture-frame-p)
+              (delete-frame)))
+
+          (add-hook 'org-capture-after-finalize-hook #'my/org-capture-cleanup)
+        '';
       };
 
       org-cliplink = {
