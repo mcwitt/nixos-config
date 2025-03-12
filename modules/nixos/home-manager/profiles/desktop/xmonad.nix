@@ -82,7 +82,6 @@
                                     ("M-'", spawn "rofi -show calc -no-show-match -no-sort"),
                                     ("M-y", spawn "emacsclient -c -n -e '(switch-to-buffer nil)'"),
                                     ("M-o", spawn "emacsclient -c -n -F '((name . \"org-capture\"))' -e '(org-capture nil \"t\")'"),
-                                    ("M-S-o", spawn "emacsclient -n -e '(org-capture nil \"l\")'"),
                                     ("M-u", spawn "chromium-browser"),
                                     ("M-s", spawn "dm-tool switch-to-greeter"),
                                     ("C-M-3", spawn "flameshot screen"),
