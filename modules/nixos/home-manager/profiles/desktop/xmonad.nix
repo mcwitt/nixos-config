@@ -20,9 +20,6 @@
           inherit (config.lib.stylix) colors;
         in
         pkgs.writeText "xmonad.hs" ''
-          {-# LANGUAGE ImportQualifiedPost #-}
-          {-# LANGUAGE TupleSections #-}
-
           import Codec.Binary.UTF8.String qualified as UTF8
           import DBus qualified as D
           import DBus.Client qualified as D
@@ -71,8 +68,8 @@
                 `additionalKeysP` [ ("M-j", focusDown),
                                     ("M-k", focusUp),
                                     ("M-m", focusMaster),
-                                    ("M-o", easyFocus),
-                                    ("M-S-o", easySwap),
+                                    ("M-f", easyFocus),
+                                    ("M-S-f", easySwap),
                                     ("M-\\", withFocused minimizeWindow),
                                     ("M-S-\\", withLastMinimized maximizeWindowAndFocus),
                                     ("M-x", sendMessage $ Toggle MIRROR),
@@ -84,6 +81,8 @@
                                     ("M-;", spawn "rofi -show emoji"),
                                     ("M-'", spawn "rofi -show calc -no-show-match -no-sort"),
                                     ("M-y", spawn "emacsclient -c -n -e '(switch-to-buffer nil)'"),
+                                    ("M-o", spawn "emacsclient -c -n -F '((name . \"org-capture\"))' -e '(org-capture nil \"t\")'"),
+                                    ("M-S-o", spawn "emacsclient -n -e '(org-capture nil \"l\")'"),
                                     ("M-u", spawn "chromium-browser"),
                                     ("M-s", spawn "dm-tool switch-to-greeter"),
                                     ("C-M-3", spawn "flameshot screen"),
