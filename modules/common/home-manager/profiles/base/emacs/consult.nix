@@ -27,9 +27,11 @@
 
           "M-y" = "consult-yank-pop"; # orig. yank-pop
 
+          "M-g a" = "consult-org-agenda";
           "M-g e" = "consult-compile-error";
           "M-g f" = "consult-flymake"; # Alternative: consult-flycheck
           "M-g g" = "consult-goto-line"; # orig. goto-line
+          "M-g h" = "consult-org-heading";
           "M-g M-g" = "consult-goto-line"; # orig. goto-line
           "M-g o" = "consult-outline"; # Alternative: consult-org-heading
           "M-g m" = "consult-mark";
