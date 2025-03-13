@@ -177,6 +177,20 @@
       breadcrumb = {
         enable = true;
         config = ''
+          ;; Workaround for slow performance when visiting files in /nix/store
+          ;; https://github.com/joaotavora/breadcrumb/issues/41
+          (defun my/buffer-in-nix-store-p ()
+            "Return whether the current buffer's file path starts with /nix/store."
+            (let ((file (buffer-file-name)))
+              (and file (string-prefix-p "/nix/store" file))))
+
+          (defun my/disable-breadcrumb-local-mode-in-nix-store-buffer ()
+            "Disables breadcrumb-local-mode if current buffer's file path starts with /nix/store"
+            (when (my/buffer-in-nix-store-p) (breadcrumb-local-mode -1)))
+
+          (add-hook 'find-file-hook #'my/disable-breadcrumb-local-mode-in-nix-store-buffer)
+
+          ;; Enable breadcrumb globally
           (breadcrumb-mode)
         '';
       };
