@@ -65,27 +65,25 @@
           ;;
           ;; This is useful for launching a dedicated capture frame with a command like
           ;;
-          ;;     emacsclient -c -n -F '((name . "org-capture"))' -e '(org-capture nil "t")'
+          ;;     emacsclient -c -n -F '((name . "org-capture-dedicated"))' -e '(org-capture nil "t")'
           ;;
           ;; TODO: Is there a cleaner way to accomplish this?
 
-          (defun my/org-capture-frame-p ()
+          (defun my/dedicated-org-capture-frame-p ()
             "Return whether the current frame is a dedicated capture frame."
-            (equal (frame-parameter nil 'name) "org-capture"))
+            (equal (frame-parameter nil 'name) "org-capture-dedicated"))
 
-          (defun my/org-capture-delete-other-windows ()
+          (defun my/dedicated-org-capture-frame-delete-other-windows ()
             "Delete other windows if the current frame is a dedicated capture frame."
-            (when (my/org-capture-frame-p)
-              (delete-other-windows)))
+            (when (my/dedicated-org-capture-frame-p) (delete-other-windows)))
 
-          (add-hook 'org-capture-mode-hook #'my/org-capture-delete-other-windows)
+          (add-hook 'org-capture-mode-hook #'my/dedicated-org-capture-frame-delete-other-windows)
 
-          (defun my/org-capture-cleanup ()
+          (defun my/dedicated-org-capture-frame-cleanup ()
             "Delete the frame if it is a dedicated capture frame."
-            (when (my/org-capture-frame-p)
-              (delete-frame)))
+            (when (my/dedicated-org-capture-frame-p) (delete-frame)))
 
-          (add-hook 'org-capture-after-finalize-hook #'my/org-capture-cleanup)
+          (add-hook 'org-capture-after-finalize-hook #'my/dedicated-org-capture-frame-cleanup)
         '';
       };
 

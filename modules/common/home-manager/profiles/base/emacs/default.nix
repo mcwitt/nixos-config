@@ -203,6 +203,22 @@
         };
       };
 
+      calc = {
+        enable = true;
+        config = ''
+          (defun my/dedicated-full-calc-frame-p ()
+            "Return whether the current frame is a dedicated full-calc frame."
+            (equal (frame-parameter nil 'name) "full-calc-dedicated"))
+
+          (defun my/dedicated-full-calc-frame-cleanup (&rest _args)
+            "Delete the frame if it is a dedicated full-calc frame."
+            (when (my/dedicated-full-calc-frame-p)
+              (delete-frame)))
+
+          (advice-add #'calc-quit :after #'my/dedicated-full-calc-frame-cleanup)
+        '';
+      };
+
       cape = {
         enable = true;
 
