@@ -50,7 +50,6 @@
               (search . " %i %-12:c"))
           '';
           org-agenda-breadcrumbs-separator = ''"/"'';
-          org-agenda-window-setup = "'other-frame";
           org-capture-templates = '''(("t" "todo" entry (file "~/org/inbox.org") "* TODO %a%?\n%i"))'';
           org-refile-targets = '''(("~/org/gtd.org" :maxlevel . 10))'';
           org-stuck-projects = '''("+LEVEL=2+PROJECT/-DONE" ("NEXT") nil "")'';
