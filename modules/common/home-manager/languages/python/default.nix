@@ -55,11 +55,6 @@ in
         (ligature-set-ligatures 'python-ts-mode '("->" "==" ">=" "<="))
       '';
 
-      project.config = ''
-        (dolist (marker '("setup.py" "setup.cfg" "pyproject.toml"))
-          (add-to-list 'my/project-root-markers marker))
-      '';
-
       # Use python.el, NOT python-mode.el
       python = {
         enable = true;

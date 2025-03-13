@@ -544,35 +544,6 @@
         '';
       };
 
-      project = {
-        enable = true;
-        init = ''
-          ;; Improved functionality for finding project root directories
-          ;; Adapted from https://andreyorst.gitlab.io/posts/2022-07-16-project-el-enhancements/
-
-          (defcustom my/project-root-markers
-            nil
-            "Files or directories that indicate the root of a project"
-            :type '(repeat string)
-            :group 'project)
-
-          (defun my/project-root-p (dir)
-            "Check if DIR has any of the project root markers."
-            (catch 'found
-              (dolist (marker my/project-root-markers)
-                (when (file-expand-wildcards (concat dir marker))
-                  (throw 'found marker)))))
-
-          (defun my/project-find-root (dir)
-            (let ((root (locate-dominating-file dir #'my/project-root-p)))
-              (and root (cons 'transient root))))
-        '';
-
-        config = ''
-          (add-to-list 'project-find-functions #'my/project-find-root)
-        '';
-      };
-
       rainbow-delimiters = {
         enable = true;
         hook = [ "(prog-mode . rainbow-delimiters-mode)" ];
