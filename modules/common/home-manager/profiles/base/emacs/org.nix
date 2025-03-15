@@ -86,6 +86,8 @@
         '';
       };
 
+      org-protocol.enable = true;
+
       org-roam = {
         enable = true;
         init = ''
