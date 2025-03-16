@@ -13,10 +13,8 @@ with lib;
       element-desktop
       gimp
       inkscape
-      # peek # broken 2023-08-07
       slack
       zoom-us
-      zulip
     ];
 
     programs.spotify.enable = true;
