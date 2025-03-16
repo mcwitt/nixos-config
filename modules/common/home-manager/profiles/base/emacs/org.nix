@@ -33,7 +33,8 @@
           org-startup-indented = true;
           org-agenda-files = ''
             '("~/org/gtd.org"
-              "~/org/inbox.org")
+              "~/org/inbox.org"
+              "~/org/tickler.org")
           '';
           org-agenda-block-separator = "nil";
           org-agenda-custom-commands = ''
@@ -50,8 +51,11 @@
               (search . " %i %-12:c"))
           '';
           org-agenda-breadcrumbs-separator = ''"/"'';
-          org-capture-templates = '''(("t" "todo" entry (file "~/org/inbox.org") "* TODO %a%?\n%i"))'';
-          org-refile-targets = '''(("~/org/gtd.org" :maxlevel . 10))'';
+          org-capture-templates = ''
+            '(("t" "todo" entry (file "~/org/inbox.org") "* TODO %a%?\n%i")
+              ("k" "tickler" entry (file "~/org/tickler.org") "* %i%?"))
+          '';
+          org-refile-targets = '''(("~/org/gtd.org" :maxlevel . 3))'';
           org-stuck-projects = '''("+LEVEL=2+PROJECT/-DONE" ("NEXT") nil "")'';
         };
 
