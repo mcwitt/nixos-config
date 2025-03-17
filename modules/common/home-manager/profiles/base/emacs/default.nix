@@ -335,6 +335,9 @@
       electric-pair-mode = {
         enable = true;
         hook = [ "(prog-mode . electric-pair-mode)" ];
+        config = ''
+          (setq electric-pair-skip-whitespace-chars '(9 32)) ; relative to default, don't skip newlines
+        '';
       };
 
       emacs.enable = true;
