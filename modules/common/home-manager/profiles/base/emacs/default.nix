@@ -467,9 +467,17 @@
         bind = {
           "C-c RET" = "gptel-send";
         };
-        config = ''
-          (setq gptel-default-mode #'org-mode)
-        '';
+        custom = {
+          gptel-default-mode = "#'org-mode";
+          gptel-crowdsourced-prompts-file = ''"${
+            pkgs.fetchFromGitHub {
+              owner = "f";
+              repo = "awesome-chatgpt-prompts";
+              rev = "06708da20073a038a3970a1ebac25bd643afeefa";
+              hash = "sha256-LX1ShrR9D5tW72zD4BlRIbwopjCkVeKcRgT/eHQNcCU=";
+            }
+          }/prompts.csv"'';
+        };
       };
 
       hl-todo = {
