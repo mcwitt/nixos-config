@@ -465,11 +465,7 @@
       gptel = {
         enable = true;
         bind = {
-          "C-c g g" = "gptel";
-          "C-c g s" = "gptel-send";
-          "C-c g m" = "gptel-menu";
-          "C-c g a" = "gptel-add-context";
-          "C-c g x" = "gptel-abort";
+          "C-c RET" = "gptel-send";
         };
         config = ''
           (setq gptel-default-mode #'org-mode)
