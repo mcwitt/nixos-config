@@ -1,26 +1,15 @@
 {
   imports = [
-    ./R
     ./agda
     ./coq
     ./cpp
     ./cuda
-    ./dhall
-    ./elm
     ./go
-    ./graphviz
     ./haskell
-    ./idris
-    ./js
     ./markdown
     ./nix
-    ./plantuml
     ./python
     ./rust
-    ./scala
     ./shell
-    ./sql
-    ./terraform
-    ./tex
   ];
 }

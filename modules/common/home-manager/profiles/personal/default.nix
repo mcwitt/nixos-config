@@ -60,25 +60,14 @@ in
       }
       // lib.genAttrs
         [
-          "R"
           "agda"
           # "coq"
           "cpp"
           "cuda"
-          "dhall"
-          "elm"
           "go"
-          "graphviz"
-          # "idris"
-          "js"
           "markdown"
-          "plantuml"
           "rust"
-          "scala"
           "shell"
-          "sql"
-          "terraform"
-          "tex"
         ]
         (_: {
           enable = true;
