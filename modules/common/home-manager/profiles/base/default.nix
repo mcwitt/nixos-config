@@ -21,7 +21,7 @@
       delta
       difftastic
       fd
-      (ffmpeg.override { withFullDeps = true; })
+      ffmpeg
       fzf
       htop
       imagemagick
