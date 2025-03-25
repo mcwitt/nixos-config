@@ -487,9 +487,10 @@
 
       ispell = {
         enable = true;
-        config = ''
-          (setq ispell-program-name "aspell")
-        '';
+        custom = {
+          ispell-program-name = ''"aspell"'';
+          ispell-alternate-dictionary = ''"${pkgs.scowl}/share/dict/words.txt"'';
+        };
       };
 
       json-mode = {
