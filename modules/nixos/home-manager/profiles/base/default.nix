@@ -71,5 +71,16 @@
       defaultCacheTtl = 4 * 60 * 60;
       maxCacheTtl = 4 * 60 * 60;
     };
+
+    xdg.desktopEntries.org-protocol = {
+      name = "org-protocol";
+      comment = "Intercept calls from emacsclient to trigger custom actions";
+      categories = [ "X-Other" ];
+      icon = "emacs";
+      type = "Application";
+      exec = "emacsclient -- %u";
+      terminal = false;
+      mimeType = [ "x-scheme-handler/org-protocol" ];
+    };
   };
 }

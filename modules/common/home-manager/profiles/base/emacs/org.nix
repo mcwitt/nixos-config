@@ -117,17 +117,5 @@
         '';
       };
     };
-
-    # https://orgmode.org/worg/org-contrib/org-protocol.html
-    xdg.desktopEntries.org-protocol = {
-      name = "org-protocol";
-      comment = "Intercept calls from emacsclient to trigger custom actions";
-      categories = [ "X-Other" ];
-      icon = "emacs";
-      type = "Application";
-      exec = "emacsclient -- %u";
-      terminal = false;
-      mimeType = [ "x-scheme-handler/org-protocol" ];
-    };
   };
 }
