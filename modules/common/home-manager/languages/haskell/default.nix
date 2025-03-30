@@ -48,9 +48,6 @@ in
 
       haskell-mode = {
         enable = true;
-        bindLocal.haskell-mode-map = {
-          "C-c C-h" = "haskell-hoogle-lookup-from-local";
-        };
         hook = [ "(haskell-mode . interactive-haskell-mode)" ];
         config = ''
           (setq haskell-interactive-popup-errors nil)
