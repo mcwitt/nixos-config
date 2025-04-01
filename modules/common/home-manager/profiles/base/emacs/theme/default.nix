@@ -73,8 +73,8 @@
         ''
           (set-face-attribute 'default
                               nil
-                              :family "${fonts.monospace.name}")
-                              :height ${toString (fonts.sizes.applications * 10)}
+                              :family "${fonts.monospace.name}"
+                              :height ${toString (fonts.sizes.applications * 10)})
           (set-face-attribute 'variable-pitch
                               nil
                               :family "${fonts.sansSerif.name}")
