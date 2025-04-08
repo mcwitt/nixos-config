@@ -37,7 +37,7 @@ in
       };
     };
 
-    programs.vscode.extensions = [
+    programs.vscode.profiles.default.extensions = [
       pkgs.vscode-extensions.llvm-vs-code-extensions.vscode-clangd
     ];
   };

@@ -72,7 +72,6 @@
 
     services.locate = {
       enable = true;
-      localuser = null;
       package = pkgs.mlocate;
       interval = "hourly";
     };

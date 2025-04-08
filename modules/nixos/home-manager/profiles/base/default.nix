@@ -33,19 +33,6 @@
 
     programs.feh.enable = true;
 
-    programs.firefox = {
-      enable = true;
-      profiles.default = {
-        extensions = with pkgs.nur.repos.rycee.firefox-addons; [
-          browserpass
-          darkreader
-          privacy-badger
-          ublock-origin
-          vimium
-        ];
-      };
-    };
-
     programs.git.ignores = pkgs.gitignores "Global/Linux";
 
     programs.urxvt = {

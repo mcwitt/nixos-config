@@ -247,47 +247,50 @@
 
       enable = true;
 
-      extensions = with pkgs.vscode-extensions; [
-        arrterian.nix-env-selector
-        ms-toolsai.jupyter
-        vscodevim.vim
-      ];
+      profiles.default = {
 
-      keybindings = [
-        {
-          key = "alt+n";
-          command = "editor.action.marker.nextInFiles";
-          when = "editorFocus";
-        }
-        {
-          key = "alt+p";
-          command = "editor.action.marker.prevInFiles";
-          when = "editorFocus";
-        }
-      ];
+        extensions = with pkgs.vscode-extensions; [
+          arrterian.nix-env-selector
+          ms-toolsai.jupyter
+          vscodevim.vim
+        ];
 
-      userSettings = {
+        keybindings = [
+          {
+            key = "alt+n";
+            command = "editor.action.marker.nextInFiles";
+            when = "editorFocus";
+          }
+          {
+            key = "alt+p";
+            command = "editor.action.marker.prevInFiles";
+            when = "editorFocus";
+          }
+        ];
 
-        update.mode = "none";
-        extensions.autoUpdate = false;
+        userSettings = {
 
-        editor = {
-          fontFamily = "'${config.stylix.fonts.monospace.name}'";
-          fontLigatures = true;
-          formatOnSave = true;
-        };
+          update.mode = "none";
+          extensions.autoUpdate = false;
 
-        vim = {
-          hlsearch = true;
-          insertModeKeyBindings = [
-            {
-              before = [
-                "f"
-                "d"
-              ];
-              after = [ "<Esc>" ];
-            }
-          ];
+          editor = {
+            fontFamily = "'${config.stylix.fonts.monospace.name}'";
+            fontLigatures = true;
+            formatOnSave = true;
+          };
+
+          vim = {
+            hlsearch = true;
+            insertModeKeyBindings = [
+              {
+                before = [
+                  "f"
+                  "d"
+                ];
+                after = [ "<Esc>" ];
+              }
+            ];
+          };
         };
       };
     };

@@ -43,11 +43,9 @@ in
         });
     };
 
-    programs.vscode = {
-      userSettings.files.associations = {
-        "*.cu" = "cpp";
-        "*.cuh" = "cpp";
-      };
+    programs.vscode.profiles.default.userSettings.files.associations = {
+      "*.cu" = "cpp";
+      "*.cuh" = "cpp";
     };
   };
 }

@@ -7,7 +7,11 @@
     };
     # polarity = "dark"; # only relevant when stylix.base16Scheme not specified
 
-    cursor.size = 48;
+    cursor = {
+      package = pkgs.bibata-cursors;
+      name = "Bibata-Modern-Ice";
+      size = 48;
+    };
 
     image =
       let

@@ -20,10 +20,8 @@ in
       '';
     };
 
-    programs.vscode = {
-      extensions = with pkgs.vscode-extensions; [
-        rust-lang.rust-analyzer
-      ];
-    };
+    programs.vscode.profiles.default.extensions = with pkgs.vscode-extensions; [
+      rust-lang.rust-analyzer
+    ];
   };
 }
