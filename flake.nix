@@ -196,7 +196,9 @@
             self.nixosModules.nixos
             ./hosts/hob/configuration
             {
-              nixpkgs = nixpkgsArgs;
+              nixpkgs = nixpkgsArgs // {
+                config.allowUnsupportedSystem = true;
+              };
               profiles.home-automation.enable = true;
             }
           ];
