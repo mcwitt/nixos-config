@@ -24,8 +24,5 @@ in
     };
   };
 
-  xresources.properties = {
-    "*dpi" = dpi;
-    "Xft.dpi" = dpi;
-  };
+  xresources.properties."Xft.dpi" = dpi;
 }
