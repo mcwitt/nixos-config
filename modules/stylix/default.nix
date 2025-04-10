@@ -2,7 +2,31 @@
 {
   stylix = {
     base16Scheme = lib.mkDefault {
-      yaml = "${pkgs.base16-schemes}/share/themes/atelier-savanna.yaml";
+      yaml = pkgs.writeText "base16-modus-operandi.yaml" ''
+        # Colors taken from modus-operandi emacs theme
+        system: "base16"
+        name: "Modus Operandi Subset"
+        author: ""
+        variant: "light"
+        palette:
+          base00: "#ffffff"  # bg-main
+          base01: "#f0f0f0"  # bg-dim
+          base02: "#c4c4c4"  # bg-active
+          base03: "#9f9f9f"  # border
+          base04: "#595959"  # fg-dim
+          base05: "#000000"  # fg-main
+          base06: "#193668"  # fg-alt
+          base07: "#0000b0"  # blue-cooler
+          base08: "#a60000"  # red
+          base09: "#6f5500"  # yellow
+          base0A: "#f3d000"  # bg-yellow-intense
+          base0B: "#006800"  # green
+          base0C: "#005e8b"  # cyan
+          base0D: "#0031a9"  # blue
+          base0E: "#8f0075"  # magenta-warmer
+          base0F: "#8a290f"  # rust
+      '';
+
       use-ifd = "auto";
     };
     # polarity = "dark"; # only relevant when stylix.base16Scheme not specified

@@ -210,12 +210,6 @@
         '';
     };
 
-    programs.lsd = {
-      enable = true;
-      enableAliases = true;
-      settings.icons.separator = "  ";
-    };
-
     programs.mpv.enable = true;
 
     programs.nix-index.enable = true;
