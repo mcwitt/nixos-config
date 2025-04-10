@@ -47,15 +47,9 @@
   services.xserver = {
     enable = true;
     desktopManager.xterm.enable = true;
-    displayManager.lightdm = {
-      enable = true;
-      greeters.gtk = {
-        enable = true;
-        extraConfig = ''
-          xft-dpi=200
-        '';
-      };
-    };
+    displayManager.lightdm.greeters.gtk.extraConfig = ''
+      xft-dpi=200
+    '';
     xkb.layout = "us";
   };
 

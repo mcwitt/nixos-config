@@ -7,5 +7,17 @@
   config = lib.mkIf config.profiles.desktop.enable {
     # required for `gtk.enable = true` in home-manager
     programs.dconf.enable = true;
+
+    services.xserver = {
+      enable = true;
+
+      desktopManager.xterm.enable = true;
+
+      displayManager.lightdm = {
+        enable = true;
+        background = config.stylix.image;
+        greeters.gtk.enable = true;
+      };
+    };
   };
 }

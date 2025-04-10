@@ -32,8 +32,6 @@
 
   time.timeZone = "America/Los_Angeles";
 
-  services.xserver.xkb.layout = "us";
-
   users.users.matt = {
     isNormalUser = true;
     extraGroups = [ "wheel" ];

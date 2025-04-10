@@ -122,7 +122,9 @@ in
       };
     };
 
-    xsession.enable = true;
-    xsession.windowManager.xmonad.enable = true;
+    xsession = {
+      enable = true;
+      windowManager.xmonad.enable = true;
+    };
   };
 }
