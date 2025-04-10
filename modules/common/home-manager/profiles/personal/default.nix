@@ -68,6 +68,7 @@ in
           "markdown"
           "rust"
           "shell"
+          "typst"
         ]
         (_: {
           enable = true;

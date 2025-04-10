@@ -11,5 +11,6 @@
     ./python
     ./rust
     ./shell
+    ./typst
   ];
 }
