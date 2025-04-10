@@ -31,6 +31,19 @@
             size = mkLiteral "1em";
             margin = mkLiteral "0 0.25em 0 0";
           };
+
+          inputbar.children = map mkLiteral [
+            "prompt"
+            "textbox-prompt-colon"
+            "entry"
+            "case-indicator"
+          ];
+
+          textbox-prompt-colon = {
+            expand = false;
+            str = ":";
+            margin = mkLiteral "0 0.25em 0 0";
+          };
         };
     };
   };
