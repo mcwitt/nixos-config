@@ -28,11 +28,8 @@
       nix-du
       nix-output-monitor
       (parallel-full.override { willCite = true; })
-      pre-commit
       nodePackages.prettier
-      proselint
       ripgrep
-      xclip
       yq
     ];
 
@@ -62,8 +59,6 @@
     programs.bat.enable = true;
 
     programs.bash.enable = true;
-
-    programs.browserpass.enable = true;
 
     programs.direnv = {
       enable = true;
@@ -160,58 +155,6 @@
 
     programs.nushell.enable = true;
 
-    programs.wezterm = {
-      enable = true;
-
-      colorSchemes.custom = with config.lib.stylix.colors.withHashtag; {
-        # https://github.com/chriskempson/base16-shell/blob/master/templates/default.mustache
-        ansi = [
-          base00
-          red
-          green
-          yellow
-          blue
-          magenta
-          cyan
-          base05
-        ];
-        brights = [
-          base03
-          red
-          green
-          yellow
-          blue
-          magenta
-          cyan
-          base07
-        ];
-
-        background = base00;
-        cursor_bg = base05;
-        cursor_border = base05;
-        cursor_fg = base00;
-        foreground = base05;
-        selection_bg = base05;
-        selection_fg = base00;
-      };
-      extraConfig =
-        let
-          inherit (config.stylix) fonts;
-        in
-        ''
-          return {
-            font = wezterm.font "${fonts.monospace.name}",
-            font_size = ${toString fonts.sizes.applications},
-            color_scheme = "custom",
-            hide_tab_bar_if_only_one_tab = true,
-            check_for_updates = false,
-            audible_bell = "Disabled",
-          };
-        '';
-    };
-
-    programs.mpv.enable = true;
-
     programs.nix-index.enable = true;
 
     programs.pandoc.enable = true;
@@ -236,60 +179,6 @@
       enable = true;
       keyMode = "vi";
     };
-
-    programs.vscode = {
-
-      enable = true;
-
-      profiles.default = {
-
-        extensions = with pkgs.vscode-extensions; [
-          arrterian.nix-env-selector
-          ms-toolsai.jupyter
-          vscodevim.vim
-        ];
-
-        keybindings = [
-          {
-            key = "alt+n";
-            command = "editor.action.marker.nextInFiles";
-            when = "editorFocus";
-          }
-          {
-            key = "alt+p";
-            command = "editor.action.marker.prevInFiles";
-            when = "editorFocus";
-          }
-        ];
-
-        userSettings = {
-
-          update.mode = "none";
-          extensions.autoUpdate = false;
-
-          editor = {
-            fontFamily = "'${config.stylix.fonts.monospace.name}'";
-            fontLigatures = true;
-            formatOnSave = true;
-          };
-
-          vim = {
-            hlsearch = true;
-            insertModeKeyBindings = [
-              {
-                before = [
-                  "f"
-                  "d"
-                ];
-                after = [ "<Esc>" ];
-              }
-            ];
-          };
-        };
-      };
-    };
-
-    programs.zoxide.enable = true;
 
     programs.zsh = {
       enable = true;

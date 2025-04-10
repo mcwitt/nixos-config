@@ -9,8 +9,6 @@ let
   cfg = config.profiles.desktop;
 in
 {
-  options.profiles.desktop.enable = lib.mkEnableOption "Profile for machines with graphical desktops";
-
   imports = [
     ./polybar.nix
     ./rofi.nix
@@ -92,35 +90,6 @@ in
     };
 
     stylix.enable = true;
-
-    xdg = {
-      enable = true;
-      mimeApps = {
-        enable = true;
-        defaultApplications =
-          let
-            mkDefaults = apps: types: builtins.listToAttrs (map (type: lib.nameValuePair type apps) types);
-          in
-          mkDefaults [ "feh.desktop" ] [
-            "image/bmp"
-            "image/gif"
-            "image/jpeg"
-            "image/jpg"
-            "image/png"
-            "image/webp"
-          ]
-          // mkDefaults [ "chromium-browser.desktop" ] [
-            "text/html"
-            "x-scheme-handler/http"
-            "x-scheme-handler/https"
-            "x-scheme-handler/ftp"
-          ]
-          // {
-            "application/pdf" = [ "org.pwmt.zathura.desktop" ];
-            "text/plain" = [ "emacsclient.desktop" ];
-          };
-      };
-    };
 
     xsession = {
       enable = true;
