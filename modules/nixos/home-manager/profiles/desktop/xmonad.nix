@@ -126,7 +126,7 @@
                           unwords $
                             catMaybes
                               [ show <$> positive windowCount,
-                                color "${colors.withHashtag.base0A}" . wrap "(" ")" . show <$> positive minimizedCount
+                                color "${colors.withHashtag.base0D}" . wrap "(" ")" . show <$> positive minimizedCount
                               ]
                      in (++ " " ++ windowCountLabel),
                   ppOrder = \(_ : l : win : _) -> [l, win],

@@ -1,35 +1,31 @@
-{ lib, pkgs, ... }:
+{
+  lib,
+  pkgs,
+  ...
+}:
 {
   stylix = {
-    base16Scheme = lib.mkDefault {
-      yaml = pkgs.writeText "base16-modus-operandi.yaml" ''
-        # Colors taken from modus-operandi emacs theme
-        system: "base16"
-        name: "Modus Operandi Subset"
-        author: ""
-        variant: "light"
-        palette:
-          base00: "#ffffff"  # bg-main
-          base01: "#f0f0f0"  # bg-dim
-          base02: "#c4c4c4"  # bg-active
-          base03: "#9f9f9f"  # border
-          base04: "#595959"  # fg-dim
-          base05: "#000000"  # fg-main
-          base06: "#193668"  # fg-alt
-          base07: "#0000b0"  # blue-cooler
-          base08: "#a60000"  # red
-          base09: "#6f5500"  # yellow
-          base0A: "#f3d000"  # bg-yellow-intense
-          base0B: "#006800"  # green
-          base0C: "#005e8b"  # cyan
-          base0D: "#0031a9"  # blue
-          base0E: "#8f0075"  # magenta-warmer
-          base0F: "#8a290f"  # rust
-      '';
-
-      use-ifd = "auto";
+    # Colors taken from modus-operandi emacs theme
+    base16Scheme = {
+      base00 = "#ffffff"; # bg-main
+      base01 = "#f0f0f0"; # bg-dim
+      base02 = "#c4c4c4"; # bg-active
+      base03 = "#9f9f9f"; # border
+      base04 = "#595959"; # fg-dim
+      base05 = "#000000"; # fg-main
+      base06 = "#193668"; # fg-alt
+      base07 = "#0000b0"; # blue-cooler
+      base08 = "#a60000"; # red
+      base09 = "#6f5500"; # yellow
+      base0A = "#f3d000"; # bg-yellow-intense
+      base0B = "#006800"; # green
+      base0C = "#005e8b"; # cyan
+      base0D = "#0031a9"; # blue
+      base0E = "#8f0075"; # magenta-warmer
+      base0F = "#8a290f"; # rust
     };
-    # polarity = "dark"; # only relevant when stylix.base16Scheme not specified
+
+    polarity = "light";
 
     cursor = {
       package = pkgs.bibata-cursors;
@@ -81,5 +77,29 @@
         terminal = 9;
       };
     };
+  };
+
+  specialisation.dark.configuration.stylix = {
+    # Colors taken from modus-vivendi emacs theme
+    base16Scheme = lib.mkForce {
+      base00 = "#000000"; # bg-main
+      base01 = "#1e1e1e"; # bg-dim
+      base02 = "#535353"; # bg-active
+      base03 = "#646464"; # border
+      base04 = "#989898"; # fg-dim
+      base05 = "#ffffff"; # fg-main
+      base06 = "#c6daff"; # fg-alt
+      base07 = "#00bcff"; # blue-cooler
+      base08 = "#ff5f59"; # red
+      base09 = "#d0bc00"; # yellow
+      base0A = "#efef00"; # yellow-intense
+      base0B = "#44bc44"; # green
+      base0C = "#00d3d0"; # cyan
+      base0D = "#2fafff"; # blue
+      base0E = "#feacd0"; # magenta
+      base0F = "#db7b5f"; # rust
+    };
+
+    polarity = lib.mkForce "dark";
   };
 }

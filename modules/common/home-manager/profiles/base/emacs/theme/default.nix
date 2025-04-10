@@ -24,9 +24,10 @@
 
       modus-themes = {
         enable = true;
+        demand = true;
+        bind."<f5>" = "modus-themes-toggle";
         config = ''
           (load-theme 'modus-operandi :no-confirm)
-          (define-key global-map (kbd "<f5>") #'modus-themes-toggle)
         '';
       };
     };
