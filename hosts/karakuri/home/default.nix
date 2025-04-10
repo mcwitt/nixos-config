@@ -1,12 +1,11 @@
 {
-  config,
   lib,
   pkgs,
   ...
 }:
 
 let
-  dpi = 200;
+  dpi = 224;
 in
 {
   home.stateVersion = "21.11";
