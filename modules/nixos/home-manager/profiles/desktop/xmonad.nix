@@ -10,9 +10,11 @@
     xsession.windowManager.xmonad = {
       enable = true;
 
-      enableContribAndExtras = true;
-
-      extraPackages = ps: [ ps.dbus ];
+      extraPackages =
+        ps: with ps; [
+          dbus
+          xmonad-contrib_0_18_1
+        ];
 
       config =
         let
@@ -20,9 +22,9 @@
           inherit (config.lib.stylix) colors;
         in
         pkgs.writeText "xmonad.hs" ''
-          import Codec.Binary.UTF8.String qualified as UTF8
-          import DBus qualified as D
-          import DBus.Client qualified as D
+          import qualified Codec.Binary.UTF8.String as UTF8
+          import qualified DBus as D
+          import qualified DBus.Client as D
           import Data.Bifunctor (first)
           import Data.List (find)
           import Data.Maybe (catMaybes)
@@ -30,11 +32,12 @@
           import Graphics.X11.ExtraTypes.XF86
           import XMonad
           import XMonad.Actions.EasyMotion (selectWindow)
-          import XMonad.Actions.EasyMotion qualified as EM
+          import qualified XMonad.Actions.EasyMotion as EM
           import XMonad.Actions.FocusNth (swapNth)
           import XMonad.Actions.Minimize (maximizeWindowAndFocus, minimizeWindow, withLastMinimized, withMinimized)
           import XMonad.Hooks.DynamicLog (PP (..), dynamicLogWithPP, shorten, wrap)
           import XMonad.Hooks.EwmhDesktops (ewmh, ewmhFullscreen)
+          import XMonad.Hooks.FloatConfigureReq (fixSteamFlicker)
           import XMonad.Hooks.ManageDocks (avoidStruts, docks, manageDocks)
           import XMonad.Hooks.OnPropertyChange (onXPropertyChange)
           import XMonad.Layout.BoringWindows (boringWindows, focusDown, focusMaster, focusUp)
@@ -45,7 +48,7 @@
           import XMonad.Layout.Renamed (Rename (CutWordsLeft), renamed)
           import XMonad.Layout.Spacing (smartSpacingWithEdge)
           import XMonad.Layout.ThreeColumns (ThreeCol (..))
-          import XMonad.StackSet qualified as W
+          import qualified XMonad.StackSet as W
           import XMonad.Util.EZConfig (additionalKeys, additionalKeysP)
 
           main = do
@@ -157,7 +160,10 @@
 
           myManageHook = manageZoomHook <+> manageDocks
 
-          myHandleEventHook = onXPropertyChange "WM_NAME" manageZoomHook <+> handleEventHook def
+          myHandleEventHook =
+            fixSteamFlicker
+              <+> onXPropertyChange "WM_NAME" manageZoomHook
+              <+> handleEventHook def
 
           -- https://www.peterstuart.org/posts/2021-09-06-xmonad-zoom/
           manageZoomHook =
