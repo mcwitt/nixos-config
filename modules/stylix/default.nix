@@ -70,8 +70,8 @@
       };
 
       serif = {
-        package = pkgs.nerdifyFont pkgs.iosevka-comfy.comfy-motion-duo;
-        name = "IosevkaComfyMotionDuo Nerd Font";
+        package = pkgs.merriweather;
+        name = "Merriweather Regular";
       };
 
       sizes = {
