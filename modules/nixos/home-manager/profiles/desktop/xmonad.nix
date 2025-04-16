@@ -46,7 +46,7 @@
           import XMonad.Layout.MultiToggle (Toggle (Toggle), mkToggle, single)
           import XMonad.Layout.MultiToggle.Instances
           import XMonad.Layout.Renamed (Rename (CutWordsLeft), renamed)
-          import XMonad.Layout.Spacing (smartSpacingWithEdge)
+          import XMonad.Layout.Spacing (spacingWithEdge)
           import XMonad.Layout.ThreeColumns (ThreeCol (..))
           import qualified XMonad.StackSet as W
           import XMonad.Util.EZConfig (additionalKeys, additionalKeysP)
@@ -58,8 +58,8 @@
               . ewmhFullscreen
               . ewmh
               $ def
-                { borderWidth = 4,
-                  normalBorderColor = "${colors.withHashtag.base00}",
+                { borderWidth = 5,
+                  normalBorderColor = "${colors.withHashtag.base03}",
                   focusedBorderColor = "${colors.withHashtag.base0D}",
                   layoutHook = myLayoutHook,
                   logHook = mkPolybarLogHook logOutput,
@@ -102,7 +102,7 @@
                                  )
 
           myLayoutHook =
-            diminish (smartSpacingWithEdge 5)
+            diminish (spacingWithEdge 5)
               . diminish minimize
               . boringWindows
               . avoidStruts
@@ -129,7 +129,7 @@
                           unwords $
                             catMaybes
                               [ show <$> positive windowCount,
-                                color "${colors.withHashtag.base0D}" . wrap "(" ")" . show <$> positive minimizedCount
+                                color "${colors.withHashtag.base04}" . wrap "(" ")" . show <$> positive minimizedCount
                               ]
                      in (++ " " ++ windowCountLabel),
                   ppOrder = \(_ : l : win : _) -> [l, win],
@@ -186,11 +186,12 @@
           emConfig =
             def
               { EM.emFont = "xft:${fonts.monospace.name}:bold:size=18:antialias=true",
-                EM.bgCol = "${colors.withHashtag.base01}",
-                EM.borderCol = "${colors.withHashtag.base01}",
+                EM.bgCol = "${colors.withHashtag.base04}",
+                EM.borderCol = "${colors.withHashtag.base03}",
+                EM.borderPx = 5,
                 EM.cancelKey = xK_Escape,
                 EM.overlayF = EM.fixedSize 100 100,
-                EM.txtCol = "${colors.withHashtag.base0A}"
+                EM.txtCol = "${colors.withHashtag.base01}"
               }
 
           easyFocus :: X ()
