@@ -90,6 +90,11 @@
         '';
       };
 
+      org-fragtog = {
+        enable = true;
+        hook = [ ''(org-mode . org-fragtog-mode)'' ];
+      };
+
       org-protocol.enable = true;
 
       org-roam = {
