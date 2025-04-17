@@ -14,7 +14,7 @@
         hook = [
           "(org-mode . turn-on-visual-line-mode)"
           "(org-mode . turn-on-flyspell)"
-          "(org-capture-mode-hook . evil-insert-state)"
+          "(org-capture-mode . evil-insert-state)"
         ];
 
         bind = {
