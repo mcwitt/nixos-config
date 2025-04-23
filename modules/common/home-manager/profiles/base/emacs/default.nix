@@ -327,10 +327,7 @@
         '';
       };
 
-      eldoc = {
-        enable = true;
-        diminish = [ "eldoc-mode" ];
-      };
+      eldoc.enable = true;
 
       electric-pair-mode = {
         enable = true;
@@ -585,10 +582,7 @@
         '';
       };
 
-      subword = {
-        enable = true;
-        diminish = [ "subword-mode" ];
-      };
+      subword.enable = true;
 
       string-inflection = {
         enable = true;
@@ -632,7 +626,6 @@
 
       yasnippet = {
         enable = true;
-        diminish = [ "yas-minor-mode" ];
         config = ''
           (yas-global-mode 1)
         '';
