@@ -15,13 +15,9 @@ in
 
     programs.emacs.init.usePackage = {
 
-      cuda-mode.enable = true;
-
-      eglot = {
-        hook = [ "(cuda-mode . eglot-ensure)" ];
-        config = ''
-          (add-to-list 'eglot-server-programs '(cuda-mode "clangd"))
-        '';
+      c-ts-mode = {
+        enable = true;
+        mode = [ ''("\\.cuh?\\'" . c++-ts-mode)'' ];
       };
 
       yasnippet-snippets.package =
