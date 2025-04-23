@@ -159,17 +159,6 @@
 
     programs.pandoc.enable = true;
 
-    programs.password-store = {
-      enable = true;
-      package = pkgs.pass.withExtensions (
-        exts: with exts; [
-          pass-update
-          pass-otp
-        ]
-      );
-      settings.PASSWORD_STORE_DIR = "${config.home.homeDirectory}/.password-store/";
-    };
-
     programs.starship = {
       enable = true;
       settings.directory.fish_style_pwd_dir_length = 1;
