@@ -10,11 +10,9 @@
     xsession.windowManager.xmonad = {
       enable = true;
 
-      extraPackages =
-        ps: with ps; [
-          dbus
-          xmonad-contrib_0_18_1
-        ];
+      enableContribAndExtras = true;
+
+      extraPackages = ps: with ps; [ dbus ];
 
       config =
         let
