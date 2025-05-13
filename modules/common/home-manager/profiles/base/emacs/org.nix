@@ -1,19 +1,60 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
   config = lib.mkIf config.profiles.base.enable {
 
+    programs.emacs.overrides = self: _: {
+      # org-mode fork with upgraded org-latex-preview
+      # https://code.tecosaur.net/tec/org-mode
+      # TODO: remove once changes are merged
+      org =
+        let
+          rev = "cd2269ddb64bda7203acf2ee2e26188237a578ea";
+        in
+        self.trivialBuild {
+          pname = "org";
+          version = "9.7.26+${builtins.substring 0 7 rev}";
+
+          src =
+            let
+              root = pkgs.fetchgit {
+                name = "org-src";
+                url = "https://code.tecosaur.net/tec/org-mode.git";
+                inherit rev;
+                hash = "sha256-mw11v3r+6/xCTaYht/hD+/Nhd+gIcOmAbtEJUGMiphA=";
+              };
+            in
+            "${root}/lisp";
+        };
+    };
+
     programs.emacs.init.usePackage = {
+
+      cdlatex.enable = true;
 
       frames-only-mode.config = lib.mkBefore ''
         (add-to-list 'frames-only-mode-use-window-functions #'org-capture)
       '';
 
+      mixed-pitch = {
+        enable = true;
+        hook = [ "(org-mode . mixed-pitch-mode)" ];
+        diminish = [ "mixed-pitch-mode" ];
+      };
+
       org = {
         enable = true;
 
         hook = [
-          "(org-mode . turn-on-visual-line-mode)"
+          "(org-mode . turn-on-cdlatex)"
           "(org-mode . turn-on-flyspell)"
+          "(org-mode . turn-on-visual-line-mode)"
+          "(org-mode . org-appear-mode)"
+          "(org-mode . org-latex-preview-auto-mode)"
           "(org-capture-mode . evil-insert-state)"
         ];
 
@@ -30,7 +71,16 @@
 
         custom = {
           org-directory = ''"~/org"'';
+
+          org-hide-emphasis-markers = true;
+          org-hidden-keywords = '''(title subtitle author date email)'';
+
           org-startup-indented = true;
+
+          org-latex-preview-live = true;
+          org-latex-preview-live-debounce = 0.25;
+          org-highlight-latex-and-related = '''(native)'';
+
           org-agenda-files = ''
             '("~/org/gtd.org"
               "~/org/inbox.org"
@@ -51,6 +101,7 @@
               (search . " %i %-12:c"))
           '';
           org-agenda-breadcrumbs-separator = ''"/"'';
+
           org-capture-templates = ''
             '(("t" "todo" entry (file "~/org/inbox.org") "* TODO %a%?\n%i")
               ("k" "tickler" entry (file "~/org/tickler.org") "* %i%?"))
@@ -60,6 +111,25 @@
         };
 
         config = ''
+          ;; Resize Org headings
+          ;; https://sophiebos.io/posts/prettifying-emacs-org-mode/
+          (dolist (face '((org-level-1 . 1.35)
+                          (org-level-2 . 1.3)
+                          (org-level-3 . 1.2)
+                          (org-level-4 . 1.1)
+                          (org-level-5 . 1.1)
+                          (org-level-6 . 1.1)
+                          (org-level-7 . 1.1)
+                          (org-level-8 . 1.1)))
+            (set-face-attribute (car face) nil :weight 'bold :height (cdr face)))
+
+          ;; Make the document title a bit bigger
+          (set-face-attribute 'org-document-title nil :weight 'bold :height 1.8)
+
+          ;; Increase size of latex fragment previews
+          (plist-put org-latex-preview-appearance-options :page-width 0.8)
+          (plist-put org-latex-preview-appearance-options :scale 1.35)
+
           ;; The following is used to treat frames named "org-capture"
           ;; as dedicated capture frames, meaning they will
           ;;
@@ -90,9 +160,13 @@
         '';
       };
 
-      org-fragtog = {
+      org-appear = {
         enable = true;
-        hook = [ ''(org-mode . org-fragtog-mode)'' ];
+        custom = {
+          org-appear-autoemphasis = true;
+          org-appear-autolinks = true;
+          org-appear-autokeywords = true;
+        };
       };
 
       org-protocol.enable = true;

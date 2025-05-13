@@ -85,27 +85,7 @@ in
 
     programs.texlive = {
       enable = true;
-      extraPackages = tpkgs: {
-        inherit (tpkgs)
-          scheme-basic
-
-          # packages required for Org Mode latex export (see org-latex-default-packages-alist documentation)
-          dvipng
-          dvisvgm
-          wrapfig
-          ulem
-          amsmath
-          capt-of
-          hyperref
-
-          # not mentioned but required
-          minted
-          newfloat
-
-          # not packaged nixpkgs.texlive?
-          # inputenc fontenc graphicx longtable rotating amssymb
-          ;
-      };
+      extraPackages = tpkgs: { inherit (tpkgs) scheme-full; };
     };
 
     tools = {

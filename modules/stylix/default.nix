@@ -67,7 +67,7 @@
 
       serif = {
         package = pkgs.merriweather;
-        name = "Merriweather Regular";
+        name = "Merriweather";
       };
 
       sizes = {

@@ -19,7 +19,7 @@
                               :height ${toString (fonts.sizes.applications * 10)})
           (set-face-attribute 'variable-pitch
                               nil
-                              :family "${fonts.sansSerif.name}")
+                              :family "${fonts.serif.name}")
         '';
 
       modus-themes = {

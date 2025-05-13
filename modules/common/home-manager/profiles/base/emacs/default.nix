@@ -28,36 +28,9 @@
 
     programs.emacs.extraPackages = epkgs: [ epkgs.treesit-grammars.with-all-grammars ];
 
-    programs.emacs.overrides =
-      final: prev:
-      let
-        inherit (final) trivialBuild;
-      in
-      {
-
-        copilot = trivialBuild {
-          pname = "copilot";
-          version = "0-unstable-2024-09-25";
-          src = pkgs.fetchFromGitHub {
-            owner = "zerolfx";
-            repo = "copilot.el";
-            rev = "b5878d6a8c741138b5efbf4fe1c594f3fd69dbdd";
-            sha256 = "sha256-02ywlMPku1FIritZjjtxbQW6MmPvSwmRCrudYsUb8bU=";
-          };
-          packageRequires = with final; [
-            dash
-            editorconfig
-            f
-            jsonrpc
-            s
-          ];
-          postInstall = ''
-            cp -r $src $LISPDIR
-          '';
-        };
-
-        eglot = null; # use built-in package
-      };
+    programs.emacs.overrides = _: _: {
+      eglot = null; # use built-in package
+    };
 
     programs.emacs.init = {
       enable = true;
@@ -154,6 +127,8 @@
                   ("M-o" . ace-window))
         '';
       };
+
+      auctex.enable = true;
 
       avy = {
         enable = true;
@@ -299,6 +274,8 @@
           (add-to-list 'exec-path "${pkgs.nodejs}/bin/")
         '';
       };
+
+      copilot-chat.enable = true;
 
       csv-mode.enable = true;
 
@@ -531,12 +508,6 @@
         init = ''
           (marginalia-mode)
         '';
-      };
-
-      mixed-pitch = {
-        enable = true;
-        hook = [ "(text-mode . mixed-pitch-mode)" ];
-        diminish = [ "mixed-pitch-mode" ];
       };
 
       orderless = {
