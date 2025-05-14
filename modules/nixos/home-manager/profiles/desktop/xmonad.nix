@@ -56,7 +56,7 @@
               . ewmhFullscreen
               . ewmh
               $ def
-                { borderWidth = 5,
+                { borderWidth = 6,
                   normalBorderColor = "${colors.withHashtag.base03}",
                   focusedBorderColor = "${colors.withHashtag.base0D}",
                   layoutHook = myLayoutHook,
@@ -100,7 +100,7 @@
                                  )
 
           myLayoutHook =
-            diminish (spacingWithEdge 5)
+            diminish (spacingWithEdge 6)
               . diminish minimize
               . boringWindows
               . avoidStruts
@@ -186,7 +186,7 @@
               { EM.emFont = "xft:${fonts.monospace.name}:bold:size=18:antialias=true",
                 EM.bgCol = "${colors.withHashtag.base04}",
                 EM.borderCol = "${colors.withHashtag.base03}",
-                EM.borderPx = 5,
+                EM.borderPx = 6,
                 EM.cancelKey = xK_Escape,
                 EM.overlayF = EM.fixedSize 100 100,
                 EM.txtCol = "${colors.withHashtag.base01}"
