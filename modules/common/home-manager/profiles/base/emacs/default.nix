@@ -300,7 +300,7 @@
 
       eldoc.enable = true;
 
-      electric-pair-mode = {
+      elec-pair = {
         enable = true;
         hook = [ "(prog-mode . electric-pair-mode)" ];
         config = ''
