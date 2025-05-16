@@ -586,6 +586,7 @@
         config = ''
           (yas-global-mode 1)
         '';
+        diminish = [ "yas-minor-mode" ];
       };
 
       yasnippet-snippets.enable = true;
