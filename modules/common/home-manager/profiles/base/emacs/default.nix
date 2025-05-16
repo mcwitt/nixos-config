@@ -92,7 +92,6 @@
 
       all-the-icons = {
         enable = true;
-        extraPackages = [ pkgs.emacs-all-the-icons-fonts ];
         config = ''
           (setq all-the-icons-spacer " ")
         '';
@@ -462,12 +461,7 @@
         };
       };
 
-      json-mode = {
-        enable = true;
-        init = ''
-          (add-to-list 'major-mode-remap-alist '(json-mode . json-ts-mode))
-        '';
-      };
+      json-mode.enable = true;
 
       ligature = {
         enable = true;
@@ -585,9 +579,6 @@
       yaml-mode = {
         enable = true;
         hook = [ "(yaml-mode . (lambda () (mixed-pitch-mode -1)))" ];
-        init = ''
-          (add-to-list 'major-mode-remap-alist '(yaml-mode . yaml-ts-mode))
-        '';
       };
 
       yasnippet = {

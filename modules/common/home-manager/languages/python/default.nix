@@ -34,10 +34,6 @@ in
         pythonEnv
       ];
 
-    programs.emacs.overrides = _: prev: {
-      python = null; # use built-in package
-    };
-
     programs.emacs.init.usePackage = {
 
       code-cells = {
@@ -55,13 +51,7 @@ in
         (ligature-set-ligatures 'python-ts-mode '("->" "==" ">=" "<="))
       '';
 
-      # Use python.el, NOT python-mode.el
-      python = {
-        enable = true;
-        init = ''
-          (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
-        '';
-      };
+      python-ts-mode.enable = true;
 
       reformatter = {
         enable = true;
