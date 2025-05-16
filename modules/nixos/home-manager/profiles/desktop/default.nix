@@ -44,7 +44,7 @@ in
     };
 
     services.gpg-agent = {
-      pinentryPackage = pkgs.pinentry-gtk2;
+      pinentry.package = pkgs.pinentry-gtk2;
 
       # TODO: pinentry-rofi breaks in ssh sessions
       # extraConfig =
