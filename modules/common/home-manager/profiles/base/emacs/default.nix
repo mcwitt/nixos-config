@@ -17,16 +17,13 @@
     ./jupyter.nix
     ./org.nix
     ./theme
+    ./treesit.nix
     ./vertico.nix
   ];
 
   config = lib.mkIf config.profiles.base.enable {
 
-    home.packages = [ pkgs.emacs-all-the-icons-fonts ];
-
     programs.emacs.package = pkgs.emacs-unstable;
-
-    programs.emacs.extraPackages = epkgs: [ epkgs.treesit-grammars.with-all-grammars ];
 
     programs.emacs.overrides = _: _: {
       eglot = null; # use built-in package
@@ -83,9 +80,6 @@
         ;; Highlight end-of-line whitespace only in prog-mode
         (add-hook 'prog-mode-hook (lambda () (setq-local show-trailing-whitespace t)))
 
-        ;; Controls level of treesit syntax highlighting
-        (setq treesit-font-lock-level 3)
-
         ;; Open URLs with Chromium
         (setq browse-url-browser-function 'browse-url-chromium)
 
@@ -98,6 +92,7 @@
 
       all-the-icons = {
         enable = true;
+        extraPackages = [ pkgs.emacs-all-the-icons-fonts ];
         config = ''
           (setq all-the-icons-spacer " ")
         '';
