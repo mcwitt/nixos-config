@@ -25,11 +25,6 @@
 
       embark-consult = {
         enable = true;
-        after = [
-          "embark"
-          "consult"
-        ];
-        demand = true;
         hook = [ "(embark-collect-mode . consult-preview-at-point-mode)" ];
       };
 
