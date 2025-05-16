@@ -9,6 +9,7 @@
 
   imports = [
     nurNoPkgs.repos.rycee.hmModules.emacs-init
+    ./citar.nix
     ./consult.nix
     ./corfu.nix
     ./embark.nix
@@ -32,7 +33,8 @@
     programs.emacs.init = {
       enable = true;
 
-      packageQuickstart = true; # ensure package autoloads are available
+      # Generate (and native-compile) a package-quickstart.el file with package autoloads
+      packageQuickstart = true;
 
       recommendedGcSettings = true;
 

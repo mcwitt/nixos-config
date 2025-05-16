@@ -73,7 +73,7 @@
           org-directory = ''"~/org"'';
 
           org-hide-emphasis-markers = true;
-          org-hidden-keywords = '''(title subtitle author date email)'';
+          org-hidden-keywords = "'(title subtitle author date email)";
 
           org-startup-indented = true;
 
