@@ -6,20 +6,20 @@
 
 buildNpmPackage rec {
   pname = "scheduler-card";
-  version = "3.2.13";
+  version = "3.2.15";
 
   src = fetchFromGitHub {
     owner = "nielsfaber";
     repo = "scheduler-card";
     rev = "refs/tags/v${version}";
-    hash = "sha256-kfCc12InvPlV18JZimHDF/sXkVpjHvWGKZF1EHdZA7M=";
+    hash = "sha256-9lPPvf4FPs3epWXM5mTymeE6GJ3jrL+pVBQeUTdLHlE=";
   };
 
   postPatch = ''
     cp ${./package-lock.json} package-lock.json
   '';
 
-  npmDepsHash = "sha256-WcBYKHsbWlY0ICtgfZuI4qMjfeqgdCQNFpxXpuRFdbQ=";
+  npmDepsHash = "sha256-EA2wDm5u/oNk7hTKY4otqPtSj2FmY55QlZB5Lo5Urrg=";
 
   installPhase = ''
     runHook preInstall
