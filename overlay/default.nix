@@ -1,7 +1,7 @@
 { inputs }:
 final: prev:
 let
-  inherit (final) callPackage fetchFromGitHub lib;
+  inherit (final) callPackage lib;
 
   assertNotStale =
     overrideVersion: currentVersion:
@@ -12,19 +12,6 @@ let
       !versionOlder overrideVersion currentVersion
     ) "Stale override. Update override version if it still applies.";
 
-  overridePython =
-    python:
-    python.override (old: {
-      packageOverrides = lib.composeExtensions (old.packageOverrides or (_: _: { })) (
-        pyFinal: pyPrev:
-        let
-          inherit (pyFinal) callPackage;
-        in
-        {
-          magicattr = callPackage ../packages/development/python-modules/magicattr { };
-        }
-      );
-    });
 in
 {
   emacs-unstable = prev.emacs-unstable.overrideAttrs (old: {
@@ -53,7 +40,17 @@ in
 
   gitignores = callPackage ../packages/development/misc/gitignores.nix { };
 
-  home-assistant = overridePython prev.home-assistant;
+  home-assistant = prev.home-assistant.override (old: {
+    packageOverrides = lib.composeExtensions (old.packageOverrides or (_: _: { })) (
+      pyFinal: _:
+      let
+        inherit (pyFinal) callPackage;
+      in
+      {
+        magicattr = callPackage ../packages/development/python-modules/magicattr { };
+      }
+    );
+  });
 
   home-assistant-custom-components =
     prev.home-assistant-custom-components
@@ -78,7 +75,4 @@ in
   };
 
   nerdifyFont = callPackage ./nerdify-font.nix { };
-
-  python311 = overridePython prev.python311;
-  python312 = overridePython prev.python312;
 }
