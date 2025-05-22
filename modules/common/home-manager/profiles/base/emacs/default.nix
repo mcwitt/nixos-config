@@ -271,8 +271,6 @@
         '';
       };
 
-      copilot-chat.enable = true;
-
       csv-mode.enable = true;
 
       edit-indirect.enable = true;
