@@ -50,7 +50,6 @@
         enable = true;
 
         hook = [
-          "(org-mode . turn-on-cdlatex)"
           "(org-mode . turn-on-flyspell)"
           "(org-mode . turn-on-visual-line-mode)"
           "(org-mode . org-appear-mode)"
