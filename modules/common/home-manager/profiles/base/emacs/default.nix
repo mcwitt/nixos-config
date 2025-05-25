@@ -46,47 +46,8 @@
       '';
 
       prelude = ''
-        ;; Make package archives unavailable (use Nix)
-        (setq package-archives nil)
-
+        (setq package-archives nil) ; make package archives unavailable (use Nix)
         (setq custom-file "~/.emacs.d/custom.el")
-
-        (setq user-full-name "Matt Wittmann"
-              user-mail-address "mcwitt@gmail.com")
-
-        ;; Create backup files in system temp directory
-        (setq backup-directory-alist
-              `((".*" . ,temporary-file-directory)))
-        (setq auto-save-file-name-transforms
-              `((".*" ,temporary-file-directory t)))
-
-        ;; Always split horizontally (i.e. vertical stack)
-        (setq split-width-threshold nil)
-
-        ;; Prompt for y/n instead of yes/no
-        (defalias 'yes-or-no-p 'y-or-n-p)
-
-        ;; Indent with spaces
-        (setq-default indent-tabs-mode nil)
-
-        ;; Highlight matching parens
-        (show-paren-mode 1)
-
-        ;; Don't insert a double space between sentences when filling
-        (setq-default sentence-end-double-space nil)
-
-        ;; Always show line and column numbers
-        (line-number-mode)
-        (column-number-mode)
-
-        ;; Highlight end-of-line whitespace only in prog-mode
-        (add-hook 'prog-mode-hook (lambda () (setq-local show-trailing-whitespace t)))
-
-        ;; Open URLs with Chromium
-        (setq browse-url-browser-function 'browse-url-chromium)
-
-        ;; Enable smooth scrolling
-        ;; (pixel-scroll-mode)  ; disable for now, seems to interact poorly with breadcrumb-mode
       '';
     };
 
@@ -315,6 +276,44 @@
           (setq undo-limit 67108864) ; 64mb.
           (setq undo-strong-limit 100663296) ; 96mb.
           (setq undo-outer-limit 1006632960) ; 960mb.
+
+
+          (setq user-full-name "Matt Wittmann"
+                user-mail-address "mcwitt@gmail.com")
+
+          ;; Create backup files in system temp directory
+          (setq backup-directory-alist
+                `((".*" . ,temporary-file-directory)))
+          (setq auto-save-file-name-transforms
+                `((".*" ,temporary-file-directory t)))
+
+          ;; Always split horizontally (i.e. vertical stack)
+          (setq split-width-threshold nil)
+
+          ;; Prompt for y/n instead of yes/no
+          (defalias 'yes-or-no-p 'y-or-n-p)
+
+          ;; Indent with spaces
+          (setq-default indent-tabs-mode nil)
+
+          ;; Highlight matching parens
+          (show-paren-mode 1)
+
+          ;; Don't insert a double space between sentences when filling
+          (setq-default sentence-end-double-space nil)
+
+          ;; Always show line and column numbers
+          (line-number-mode)
+          (column-number-mode)
+
+          ;; Highlight end-of-line whitespace only in prog-mode
+          (add-hook 'prog-mode-hook (lambda () (setq-local show-trailing-whitespace t)))
+
+          ;; Open URLs with Chromium
+          (setq browse-url-browser-function 'browse-url-chromium)
+
+          ;; Enable smooth scrolling
+          ;; (pixel-scroll-mode)  ; disable for now, seems to interact poorly with breadcrumb-mode
         '';
       };
 
