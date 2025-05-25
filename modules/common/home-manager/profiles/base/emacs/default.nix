@@ -308,7 +308,15 @@
         '';
       };
 
-      emacs.enable = true;
+      emacs = {
+        enable = true;
+        config = ''
+          ;; https://github.com/emacsmirror/undo-fu?tab=readme-ov-file#undo-limits
+          (setq undo-limit 67108864) ; 64mb.
+          (setq undo-strong-limit 100663296) ; 96mb.
+          (setq undo-outer-limit 1006632960) ; 960mb.
+        '';
+      };
 
       envrc = {
         enable = true;
