@@ -572,15 +572,6 @@
         bind = {
           "C-x u" = "vundo";
         };
-        bindLocal.vundo-mode-map = {
-          "h" = "vundo-backward";
-          "l" = "vundo-forward";
-          "k" = "vundo-previous";
-          "j" = "vundo-next";
-        };
-        config = ''
-          (setq vundo-glyph-alist vundo-unicode-symbols)
-        '';
       };
 
       yaml-mode = {
