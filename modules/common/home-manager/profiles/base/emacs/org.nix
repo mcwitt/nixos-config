@@ -194,6 +194,8 @@
           (org-roam-db-autosync-mode)
         '';
       };
+
+      ox-pandoc.enable = true;
     };
   };
 }
