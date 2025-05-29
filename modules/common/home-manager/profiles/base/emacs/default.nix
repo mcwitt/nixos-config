@@ -18,7 +18,7 @@
     ./jupyter.nix
     ./org.nix
     ./org-latex-preview.nix
-    ./theme
+    ./theme.nix
     ./treesit.nix
     ./vertico.nix
   ];
@@ -575,10 +575,7 @@
         };
       };
 
-      yaml-mode = {
-        enable = true;
-        hook = [ "(yaml-mode . (lambda () (mixed-pitch-mode -1)))" ];
-      };
+      yaml-mode.enable = true;
 
       yasnippet = {
         enable = true;
