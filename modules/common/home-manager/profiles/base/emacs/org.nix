@@ -34,6 +34,8 @@
 
     programs.emacs.init.usePackage = {
 
+      anki-editor.enable = true;
+
       cdlatex.enable = true;
 
       frames-only-mode.config = lib.mkBefore ''
