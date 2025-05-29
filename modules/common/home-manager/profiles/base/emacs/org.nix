@@ -7,31 +7,6 @@
 {
   config = lib.mkIf config.profiles.base.enable {
 
-    programs.emacs.overrides = self: _: {
-      # org-mode fork with upgraded org-latex-preview
-      # https://code.tecosaur.net/tec/org-mode
-      # TODO: remove once changes are merged
-      org =
-        let
-          rev = "cd2269ddb64bda7203acf2ee2e26188237a578ea";
-        in
-        self.trivialBuild {
-          pname = "org";
-          version = "9.7.26+${builtins.substring 0 7 rev}";
-
-          src =
-            let
-              root = pkgs.fetchgit {
-                name = "org-src";
-                url = "https://code.tecosaur.net/tec/org-mode.git";
-                inherit rev;
-                hash = "sha256-mw11v3r+6/xCTaYht/hD+/Nhd+gIcOmAbtEJUGMiphA=";
-              };
-            in
-            "${root}/lisp";
-        };
-    };
-
     programs.emacs.init.usePackage = {
 
       anki-editor.enable = true;
@@ -55,7 +30,6 @@
           "(org-mode . turn-on-flyspell)"
           "(org-mode . turn-on-visual-line-mode)"
           "(org-mode . org-appear-mode)"
-          "(org-mode . org-latex-preview-auto-mode)"
           "(org-capture-mode . evil-insert-state)"
         ];
 
@@ -78,8 +52,6 @@
 
           org-startup-indented = true;
 
-          org-latex-preview-live = true;
-          org-latex-preview-live-debounce = 0.25;
           org-highlight-latex-and-related = '''(native)'';
 
           org-agenda-files = ''
@@ -126,10 +98,6 @@
 
           ;; Make the document title a bit bigger
           (set-face-attribute 'org-document-title nil :weight 'bold :height 1.8)
-
-          ;; Increase size of latex fragment previews
-          (plist-put org-latex-preview-appearance-options :page-width 0.8)
-          (plist-put org-latex-preview-appearance-options :scale 1.35)
 
           ;; The following is used to treat frames named "org-capture"
           ;; as dedicated capture frames, meaning they will
