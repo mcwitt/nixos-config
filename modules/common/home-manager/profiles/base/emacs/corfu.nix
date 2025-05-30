@@ -29,7 +29,6 @@
         '';
         extraConfig = ''
           :custom
-          (corfu-auto t)
           (corfu-separator ?\s)
 
           ;; (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
