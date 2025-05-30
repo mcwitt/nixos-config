@@ -30,7 +30,6 @@
         extraConfig = ''
           :custom
           (corfu-auto t)
-          (corfu-auto-prefix 1)
           (corfu-separator ?\s)
 
           ;; (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
