@@ -36,6 +36,7 @@
       rsync
       time
       tree
+      unzip
       vim
       watch
       wget
