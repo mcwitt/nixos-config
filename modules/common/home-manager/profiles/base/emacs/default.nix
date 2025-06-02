@@ -17,7 +17,7 @@
     ./format-all.nix
     ./jupyter.nix
     ./org.nix
-    ./org-latex-preview.nix
+    # ./org-latex-preview.nix
     ./theme.nix
     ./treesit.nix
     ./vertico.nix
