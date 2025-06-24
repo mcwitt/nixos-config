@@ -6,8 +6,6 @@
 }:
 {
   config = lib.mkIf config.profiles.base.enable {
-    home.packages = with pkgs; [ signal-desktop ];
-
     home.shellAliases.open = "${pkgs.xdg-utils}/bin/xdg-open";
 
     programs.git.ignores = pkgs.gitignores "Global/Linux";
