@@ -37,12 +37,14 @@
         config.allowUnfree = true;
       };
 
+      inherit (nixpkgs) lib;
+
       mkPkgs =
         {
           system,
           nixpkgs ? nixpkgs,
         }:
-        import nixpkgs ({ inherit system; } // nixpkgsArgs);
+        import nixpkgs (lib.recursiveUpdate { inherit system; } nixpkgsArgs);
 
       mkExtraSpecialArgs = pkgs: {
         inherit inputs;
@@ -198,7 +200,7 @@
             self.nixosModules.nixos
             ./hosts/hob/configuration
             {
-              nixpkgs = nixpkgsArgs // {
+              nixpkgs = lib.recursiveUpdate nixpkgsArgs {
                 config.allowUnsupportedSystem = true;
               };
               profiles.home-automation.enable = true;
