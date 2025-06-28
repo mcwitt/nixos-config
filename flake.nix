@@ -7,6 +7,7 @@
     home-manager.url = "github:nix-community/home-manager/release-25.05";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     nur.url = "github:nix-community/NUR";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     stylix.url = "github:danth/stylix/release-25.05";
@@ -188,7 +189,8 @@
           };
         };
 
-        hob = nixpkgs.lib.makeOverridable nixpkgs.lib.nixosSystem {
+        # use nixpkgs-unstable to work around issues with cross compilation to aarch64 in 25.05
+        hob = nixpkgs.lib.makeOverridable inputs.nixpkgs-unstable.lib.nixosSystem {
           system = "aarch64-linux";
           modules = [
             nur.modules.nixos.default
