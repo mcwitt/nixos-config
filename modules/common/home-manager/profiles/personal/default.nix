@@ -4,14 +4,16 @@ let
   cfg = config.profiles.personal;
 in
 {
-  imports = [ ./email.nix ];
+  imports = [
+    ./aichat.nix
+    ./email.nix
+  ];
 
   options.profiles.personal.enable = mkEnableOption "Profile for use on machines I own";
 
   config = mkIf cfg.enable {
     languages =
       {
-
         haskell = {
           enable = true;
           hoogle.enable = true;
