@@ -74,5 +74,23 @@ in
         { };
   };
 
+  pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
+    (pyFinal: pyPrev: {
+      gehomesdk =
+        let
+          version = "2025.5.0";
+        in
+        assert assertNotStale version pyPrev.gehomesdk.version;
+        pyPrev.gehomesdk.overridePythonAttrs (old: rec {
+          inherit version;
+          src = pyFinal.fetchPypi {
+            inherit (old) pname;
+            inherit version;
+            hash = "sha256-YMw0W9EWz3KY1+aZMdtE4TRvFd9yqTHkfw0X3+ZDCfQ=";
+          };
+        });
+    })
+  ];
+
   nerdifyFont = callPackage ./nerdify-font.nix { };
 }
