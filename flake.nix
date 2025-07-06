@@ -121,6 +121,9 @@
                       user:
                       lib.nameValuePair user {
                         imports = [
+                          stylix.homeManagerModules.stylix
+                          self.homeManagerModules.stylix
+
                           self.homeManagerModules.common
                           self.homeManagerModules.nixos
                         ] ++ extraHmModules;
