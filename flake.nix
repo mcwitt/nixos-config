@@ -121,11 +121,11 @@
                       user:
                       lib.nameValuePair user {
                         imports = [
-                          stylix.homeManagerModules.stylix
-                          self.homeManagerModules.stylix
+                          stylix.homeModules.stylix
+                          self.homeModules.stylix
 
-                          self.homeManagerModules.common
-                          self.homeManagerModules.nixos
+                          self.homeModules.common
+                          self.homeModules.nixos
                         ] ++ extraHmModules;
 
                         profiles.base.enable = true;
@@ -242,11 +242,11 @@
           extraSpecialArgs = mkExtraSpecialArgs pkgs;
 
           modules = [
-            self.homeManagerModules.common
-            self.homeManagerModules.nixos
+            self.homeModules.common
+            self.homeModules.nixos
 
-            stylix.homeManagerModules.stylix
-            self.homeManagerModules.stylix
+            stylix.homeModules.stylix
+            self.homeModules.stylix
 
             (
               { config, lib, ... }:
@@ -279,10 +279,10 @@
           extraSpecialArgs = mkExtraSpecialArgs pkgs;
 
           modules = [
-            self.homeManagerModules.common
+            self.homeModules.common
 
-            stylix.homeManagerModules.stylix
-            self.homeManagerModules.stylix
+            stylix.homeModules.stylix
+            self.homeModules.stylix
 
             (
               { config, lib, ... }:
@@ -308,7 +308,7 @@
         stylix = import ./modules/stylix;
       };
 
-      homeManagerModules = {
+      homeModules = {
         common = import ./modules/common/home-manager;
         nixos = import ./modules/nixos/home-manager;
         darwin = import ./modules/darwin/home-manager;
