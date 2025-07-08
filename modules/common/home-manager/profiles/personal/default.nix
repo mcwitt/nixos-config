@@ -1,4 +1,9 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 with lib;
 let
   cfg = config.profiles.personal;
@@ -12,6 +17,9 @@ in
   options.profiles.personal.enable = mkEnableOption "Profile for use on machines I own";
 
   config = mkIf cfg.enable {
+
+    home.packages = [ pkgs.claude-code ];
+
     languages =
       {
         haskell = {
