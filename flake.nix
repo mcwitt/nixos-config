@@ -117,9 +117,6 @@
                       user:
                       lib.nameValuePair user {
                         imports = [
-                          stylix.homeModules.stylix
-                          self.homeModules.stylix
-
                           self.homeModules.common
                           self.homeModules.nixos
                         ] ++ extraHmModules;
@@ -133,6 +130,8 @@
                 };
 
                 profiles.base.enable = true;
+
+                stylix.enable = true;
               }
             )
           ] ++ extraNixosModules;
