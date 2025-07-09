@@ -39,13 +39,6 @@
 
       inherit (nixpkgs) lib;
 
-      mkPkgs =
-        {
-          system,
-          nixpkgs ? nixpkgs,
-        }:
-        import nixpkgs (lib.recursiveUpdate { inherit system; } nixpkgsArgs);
-
       mkExtraSpecialArgs = pkgs: {
         inherit inputs;
 
@@ -92,7 +85,10 @@
                 ...
               }:
               {
-                nixpkgs = nixpkgsArgs;
+                nixpkgs = {
+                  inherit overlays;
+                  config.allowUnfree = true;
+                };
 
                 users.users = builtins.listToAttrs (
                   map (
@@ -171,7 +167,12 @@
             self.nixosModules.common
             self.nixosModules.nixos
             ./hosts/hal/configuration
-            { nixpkgs = nixpkgsArgs; }
+            {
+              nixpkgs = {
+                inherit overlays;
+                config.allowUnfree = true;
+              };
+            }
           ];
           specialArgs = {
             inherit inputs;
@@ -185,7 +186,10 @@
             self.nixosModules.nixos
             ./hosts/hestia/configuration
             {
-              nixpkgs = nixpkgsArgs;
+              nixpkgs = {
+                inherit overlays;
+                config.allowUnfree = true;
+              };
               profiles.home-automation.enable = true;
             }
           ];
@@ -203,8 +207,12 @@
             self.nixosModules.nixos
             ./hosts/hob/configuration
             {
-              nixpkgs = lib.recursiveUpdate nixpkgsArgs {
-                config.allowUnsupportedSystem = true;
+              nixpkgs = {
+                inherit overlays;
+                config = {
+                  allowUnfree = true;
+                  allowUnsupportedSystem = true;
+                };
               };
               profiles.home-automation.enable = true;
             }
