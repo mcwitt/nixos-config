@@ -13,10 +13,22 @@ in
 
   config = mkIf cfg.enable {
 
-    home.packages = [ pkgs.typstfmt ];
+    home.packages = [
+      pkgs.typstfmt
+      pkgs.tinymist
+    ];
 
     programs.emacs.init.usePackage = {
       typst-ts-mode.enable = true;
+
+      eglot = {
+        enable = true;
+        hook = [ "(typst-ts-mode . eglot-ensure)" ];
+        config = ''
+          (add-to-list 'eglot-server-programs
+                       '(typst-ts-mode . ("tinymist" "lsp")))
+        '';
+      };
 
       reformatter = {
         enable = true;
