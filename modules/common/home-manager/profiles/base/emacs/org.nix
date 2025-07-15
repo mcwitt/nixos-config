@@ -48,8 +48,7 @@
 
           org-hide-emphasis-markers = true;
           org-hidden-keywords = "'(title subtitle author date email)";
-
-          org-startup-indented = true;
+          org-pretty-entities = true;
 
           org-highlight-latex-and-related = '''(native)'';
 
@@ -135,6 +134,14 @@
           org-appear-autolinks = true;
           org-appear-autokeywords = true;
         };
+      };
+
+      org-modern = {
+        enable = true;
+        after = [ "org" ];
+        config = ''
+          (global-org-modern-mode)
+        '';
       };
 
       org-protocol.enable = true;
