@@ -28,6 +28,11 @@
         hook = [ "(embark-collect-mode . consult-preview-at-point-mode)" ];
       };
 
+      flyspell = {
+        enable = true;
+        bindLocal.flyspell-mode-map."C-;" = "nil"; # save C-; for embark-act
+      };
+
       frames-only-mode = {
         config = lib.mkBefore ''
           ;; Prevent error when attempting to open in a new frame
