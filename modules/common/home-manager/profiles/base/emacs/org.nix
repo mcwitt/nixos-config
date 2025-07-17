@@ -12,8 +12,9 @@
 
       cdlatex.enable = true;
 
-      frames-only-mode.config = lib.mkBefore ''
+      frames-only-mode.config = ''
         (add-to-list 'frames-only-mode-use-window-functions #'org-capture)
+        (add-to-list 'frames-only-mode-use-window-functions #'org-roam-buffer-toggle)
       '';
 
       mixed-pitch = {
@@ -167,6 +168,15 @@
           '';
         };
         config = ''
+          ;; Author-recommended buffer display settings
+          ;; https://www.orgroam.com/manual.html#Configuring-the-Org_002droam-buffer-display-1
+          (add-to-list 'display-buffer-alist
+                       '("\\*org-roam\\*"
+                         (display-buffer-in-direction)
+                         (direction . right)
+                         (window-width . 0.33)
+                         (window-height . fit-window-to-buffer)))
+
           (org-roam-db-autosync-mode)
         '';
       };

@@ -34,9 +34,8 @@
       };
 
       frames-only-mode = {
-        config = lib.mkBefore ''
+        config = ''
           ;; Prevent error when attempting to open in a new frame
-          ;; Must run before enabling mode
           (add-to-list 'frames-only-mode-use-window-functions #'embark-act)
         '';
       };

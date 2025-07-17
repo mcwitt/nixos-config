@@ -423,7 +423,11 @@
 
       frames-only-mode = {
         enable = true;
-        config = ''
+
+        # NOTE: mkAfter ensures that we enable the mode after
+        # configuration of e.g. frames-only-mode-use-window-functions
+        # is done
+        config = lib.mkAfter ''
           (frames-only-mode 1)
         '';
       };
