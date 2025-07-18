@@ -14,6 +14,7 @@
 
       frames-only-mode.config = ''
         (add-to-list 'frames-only-mode-use-window-functions #'org-capture)
+        (add-to-list 'frames-only-mode-use-window-functions #'org-insert-link)
         (add-to-list 'frames-only-mode-use-window-functions #'org-roam-buffer-toggle)
       '';
 
