@@ -61,6 +61,11 @@
           org-hidden-keywords = "'(title subtitle author date email)";
           org-pretty-entities = true;
 
+          # don't right-justify tags (looks bad with variable-width font)
+          # instead, put tags immediately after the headline
+          org-auto-align-tags = "nil";
+          org-tags-column = 0;
+
           org-highlight-latex-and-related = '''(native)'';
 
           org-agenda-files = ''
