@@ -55,9 +55,9 @@
           org-highlight-latex-and-related = '''(native)'';
 
           org-agenda-files = ''
-            '("~/org/gtd.org"
-              "~/org/inbox.org"
-              "~/org/tickler.org")
+            '("gtd.org"
+              "inbox.org"
+              "tickler.org")
           '';
           org-agenda-block-separator = "nil";
           org-agenda-custom-commands = ''
@@ -76,10 +76,10 @@
           org-agenda-breadcrumbs-separator = ''"/"'';
 
           org-capture-templates = ''
-            '(("t" "todo" entry (file "~/org/inbox.org") "* TODO %a%?\n%i")
-              ("k" "tickler" entry (file "~/org/tickler.org") "* %i%?"))
+            '(("t" "todo" entry (file "inbox.org") "* TODO %a%?\n%i")
+              ("k" "tickler" entry (file "tickler.org") "* %i%?"))
           '';
-          org-refile-targets = '''(("~/org/gtd.org" :maxlevel . 3))'';
+          org-refile-targets = '''(("gtd.org" :maxlevel . 3))'';
           org-stuck-projects = '''("+LEVEL=2+PROJECT/-DONE" ("NEXT") nil "")'';
         };
 
@@ -150,8 +150,9 @@
 
       org-roam = {
         enable = true;
+        after = [ "org" ];
         init = ''
-          (make-directory "~/org/roam" t)
+          (make-directory (expand-file-name "roam" org-directory) t)
         '';
         bind = {
           "C-c n c" = "org-roam-capture";
@@ -159,7 +160,7 @@
           "C-c n i" = "org-roam-node-insert";
         };
         custom = {
-          org-roam-directory = ''"~/org/roam"'';
+          org-roam-directory = ''(expand-file-name "roam" org-directory)'';
           org-roam-dailies-directory = ''"daily/"'';
           org-roam-dailies-capture-templates = ''
             '(("d" "default" entry
