@@ -12,6 +12,15 @@
 
       cdlatex.enable = true;
 
+      elfeed-org = {
+        enable = true;
+        after = [ "org" ];
+        custom.rmh-elfeed-org-files = ''(list (expand-file-name "feeds.org" org-directory))'';
+        config = ''
+          (elfeed-org)
+        '';
+      };
+
       frames-only-mode.config = ''
         (add-to-list 'frames-only-mode-use-window-functions #'org-capture)
         (add-to-list 'frames-only-mode-use-window-functions #'org-insert-link)

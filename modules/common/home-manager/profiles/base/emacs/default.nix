@@ -262,6 +262,13 @@
 
       eldoc.enable = true;
 
+      elfeed = {
+        enable = true;
+        bind = {
+          "C-x w" = "elfeed";
+        };
+      };
+
       elec-pair = {
         enable = true;
         hook = [ "(prog-mode . electric-pair-mode)" ];
