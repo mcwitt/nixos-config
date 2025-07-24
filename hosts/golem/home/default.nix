@@ -4,27 +4,33 @@ let
   dpi = 183;
 in
 {
-  home.stateVersion = "21.11";
+  imports = [
+    ./elfeed-web.nix
+  ];
 
-  programs.spotify.package = pkgs.spotify.override { deviceScaleFactor = 1.8; };
+  config = {
+    home.stateVersion = "21.11";
 
-  programs.rofi.extraConfig.dpi = dpi;
+    programs.spotify.package = pkgs.spotify.override { deviceScaleFactor = 1.8; };
 
-  services.polybar = {
-    script = ''
-      MONITOR=DP-4 TRAY_POS="right" polybar &
-      MONITOR=DP-2 TRAY_POS="" polybar &
-    '';
+    programs.rofi.extraConfig.dpi = dpi;
 
-    settings = {
-      "bar/main".modules-right = "wired-network filesystem memory cpu temperature pipewire";
+    services.polybar = {
+      script = ''
+        MONITOR=DP-4 TRAY_POS="right" polybar &
+        MONITOR=DP-2 TRAY_POS="" polybar &
+      '';
 
-      "module/temperature" = {
-        type = "internal/temperature";
-        hwmon-path = "/sys/devices/platform/coretemp.0/hwmon/hwmon2/temp1_input";
+      settings = {
+        "bar/main".modules-right = "wired-network filesystem memory cpu temperature pipewire";
+
+        "module/temperature" = {
+          type = "internal/temperature";
+          hwmon-path = "/sys/devices/platform/coretemp.0/hwmon/hwmon2/temp1_input";
+        };
       };
     };
-  };
 
-  xresources.properties."Xft.dpi" = dpi;
+    xresources.properties."Xft.dpi" = dpi;
+  };
 }

@@ -27,8 +27,15 @@
 
     programs.emacs.package = pkgs.emacs-unstable;
 
-    programs.emacs.overrides = _: _: {
+    programs.emacs.overrides = _: super: {
       eglot = null; # use built-in package
+
+      elfeed = super.elfeed.overrideAttrs (_: {
+        # Include elfeed-web in the package
+        postInstall = ''
+          cp -r $src/web $out/share/emacs/site-lisp/elpa/elfeed-*
+        '';
+      });
     };
 
     programs.emacs.init = {
