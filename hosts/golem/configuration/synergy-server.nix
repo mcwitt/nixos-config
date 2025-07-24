@@ -1,8 +1,7 @@
-{ lib, ... }:
 {
   networking.firewall = {
-    allowedTCPPorts = lib.mkAfter [ 24800 ];
-    allowedUDPPorts = lib.mkAfter [ 24800 ];
+    allowedTCPPorts = [ 24800 ];
+    allowedUDPPorts = [ 24800 ];
   };
 
   services.synergy.server.enable = true;
