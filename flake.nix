@@ -32,13 +32,6 @@
         nur.overlays.default
       ];
 
-      nixpkgsArgs = {
-        inherit overlays;
-        config.allowUnfree = true;
-      };
-
-      inherit (nixpkgs) lib;
-
       mkExtraSpecialArgs = pkgs: {
         inherit inputs;
 
@@ -197,7 +190,6 @@
           };
         };
 
-        # use nixpkgs-unstable to work around issues with cross compilation to aarch64 in 25.05
         hob = nixpkgs.lib.makeOverridable inputs.nixpkgs-unstable.lib.nixosSystem {
           system = "aarch64-linux";
           modules = [
