@@ -199,7 +199,7 @@
             ./hosts/hob/configuration
             {
               nixpkgs = {
-                inherit overlays;
+                overlays = [ self.overlays.default ];
                 config = {
                   allowUnfree = true;
                   allowUnsupportedSystem = true;
