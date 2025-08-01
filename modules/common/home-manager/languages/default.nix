@@ -6,6 +6,7 @@
     ./cuda
     ./go
     ./haskell
+    ./html
     ./markdown
     ./nix
     ./python

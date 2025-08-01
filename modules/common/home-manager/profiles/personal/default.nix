@@ -75,6 +75,7 @@ in
           "cpp"
           "cuda"
           "go"
+          "html"
           "markdown"
           "rust"
           "shell"
