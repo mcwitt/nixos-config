@@ -103,25 +103,19 @@ in
 
       package =
         (pkgs.home-assistant.override {
-
-          packageOverrides =
-            final: prev:
-            let
-              inherit (final) callPackage;
-            in
-            {
-              pyflume = prev.pyflume.overridePythonAttrs (oldAttrs: rec {
-                version = "0.6.5"; # version pinned by home-assistant
-                name = "${oldAttrs.pname}-${version}";
-                src = pkgs.fetchFromGitHub {
-                  owner = "ChrisMandich";
-                  repo = "PyFlume";
-                  rev = "v${version}";
-                  hash = "sha256-kIE3y/qlsO9Y1MjEQcX0pfaBeIzCCHk4f1Xa215BBHo=";
-                };
-                nativeCheckInputs = oldAttrs.nativeCheckInputs ++ [ final.pytz ];
-              });
-            };
+          packageOverrides = final: prev: {
+            pyflume = prev.pyflume.overridePythonAttrs (oldAttrs: rec {
+              version = "0.6.5"; # version pinned by home-assistant
+              name = "${oldAttrs.pname}-${version}";
+              src = pkgs.fetchFromGitHub {
+                owner = "ChrisMandich";
+                repo = "PyFlume";
+                rev = "v${version}";
+                hash = "sha256-kIE3y/qlsO9Y1MjEQcX0pfaBeIzCCHk4f1Xa215BBHo=";
+              };
+              nativeCheckInputs = oldAttrs.nativeCheckInputs ++ [ final.pytz ];
+            });
+          };
         }).overrideAttrs
           (_: {
             doInstallCheck = false;
