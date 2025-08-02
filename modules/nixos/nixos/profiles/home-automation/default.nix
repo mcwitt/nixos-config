@@ -84,6 +84,7 @@ in
         "flume"
         "google_translate" # text-to-speech provider
         "ipp"
+        "local_todo"
         "opower"
         "otp"
         "purpleair"
