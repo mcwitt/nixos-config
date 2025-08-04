@@ -73,10 +73,7 @@ in
                                                 ))
       '';
 
-      ormolu = {
-        enable = true;
-        hook = [ "(haskell-mode . ormolu-format-on-save-mode)" ];
-      };
+      ormolu.enable = true;
 
       subword.hook = [ "(haskell-mode . subword-mode)" ];
     };
