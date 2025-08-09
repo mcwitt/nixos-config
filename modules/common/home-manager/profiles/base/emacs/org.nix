@@ -27,6 +27,8 @@
         (add-to-list 'frames-only-mode-use-window-functions #'org-roam-buffer-toggle)
       '';
 
+      htmlize.enable = true;
+
       mixed-pitch = {
         enable = true;
         hook = [ "(org-mode . mixed-pitch-mode)" ];
@@ -149,6 +151,19 @@
           org-appear-autoemphasis = true;
           org-appear-autolinks = true;
           org-appear-autokeywords = true;
+        };
+      };
+
+      org-download = {
+        enable = true;
+        hook = [ "(dired-mode . org-download-enable)" ];
+        command = [
+          "org-download-clipboard"
+          "org-download-screenshot"
+          "org-download-yank"
+        ];
+        custom = {
+          org-download-method = "'attach";
         };
       };
 
