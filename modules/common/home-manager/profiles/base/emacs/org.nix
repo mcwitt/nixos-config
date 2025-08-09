@@ -152,6 +152,19 @@
         };
       };
 
+      org-download = {
+        enable = true;
+        hook = [ "(dired-mode . org-download-enable)" ];
+        command = [
+          "org-download-clipboard"
+          "org-download-screenshot"
+          "org-download-yank"
+        ];
+        custom = {
+          org-download-method = "'attach";
+        };
+      };
+
       org-modern = {
         enable = true;
         after = [ "org" ];
