@@ -112,7 +112,8 @@
                         imports = [
                           self.homeModules.common
                           self.homeModules.nixos
-                        ] ++ extraHmModules;
+                        ]
+                        ++ extraHmModules;
 
                         profiles.base.enable = true;
                       }
@@ -127,7 +128,8 @@
                 stylix.enable = true;
               }
             )
-          ] ++ extraNixosModules;
+          ]
+          ++ extraNixosModules;
         }
       );
 

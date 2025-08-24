@@ -20,55 +20,55 @@ in
 
     home.packages = [ pkgs.claude-code ];
 
-    languages =
-      {
-        haskell = {
-          enable = true;
-          hoogle.enable = true;
-          globalPackages =
-            ps: with ps; [
-              aeson
-              array
-              containers
-              lens
-              lens-aeson
-              linear
-              monad-loops
-              monoidal-containers
-              mtl
-              optparse-generic
-              parsec
-              random-fu
-              raw-strings-qq
-              rvar
-              safe
-              split
-              streaming
-              tasty
-              tasty-hunit
-              text
-              turtle
-              vector
-            ];
-        };
+    languages = {
+      haskell = {
+        enable = true;
+        hoogle.enable = true;
+        globalPackages =
+          ps: with ps; [
+            aeson
+            array
+            containers
+            lens
+            lens-aeson
+            linear
+            monad-loops
+            monoidal-containers
+            mtl
+            optparse-generic
+            parsec
+            random-fu
+            raw-strings-qq
+            rvar
+            safe
+            split
+            streaming
+            tasty
+            tasty-hunit
+            text
+            turtle
+            vector
+          ];
+      };
 
-        python = {
-          enable = true;
-          globalPackages =
-            ps: with ps; [
-              httpx
-              hypothesis
-              matplotlib
-              notebook
-              pandas
-              scipy
-              seaborn
-              sympy
-              toolz
-            ];
-        };
-      }
-      // lib.genAttrs
+      python = {
+        enable = true;
+        globalPackages =
+          ps: with ps; [
+            httpx
+            hypothesis
+            matplotlib
+            notebook
+            pandas
+            scipy
+            seaborn
+            sympy
+            toolz
+          ];
+      };
+    }
+    //
+      lib.genAttrs
         [
           "agda"
           # "coq"

@@ -172,20 +172,25 @@ in
           let
             mkDefaults = apps: types: builtins.listToAttrs (map (type: lib.nameValuePair type apps) types);
           in
-          mkDefaults [ "feh.desktop" ] [
-            "image/bmp"
-            "image/gif"
-            "image/jpeg"
-            "image/jpg"
-            "image/png"
-            "image/webp"
-          ]
-          // mkDefaults [ "chromium-browser.desktop" ] [
-            "text/html"
-            "x-scheme-handler/http"
-            "x-scheme-handler/https"
-            "x-scheme-handler/ftp"
-          ]
+          mkDefaults
+            [ "feh.desktop" ]
+            [
+              "image/bmp"
+              "image/gif"
+              "image/jpeg"
+              "image/jpg"
+              "image/png"
+              "image/webp"
+            ]
+          //
+            mkDefaults
+              [ "chromium-browser.desktop" ]
+              [
+                "text/html"
+                "x-scheme-handler/http"
+                "x-scheme-handler/https"
+                "x-scheme-handler/ftp"
+              ]
           // {
             "application/pdf" = [ "org.pwmt.zathura.desktop" ];
             "text/plain" = [ "emacsclient.desktop" ];
