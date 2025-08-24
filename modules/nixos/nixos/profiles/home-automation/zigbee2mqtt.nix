@@ -8,7 +8,6 @@
       enable = true;
 
       settings = {
-        homeassistant = config.services.home-assistant.enable;
         permit_join = true;
         frontend.port = lib.mkDefault 8080;
 
