@@ -184,7 +184,6 @@
                 inherit overlays;
                 config.allowUnfree = true;
               };
-              profiles.home-automation.enable = true;
             }
           ];
           specialArgs = {
