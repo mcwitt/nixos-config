@@ -6,11 +6,20 @@
     flake-utils.url = "github:numtide/flake-utils";
     home-manager.url = "github:nix-community/home-manager/release-25.05";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
+    nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     nur.url = "github:nix-community/NUR";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     stylix.url = "github:danth/stylix/release-25.05";
+  };
+
+  nixConfig = {
+    extra-substituters = [
+      "https://nixos-raspberrypi.cachix.org"
+    ];
+    extra-trusted-public-keys = [
+      "nixos-raspberrypi.cachix.org-1:4iMO9LXa8BqhU+Rpg6LQKiGa2lsNh/j2oiYLNOQ5sPI="
+    ];
   };
 
   outputs =
@@ -20,6 +29,7 @@
       flake-utils,
       home-manager,
       emacs-overlay,
+      nixos-raspberrypi,
       nur,
       pre-commit-hooks,
       stylix,
@@ -191,7 +201,7 @@
           };
         };
 
-        hob = nixpkgs.lib.makeOverridable inputs.nixpkgs-unstable.lib.nixosSystem {
+        hob = nixpkgs.lib.makeOverridable nixos-raspberrypi.lib.nixosSystem {
           system = "aarch64-linux";
           modules = [
             nur.modules.nixos.default
@@ -212,6 +222,7 @@
           ];
           specialArgs = {
             inherit inputs;
+            inherit (inputs) nixos-raspberrypi;
           };
         };
 

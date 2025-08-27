@@ -3,11 +3,11 @@
 {
   imports = [
     ./hardware-configuration.nix
-    "${inputs.nixos-hardware}/raspberry-pi/5"
-  ];
-
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = false;
+  ]
+  ++ (with inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5; [
+    base
+    display-vc4
+  ]);
 
   networking.hostName = "hob";
 
@@ -23,7 +23,7 @@
   };
 
   environment.systemPackages = with pkgs; [
-    vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    vim
   ];
 
   services.avahi = {
