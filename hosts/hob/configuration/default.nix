@@ -1,13 +1,54 @@
 { inputs, pkgs, ... }:
 
 {
-  imports = [
-    ./hardware-configuration.nix
-  ]
-  ++ (with inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5; [
+  imports = with inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5; [
     base
     display-vc4
-  ]);
+  ];
+
+  # https://github.com/nix-community/disko?tab=readme-ov-file#sample-configuration-and-cli-command
+  disko.devices.disk = {
+    gpt = {
+      device = "/dev/sda";
+      type = "disk";
+      content = {
+        type = "gpt";
+        partitions = {
+          ESP = {
+            type = "EF00";
+            size = "512M";
+            content = {
+              type = "filesystem";
+              format = "vfat";
+              mountpoint = "/boot/firmware";
+              mountOptions = [
+                "umask=0077"
+                "noatime"
+                "noauto"
+                "x-systemd.automount"
+                "x-systemd.idle-timeout=1min"
+              ];
+            };
+          };
+          swap = {
+            size = "8G";
+            content = {
+              type = "swap";
+            };
+          };
+          root = {
+            size = "100%";
+            content = {
+              type = "filesystem";
+              format = "ext4";
+              mountpoint = "/";
+              mountOptions = [ "noatime" ];
+            };
+          };
+        };
+      };
+    };
+  };
 
   networking.hostName = "hob";
 

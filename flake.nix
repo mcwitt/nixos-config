@@ -2,12 +2,14 @@
   description = "NixOS configuration";
 
   inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
+    disko.url = "github:nix-community/disko";
+    disko.inputs.nixpkgs.follows = "nixpkgs";
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     flake-utils.url = "github:numtide/flake-utils";
     home-manager.url = "github:nix-community/home-manager/release-25.05";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
     nur.url = "github:nix-community/NUR";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     stylix.url = "github:danth/stylix/release-25.05";
@@ -26,9 +28,10 @@
     {
       self,
       nixpkgs,
+      disko,
+      emacs-overlay,
       flake-utils,
       home-manager,
-      emacs-overlay,
       nixos-raspberrypi,
       nur,
       pre-commit-hooks,
@@ -204,6 +207,7 @@
         hob = nixpkgs.lib.makeOverridable nixos-raspberrypi.lib.nixosSystem {
           system = "aarch64-linux";
           modules = [
+            disko.nixosModules.disko
             nur.modules.nixos.default
             self.nixosModules.common
             self.nixosModules.nixos
