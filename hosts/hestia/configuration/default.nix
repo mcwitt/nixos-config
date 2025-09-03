@@ -18,7 +18,6 @@
   nix = {
     gc.automatic = true;
     gc.dates = "weekly";
-    settings.trusted-public-keys = [ "golem:eibXP6qvkaDB9Jvh/MkR4D/dVL7HYDBJI2srJZgVhGE=" ];
   };
 
   services.avahi = {

@@ -54,7 +54,6 @@
 
   nix.gc.automatic = true;
   nix.gc.dates = "weekly";
-  nix.settings.trusted-public-keys = [ "golem:eibXP6qvkaDB9Jvh/MkR4D/dVL7HYDBJI2srJZgVhGE=" ];
 
   time.timeZone = "America/Los_Angeles";
 
