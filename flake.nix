@@ -65,13 +65,16 @@
           users,
           extraNixosModules ? [ ],
           extraHmModules ? [ ],
+          extraSpecialArgs ? { },
+          extraExtraSpecialArgs ? { },
         }:
         nixpkgs.lib.nixosSystem {
           inherit system;
 
           specialArgs = {
             inherit inputs;
-          };
+          }
+          // extraSpecialArgs;
 
           modules = [
             home-manager.nixosModules.home-manager
@@ -114,7 +117,7 @@
                 home-manager = {
                   backupFileExtension = "backup-before-home-manager";
 
-                  extraSpecialArgs = mkExtraSpecialArgs pkgs;
+                  extraSpecialArgs = mkExtraSpecialArgs pkgs // extraExtraSpecialArgs;
 
                   useGlobalPkgs = true;
 
