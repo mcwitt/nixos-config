@@ -1,6 +1,1 @@
-{
-  imports = [
-    ./profiles
-    ./services
-  ];
-}
+{ imports = [ ./profiles ]; }

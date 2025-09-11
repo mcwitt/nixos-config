@@ -67,10 +67,6 @@ in
         valetudo-map-card
       ];
 
-      inovelliVzm31sn.enable = true;
-      lowBatteryNotifications.enable = true;
-      wakeUpLight.enable = true;
-
       extraComponents = [
         # Components required to complete the onboarding
         "esphome"
