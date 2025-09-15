@@ -242,6 +242,26 @@
           ];
           extraHmModules = [ ./hosts/karakuri/home ];
         };
+
+        satori = self.lib.makeNixosSystem {
+          system = "x86_64-linux";
+          users = [ "matt" ];
+          extraNixosModules = [
+            ./hosts/satori/configuration
+            {
+              profiles = {
+                desktop.enable = true;
+                personal.enable = true;
+              };
+
+              home-manager.users.matt.profiles = {
+                desktop.enable = true;
+                personal.enable = true;
+              };
+            }
+          ];
+          extraHmModules = [ ./hosts/satori/home ];
+        };
       };
 
       nixosModules = {
