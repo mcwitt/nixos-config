@@ -14,6 +14,8 @@
 
   console.keyMap = "us";
 
+  environment.systemPackages = [ pkgs.nvtopPackages.nvidia ];
+
   hardware.bluetooth.enable = true;
 
   hardware.keyboard.zsa.enable = true;

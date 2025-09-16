@@ -60,6 +60,13 @@
 
     programs.bash.enable = true;
 
+    programs.btop = {
+      enable = true;
+      settings = {
+        vim_keys = true;
+      };
+    };
+
     programs.direnv = {
       enable = true;
       nix-direnv.enable = true;
