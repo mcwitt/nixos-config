@@ -35,17 +35,6 @@
         emacs-overlay.overlay
         nur.overlays.default
       ];
-
-      mkExtraSpecialArgs = pkgs: {
-        inherit inputs;
-
-        # gross hack to use modules from NUR
-        # https://discourse.nixos.org/t/importing-nur-home-manager-modules-in-nix-flakes/16457
-        nurNoPkgs = import nur {
-          pkgs = null;
-          nurpkgs = pkgs;
-        };
-      };
     in
     {
       overlays.default = import ./overlay { inherit inputs; };
@@ -108,7 +97,17 @@
                 home-manager = {
                   backupFileExtension = "backup-before-home-manager";
 
-                  extraSpecialArgs = mkExtraSpecialArgs pkgs // extraExtraSpecialArgs;
+                  extraSpecialArgs = {
+                    inherit inputs;
+
+                    # gross hack to use modules from NUR
+                    # https://discourse.nixos.org/t/importing-nur-home-manager-modules-in-nix-flakes/16457
+                    nurNoPkgs = import nur {
+                      pkgs = null;
+                      nurpkgs = pkgs;
+                    };
+                  }
+                  // extraExtraSpecialArgs;
 
                   useGlobalPkgs = true;
 
