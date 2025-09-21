@@ -20,16 +20,12 @@
     home.packages = with pkgs; [
       delta
       difftastic
-      fd
       ffmpeg
-      fzf
-      htop
       imagemagick
       nix-du
       nix-output-monitor
       (parallel-full.override { willCite = true; })
       nodePackages.prettier
-      ripgrep
       yq
     ];
 
@@ -72,7 +68,7 @@
       nix-direnv.enable = true;
     };
 
-    programs.emacs.enable = true;
+    programs.fd.enable = true;
 
     programs.fish = {
       enable = true;
@@ -165,6 +161,8 @@
     programs.nix-index.enable = true;
 
     programs.pandoc.enable = true;
+
+    programs.ripgrep.enable = true;
 
     programs.starship = {
       enable = true;

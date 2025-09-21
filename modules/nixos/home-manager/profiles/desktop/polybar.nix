@@ -17,7 +17,7 @@
       settings =
         let
           colors = config.lib.stylix.colors.withHashtag;
-          runTermAppOnClick = bin: label: "%{A1:${pkgs.wezterm}/bin/wezterm start ${bin}:}${label}%{A}";
+          runTermAppOnClick = bin: label: "%{A1:${lib.getExe pkgs.wezterm} start ${bin}:}${label}%{A}";
           windowMargin = 8;
         in
         {
@@ -110,7 +110,7 @@
 
           "module/xmonad" = {
             type = "custom/script";
-            exec = "${pkgs.xmonad-log}/bin/xmonad-log";
+            exec = lib.getExe pkgs.xmonad-log;
             tail = true;
             format = "  <label>";
           };
@@ -179,7 +179,7 @@
             type = "internal/memory";
             interval = 1;
             format-prefix = "  ";
-            label = runTermAppOnClick "${pkgs.htop}/bin/htop" "%percentage_used%%";
+            label = runTermAppOnClick (lib.getExe pkgs.btop) "%percentage_used%%";
             warn-percentage = 90;
             format-warn-foreground = ''''${colors.alert}'';
           };

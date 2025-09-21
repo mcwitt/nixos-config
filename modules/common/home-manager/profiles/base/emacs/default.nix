@@ -25,17 +25,19 @@
 
   config = lib.mkIf config.profiles.base.enable {
 
-    programs.emacs.package = pkgs.emacs-unstable;
+    programs.emacs = {
+      enable = true;
+      package = pkgs.emacs-unstable;
+      overrides = _: super: {
+        eglot = null; # use built-in package
 
-    programs.emacs.overrides = _: super: {
-      eglot = null; # use built-in package
-
-      elfeed = super.elfeed.overrideAttrs (_: {
-        # Include elfeed-web in the package
-        postInstall = ''
-          cp -r $src/web $out/share/emacs/site-lisp/elpa/elfeed-*
-        '';
-      });
+        elfeed = super.elfeed.overrideAttrs (_: {
+          # Include elfeed-web in the package
+          postInstall = ''
+            cp -r $src/web $out/share/emacs/site-lisp/elpa/elfeed-*
+          '';
+        });
+      };
     };
 
     programs.emacs.init = {
