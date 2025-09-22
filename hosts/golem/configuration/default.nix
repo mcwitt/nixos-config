@@ -4,6 +4,7 @@
     ./hardware-configuration.nix
     ./android.nix
     ./arduino.nix
+    ./cuda.nix
     ./synergy-server.nix
   ];
 
