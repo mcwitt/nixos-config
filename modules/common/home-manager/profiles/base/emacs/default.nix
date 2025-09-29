@@ -202,6 +202,8 @@
         enable = true;
         bindLocal.code-cells-mode-map = {
           "C-c C-c" = "code-cells-eval";
+          "M-j" = "code-cells-forward-cell";
+          "M-k" = "code-cells-backward-cell";
         };
         config = ''
           ;; https://github.com/astoff/code-cells.el#speed-keys
