@@ -17,6 +17,7 @@ with lib;
       zoom-us
     ];
 
+    programs.ncspot.enable = true;
     programs.spotify.enable = true;
   };
 }

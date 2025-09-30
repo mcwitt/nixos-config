@@ -48,6 +48,7 @@
           import XMonad.Layout.ThreeColumns (ThreeCol (ThreeCol, ThreeColMid))
           import qualified XMonad.StackSet as W
           import XMonad.Util.EZConfig (additionalKeys, additionalKeysP)
+          import XMonad.Util.NamedScratchpad (NamedScratchpad (NS), customFloating, namedScratchpadAction, namedScratchpadManageHook)
 
           main = do
             logOutput <- setupLogOutput
@@ -86,6 +87,7 @@
                                     ("M-=", spawn "emacsclient -c -n -F '((name . \"full-calc-dedicated\"))' -e '(full-calc)'"),
                                     ("M-u", spawn "chromium-browser"),
                                     ("M-s", spawn "dm-tool switch-to-greeter"),
+                                    ("M-n", namedScratchpadAction scratchpads "ncspot"),
                                     ("C-M-3", spawn "flameshot screen"),
                                     ("C-M-4", spawn "flameshot gui"),
                                     ("C-M-5", spawn "flameshot launcher")
@@ -157,7 +159,10 @@
 
             pure logOutput
 
-          myManageHook = manageZoomHook <+> manageDocks
+          myManageHook =
+            manageDocks
+              <+> manageZoomHook
+              <+> namedScratchpadManageHook scratchpads
 
           myHandleEventHook =
             fixSteamFlicker
@@ -205,6 +210,16 @@
             stack <- gets $ W.index . windowset
             let match = find ((win ==) . Just . fst) $ zip stack [0 ..]
             whenJust match $ swapNth . snd
+
+          scratchpads =
+            [ NS
+                "ncspot"
+                "wezterm start --class ncspot-scratchpad ncspot"
+                (className =? "ncspot-scratchpad")
+                myFloating
+            ]
+            where
+              myFloating = customFloating $ W.RationalRect (1 / 3) (1 / 3) (1 / 3) (1 / 3)
         '';
     };
   };
