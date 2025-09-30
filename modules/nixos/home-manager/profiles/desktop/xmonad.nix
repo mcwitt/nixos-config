@@ -81,13 +81,12 @@
                                     ("M-0", spawn "rofi-rbw --keybindings Ctrl-1:type:username:password,Ctrl-2:type:password,Ctrl-3:copy:password,Ctrl-4:type:totp"),
                                     ("M-i", spawn "rofi -show ssh"),
                                     ("M-;", spawn "rofi -show emoji"),
-                                    ("M-'", spawn "rofi -show calc -no-show-match -no-sort"),
                                     ("M-y", spawn "emacsclient -c -n -e '(switch-to-buffer nil)'"),
                                     ("M-c", spawn "emacsclient -c -n -F '((name . \"org-capture-dedicated\"))' -e '(org-capture nil \"t\")'"),
-                                    ("M-=", spawn "emacsclient -c -n -F '((name . \"full-calc-dedicated\"))' -e '(full-calc)'"),
                                     ("M-u", spawn "chromium-browser"),
                                     ("M-s", spawn "dm-tool switch-to-greeter"),
                                     ("M-n", namedScratchpadAction scratchpads "ncspot"),
+                                    ("M-'", namedScratchpadAction scratchpads "emacs-calc"),
                                     ("C-M-3", spawn "flameshot screen"),
                                     ("C-M-4", spawn "flameshot gui"),
                                     ("C-M-5", spawn "flameshot launcher")
@@ -216,6 +215,11 @@
                 "ncspot"
                 "wezterm start --class ncspot-scratchpad ncspot"
                 (className =? "ncspot-scratchpad")
+                myFloating,
+              NS
+                "emacs-calc"
+                "emacsclient -c -n -F '((name . \"full-calc-dedicated\"))' -e '(full-calc)'"
+                (title =? "full-calc-dedicated")
                 myFloating
             ]
             where
