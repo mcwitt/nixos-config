@@ -42,7 +42,7 @@
           import XMonad.Layout.Grid (Grid (..))
           import XMonad.Layout.Minimize (minimize)
           import XMonad.Layout.MultiToggle (Toggle (Toggle), mkToggle, single)
-          import XMonad.Layout.MultiToggle.Instances
+          import XMonad.Layout.MultiToggle.Instances (StdTransformers (MIRROR))
           import XMonad.Layout.Renamed (Rename (CutWordsLeft), renamed)
           import XMonad.Layout.Spacing (spacingWithEdge)
           import XMonad.Layout.ThreeColumns (ThreeCol (ThreeCol, ThreeColMid))
@@ -67,29 +67,36 @@
                   modMask = mod4Mask,
                   terminal = "wezterm"
                 }
-                `additionalKeysP` [ ("M-j", focusDown),
+                `additionalKeysP` [ -- focus
+                                    ("M-j", focusDown),
                                     ("M-k", focusUp),
                                     ("M-m", focusMaster),
                                     ("M-o", easyFocus),
                                     ("M-S-o", easySwap),
+                                    ("C-M-o", spawn "rofi -show-icons -show window"),
+                                    -- minimize/maximize
                                     ("M-\\", withFocused minimizeWindow),
                                     ("M-S-\\", withLastMinimized maximizeWindowAndFocus),
                                     ("M-x", sendMessage $ Toggle MIRROR),
-                                    ("M-g", spawn "rofi -show-icons -show window"),
+                                    -- launchers
                                     ("M-p", spawn "rofi -show-icons -show drun"),
                                     ("M-S-p", spawn "rofi -show-icons -show run"),
                                     ("M-0", spawn "rofi-rbw --keybindings Ctrl-1:type:username:password,Ctrl-2:type:password,Ctrl-3:copy:password,Ctrl-4:type:totp"),
                                     ("M-i", spawn "rofi -show ssh"),
                                     ("M-;", spawn "rofi -show emoji"),
+                                    ("M-'", spawn "rofi -show calc -no-show-match -no-sort"),
                                     ("M-y", spawn "emacsclient -c -n -e '(switch-to-buffer nil)'"),
-                                    ("M-c", spawn "emacsclient -c -n -F '((name . \"org-capture-dedicated\"))' -e '(org-capture nil \"t\")'"),
+                                    ("M-[", spawn "emacsclient -c -n -F '((name . \"org-capture-dedicated\"))' -e '(org-capture nil \"t\")'"),
                                     ("M-u", spawn "chromium-browser"),
                                     ("M-s", spawn "dm-tool switch-to-greeter"),
-                                    ("M-n", namedScratchpadAction scratchpads "ncspot"),
-                                    ("M-'", namedScratchpadAction scratchpads "emacs-calc"),
-                                    ("C-M-3", spawn "flameshot screen"),
                                     ("C-M-4", spawn "flameshot gui"),
-                                    ("C-M-5", spawn "flameshot launcher")
+                                    ("C-M-5", spawn "flameshot launcher"),
+                                    -- scratchpads
+                                    ("M-S-h", namedScratchpadAction scratchpads "wezterm"),
+                                    ("M-b", namedScratchpadAction scratchpads "btop"),
+                                    -- ("M-n", namedScratchpadAction scratchpads "ncspot"), -- TODO: librespot broken
+                                    ("M-n", namedScratchpadAction scratchpads "spotify"),
+                                    ("M-S-'", namedScratchpadAction scratchpads "emacs-calc")
                                   ]
                 `additionalKeys` ( first (noModMask,)
                                      <$> [ (xF86XK_MonBrightnessUp, spawn "xbacklight -inc 5"),
@@ -159,9 +166,16 @@
             pure logOutput
 
           myManageHook =
-            manageDocks
-              <+> manageZoomHook
-              <+> namedScratchpadManageHook scratchpads
+            composeAll
+              [ manageDocks,
+                namedScratchpadManageHook scratchpads,
+                manageZoomHook,
+                (title =? "org-capture-dedicated") --> smallFloat
+              ]
+
+          smallFloat = customFloating $ W.RationalRect (1 / 3) (1 / 3) (1 / 3) (1 / 3)
+
+          bigFloat = customFloating $ W.RationalRect (1 / 6) (1 / 6) (2 / 3) (2 / 3)
 
           myHandleEventHook =
             fixSteamFlicker
@@ -212,18 +226,31 @@
 
           scratchpads =
             [ NS
-                "ncspot"
-                "wezterm start --class ncspot-scratchpad ncspot"
-                (className =? "ncspot-scratchpad")
-                myFloating,
+                "wezterm"
+                "wezterm start --class wezterm-scratchpad"
+                (className =? "wezterm-scratchpad")
+                smallFloat,
+              mkTermAppScratchpad "btop" bigFloat,
+              mkTermAppScratchpad "ncspot" smallFloat,
+              NS
+                "spotify"
+                "spotify"
+                (className =? "Spotify")
+                bigFloat,
               NS
                 "emacs-calc"
                 "emacsclient -c -n -F '((name . \"full-calc-dedicated\"))' -e '(full-calc)'"
                 (title =? "full-calc-dedicated")
-                myFloating
+                smallFloat
             ]
             where
-              myFloating = customFloating $ W.RationalRect (1 / 3) (1 / 3) (1 / 3) (1 / 3)
+              mkTermAppScratchpad prog =
+                NS
+                  prog
+                  (unwords ["wezterm", "start", "--class", windowClass, prog])
+                  (className =? windowClass)
+                where
+                  windowClass = prog ++ "-scratchpad"
         '';
     };
   };
