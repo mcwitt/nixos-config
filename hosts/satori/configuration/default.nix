@@ -51,19 +51,14 @@
 
   console.keyMap = "us";
 
-  environment.systemPackages = [ pkgs.nvtopPackages.nvidia ];
-
   hardware.bluetooth.enable = true;
-
-  hardware.keyboard.zsa.enable = true;
-
-  hardware.nvidia.modesetting.enable = true;
-  hardware.nvidia.open = false;
-
-  hardware.nvidia-container-toolkit.enable = true;
 
   hardware.graphics.enable = true;
   hardware.graphics.enable32Bit = true;
+
+  hardware.keyboard.zsa.enable = true;
+
+  hardware.nvidia.open = true;
 
   hardware.printers = rec {
     ensureDefaultPrinter = "Brother_HL-L2340D_series";
@@ -99,7 +94,6 @@
 
   services.xserver = {
     enable = true;
-    videoDrivers = [ "nvidia" ];
     xkb.layout = "us";
     xrandrHeads = [
       {
