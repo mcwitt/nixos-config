@@ -13,6 +13,7 @@ with lib;
       element-desktop
       gimp
       inkscape
+      signal-desktop
       slack
       zoom-us
     ];
