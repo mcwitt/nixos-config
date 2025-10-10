@@ -14,8 +14,8 @@ in
   config = mkIf cfg.enable {
 
     home.packages = [
-      pkgs.typstfmt
       pkgs.tinymist
+      pkgs.typstyle
     ];
 
     programs.emacs.init.usePackage = {
@@ -32,12 +32,12 @@ in
 
       reformatter = {
         enable = true;
-        command = [ "typstfmt-on-save-mode" ];
+        command = [ "typstyle-on-save-mode" ];
         config = ''
-          (reformatter-define typstfmt
-            :program "typstfmt"
-            :args nil
-            :lighter " TypstFmt")
+          (reformatter-define typstyle
+            :program "typstyle"
+            :args '("--line-width" "80" "--wrap-text")
+            :lighter " Typstyle")
         '';
       };
     };
