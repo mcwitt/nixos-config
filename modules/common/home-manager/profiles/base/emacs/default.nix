@@ -13,6 +13,7 @@
     ./claude.nix
     ./consult.nix
     ./corfu.nix
+    ./dape.nix
     ./embark.nix
     ./forge.nix
     ./format-all.nix
