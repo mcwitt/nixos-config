@@ -10,6 +10,7 @@
   imports = [
     nurNoPkgs.repos.rycee.hmModules.emacs-init
     ./citar.nix
+    ./claude.nix
     ./consult.nix
     ./corfu.nix
     ./embark.nix

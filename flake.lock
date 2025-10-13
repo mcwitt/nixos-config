@@ -83,6 +83,22 @@
         "type": "github"
       }
     },
+    "claude-code.el": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1760122475,
+        "narHash": "sha256-AW3Q5XScvT3UAmzvoMS53iZtijrii6pwvQjw+VW353w=",
+        "owner": "stevemolitor",
+        "repo": "claude-code.el",
+        "rev": "becece683bcf60f7b150a87a30ef14885dcf8ce3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "stevemolitor",
+        "repo": "claude-code.el",
+        "type": "github"
+      }
+    },
     "disko": {
       "inputs": {
         "nixpkgs": [
@@ -284,6 +300,22 @@
         "owner": "nix-community",
         "ref": "release-25.05",
         "repo": "home-manager",
+        "type": "github"
+      }
+    },
+    "monet": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1758848153,
+        "narHash": "sha256-3e5DIR+X6JLDaY7vRDutH3EAsyaqK3Jc73ugZTDRUrQ=",
+        "owner": "stevemolitor",
+        "repo": "monet",
+        "rev": "72a18d372fef4b0971267bf13f127dcce681859a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "stevemolitor",
+        "repo": "monet",
         "type": "github"
       }
     },
@@ -544,10 +576,12 @@
     },
     "root": {
       "inputs": {
+        "claude-code.el": "claude-code.el",
         "disko": "disko",
         "emacs-overlay": "emacs-overlay",
         "flake-utils": "flake-utils",
         "home-manager": "home-manager",
+        "monet": "monet",
         "nixos-hardware": "nixos-hardware",
         "nixos-raspberrypi": "nixos-raspberrypi",
         "nixpkgs": "nixpkgs_4",

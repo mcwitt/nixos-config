@@ -3,11 +3,19 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
+    "claude-code.el" = {
+      url = "github:stevemolitor/claude-code.el";
+      flake = false;
+    };
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "nixpkgs";
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     flake-utils.url = "github:numtide/flake-utils";
     home-manager.url = "github:nix-community/home-manager/release-25.05";
+    monet = {
+      url = "github:stevemolitor/monet";
+      flake = false;
+    };
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
     nur.url = "github:nix-community/NUR";
