@@ -43,7 +43,7 @@
           import XMonad.Layout.Minimize (minimize)
           import XMonad.Layout.MultiToggle (Toggle (Toggle), mkToggle, single)
           import XMonad.Layout.MultiToggle.Instances (StdTransformers (MIRROR))
-          import XMonad.Layout.Renamed (Rename (CutWordsLeft), renamed)
+          import XMonad.Layout.Renamed (Rename (CutWordsLeft, Replace), renamed)
           import XMonad.Layout.Spacing (spacingWithEdge)
           import XMonad.Layout.ThreeColumns (ThreeCol (ThreeCol, ThreeColMid))
           import qualified XMonad.StackSet as W
@@ -117,7 +117,7 @@
             where
               layout =
                 ThreeCol 1 (3 % 100) (1 % 2)
-                  ||| ThreeColMid 1 (3 % 100) (1 % 2)
+                  ||| renamed [Replace "ThreeColMid"] (ThreeColMid 1 (3 % 100) (1 % 2))
                   ||| Grid
                   ||| Full
 
