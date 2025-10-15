@@ -273,7 +273,48 @@
         '';
       };
 
-      eldoc.enable = true;
+      eldoc = {
+        enable = true;
+        config = ''
+          ;; Replace HTML escapes in eldoc when using eglot
+          ;; https://emacs.stackexchange.com/a/82952
+
+          (defvar my/eldoc-html-patterns
+            '(("&nbsp;" " ")
+              ("&lt;" "<")
+              ("&gt;" ">")
+              ("&amp;" "&")
+              ("&quot;" "\"")
+              ("&apos;" "'"))
+            "List of (PATTERN . REPLACEMENT) to replace in eldoc output.")
+
+          (defun my/string-replace-all (patterns in-string)
+            "Replace all cars from PATTERNS in IN-STRING with their pair."
+            (mapc (lambda (pattern-pair)
+                    (setq in-string
+                          (string-replace (car pattern-pair) (cadr pattern-pair) in-string)))
+                  patterns)
+            in-string)
+
+          (defun my/eldoc-preprocess (orig-fun &rest args)
+            "Preprocess the docs to be displayed by eldoc to replace HTML escapes."
+            (let ((doc (car args)))
+              ;; The first argument is a list of (STRING :KEY VALUE ...) entries
+              ;; we replace the text in each such string
+              ;; see docstring of `eldoc-display-functions'
+              (when (listp doc)
+                (setq doc (mapcar
+                           (lambda (doc) (cons
+                                          (my/string-replace-all my/eldoc-html-patterns (car doc))
+                                          (cdr doc)))
+                           doc
+                           ))
+                )
+              (apply orig-fun (cons doc (cdr args)))))
+
+          (advice-add 'eldoc-display-in-buffer :around #'my/eldoc-preprocess)
+        '';
+      };
 
       elfeed = {
         enable = true;
