@@ -93,6 +93,14 @@
       groups.hass = { };
     };
 
-    virtualisation.docker.enable = true;
+    virtualisation.podman = {
+      enable = true;
+
+      # Create an alias mapping docker to podman
+      dockerCompat = true;
+
+      # Required for containers under podman-compose to be able to talk to each other
+      defaultNetwork.settings.dns_enabled = true;
+    };
   };
 }

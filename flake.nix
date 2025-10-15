@@ -94,7 +94,7 @@
                       isNormalUser = true;
                       extraGroups = [
                         "wheel"
-                        "docker"
+                        "podman"
                         "video"
                       ];
                       shell = pkgs.fish;
@@ -265,6 +265,7 @@
 
               home-manager.users.matt.profiles = {
                 desktop.enable = true;
+                distrobox.enable = true;
                 personal.enable = true;
               };
             }

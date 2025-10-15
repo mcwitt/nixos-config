@@ -3,7 +3,7 @@
     ./base
     ./desktop
     ./home-automation
-    ./nvidia.nix
+    ./nvidia
     ./personal
   ];
 }
