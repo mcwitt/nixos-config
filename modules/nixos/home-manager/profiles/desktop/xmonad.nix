@@ -86,7 +86,6 @@
                                     ("M-;", spawn "rofi -show emoji"),
                                     ("M-'", spawn "rofi -show calc -no-show-match -no-sort"),
                                     ("M-y", spawn "emacsclient -c -n -e '(switch-to-buffer nil)'"),
-                                    ("M-[", spawn "emacsclient -c -n -F '((name . \"org-capture-dedicated\"))' -e '(org-capture nil \"t\")'"),
                                     ("M-u", spawn "chromium-browser"),
                                     ("M-s", spawn "dm-tool switch-to-greeter"),
                                     ("C-M-4", spawn "flameshot gui"),
@@ -96,7 +95,9 @@
                                     ("M-b", namedScratchpadAction scratchpads "btop"),
                                     -- ("M-n", namedScratchpadAction scratchpads "ncspot"), -- TODO: librespot broken
                                     ("M-n", namedScratchpadAction scratchpads "spotify"),
-                                    ("M-S-'", namedScratchpadAction scratchpads "emacs-calc")
+                                    ("M-S-'", namedScratchpadAction scratchpads "emacs-calc"),
+                                    ("M-[", namedScratchpadAction scratchpads "emacs-org-capture"),
+                                    ("M-]", namedScratchpadAction scratchpads "emacs-org-agenda")
                                   ]
                 `additionalKeys` ( first (noModMask,)
                                      <$> [ (xF86XK_MonBrightnessUp, spawn "xbacklight -inc 5"),
@@ -169,13 +170,8 @@
             composeAll
               [ manageDocks,
                 namedScratchpadManageHook scratchpads,
-                manageZoomHook,
-                (title =? "org-capture-dedicated") --> smallFloat
+                manageZoomHook
               ]
-
-          smallFloat = customFloating $ W.RationalRect (1 / 3) (1 / 3) (1 / 3) (1 / 3)
-
-          bigFloat = customFloating $ W.RationalRect (1 / 6) (1 / 6) (2 / 3) (2 / 3)
 
           myHandleEventHook =
             fixSteamFlicker
@@ -229,19 +225,29 @@
                 "wezterm"
                 "wezterm start --class wezterm-scratchpad"
                 (className =? "wezterm-scratchpad")
-                smallFloat,
-              mkTermAppScratchpad "btop" bigFloat,
-              mkTermAppScratchpad "ncspot" smallFloat,
+                scratchpadFloat,
+              mkTermAppScratchpad "btop" scratchpadFloat,
+              mkTermAppScratchpad "ncspot" scratchpadFloat,
               NS
                 "spotify"
                 "spotify"
                 (className =? "Spotify")
-                bigFloat,
+                scratchpadFloat,
+              NS
+                "emacs-org-capture"
+                "emacsclient -c -n -F '((name . \"org-capture-dedicated\"))' -e '(org-capture nil \"t\")'"
+                (title =? "org-capture-dedicated")
+                scratchpadFloat,
+              NS
+                "emacs-org-agenda"
+                "emacsclient -c -n -F '((name . \"org-agenda-dedicated\"))' -e '(let ((org-agenda-window-setup (quote current-frame))) (org-agenda nil \"n\"))'"
+                (title =? "org-agenda-dedicated")
+                scratchpadFloat,
               NS
                 "emacs-calc"
                 "emacsclient -c -n -F '((name . \"full-calc-dedicated\"))' -e '(full-calc)'"
                 (title =? "full-calc-dedicated")
-                smallFloat
+                scratchpadFloat
             ]
             where
               mkTermAppScratchpad prog =
@@ -251,6 +257,8 @@
                   (className =? windowClass)
                 where
                   windowClass = prog ++ "-scratchpad"
+
+              scratchpadFloat = customFloating $ W.RationalRect (3 / 10) (1 / 5) (2 / 5) (3 / 5)
         '';
     };
   };

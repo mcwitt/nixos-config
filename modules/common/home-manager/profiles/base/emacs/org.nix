@@ -142,6 +142,19 @@
             (when (my/dedicated-org-capture-frame-p) (delete-frame)))
 
           (add-hook 'org-capture-after-finalize-hook #'my/dedicated-org-capture-frame-cleanup)
+
+
+          ;; Delete dedicated org-agenda frames upon quitting the agenda
+
+          (defun my/dedicated-org-agenda-frame-p ()
+            "Return whether the current frame is a dedicated agenda frame."
+            (equal (frame-parameter nil 'name) "org-agenda-dedicated"))
+
+          (defun my/dedicated-org-agenda-frame-cleanup ()
+            "Delete the frame if it is a dedicated agenda frame."
+            (when (my/dedicated-org-agenda-frame-p) (delete-frame)))
+
+          (advice-add 'org-agenda-quit :after #'my/dedicated-org-agenda-frame-cleanup)
         '';
       };
 
