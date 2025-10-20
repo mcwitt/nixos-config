@@ -65,15 +65,12 @@
 
             modules-left = "xworkspaces xmonad";
             modules-center = "date";
-            modules-right = lib.mkDefault "wired-network filesystem memory cpu pipewire";
+            modules-right = lib.mkDefault "wired-network filesystem memory cpu pipewire tray";
 
             cursor-click = "pointer";
             cursor-scroll = "ns-resize";
 
             enable-ipc = true;
-
-            tray-position = ''''${env:TRAY_POS}'';
-            tray-maxsize = 32;
 
             wm-restack = "generic";
 
@@ -275,6 +272,12 @@
               "%{F${colors.base08}}  %{F-}"
               "%{F${colors.base08}}  %{F-}"
             ];
+          };
+
+          "module/tray" = {
+            type = "internal/tray";
+            format-margin = "8px";
+            tray-spacing = "8px";
           };
 
           "settings" = {

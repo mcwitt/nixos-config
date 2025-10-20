@@ -22,7 +22,7 @@ in
       '';
 
       settings = {
-        "bar/main".modules-right = "wired-network filesystem memory cpu temperature pipewire";
+        "bar/main".modules-right = "wired-network filesystem memory cpu temperature pipewire tray";
 
         "module/temperature" = {
           type = "internal/temperature";
