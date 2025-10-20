@@ -93,6 +93,7 @@
                                     -- scratchpads
                                     ("M-S-h", namedScratchpadAction scratchpads "wezterm"),
                                     ("M-b", namedScratchpadAction scratchpads "btop"),
+                                    ("M-v", namedScratchpadAction scratchpads "pavucontrol"),
                                     -- ("M-n", namedScratchpadAction scratchpads "ncspot"), -- TODO: librespot broken
                                     ("M-n", namedScratchpadAction scratchpads "spotify"),
                                     ("M-S-'", namedScratchpadAction scratchpads "emacs-calc"),
@@ -226,8 +227,11 @@
                 "wezterm start --class wezterm-scratchpad"
                 (className =? "wezterm-scratchpad")
                 scratchpadFloat,
-              mkTermAppScratchpad "btop" scratchpadFloat,
-              mkTermAppScratchpad "ncspot" scratchpadFloat,
+              NS
+                "pavucontrol"
+                "pavucontrol"
+                (className =? "pavucontrol")
+                scratchpadFloat,
               NS
                 "spotify"
                 "spotify"
@@ -249,12 +253,14 @@
                 (title =? "full-calc-dedicated")
                 scratchpadFloat
             ]
+              ++ map mkTermAppScratchpad ["btop", "ncspot"]
             where
               mkTermAppScratchpad prog =
                 NS
                   prog
                   (unwords ["wezterm", "start", "--class", windowClass, prog])
                   (className =? windowClass)
+                  scratchpadFloat
                 where
                   windowClass = prog ++ "-scratchpad"
 
