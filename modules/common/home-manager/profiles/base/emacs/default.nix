@@ -603,6 +603,16 @@
         hook = [ "(prog-mode . rainbow-delimiters-mode)" ];
       };
 
+      recentf = {
+        enable = true;
+        init = ''
+          (setq recentf-max-saved-items 50)
+        '';
+        config = ''
+          (recentf-mode t)
+        '';
+      };
+
       restclient = {
         enable = true;
         command = [ "restclient-mode" ];
