@@ -41,7 +41,7 @@
 
   services.synergy.client = {
     enable = true;
-    serverAddress = "golem";
+    serverAddress = "satori";
   };
 
   services.xserver = {
