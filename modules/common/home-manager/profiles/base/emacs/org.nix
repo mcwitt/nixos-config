@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 {
@@ -69,6 +70,8 @@
           org-tags-column = 0;
 
           org-highlight-latex-and-related = '''(native)'';
+
+          org-preview-latex-default-process = '''dvisvgm'';
 
           org-agenda-files = ''
             '("gtd.org"

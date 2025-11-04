@@ -96,7 +96,20 @@ in
 
     programs.texlive = {
       enable = true;
-      extraPackages = tpkgs: { inherit (tpkgs) scheme-basic; };
+      extraPackages = tpkgs: {
+        inherit (pkgs.texlive)
+          scheme-basic
+
+          # minimal set needed for emacs org latex export
+          dvisvgm
+          dvipng
+          wrapfig
+          amsmath
+          ulem
+          hyperref
+          capt-of
+          ;
+      };
     };
 
     tools = {
