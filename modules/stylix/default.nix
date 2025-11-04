@@ -5,21 +5,21 @@
 }:
 {
   stylix = {
-    # Colors taken from modus-operandi emacs theme
+    # Colors taken from modus-operandi-tinted emacs theme
     base16Scheme = {
-      base00 = "#ffffff"; # bg-main
-      base01 = "#f0f0f0"; # bg-dim
-      base02 = "#c4c4c4"; # bg-active
-      base03 = "#9f9f9f"; # border
+      base00 = "#fbf7f0"; # bg-main
+      base01 = "#efe9dd"; # bg-dim
+      base02 = "#c9b9b0"; # bg-active
+      base03 = "#9f9690"; # border
       base04 = "#595959"; # fg-dim
       base05 = "#000000"; # fg-main
       base06 = "#193668"; # fg-alt
       base07 = "#0000b0"; # blue-cooler
       base08 = "#a60000"; # red
-      base09 = "#6f5500"; # yellow
+      base09 = "#6d5000"; # yellow
       base0A = "#f3d000"; # bg-yellow-intense
-      base0B = "#006800"; # green
-      base0C = "#005e8b"; # cyan
+      base0B = "#006300"; # green
+      base0C = "#00598b"; # cyan
       base0D = "#0031a9"; # blue
       base0E = "#8f0075"; # magenta-warmer
       base0F = "#8a290f"; # rust
@@ -80,12 +80,12 @@
   };
 
   specialisation.dark.configuration.stylix = {
-    # Colors taken from modus-vivendi emacs theme
+    # Colors taken from modus-vivendi-tinted emacs theme
     base16Scheme = lib.mkForce {
-      base00 = "#000000"; # bg-main
-      base01 = "#1e1e1e"; # bg-dim
-      base02 = "#535353"; # bg-active
-      base03 = "#646464"; # border
+      base00 = "#0d0e1c"; # bg-main
+      base01 = "#1d2235"; # bg-dim
+      base02 = "#4a4f69"; # bg-active
+      base03 = "#61647a"; # border
       base04 = "#989898"; # fg-dim
       base05 = "#ffffff"; # fg-main
       base06 = "#c6daff"; # fg-alt
@@ -97,7 +97,7 @@
       base0C = "#00d3d0"; # cyan
       base0D = "#2fafff"; # blue
       base0E = "#feacd0"; # magenta
-      base0F = "#db7b5f"; # rust
+      base0F = "#db8b3f"; # rust
     };
 
     polarity = lib.mkForce "dark";
