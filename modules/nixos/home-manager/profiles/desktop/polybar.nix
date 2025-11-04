@@ -25,8 +25,8 @@
             background = colors.base00;
             background-alt = colors.base01;
             foreground = colors.base05;
-            primary = colors.base0D;
-            secondary = colors.base0F;
+            primary = colors.base0F;
+            secondary = colors.base0E;
             alert = colors.base08;
             warn = colors.base0A;
             disabled = colors.base03;

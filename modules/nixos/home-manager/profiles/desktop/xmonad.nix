@@ -59,7 +59,7 @@
               $ def
                 { borderWidth = 6,
                   normalBorderColor = "${colors.withHashtag.base03}",
-                  focusedBorderColor = "${colors.withHashtag.base0D}",
+                  focusedBorderColor = "${colors.withHashtag.base0F}",
                   layoutHook = myLayoutHook,
                   logHook = mkPolybarLogHook logOutput,
                   manageHook = myManageHook,
