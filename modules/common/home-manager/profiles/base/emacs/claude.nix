@@ -25,10 +25,8 @@
       init.usePackage = {
         claude-code = {
           enable = true;
-          init = ''
-            (setq claude-code-terminal-backend 'vterm)
-          '';
           config = ''
+            (setopt claude-code-terminal-backend 'vterm)
             (add-hook 'claude-code-process-environment-functions #'monet-start-server-function)
             (monet-mode 1)
 

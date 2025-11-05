@@ -50,7 +50,7 @@ in
         enable = true;
         hook = [ "(haskell-mode . interactive-haskell-mode)" ];
         config = ''
-          (setq haskell-interactive-popup-errors nil)
+          (setopt haskell-interactive-popup-errors nil)
         '';
       };
 

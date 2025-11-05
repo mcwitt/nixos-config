@@ -16,8 +16,8 @@
       elfeed-org = {
         enable = true;
         after = [ "org" ];
-        custom.rmh-elfeed-org-files = ''(list (expand-file-name "feeds.org" org-directory))'';
         config = ''
+          (setopt rmh-elfeed-org-files (list (expand-file-name "feeds.org" org-directory)))
           (elfeed-org)
         '';
       };
@@ -57,52 +57,39 @@
           k = "evil-previous-line";
         };
 
-        custom = {
-          org-directory = ''"~/org"'';
-
-          org-hide-emphasis-markers = true;
-          org-hidden-keywords = "'(title subtitle author date email)";
-          org-pretty-entities = true;
-
-          # don't right-justify tags (looks bad with variable-width font)
-          # instead, put tags immediately after the headline
-          org-auto-align-tags = "nil";
-          org-tags-column = 0;
-
-          org-highlight-latex-and-related = '''(native)'';
-
-          org-preview-latex-default-process = '''dvisvgm'';
-
-          org-agenda-files = ''
-            '("gtd.org"
-              "inbox.org"
-              "tickler.org")
-          '';
-          org-agenda-block-separator = "nil";
-          org-agenda-custom-commands = ''
-            '(("n" "Agenda and NEXT TODOs"
-               ((agenda "")
-                (todo "NEXT" ((org-agenda-overriding-header "In Progress:")))
-                (tags-todo "CATEGORY=\"Inbox\"" ((org-agenda-overriding-header "Inbox:")))
-                (stuck ""))))
-          '';
-          org-agenda-prefix-format = ''
-            '((agenda . " %i %-12:c%?-12t% s")
-              (todo . " %i %-12:c%b")
-              (tags . " %i %-12:c")
-              (search . " %i %-12:c"))
-          '';
-          org-agenda-breadcrumbs-separator = ''"/"'';
-
-          org-capture-templates = ''
-            '(("t" "todo" entry (file "inbox.org") "* TODO %a%?\n%i")
-              ("k" "tickler" entry (file "tickler.org") "* %i%?"))
-          '';
-          org-refile-targets = '''(("gtd.org" :maxlevel . 3))'';
-          org-stuck-projects = '''("+LEVEL=2+PROJECT/-DONE" ("NEXT") nil "")'';
-        };
-
         config = ''
+          (setopt org-directory "~/org"
+                  org-hide-emphasis-markers t
+                  org-hidden-keywords '(title subtitle author date email)
+                  org-pretty-entities t
+
+                  ;; don't right-justify tags (looks bad with variable-width font)
+                  ;; instead, put tags immediately after the headline
+                  org-auto-align-tags nil
+                  org-tags-column 0
+
+                  org-highlight-latex-and-related '(native)
+                  org-preview-latex-default-process 'dvisvgm
+
+                  org-agenda-files '("gtd.org" "inbox.org" "tickler.org")
+                  org-agenda-block-separator nil
+                  org-agenda-custom-commands '(("n" "Agenda and NEXT TODOs"
+                                                ((agenda "")
+                                                 (todo "NEXT" ((org-agenda-overriding-header "In Progress:")))
+                                                 (tags-todo "CATEGORY=\"Inbox\"" ((org-agenda-overriding-header "Inbox:")))
+                                                 (stuck ""))))
+                  org-agenda-prefix-format '((agenda . " %i %-12:c%?-12t% s")
+                                             (todo . " %i %-12:c%b")
+                                             (tags . " %i %-12:c")
+                                             (search . " %i %-12:c"))
+                  org-agenda-breadcrumbs-separator "/"
+
+                  org-capture-templates '(("t" "todo" entry (file "inbox.org") "* TODO %a%?\n%i")
+                                          ("k" "tickler" entry (file "tickler.org") "* %i%?"))
+                  org-refile-targets '(("gtd.org" :maxlevel . 3));
+                  org-stuck-projects '("+LEVEL=2+PROJECT/-DONE" ("NEXT") nil ""))
+
+
           ;; Resize Org headings
           ;; https://sophiebos.io/posts/prettifying-emacs-org-mode/
           (dolist (face '((org-level-1 . 1.35)
@@ -163,11 +150,11 @@
 
       org-appear = {
         enable = true;
-        custom = {
-          org-appear-autoemphasis = true;
-          org-appear-autolinks = true;
-          org-appear-autokeywords = true;
-        };
+        config = ''
+          (setopt org-appear-autoemphasis t
+                  org-appear-autolinks t
+                  org-appear-autokeywords t)
+        '';
       };
 
       org-download = {
@@ -178,9 +165,9 @@
           "org-download-screenshot"
           "org-download-yank"
         ];
-        custom = {
-          org-download-method = "'attach";
-        };
+        config = ''
+          (setopt org-download-method 'attach)
+        '';
       };
 
       org-modern = {
@@ -204,17 +191,14 @@
           "C-c n f" = "org-roam-node-find";
           "C-c n i" = "org-roam-node-insert";
         };
-        custom = {
-          org-roam-directory = ''(expand-file-name "roam" org-directory)'';
-          org-roam-dailies-directory = ''"daily/"'';
-          org-roam-dailies-capture-templates = ''
-            '(("d" "default" entry
-               "* %?"
-               :target (file+head "%<%Y-%m-%d>.org"
-                                  "#+title: %<%Y-%m-%d>\n")))
-          '';
-        };
         config = ''
+          (setopt org-roam-directory (expand-file-name "roam" org-directory)
+                  org-roam-dailies-directory "daily/"
+                  org-roam-dailies-capture-templates '(("d" "default" entry
+                                                        "* %?"
+                                                        :target (file+head "%<%Y-%m-%d>.org"
+                                                                           "#+title: %<%Y-%m-%d>\n"))))
+
           ;; Author-recommended buffer display settings
           ;; https://www.orgroam.com/manual.html#Configuring-the-Org_002droam-buffer-display-1
           (add-to-list 'display-buffer-alist

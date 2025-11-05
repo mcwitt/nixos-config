@@ -8,8 +8,9 @@
       jupyter = {
         enable = true;
         after = [ "inheritenv" ];
-        custom.jupyter-pop-up-frame = "t"; # show results in separate frame
         config = ''
+          (setopt jupyter-pop-up-frame t) ; show results in separate frame
+
           ;; https://github.com/purcell/envrc/issues/12#issuecomment-770523826
           (inheritenv-add-advice 'jupyter-command)
         '';

@@ -35,11 +35,10 @@
 
       init.usePackage.org = {
         hook = [ "(org-mode . org-latex-preview-auto-mode)" ];
-        custom = {
-          org-latex-preview-live = true;
-          org-latex-preview-live-debounce = 0.25;
-        };
         config = ''
+          (setopt org-latex-preview-live t
+                  org-latex-preview-live-debounce 0.25)
+
           ;; Increase size of latex fragment previews
           (plist-put org-latex-preview-appearance-options :page-width 0.8)
           (plist-put org-latex-preview-appearance-options :scale 1.35)

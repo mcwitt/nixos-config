@@ -26,8 +26,8 @@
         enable = true;
         demand = true;
         bind."<f5>" = "modus-themes-toggle";
-        custom.modus-themes-to-toggle = '''(modus-operandi-tinted modus-vivendi-tinted)'';
         config = ''
+          (setopt modus-themes-to-toggle '(modus-operandi-tinted modus-vivendi-tinted))
           (load-theme 'modus-operandi-tinted :no-confirm)
         '';
       };

@@ -21,8 +21,8 @@ in
         '';
       };
 
-      evil.init = ''
-        (setq evil-want-abbrev-expand-on-insert-exit nil)
+      evil.config = ''
+        (setopt evil-want-abbrev-expand-on-insert-exit nil)
       '';
     };
   };

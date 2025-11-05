@@ -25,13 +25,13 @@
             ''(org-mode . citar-capf-setup)''
           ];
           bindLocal.org-mode-map."C-c b" = "#'org-cite-insert";
-          custom = {
-            org-cite-global-bibliography = '''("~/org/bib/references.bib")'';
-            org-cite-insert-processor = "'citar";
-            org-cite-follow-processor = "'citar";
-            org-cite-activate-processor = "'citar";
-            citar-bibliography = "org-cite-global-bibliography";
-          };
+          config = ''
+            (setopt org-cite-global-bibliography  '("~/org/bib/references.bib")
+                    org-cite-insert-processor 'citar
+                    org-cite-follow-processor 'citar
+                    org-cite-activate-processor 'citar
+                    citar-bibliography org-cite-global-bibliography)
+          '';
         };
 
         citar-embark = {

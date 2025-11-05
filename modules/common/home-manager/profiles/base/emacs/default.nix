@@ -58,8 +58,8 @@
       '';
 
       prelude = ''
-        (setq package-archives nil) ; make package archives unavailable (use Nix)
-        (setq custom-file "~/.emacs.d/custom.el")
+        (setopt package-archives nil) ; make package archives unavailable (use Nix)
+        (setopt custom-file "~/.emacs.d/custom.el")
       '';
     };
 
@@ -116,7 +116,7 @@
         enable = true;
         diminish = [ "beacon-mode" ];
         config = ''
-          (setq beacon-color "${config.lib.stylix.colors.withHashtag.orange}")
+          (setopt beacon-color "${config.lib.stylix.colors.withHashtag.orange}")
           (beacon-mode 1)
         '';
       };
@@ -330,7 +330,7 @@
         enable = true;
         hook = [ "(prog-mode . electric-pair-mode)" ];
         config = ''
-          (setq electric-pair-skip-whitespace-chars '(9 32)) ; relative to default, don't skip newlines
+          (setopt electric-pair-skip-whitespace-chars '(9 32)) ; relative to default, don't skip newlines
         '';
       };
 
@@ -338,22 +338,22 @@
         enable = true;
         config = ''
           ;; https://github.com/emacsmirror/undo-fu?tab=readme-ov-file#undo-limits
-          (setq undo-limit 67108864) ; 64mb.
-          (setq undo-strong-limit 100663296) ; 96mb.
-          (setq undo-outer-limit 1006632960) ; 960mb.
+          (setopt undo-limit 67108864) ; 64mb.
+          (setopt undo-strong-limit 100663296) ; 96mb.
+          (setopt undo-outer-limit 1006632960) ; 960mb.
 
 
-          (setq user-full-name "Matt Wittmann"
-                user-mail-address "mcwitt@gmail.com")
+          (setopt user-full-name "Matt Wittmann"
+                  user-mail-address "mcwitt@gmail.com")
 
           ;; Create backup files in system temp directory
-          (setq backup-directory-alist
-                `((".*" . ,temporary-file-directory)))
-          (setq auto-save-file-name-transforms
-                `((".*" ,temporary-file-directory t)))
+          (setopt backup-directory-alist
+                  `((".*" . ,temporary-file-directory)))
+          (setopt auto-save-file-name-transforms
+                  `((".*" ,temporary-file-directory t)))
 
           ;; Always split horizontally (i.e. vertical stack)
-          (setq split-width-threshold nil)
+          (setopt split-width-threshold nil)
 
           ;; Prompt for y/n instead of yes/no
           (defalias 'yes-or-no-p 'y-or-n-p)
@@ -375,7 +375,7 @@
           (add-hook 'prog-mode-hook (lambda () (setq-local show-trailing-whitespace t)))
 
           ;; Open URLs with Chromium
-          (setq browse-url-browser-function 'browse-url-chromium)
+          (setopt browse-url-browser-function 'browse-url-chromium)
 
           ;; Enable smooth scrolling
           ;; (pixel-scroll-mode)  ; disable for now, seems to interact poorly with breadcrumb-mode
@@ -401,12 +401,13 @@
       evil = {
         enable = true;
         init = ''
-          (setq evil-want-integration t)
-          (setq evil-want-keybinding nil)
-          (setq evil-respect-visual-line-mode t)
-          (setq evil-undo-system 'undo-fu)
+          (setopt evil-want-keybinding nil)
+          (setopt evil-want-integration t)
+          (setopt evil-respect-visual-line-mode t)
         '';
         config = ''
+          (setopt evil-undo-system 'undo-fu)
+
           (evil-mode)
         '';
       };
@@ -501,7 +502,7 @@
       git-auto-commit-mode = {
         enable = true;
         config = ''
-          (setq gac-debounce-interval 60)
+          (setopt gac-debounce-interval 60)
           (add-to-list 'safe-local-variable-values '(gac-automatically-push-p t))
         '';
       };
@@ -511,17 +512,9 @@
         bind = {
           "C-c RET" = "gptel-send";
         };
-        custom = {
-          gptel-default-mode = "#'org-mode";
-          gptel-crowdsourced-prompts-file = ''"${
-            pkgs.fetchFromGitHub {
-              owner = "f";
-              repo = "awesome-chatgpt-prompts";
-              rev = "06708da20073a038a3970a1ebac25bd643afeefa";
-              hash = "sha256-LX1ShrR9D5tW72zD4BlRIbwopjCkVeKcRgT/eHQNcCU=";
-            }
-          }/prompts.csv"'';
-        };
+        config = ''
+          (setopt gptel-default-mode #'org-mode)
+        '';
       };
 
       hl-todo = {
@@ -531,10 +524,10 @@
 
       ispell = {
         enable = true;
-        custom = {
-          ispell-program-name = ''"aspell"'';
-          ispell-alternate-dictionary = ''"${pkgs.scowl}/share/dict/words.txt"'';
-        };
+        config = ''
+          (setopt ispell-program-name "aspell")
+          (setopt ispell-alternate-dictionary "${pkgs.scowl}/share/dict/words.txt")
+        '';
       };
 
       json-mode.enable = true;
@@ -577,10 +570,10 @@
 
       orderless = {
         enable = true;
-        init = ''
-          (setq completion-styles '(orderless)
-                completion-category-defaults nil
-                completion-category-overrides '((file (styles . (partial-completion)))))
+        config = ''
+          (setopt completion-styles '(orderless)
+                  completion-category-defaults nil
+                  completion-category-overrides '((file (styles . (partial-completion)))))
         '';
       };
 
@@ -596,7 +589,7 @@
         hook = [ "(pdf-view-mode . (lambda () (linum-mode -1)))" ];
         config = ''
           (pdf-tools-install t t)
-          (setq pdf-view-use-scaling t)
+          (setopt pdf-view-use-scaling t)
           (setq-default pdf-view-display-size 'fit-page)
         '';
       };
@@ -608,10 +601,8 @@
 
       recentf = {
         enable = true;
-        init = ''
-          (setq recentf-max-saved-items 50)
-        '';
         config = ''
+          (setopt recentf-max-saved-items 50)
           (recentf-mode t)
         '';
       };

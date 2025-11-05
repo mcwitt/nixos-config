@@ -54,10 +54,10 @@ in
         {
           enable = true;
           config = ''
-            (setq send-mail-function 'smtpmail-send-it)
-            (setq smtpmail-smtp-server "${gmail.smtp.host}")
-            (setq smtpmail-smtp-service ${toString gmail.smtp.port})
-            (setq smtpmail-smtp-user "${gmail.address}")
+            (setopt send-mail-function 'smtpmail-send-it
+                    smtpmail-smtp-server "${gmail.smtp.host}"
+                    smtpmail-smtp-service ${toString gmail.smtp.port}
+                    smtpmail-smtp-user "${gmail.address}")
           '';
         };
     };

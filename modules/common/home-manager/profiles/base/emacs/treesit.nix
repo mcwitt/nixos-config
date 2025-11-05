@@ -10,7 +10,7 @@
         treesit = {
           enable = true;
           config = ''
-            (setq treesit-font-lock-level 3)
+            (setopt treesit-font-lock-level 3)
           '';
         };
       };

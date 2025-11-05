@@ -4,11 +4,13 @@
     format-all = {
       enable = true;
       diminish = [ "format-all-mode" ];
-      custom.format-all-show-errors = "'never";
       hook = [
         "(prog-mode . format-all-mode)"
         "(format-all-mode . format-all-ensure-formatter)"
       ];
+      config = ''
+        (setopt format-all-show-errors 'never)
+      '';
     };
   };
 }
