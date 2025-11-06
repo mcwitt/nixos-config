@@ -89,7 +89,7 @@ in
       userName = "Matt Wittmann";
       userEmail = "mcwitt@gmail.com";
       signing = {
-        key = "981FF1A67C955E2E";
+        key = "B19E6AC805563E38";
         signByDefault = true;
       };
     };
