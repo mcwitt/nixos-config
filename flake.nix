@@ -162,6 +162,7 @@
 
               home-manager.users.matt.profiles = {
                 desktop.enable = true;
+                nvidia.enable = true;
                 personal.enable = true;
               };
             }
@@ -266,6 +267,7 @@
               home-manager.users.matt.profiles = {
                 desktop.enable = true;
                 distrobox.enable = true;
+                nvidia.enable = true;
                 personal.enable = true;
               };
             }

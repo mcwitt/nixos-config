@@ -17,7 +17,8 @@ in
 
     services.polybar = {
       settings = {
-        "bar/main".modules-right = "wired-network filesystem memory cpu temperature pipewire tray";
+        "bar/main".modules-right =
+          "wired-network filesystem memory cpu temperature nvidia-gpu pipewire tray";
 
         "module/temperature" = {
           type = "internal/temperature";

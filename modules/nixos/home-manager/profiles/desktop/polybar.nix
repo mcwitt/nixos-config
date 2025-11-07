@@ -175,26 +175,25 @@
           "module/memory" = {
             type = "internal/memory";
             interval = 1;
-            format-prefix = "  ";
-            label = runTermAppOnClick (lib.getExe pkgs.btop) "%percentage_used%%";
+            label = runTermAppOnClick (lib.getExe pkgs.btop) "MEM %percentage_used%%";
             warn-percentage = 90;
             format-warn-foreground = ''''${colors.alert}'';
           };
 
           "module/cpu" = {
             type = "internal/cpu";
-            interval = 1;
-            format = "<ramp-coreload>";
-            ramp-coreload = [
-              "%{F${colors.base0B}}▁%{F-}"
-              "%{F${colors.base0B}}▂%{F-}"
-              "%{F${colors.base0A}}▃%{F-}"
-              "%{F${colors.base0A}}▄%{F-}"
-              "%{F${colors.base09}}▅%{F-}"
-              "%{F${colors.base09}}▆%{F-}"
-              "%{F${colors.base08}}▇%{F-}"
-              "%{F${colors.base08}}█%{F-}"
-            ];
+            label = runTermAppOnClick (lib.getExe pkgs.btop) "CPU %percentage%%";
+            format = "<label>";
+            # ramp-coreload = [
+            #   "%{F${colors.base0B}}▁%{F-}"
+            #   "%{F${colors.base0B}}▂%{F-}"
+            #   "%{F${colors.base0A}}▃%{F-}"
+            #   "%{F${colors.base0A}}▄%{F-}"
+            #   "%{F${colors.base09}}▅%{F-}"
+            #   "%{F${colors.base09}}▆%{F-}"
+            #   "%{F${colors.base08}}▇%{F-}"
+            #   "%{F${colors.base08}}█%{F-}"
+            # ];
           };
 
           "module/wired-network" = {
@@ -202,10 +201,7 @@
             interface-type = "wired";
             interval = 1;
 
-            format-connected-prefix = "󰛳  ";
             label-connected = "%ifname% %netspeed%";
-
-            format-disconnected-prefix = "󰲛  ";
             label-disconnected = "%ifname% disconnected";
             label-disconnected-foreground = ''''${colors.disabled}'';
           };
