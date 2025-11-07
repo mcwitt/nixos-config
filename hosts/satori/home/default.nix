@@ -16,11 +16,6 @@ in
     programs.rofi.extraConfig.dpi = dpi;
 
     services.polybar = {
-      script = ''
-        MONITOR=DP-4 TRAY_POS="right" polybar &
-        MONITOR=DP-2 TRAY_POS="" polybar &
-      '';
-
       settings = {
         "bar/main".modules-right = "wired-network filesystem memory cpu temperature pipewire tray";
 

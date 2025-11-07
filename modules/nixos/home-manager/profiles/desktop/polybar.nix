@@ -11,7 +11,7 @@
       enable = true;
 
       script = ''
-        TRAY_POS="right" polybar &
+        polybar main &
       '';
 
       settings =
