@@ -29,7 +29,6 @@ in
         pythonEnv = pkgs.python3.withPackages cfg.globalPackages;
       in
       [
-        pkgs.ruff
         pkgs.basedpyright
         pythonEnv
       ];
@@ -78,6 +77,27 @@ in
     programs.git.ignores = pkgs.gitignores "Python";
 
     programs.neovim.plugins = [ pkgs.vimPlugins.coc-pyright ];
+
+    programs.ruff = {
+      enable = true;
+
+      settings = {
+        lint.select = [
+          "E"
+          "F"
+          "I"
+          "NPY"
+          "UP"
+          "RUF"
+          "W"
+        ];
+
+        ignore = [
+          "E402" # Module level import not at top of file
+          "E741" # Do not use variables named 'I', 'O', or 'l'
+        ];
+      };
+    };
 
     programs.vscode.profiles.default = mkIf (!pkgs.stdenv.isDarwin) {
       extensions = with pkgs.vscode-extensions; [
