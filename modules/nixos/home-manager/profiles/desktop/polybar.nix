@@ -182,7 +182,7 @@
 
           "module/cpu" = {
             type = "internal/cpu";
-            label = runTermAppOnClick (lib.getExe pkgs.btop) "CPU %percentage%%";
+            label = runTermAppOnClick (lib.getExe pkgs.btop) "CPU %percentage-sum%%";
             format = "<label>";
             # ramp-coreload = [
             #   "%{F${colors.base0B}}▁%{F-}"
