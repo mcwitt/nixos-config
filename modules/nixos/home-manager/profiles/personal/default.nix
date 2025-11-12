@@ -10,7 +10,6 @@ with lib;
     home.packages = with pkgs; [
       anki
       discord
-      element-desktop
       gimp
       inkscape
       signal-desktop
