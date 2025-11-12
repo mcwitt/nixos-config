@@ -87,8 +87,12 @@ in
         });
 
     programs.git = {
-      userName = "Matt Wittmann";
-      userEmail = "mcwitt@gmail.com";
+      settings = {
+        user.name = "Matt Wittmann";
+        user.email = "mcwitt@gmail.com";
+        gitHub.user = "mcwitt";
+      };
+
       signing = {
         key = "B19E6AC805563E38";
         signByDefault = true;

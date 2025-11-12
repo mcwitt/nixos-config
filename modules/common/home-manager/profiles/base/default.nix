@@ -19,7 +19,6 @@
 
     home.packages = with pkgs; [
       delta
-      difftastic
       ffmpeg
       imagemagick
       nix-du
@@ -61,6 +60,11 @@
       settings = {
         vim_keys = true;
       };
+    };
+
+    programs.difftastic = {
+      enable = true;
+      git.enable = true;
     };
 
     programs.direnv = {
@@ -106,23 +110,35 @@
     programs.git = {
       enable = true;
 
-      aliases = {
-        b = "branch --color -v";
-        ca = "commit --amend";
-        co = "checkout";
-        d = "diff HEAD";
-        ds = "diff --staged";
-        exec = "!exec ";
-        ri = "rebase --interactive";
-        su = "submodule update --init --recursive";
-        w = "status -sb";
-        l = "log --graph";
-        wip = lib.concatStringsSep " " [
-          "for-each-ref"
-          "--sort='authordate:iso8601'"
-          "--format=' %(color:green)%(authordate:relative)%09%(color:white)%(refname:short)'"
-          "refs/heads"
-        ];
+      settings = {
+        alias = {
+          b = "branch --color -v";
+          ca = "commit --amend";
+          co = "checkout";
+          d = "diff HEAD";
+          ds = "diff --staged";
+          exec = "!exec ";
+          ri = "rebase --interactive";
+          su = "submodule update --init --recursive";
+          w = "status -sb";
+          l = "log --graph";
+          wip = lib.concatStringsSep " " [
+            "for-each-ref"
+            "--sort='authordate:iso8601'"
+            "--format=' %(color:green)%(authordate:relative)%09%(color:white)%(refname:short)'"
+            "refs/heads"
+          ];
+        };
+
+        # https://github.com/davidshepherd7/frames-only-mode#integrating-with-command-line-git
+        core.editor = "emacsclient -c";
+
+        # https://stackoverflow.com/a/9463536
+        format.pretty = "format:%C(auto,yellow)%h%C(auto,magenta)% G? %C(auto,blue)%>(12,trunc)%ad %C(auto,green)%<(7,trunc)%aN%C(auto,reset)%s%C(auto,red)% gD% D";
+
+        log.date = "relative";
+        merge.conflictStyle = "diff3";
+        pull.rebase = true;
       };
 
       ignores =
@@ -131,21 +147,6 @@
           "Global/Emacs"
         ])
         ++ [ ".direnv/" ];
-
-      difftastic.enable = true;
-
-      extraConfig = {
-        # https://github.com/davidshepherd7/frames-only-mode#integrating-with-command-line-git
-        core.editor = "emacsclient -c";
-
-        # https://stackoverflow.com/a/9463536
-        format.pretty = "format:%C(auto,yellow)%h%C(auto,magenta)% G? %C(auto,blue)%>(12,trunc)%ad %C(auto,green)%<(7,trunc)%aN%C(auto,reset)%s%C(auto,red)% gD% D";
-
-        gitHub.user = "mcwitt";
-        log.date = "relative";
-        merge.conflictStyle = "diff3";
-        pull.rebase = true;
-      };
     };
 
     programs.gpg.enable = true;
