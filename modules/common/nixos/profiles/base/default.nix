@@ -33,6 +33,7 @@
       killall
       less
       lsof
+      pstree
       rsync
       time
       tree
