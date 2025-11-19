@@ -5,6 +5,7 @@
     ./cpp
     ./cuda
     ./go
+    ./graphviz-dot
     ./haskell
     ./html
     ./markdown

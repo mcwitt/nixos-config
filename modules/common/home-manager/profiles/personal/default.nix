@@ -75,6 +75,7 @@ in
           "cpp"
           "cuda"
           "go"
+          "graphviz-dot"
           "html"
           "markdown"
           "rust"
