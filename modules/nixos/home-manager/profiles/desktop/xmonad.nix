@@ -94,8 +94,7 @@
                                     ("M-S-h", namedScratchpadAction scratchpads "wezterm"),
                                     ("M-b", namedScratchpadAction scratchpads "btop"),
                                     ("M-v", namedScratchpadAction scratchpads "pavucontrol"),
-                                    -- ("M-n", namedScratchpadAction scratchpads "ncspot"), -- TODO: librespot broken
-                                    ("M-n", namedScratchpadAction scratchpads "spotify"),
+                                    ("M-S-m", namedScratchpadAction scratchpads "ncspot"),
                                     ("M-S-'", namedScratchpadAction scratchpads "emacs-calc"),
                                     ("M-[", namedScratchpadAction scratchpads "emacs-org-capture"),
                                     ("M-]", namedScratchpadAction scratchpads "emacs-org-agenda")
