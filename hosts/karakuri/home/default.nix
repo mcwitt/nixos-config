@@ -19,7 +19,7 @@ in
   services.polybar.settings = {
     "bar/main" = {
       dpi = lib.mkForce dpi; # workaround; auto-detection fails
-      modules-right = "wireless-network filesystem memory battery cpu pipewire";
+      modules-right = "wireless-network filesystem memory cpu battery pipewire tray";
     };
   };
 
