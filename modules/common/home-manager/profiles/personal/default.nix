@@ -118,7 +118,7 @@ in
     };
 
     tools = {
-      aws.enable = true;
+      # aws.enable = true;
       kubernetes.enable = true;
     };
   };
