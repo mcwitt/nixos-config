@@ -23,6 +23,7 @@ in
         "module/temperature" = {
           type = "internal/temperature";
           hwmon-path = "/sys/devices/platform/coretemp.0/hwmon/hwmon2/temp1_input";
+          format-prefix = " ";
         };
       };
     };

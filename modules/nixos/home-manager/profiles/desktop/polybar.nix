@@ -124,6 +124,7 @@
             label-unmounted-foreground = ''''${colors.disabled}'';
 
             warn-percentage = 75;
+
             format-warn-foreground = ''''${colors.alert}'';
           };
 
@@ -168,22 +169,23 @@
               scroll-up = "${script} --up &";
               scroll-down = "${script} --down &";
 
-              label = "%output%";
-              format-prefix = "󰕾  ";
+              label = "%output:4%";
+              format-prefix = "󰕾 ";
             };
 
           "module/memory" = {
             type = "internal/memory";
             interval = 1;
-            label = runTermAppOnClick (lib.getExe pkgs.btop) "MEM %percentage_used%%";
+            label = runTermAppOnClick (lib.getExe pkgs.btop) "%percentage_used:2%%";
+            format-prefix = "  ";
             warn-percentage = 90;
             format-warn-foreground = ''''${colors.alert}'';
           };
 
           "module/cpu" = {
             type = "internal/cpu";
-            label = runTermAppOnClick (lib.getExe pkgs.btop) "CPU %percentage-sum%%";
-            format = "<label>";
+            label = runTermAppOnClick (lib.getExe pkgs.btop) "%percentage-sum:3%%";
+            format-prefix = "  ";
             # ramp-coreload = [
             #   "%{F${colors.base0B}}▁%{F-}"
             #   "%{F${colors.base0B}}▂%{F-}"
@@ -201,8 +203,8 @@
             interface-type = "wired";
             interval = 1;
 
-            label-connected = "%ifname% %netspeed%";
-            label-disconnected = "%ifname% disconnected";
+            label-connected = "󰛳  %ifname% %netspeed:9%";
+            label-disconnected = "󰲛  %ifname% disconnected";
             label-disconnected-foreground = ''''${colors.disabled}'';
           };
 

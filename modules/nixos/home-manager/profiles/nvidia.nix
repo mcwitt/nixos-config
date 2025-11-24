@@ -24,7 +24,9 @@ in
           let
             runTermAppOnClick = bin: label: "%{A1:${lib.getExe pkgs.wezterm} start ${bin}:}${label}%{A}";
           in
-          runTermAppOnClick (lib.getExe pkgs.nvtopPackages.nvidia) "GPU %output%%";
+          runTermAppOnClick (lib.getExe pkgs.nvtopPackages.nvidia) "%output%%";
+
+        format-prefix = "GPU ";
       };
     };
   };
