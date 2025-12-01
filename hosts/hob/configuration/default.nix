@@ -50,6 +50,8 @@
     };
   };
 
+  boot.loader.raspberryPi.bootloader = "kernel";
+
   networking.hostName = "hob";
 
   nix.gc.automatic = true;
