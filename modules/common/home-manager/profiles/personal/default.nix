@@ -18,7 +18,7 @@ in
 
   config = mkIf cfg.enable {
 
-    home.packages = [ pkgs.claude-code ];
+    home.packages = with pkgs; [ claude-code ];
 
     languages = {
       haskell = {
@@ -80,6 +80,7 @@ in
           "markdown"
           "rust"
           "shell"
+          "sql"
           "typst"
         ]
         (_: {

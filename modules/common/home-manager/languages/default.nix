@@ -13,6 +13,7 @@
     ./python
     ./rust
     ./shell
+    ./sql
     ./typst
   ];
 }
