@@ -71,7 +71,7 @@
                   org-highlight-latex-and-related '(native)
                   org-preview-latex-default-process 'dvisvgm
 
-                  org-agenda-files '("gtd.org" "inbox.org" "tickler.org")
+                  org-agenda-files '("gtd.org" "inbox.org" "routines.org" "tickler.org")
                   org-agenda-block-separator nil
                   org-agenda-custom-commands '(("n" "Agenda and NEXT TODOs"
                                                 ((agenda "")
