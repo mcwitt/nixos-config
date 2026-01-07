@@ -4,6 +4,7 @@
   imports = with inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5; [
     base
     display-vc4
+    page-size-16k
   ];
 
   # https://github.com/nix-community/disko?tab=readme-ov-file#sample-configuration-and-cli-command
