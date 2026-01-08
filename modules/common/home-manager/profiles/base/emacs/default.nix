@@ -586,11 +586,19 @@
 
       pdf-tools = {
         enable = true;
-        hook = [ "(pdf-view-mode . (lambda () (linum-mode -1)))" ];
+        hook = [
+          ''
+            (pdf-view-mode . (lambda ()
+                               (setq-local auto-revert-interval 1)
+                               (auto-revert-mode 1)
+                               (linum-mode -1)))
+          ''
+        ];
         config = ''
           (pdf-tools-install t t)
           (setopt pdf-view-use-scaling t)
           (setq-default pdf-view-display-size 'fit-page)
+          (add-to-list 'revert-without-query "\\.pdf\\'")
         '';
       };
 
