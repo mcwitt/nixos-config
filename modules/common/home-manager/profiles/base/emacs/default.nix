@@ -591,7 +591,9 @@
             (pdf-view-mode . (lambda ()
                                (setq-local auto-revert-interval 1)
                                (auto-revert-mode 1)
-                               (linum-mode -1)))
+
+                               ;; https://github.com/vedang/pdf-tools?tab=readme-ov-file#display-line-numbers-mode
+                               (display-line-numbers-mode -1)))
           ''
         ];
         config = ''
