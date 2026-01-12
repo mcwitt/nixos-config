@@ -161,6 +161,8 @@
 
     programs.nix-index.enable = true;
 
+    programs.opencode.enable = true;
+
     programs.pandoc.enable = true;
 
     programs.ripgrep.enable = true;
