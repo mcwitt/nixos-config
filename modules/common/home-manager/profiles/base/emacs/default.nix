@@ -31,8 +31,6 @@
       enable = true;
       package = pkgs.emacs-unstable;
       overrides = _: super: {
-        eglot = null; # use built-in package
-
         elfeed = super.elfeed.overrideAttrs (_: {
           # Include elfeed-web in the package
           postInstall = ''
@@ -264,15 +262,18 @@
         };
 
         config = ''
-          ;; https://github.com/joaotavora/eglot/discussions/898
           (add-hook 'eglot-managed-mode-hook
                     (lambda ()
+                      ;; https://github.com/joaotavora/eglot/discussions/898
                       ;; Show flymake diagnostics first.
                       (setq eldoc-documentation-functions
                             (cons #'flymake-eldoc-function
                                   (remove #'flymake-eldoc-function eldoc-documentation-functions)))
                       ;; Show all eldoc feedback.
-                      (setq eldoc-documentation-strategy #'eldoc-documentation-compose)))
+                      (setq eldoc-documentation-strategy #'eldoc-documentation-compose)
+
+                      ;; Enable semantic highlighting if supported
+                      (eglot-semantic-tokens-mode 1)))
         '';
       };
 

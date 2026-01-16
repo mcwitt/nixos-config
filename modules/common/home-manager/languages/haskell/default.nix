@@ -44,7 +44,15 @@ in
 
     programs.emacs.init.usePackage = {
 
-      eglot.hook = [ "(haskell-mode . eglot-ensure)" ];
+      eglot = {
+        hook = [ "(haskell-mode . eglot-ensure)" ];
+
+        config = ''
+          (setopt eglot-workspace-configuration
+                  (plist-put eglot-workspace-configuration
+                             :haskell '(:plugin (:semanticTokens (:globalOn t)))))
+        '';
+      };
 
       haskell-mode = {
         enable = true;
