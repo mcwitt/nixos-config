@@ -83,6 +83,7 @@ in
             hide_tab_bar_if_only_one_tab = true,
             check_for_updates = false,
             audible_bell = "Disabled",
+            keys = {{key="Enter", mods="SHIFT", action=wezterm.action{SendString="\x1b\r"}}},
           };
         '';
     };
