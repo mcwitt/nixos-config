@@ -84,19 +84,19 @@
         "type": "github"
       }
     },
-    "claude-code.el": {
+    "claude-code-ide.el": {
       "flake": false,
       "locked": {
-        "lastModified": 1766098566,
-        "narHash": "sha256-ISlD6q1hceckry1Jd19BX1MfobHJxng5ulX2gq9f644=",
-        "owner": "stevemolitor",
-        "repo": "claude-code.el",
-        "rev": "4a9914bd4161eb43f489820f9174c62390e5adc8",
+        "lastModified": 1767376959,
+        "narHash": "sha256-Abs8+r5bQSkRJC74TEq1RRZtvj4TYmL1Vijq6KO9GG4=",
+        "owner": "manzaltu",
+        "repo": "claude-code-ide.el",
+        "rev": "760240d7f03ff16f90ede9d4f4243cd94f3fed73",
         "type": "github"
       },
       "original": {
-        "owner": "stevemolitor",
-        "repo": "claude-code.el",
+        "owner": "manzaltu",
+        "repo": "claude-code-ide.el",
         "type": "github"
       }
     },
@@ -594,7 +594,7 @@
     },
     "root": {
       "inputs": {
-        "claude-code.el": "claude-code.el",
+        "claude-code-ide.el": "claude-code-ide.el",
         "disko": "disko",
         "emacs-overlay": "emacs-overlay",
         "flake-utils": "flake-utils",

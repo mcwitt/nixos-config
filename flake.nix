@@ -3,8 +3,8 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
-    "claude-code.el" = {
-      url = "github:stevemolitor/claude-code.el";
+    "claude-code-ide.el" = {
+      url = "github:manzaltu/claude-code-ide.el";
       flake = false;
     };
     disko.url = "github:nix-community/disko";

@@ -9,36 +9,28 @@
     programs.emacs = {
       extraPackages = epkgs: [
         (epkgs.melpaBuild {
-          pname = "claude-code";
-          version = "0.4.5";
-          src = inputs."claude-code.el";
-          propagatedBuildInputs = [ epkgs.inheritenv ];
-        })
-        (epkgs.melpaBuild {
-          pname = "monet";
-          version = "0.0.3";
-          src = inputs.monet;
-          propagatedBuildInputs = [ epkgs.websocket ];
+          pname = "claude-code-ide";
+          version = "20260102.1802";
+          src = inputs."claude-code-ide.el";
+          propagatedBuildInputs = with epkgs; [
+            transient
+            websocket
+            web-server
+          ];
         })
       ];
 
       init.usePackage = {
-        claude-code = {
+        claude-code-ide = {
           enable = true;
+          bind = {
+            "C-c C-'" = "claude-code-ide-menu";
+          };
           config = ''
-            (setopt claude-code-terminal-backend 'vterm)
-            (add-hook 'claude-code-process-environment-functions #'monet-start-server-function)
-            (monet-mode 1)
-
-            (claude-code-mode)
-          '';
-          extraConfig = ''
-            :bind-keymap
-            ("C-c d" . claude-code-command-map)
+            (claude-code-ide-emacs-tools-setup)
           '';
         };
 
-        monet.enable = true;
         vterm.enable = true;
       };
     };
