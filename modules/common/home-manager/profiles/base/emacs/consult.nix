@@ -91,20 +91,20 @@
           ;; :preview-key on a per-command basis using the `consult-customize' macro.
           (consult-customize
            consult-theme :preview-key '(:debounce 0.2 any)
-           consult-ripgrep consult-git-grep consult-grep
+           consult-ripgrep consult-git-grep consult-grep consult-man
            consult-bookmark consult-recent-file consult-xref
-           consult--source-bookmark consult--source-file-register
-           consult--source-recent-file consult--source-project-recent-file
+           consult-source-bookmark consult-source-file-register
+           consult-source-recent-file consult-source-project-recent-file
            ;; :preview-key "M-."
            :preview-key '(:debounce 0.4 any))
 
           ;; Optionally configure the narrowing key.
           ;; Both < and C-+ work reasonably well.
-          (setopt consult-narrow-key "<") ;; "C-+"
+          (setq consult-narrow-key "<") ;; "C-+"
 
           ;; Optionally make narrowing help available in the minibuffer.
           ;; You may want to use `embark-prefix-help-command' or which-key instead.
-          (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
+          (keymap-set consult-narrow-map (concat consult-narrow-key " ?") #'consult-narrow-help)
         '';
       };
 
