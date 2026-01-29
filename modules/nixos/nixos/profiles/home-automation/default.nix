@@ -23,6 +23,18 @@ in
 
   config = mkIf cfg.enable {
 
+    # Allow Home Assistant service user to shutdown/reboot without sudo
+    security.polkit.extraConfig = ''
+      polkit.addRule(function(action, subject) {
+        if (action.id == "org.freedesktop.login1.power-off" ||
+            action.id == "org.freedesktop.login1.reboot") {
+          if (subject.user == "hass") {
+            return polkit.Result.YES;
+          }
+        }
+      });
+    '';
+
     services.home-assistant = {
       enable = true;
 

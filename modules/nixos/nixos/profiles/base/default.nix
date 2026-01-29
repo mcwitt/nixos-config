@@ -18,15 +18,6 @@
       '';
 
       registry.nixpkgs.flake = inputs.nixpkgs;
-
-      settings = {
-        substituters = [
-          "https://nix-community.cachix.org"
-        ];
-        trusted-public-keys = [
-          "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-        ];
-      };
     };
 
     programs.fish.enable = true;
@@ -82,16 +73,6 @@
     services.tumbler.enable = true;
 
     services.udisks2.enable = true;
-
-    # user for home-assistant to log in as
-    users = {
-      users.hass = {
-        isSystemUser = true;
-        group = "hass";
-        extraGroups = [ "wheel" ];
-      };
-      groups.hass = { };
-    };
 
     virtualisation.podman = {
       enable = true;

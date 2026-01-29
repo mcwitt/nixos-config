@@ -155,6 +155,7 @@
             ./hosts/golem/configuration
             {
               profiles = {
+                cuda.enable = true;
                 desktop.enable = true;
                 personal.enable = true;
                 nvidia.enable = true;
@@ -259,6 +260,7 @@
             ./hosts/satori/configuration
             {
               profiles = {
+                cuda.enable = true;
                 desktop.enable = true;
                 personal.enable = true;
                 nvidia.enable = true;

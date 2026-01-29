@@ -4,7 +4,6 @@
     inputs.disko.nixosModules.disko
     ./android.nix
     ./arduino.nix
-    ./cuda.nix
     ./synergy-server.nix
   ];
 

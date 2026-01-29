@@ -8,7 +8,8 @@
       enable = true;
 
       settings = {
-        permit_join = true;
+        # Can be temporarily enabled via the frontend when adding devices
+        permit_join = false;
         frontend.port = lib.mkDefault 8080;
 
         serial = {
