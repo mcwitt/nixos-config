@@ -494,6 +494,9 @@
         # configuration of e.g. frames-only-mode-use-window-functions
         # is done
         config = lib.mkAfter ''
+          (add-to-list 'frames-only-mode-kill-frame-when-buffer-killed-buffer-list
+                       "*Ediff Control Panel*")
+
           (frames-only-mode 1)
         '';
       };
