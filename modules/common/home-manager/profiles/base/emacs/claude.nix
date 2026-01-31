@@ -12,7 +12,7 @@
           pname = "claude-code-ide";
           version = "20260102.1802";
           src = inputs."claude-code-ide.el";
-          propagatedBuildInputs = with epkgs; [
+          packageRequires = with epkgs; [
             transient
             websocket
             web-server
