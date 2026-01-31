@@ -78,7 +78,7 @@ in
     (pyFinal: pyPrev: {
       gehomesdk =
         let
-          version = "2025.5.0";
+          version = "2025.11.5";
         in
         assert assertNotStale version pyPrev.gehomesdk.version;
         pyPrev.gehomesdk.overridePythonAttrs (old: rec {
@@ -86,8 +86,18 @@ in
           src = pyFinal.fetchPypi {
             inherit (old) pname;
             inherit version;
-            hash = "sha256-YMw0W9EWz3KY1+aZMdtE4TRvFd9yqTHkfw0X3+ZDCfQ=";
+            hash = "sha256-HS33yTE+3n0DKRD4+cr8zAE+xcW1ca7q8inQ7qwKJMA=";
           };
+          # Update dependencies based on setup.py from v2025.11.5
+          # https://github.com/simbaja/gehome/blob/v2025.11.5/setup.py
+          propagatedBuildInputs = with pyFinal; [
+            aiohttp
+            beautifulsoup4
+            bidict
+            humanize
+            requests
+            websockets
+          ];
         });
     })
   ];
