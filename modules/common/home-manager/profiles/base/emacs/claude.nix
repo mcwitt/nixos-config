@@ -28,6 +28,9 @@
           };
           config = ''
             (claude-code-ide-emacs-tools-setup)
+
+            ;; Disable side window to work with frames-only-mode
+            (setopt claude-code-ide-use-side-window nil)
           '';
         };
 
