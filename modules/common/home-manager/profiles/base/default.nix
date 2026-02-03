@@ -100,10 +100,7 @@
       shellAliases.cdr = lib.mkForce "cd (${pkgs.git}/bin/git rev-parse --show-toplevel)";
     };
 
-    programs.fzf = {
-      enable = true;
-      enableFishIntegration = false; # prefer PatrickF1/fzf.fish
-    };
+    programs.fzf.enable = true;
 
     programs.gh.enable = true;
 
