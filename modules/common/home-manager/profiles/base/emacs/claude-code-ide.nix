@@ -31,6 +31,10 @@
 
             ;; Disable side window to work with frames-only-mode
             (setopt claude-code-ide-use-side-window nil)
+
+            ;; Auto-close ediff popup frame
+            (add-to-list 'frames-only-mode-kill-frame-when-buffer-killed-buffer-list
+                         "*Ediff Control Panel*")
           '';
         };
 
