@@ -27,13 +27,8 @@
             "C-c C-'" = "claude-code-ide-menu";
           };
           config = ''
+            (setopt claude-code-ide-window-side 'bottom)
             (claude-code-ide-emacs-tools-setup)
-
-            ;; Disable side window to work with frames-only-mode
-            (setopt claude-code-ide-use-side-window nil)
-
-            ;; Keep ediff layout in-frame
-            (add-to-list 'frames-only-mode-use-window-functions #'ediff-buffers)
           '';
         };
 
