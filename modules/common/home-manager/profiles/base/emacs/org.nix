@@ -85,7 +85,9 @@
                   org-agenda-breadcrumbs-separator "/"
 
                   org-capture-templates '(("t" "todo" entry (file "inbox.org") "* TODO %a%?\n%i")
-                                          ("k" "tickler" entry (file "tickler.org") "* %i%?"))
+                                          ("k" "tickler" entry (file "tickler.org") "* %i%?")
+                                          ("m" "meeting" entry (file "inbox.org")
+                                           "* Meeting with %^{Person}\n%<%Y-%m-%d %H:%M>\n** Notes\n%?\n** Actions\n"))
                   org-refile-targets '(("gtd.org" :maxlevel . 3));
                   org-stuck-projects '("+LEVEL=2+PROJECT/-DONE" ("NEXT") nil ""))
 
