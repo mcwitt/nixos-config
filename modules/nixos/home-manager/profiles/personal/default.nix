@@ -8,7 +8,7 @@ with lib;
 {
   config = mkIf config.profiles.personal.enable {
     home.packages = with pkgs; [
-      anki
+      (anki.withAddons [ ankiAddons.anki-connect ])
       discord
       gimp
       inkscape
