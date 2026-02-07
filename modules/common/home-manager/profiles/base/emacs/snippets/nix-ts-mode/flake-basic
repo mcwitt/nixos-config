@@ -1,0 +1,67 @@
+# -*- mode: snippet -*-
+# name: flakeBasic
+# key: fb
+# --
+{
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    git-hooks.url = "github:cachix/git-hooks.nix";
+  };
+
+  outputs =
+    inputs@{ self, nixpkgs, ... }:
+    let
+      systems = [
+        "x86_64-linux"
+        "aarch64-darwin"
+      ];
+      forAllSystems' = nixpkgs.lib.genAttrs systems;
+      mkPkgs = system: nixpkgs.legacyPackages.\${system};
+      forAllSystems = f: forAllSystems' (system: f (mkPkgs system) system);
+    in
+    {
+      packages = forAllSystems (
+        pkgs: system: {
+          default = _$1;
+        }
+      );
+
+      devShells = forAllSystems (
+        pkgs: system: {
+          default =
+            let
+              inherit (self.checks.\${system}.pre-commit-check) shellHook enabledPackages;
+            in
+            pkgs.mkShell {
+              inherit shellHook;
+              packages = [ _$2 ];
+              buildInputs = enabledPackages;
+            };
+        }
+      );
+
+      # Run the hooks with \`nix fmt\`.
+      formatter = forAllSystems (
+        pkgs: system:
+        let
+          config = self.checks.\${system}.pre-commit-check.config;
+          inherit (config) package configFile;
+          script = ''
+            \${pkgs.lib.getExe package} run --all-files --config \${configFile}
+          '';
+        in
+        pkgs.writeShellScriptBin "pre-commit-run" script
+      );
+
+      # Run the hooks in a sandbox with \`nix flake check\`.
+      # Read-only filesystem and no internet access.
+      checks = forAllSystems (_: system: {
+        pre-commit-check = inputs.git-hooks.lib.\${system}.run {
+          src = ./.;
+          hooks = {
+            nixfmt.enable = true;
+          };
+        };
+      });
+    };
+}

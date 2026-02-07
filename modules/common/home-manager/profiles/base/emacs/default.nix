@@ -20,6 +20,7 @@
     ./jupyter.nix
     ./org.nix
     # ./org-latex-preview.nix
+    ./snippets.nix
     ./theme.nix
     ./treesit.nix
     ./vertico.nix
