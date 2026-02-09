@@ -18,6 +18,8 @@ in
 
   config = mkIf cfg.enable {
 
+    home.packages = [ pkgs.nodejs ];
+
     languages = {
       haskell = {
         enable = true;
