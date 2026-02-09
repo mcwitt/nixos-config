@@ -18,8 +18,6 @@ in
 
   config = mkIf cfg.enable {
 
-    home.packages = with pkgs; [ claude-code ];
-
     languages = {
       haskell = {
         enable = true;
@@ -86,6 +84,8 @@ in
         (_: {
           enable = true;
         });
+
+    programs.claude-code.enable = true;
 
     programs.git = {
       settings = {
