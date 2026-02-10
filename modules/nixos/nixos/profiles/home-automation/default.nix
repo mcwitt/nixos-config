@@ -81,18 +81,27 @@ in
 
       extraComponents = [
         # Components required to complete the onboarding
-        "esphome"
+        "analytics"
+        "google_translate"
         "met"
         "radio_browser"
+        "shopping_list"
+
+        # Recommended for fast zlib compression
+        # https://www.home-assistant.io/integrations/isal
+        "isal"
 
         # Integrations that do not support yaml configuration
         "androidtv_remote"
         "brother"
         "cast"
+        "esphome"
         "flume"
-        "google_translate" # text-to-speech provider
         "ipp"
+        "isal"
         "local_todo"
+        "mcp"
+        "mcp_server"
         "opower"
         "otp"
         "purpleair"
