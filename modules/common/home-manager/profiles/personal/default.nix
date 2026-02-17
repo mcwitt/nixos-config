@@ -87,7 +87,13 @@ in
           enable = true;
         });
 
-    programs.claude-code.enable = true;
+    programs.claude-code = {
+      enable = true;
+      settings = {
+        includeCoAuthoredBy = false;
+        model = "claude-opus-4-6";
+      };
+    };
 
     programs.git = {
       settings = {
