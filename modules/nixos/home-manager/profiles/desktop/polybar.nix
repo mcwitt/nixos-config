@@ -33,14 +33,14 @@
           };
 
           "bar/main" = {
-            monitor = ''''${env:MONITOR:}'';
+            monitor = "\${env:MONITOR:}";
             width = "100%";
             height = "20pt";
 
             dpi = 0; # automatically choose dpi
 
             background = "#E6${config.lib.stylix.colors.base00}"; # 90% opacity
-            foreground = ''''${colors.foreground}'';
+            foreground = "\${colors.foreground}";
 
             line-size = 4;
 
@@ -52,7 +52,7 @@
             module-margin = 1;
 
             separator = "|";
-            separator-foreground = ''''${colors.disabled}'';
+            separator-foreground = "\${colors.disabled}";
 
             font =
               let
@@ -85,15 +85,15 @@
             type = "internal/xworkspaces";
 
             label-active = "%name%";
-            label-active-background = ''''${colors.background-alt}'';
-            label-active-underline = ''''${colors.primary}'';
+            label-active-background = "\${colors.background-alt}";
+            label-active-underline = "\${colors.primary}";
             label-active-padding = 1;
 
             label-occupied = "%name%";
             label-occupied-padding = 1;
 
             label-urgent = "%name%";
-            label-urgent-background = ''''${colors.alert}'';
+            label-urgent-background = "\${colors.alert}";
             label-urgent-padding = 1;
 
             label-empty = ""; # hide empty workspaces
@@ -121,11 +121,11 @@
             label-mounted = "%mountpoint% %percentage_used%%";
 
             label-unmounted = "%mountpoint% not mounted";
-            label-unmounted-foreground = ''''${colors.disabled}'';
+            label-unmounted-foreground = "\${colors.disabled}";
 
             warn-percentage = 75;
 
-            format-warn-foreground = ''''${colors.alert}'';
+            format-warn-foreground = "\${colors.alert}";
           };
 
           "module/pipewire" =
@@ -179,7 +179,7 @@
             label = runTermAppOnClick (lib.getExe pkgs.btop) "%percentage_used:2%%";
             format-prefix = "  ";
             warn-percentage = 90;
-            format-warn-foreground = ''''${colors.alert}'';
+            format-warn-foreground = "\${colors.alert}";
           };
 
           "module/cpu" = {
@@ -205,7 +205,7 @@
 
             label-connected = "󰛳  %ifname% %netspeed:9%";
             label-disconnected = "󰲛  %ifname% disconnected";
-            label-disconnected-foreground = ''''${colors.disabled}'';
+            label-disconnected-foreground = "\${colors.disabled}";
           };
 
           "module/wireless-network" = {
@@ -219,7 +219,7 @@
 
             format-disconnected-prefix = "  ";
             label-disconnected = "disconnected";
-            label-disconnected-foreground = ''''${colors.disabled}'';
+            label-disconnected-foreground = "\${colors.disabled}";
           };
 
           "module/date" = {
@@ -265,7 +265,7 @@
             low-at = 10;
             format-low = "<animation-low> <label-low>";
             label-low = "%percentage%% T−%time%";
-            label-low-foreground = ''''${colors.alert}'';
+            label-low-foreground = "\${colors.alert}";
             animation-low = [
               "%{F${colors.base08}}  %{F-}"
               "%{F${colors.base08}}  %{F-}"

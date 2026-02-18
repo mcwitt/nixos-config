@@ -292,21 +292,36 @@
       };
 
     }
-    // flake-utils.lib.eachDefaultSystem (system: {
+    // flake-utils.lib.eachDefaultSystem (
+      system:
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+      in
+      {
 
-      checks = {
-        pre-commit-check = pre-commit-hooks.lib.${system}.run {
-          src = ./.;
-          excludes = [ "hardware-configuration\\.nix" ];
-          hooks = {
-            nixfmt.enable = true;
+        checks = {
+          pre-commit-check = pre-commit-hooks.lib.${system}.run {
+            src = ./.;
+            excludes = [ "hardware-configuration\\.nix" ];
+            hooks = {
+              nixfmt.enable = true;
+            };
           };
         };
-      };
 
-      devShells.default = nixpkgs.legacyPackages.${system}.mkShell {
-        inherit (self.checks.${system}.pre-commit-check) shellHook;
-        buildInputs = self.checks.${system}.pre-commit-check.enabledPackages;
-      };
-    });
+        formatter =
+          let
+            inherit (self.checks.${system}.pre-commit-check.config) package configFile;
+            script = ''
+              ${pkgs.lib.getExe package} run --all-files --config ${configFile}
+            '';
+          in
+          pkgs.writeShellScriptBin "pre-commit-run" script;
+
+        devShells.default = pkgs.mkShell {
+          inherit (self.checks.${system}.pre-commit-check) shellHook;
+          buildInputs = self.checks.${system}.pre-commit-check.enabledPackages;
+        };
+      }
+    );
 }

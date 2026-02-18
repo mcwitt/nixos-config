@@ -21,8 +21,8 @@
         citar = {
           enable = true;
           hook = [
-            ''(LaTeX-mode . citar-capf-setup)''
-            ''(org-mode . citar-capf-setup)''
+            "(LaTeX-mode . citar-capf-setup)"
+            "(org-mode . citar-capf-setup)"
           ];
           bindLocal.org-mode-map."C-c b" = "#'org-cite-insert";
           config = ''
