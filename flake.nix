@@ -299,7 +299,7 @@
           src = ./.;
           excludes = [ "hardware-configuration\\.nix" ];
           hooks = {
-            nixfmt-rfc-style.enable = true;
+            nixfmt.enable = true;
           };
         };
       };
