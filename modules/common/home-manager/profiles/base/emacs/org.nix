@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }:
 {
@@ -85,9 +84,13 @@
                   org-agenda-breadcrumbs-separator "/"
 
                   org-capture-templates '(("t" "todo" entry (file "inbox.org") "* TODO %a%?\n%i")
-                                          ("k" "tickler" entry (file "tickler.org") "* %i%?")
-                                          ("m" "meeting" entry (file "inbox.org")
-                                           "* Meeting with %^{Person}\n<%<%Y-%m-%d %a %H:%M>>\n** Notes\n%?\n** Actions\n"))
+                                          ("a" "appointment" entry (file+headline "tickler.org" "Appointments")
+                                           "* %^{Description}\n%^{When}T\n%?")
+                                          ("m" "meeting" entry (file+headline "tickler.org" "Meetings")
+                                           "* Meeting with %^{Person}\n%^{When}T\n** Notes\n%?\n** Actions\n")
+                                          ("r" "reminder" entry (file+headline "tickler.org" "Reminders")
+                                           "* %^{What}\n%^{When}T"))
+
                   org-refile-targets '(("gtd.org" :maxlevel . 3));
                   org-stuck-projects '("+LEVEL=2+PROJECT/-DONE" ("NEXT") nil ""))
 

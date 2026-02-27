@@ -59,6 +59,7 @@
       prelude = ''
         (setopt package-archives nil) ; make package archives unavailable (use Nix)
         (setopt custom-file "~/.emacs.d/custom.el")
+        (load custom-file 'noerror)
       '';
     };
 
