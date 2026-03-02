@@ -15,7 +15,8 @@ in
     home.packages = [ pkgs.kubectl ];
     home.shellAliases.k = "${pkgs.kubectl}/bin/kubectl";
 
-    xdg.configFile."fish/completions/kubectl.fish".source =
-      mkIf config.programs.fish.enable "${pkgs.fish-kubectl-completions}/completions/kubectl.fish";
+    programs.fish.interactiveShellInit = mkIf config.programs.fish.enable ''
+      ${pkgs.kubectl}/bin/kubectl completion fish | source
+    '';
   };
 }
