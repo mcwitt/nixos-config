@@ -70,7 +70,7 @@
                   org-highlight-latex-and-related '(native)
                   org-preview-latex-default-process 'dvisvgm
 
-                  org-agenda-files '("gtd.org" "inbox.org" "routines.org" "tickler.org")
+                  org-agenda-files '("gtd.org" "inbox.org" "routines.org" "tickler.org" "anniversaries.org")
                   org-agenda-block-separator nil
                   org-agenda-custom-commands '(("n" "Agenda and NEXT TODOs"
                                                 ((agenda "")
@@ -84,12 +84,12 @@
                   org-agenda-breadcrumbs-separator "/"
 
                   org-capture-templates '(("t" "todo" entry (file "inbox.org") "* TODO %a%?\n%i")
-                                          ("a" "appointment" entry (file+headline "tickler.org" "Appointments")
+                                          ("e" "event" entry (file+headline "tickler.org" "Events")
                                            "* %^{Description}\n%^{When}T\n%?")
-                                          ("m" "meeting" entry (file+headline "tickler.org" "Meetings")
-                                           "* Meeting with %^{Person}\n%^{When}T\n** Notes\n%?\n** Actions\n")
                                           ("r" "reminder" entry (file+headline "tickler.org" "Reminders")
-                                           "* %^{What}\n%^{When}T"))
+                                           "* %^{What}\nDEADLINE: %^{When}T --%^{Remind before (e.g. 1d, 2w, 3h)|1d}")
+                                          ("m" "meeting" entry (file+headline "tickler.org" "Meetings")
+                                           "* Meeting with %^{Person}\n%^{When}T\n** Notes\n%?\n** Actions\n"))
 
                   org-refile-targets '(("gtd.org" :maxlevel . 3));
                   org-stuck-projects '("+LEVEL=2+PROJECT/-DONE" ("NEXT") nil ""))
