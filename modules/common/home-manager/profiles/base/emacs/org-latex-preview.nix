@@ -14,11 +14,11 @@
       overrides = self: _: {
         org =
           let
-            rev = "cd2269ddb64bda7203acf2ee2e26188237a578ea";
+            rev = "1ef59f0aa02e3cff40bae68b756a29bc2001739e";
           in
           self.trivialBuild {
             pname = "org";
-            version = "9.7.26+${builtins.substring 0 7 rev}";
+            version = "9.8pre+${builtins.substring 0 7 rev}";
 
             src =
               let
@@ -26,7 +26,7 @@
                   name = "org-src";
                   url = "https://code.tecosaur.net/tec/org-mode.git";
                   inherit rev;
-                  hash = "sha256-mw11v3r+6/xCTaYht/hD+/Nhd+gIcOmAbtEJUGMiphA=";
+                  hash = "sha256-kPVFT2fgoOO5aCCAifzlSwDhMR2RqhhT1akOKfRyalw=";
                 };
               in
               "${root}/lisp";
