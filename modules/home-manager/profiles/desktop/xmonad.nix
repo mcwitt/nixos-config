@@ -45,7 +45,9 @@
           import XMonad.Layout.MultiToggle.Instances (StdTransformers (MIRROR))
           import XMonad.Layout.Renamed (Rename (CutWordsLeft, Replace), renamed)
           import XMonad.Layout.Spacing (spacingWithEdge)
-          import XMonad.Layout.ThreeColumns (ThreeCol (ThreeCol, ThreeColMid))
+          import XMonad.Layout.Tabbed (Theme (..), tabbed, shrinkText)
+          import XMonad.Layout.ResizableThreeColumns (ResizableThreeCol (ResizableThreeCol, ResizableThreeColMid))
+          import XMonad.Layout.TwoPane (TwoPane (TwoPane))
           import qualified XMonad.StackSet as W
           import XMonad.Util.EZConfig (additionalKeys, additionalKeysP)
           import XMonad.Util.NamedScratchpad (NamedScratchpad (NS), customFloating, namedScratchpadAction, namedScratchpadManageHook)
@@ -117,10 +119,26 @@
               $ layout
             where
               layout =
-                ThreeCol 1 (3 % 100) (1 % 2)
-                  ||| renamed [Replace "ThreeColMid"] (ThreeColMid 1 (3 % 100) (1 % 2))
+                renamed [Replace "ThreeCol"] (ResizableThreeCol 1 (3 % 100) (1 % 2) [])
+                  ||| renamed [Replace "ThreeColMid"] (ResizableThreeColMid 1 (3 % 100) (1 % 2) [])
+                  ||| TwoPane (3 % 100) (1 % 2)
                   ||| Grid
-                  ||| Full
+                  ||| renamed [Replace "Tabbed"] (tabbed shrinkText tabbedTheme)
+
+              tabbedTheme =
+                def
+                  { activeColor = "${colors.withHashtag.base0D}",
+                    inactiveColor = "${colors.withHashtag.base03}",
+                    urgentColor = "${colors.withHashtag.base08}",
+                    activeBorderColor = "${colors.withHashtag.base0D}",
+                    inactiveBorderColor = "${colors.withHashtag.base03}",
+                    urgentBorderColor = "${colors.withHashtag.base08}",
+                    activeTextColor = "${colors.withHashtag.base01}",
+                    inactiveTextColor = "${colors.withHashtag.base05}",
+                    urgentTextColor = "${colors.withHashtag.base01}",
+                    fontName = "xft:${fonts.monospace.name}:size=${toString fonts.sizes.desktop}:antialias=true",
+                    decoHeight = 32
+                  }
 
               diminish = (renamed [CutWordsLeft 1] .)
 
