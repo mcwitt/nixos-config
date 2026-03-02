@@ -11,4 +11,7 @@
       "nixos-raspberrypi.cachix.org-1:4iMO9LXa8BqhU+Rpg6LQKiGa2lsNh/j2oiYLNOQ5sPI="
     ];
   };
+
+  # Add MemTest86+ to the systemd-boot menu
+  boot.loader.systemd-boot.memtest86.enable = true;
 }

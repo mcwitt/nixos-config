@@ -18,7 +18,16 @@ in
 
   config = mkIf cfg.enable {
 
-    home.packages = [ pkgs.nodejs ];
+    home.packages = with pkgs; [
+      (anki.withAddons [ ankiAddons.anki-connect ])
+      discord
+      gimp
+      inkscape
+      nodejs
+      signal-desktop
+      slack
+      zoom-us
+    ];
 
     languages = {
       haskell = {
@@ -107,6 +116,10 @@ in
         signByDefault = true;
       };
     };
+
+    programs.ncspot.enable = true;
+
+    programs.spotify.enable = true;
 
     programs.texlive = {
       enable = true;

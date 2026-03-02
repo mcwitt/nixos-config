@@ -71,8 +71,7 @@
             stylix.nixosModules.stylix
             self.nixosModules.stylix
 
-            self.nixosModules.common
-            self.nixosModules.nixos
+            self.nixosModules.default
 
             (
               {
@@ -124,8 +123,7 @@
                       user:
                       lib.nameValuePair user {
                         imports = [
-                          self.homeModules.common
-                          self.homeModules.nixos
+                          self.homeModules.default
                         ]
                         ++ extraHmModules;
 
@@ -175,8 +173,7 @@
           system = "aarch64-linux";
           modules = [
             nur.modules.nixos.default
-            self.nixosModules.common
-            self.nixosModules.nixos
+            self.nixosModules.default
             ./hosts/hal/configuration
             {
               nixpkgs = {
@@ -193,8 +190,7 @@
         hestia = nixpkgs.lib.makeOverridable nixpkgs.lib.nixosSystem {
           system = "aarch64-linux";
           modules = [
-            self.nixosModules.common
-            self.nixosModules.nixos
+            self.nixosModules.default
             ./hosts/hestia/configuration
             {
               nixpkgs = {
@@ -213,8 +209,7 @@
           modules = [
             disko.nixosModules.disko
             nur.modules.nixos.default
-            self.nixosModules.common
-            self.nixosModules.nixos
+            self.nixosModules.default
             ./hosts/hob/configuration
             {
               nixpkgs = {
@@ -279,15 +274,12 @@
       };
 
       nixosModules = {
-        common = import ./modules/common/nixos;
-        nixos = import ./modules/nixos/nixos;
+        default = import ./modules/nixos;
         stylix = import ./modules/stylix;
       };
 
       homeModules = {
-        common = import ./modules/common/home-manager;
-        nixos = import ./modules/nixos/home-manager;
-        darwin = import ./modules/darwin/home-manager;
+        default = import ./modules/home-manager;
         stylix = import ./modules/stylix;
       };
 

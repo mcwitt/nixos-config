@@ -39,6 +39,7 @@
       gds = "${pkgs.git}/bin/git ds";
       gl = "${pkgs.git}/bin/git l";
       gw = "${pkgs.git}/bin/git w";
+      open = "${pkgs.xdg-utils}/bin/xdg-open";
       rm = "${pkgs.coreutils}/bin/rm -i";
     };
 
@@ -142,6 +143,7 @@
         (lib.concatMap pkgs.gitignores [
           "Global/Vim"
           "Global/Emacs"
+          "Global/Linux"
         ])
         ++ [ ".direnv/" ];
     };
@@ -196,6 +198,17 @@
         bindkey -M vicmd 'k' history-substring-search-up
         bindkey -M vicmd 'j' history-substring-search-down
       '';
+    };
+
+    services.emacs = {
+      enable = true;
+      client.enable = true;
+    };
+
+    services.gpg-agent = {
+      enable = true;
+      defaultCacheTtl = 4 * 60 * 60;
+      maxCacheTtl = 4 * 60 * 60;
     };
   };
 }
