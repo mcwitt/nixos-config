@@ -6,20 +6,24 @@
 
 buildNpmPackage rec {
   pname = "scheduler-card";
-  version = "3.2.15";
+  version = "4.0.14";
 
   src = fetchFromGitHub {
     owner = "nielsfaber";
     repo = "scheduler-card";
     rev = "refs/tags/v${version}";
-    hash = "sha256-9lPPvf4FPs3epWXM5mTymeE6GJ3jrL+pVBQeUTdLHlE=";
+    hash = "sha256-cW46bxD50p1kkCP729GsUDMO+iLkXJcil3lNgjrCsh0=";
   };
 
   postPatch = ''
     cp ${./package-lock.json} package-lock.json
   '';
 
-  npmDepsHash = "sha256-EA2wDm5u/oNk7hTKY4otqPtSj2FmY55QlZB5Lo5Urrg=";
+  npmDepsHash = "sha256-MtqanT7yx94a2XzXxDxhAklPPsw/Wl1eeDVGckht31Q=";
+
+  # eslint and prettier are not in package.json dependencies;
+  # skip lint/format and just run rollup
+  npmBuildScript = "rollup";
 
   installPhase = ''
     runHook preInstall
