@@ -34,8 +34,6 @@ in
       ];
   });
 
-  fish-kubectl-completions = callPackage ../packages/shells/fish/fish-kubectl-completions.nix { };
-
   github-gitignore = callPackage ../packages/data/misc/github-gitignore.nix { };
 
   gitignores = callPackage ../packages/development/misc/gitignores.nix { };
@@ -78,7 +76,7 @@ in
     (pyFinal: pyPrev: {
       gehomesdk =
         let
-          version = "2025.11.5";
+          version = "2026.2.0";
         in
         assert assertNotStale version pyPrev.gehomesdk.version;
         pyPrev.gehomesdk.overridePythonAttrs (old: rec {
@@ -86,10 +84,10 @@ in
           src = pyFinal.fetchPypi {
             inherit (old) pname;
             inherit version;
-            hash = "sha256-HS33yTE+3n0DKRD4+cr8zAE+xcW1ca7q8inQ7qwKJMA=";
+            hash = "sha256-+BWGkUDKd+9QGbdXuLjmJxLm1xUv0dpIRlPlDkUJ25w=";
           };
-          # Update dependencies based on setup.py from v2025.11.5
-          # https://github.com/simbaja/gehome/blob/v2025.11.5/setup.py
+          # Update dependencies based on setup.py from v2026.2.0
+          # https://github.com/simbaja/gehome/blob/v2026.2.0/setup.py
           propagatedBuildInputs = with pyFinal; [
             aiohttp
             beautifulsoup4
