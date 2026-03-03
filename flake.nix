@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
+    claude-code.url = "github:sadjow/claude-code-nix";
     "claude-code-ide.el" = {
       url = "github:manzaltu/claude-code-ide.el";
       flake = false;
@@ -37,13 +38,6 @@
       stylix,
       ...
     }@inputs:
-    let
-      overlays = [
-        self.overlays.default
-        emacs-overlay.overlay
-        nur.overlays.default
-      ];
-    in
     {
       overlays.default = import ./overlay { inherit inputs; };
 
@@ -82,7 +76,12 @@
               }:
               {
                 nixpkgs = {
-                  inherit overlays;
+                  overlays = [
+                    self.overlays.default
+                    emacs-overlay.overlay
+                    nur.overlays.default
+                    inputs.claude-code.overlays.default
+                  ];
                   config.allowUnfree = true;
                 };
 
@@ -177,7 +176,7 @@
             ./hosts/hal/configuration
             {
               nixpkgs = {
-                inherit overlays;
+                overlays = [ self.overlays.default ];
                 config.allowUnfree = true;
               };
             }
@@ -194,7 +193,7 @@
             ./hosts/hestia/configuration
             {
               nixpkgs = {
-                inherit overlays;
+                overlays = [ self.overlays.default ];
                 config.allowUnfree = true;
               };
             }
