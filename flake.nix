@@ -304,6 +304,8 @@
             excludes = [ "hardware-configuration\\.nix" ];
             hooks = {
               nixfmt.enable = true;
+              hlint.enable = true;
+              ormolu.enable = true;
             };
           };
         };
