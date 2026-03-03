@@ -212,6 +212,13 @@
             self.nixosModules.default
             ./hosts/hob/configuration
             {
+              nix.settings = {
+                substituters = [ "https://nixos-raspberrypi.cachix.org" ];
+                trusted-public-keys = [
+                  "nixos-raspberrypi.cachix.org-1:4iMO9LXa8BqhU+Rpg6LQKiGa2lsNh/j2oiYLNOQ5sPI="
+                ];
+              };
+
               nixpkgs = {
                 overlays = [ self.overlays.default ];
                 config = {
@@ -220,6 +227,7 @@
                   buildPlatform.system = "x86_64-linux"; # cross compile
                 };
               };
+
               profiles.home-automation.enable = true;
             }
           ];
