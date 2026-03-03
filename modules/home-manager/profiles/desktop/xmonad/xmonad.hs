@@ -22,7 +22,7 @@ import XMonad.Layout.Minimize (minimize)
 import XMonad.Layout.MultiToggle (Toggle (Toggle), mkToggle, single)
 import XMonad.Layout.MultiToggle.Instances (StdTransformers (MIRROR))
 import XMonad.Layout.Renamed (Rename (CutWordsLeft, Replace), renamed)
-import XMonad.Layout.ResizableThreeColumns (ResizableThreeCol (ResizableThreeCol, ResizableThreeColMid))
+import XMonad.Layout.ResizableThreeColumns (MirrorResize (MirrorExpand, MirrorShrink), ResizableThreeCol (ResizableThreeCol, ResizableThreeColMid))
 import XMonad.Layout.Spacing (spacingWithEdge)
 import XMonad.Layout.Tabbed (Theme (..), shrinkText, tabbed)
 import XMonad.Layout.TwoPane (TwoPane (TwoPane))
@@ -73,6 +73,9 @@ main = do
                           ("M-o", easyFocus),
                           ("M-S-o", easySwap),
                           ("C-M-o", spawn "rofi -show-icons -show window"),
+                          -- resizable 3col
+                          ("M-a", sendMessage MirrorShrink),
+                          ("M-z", sendMessage MirrorExpand),
                           -- minimize/maximize
                           ("M-\\", withFocused minimizeWindow),
                           ("M-S-\\", withLastMinimized maximizeWindowAndFocus),
