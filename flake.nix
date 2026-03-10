@@ -223,7 +223,6 @@
                 config = {
                   allowUnfree = true;
                   allowUnsupportedSystem = true;
-                  buildPlatform.system = "x86_64-linux"; # cross compile
                 };
               };
 
