@@ -11,6 +11,7 @@ in
 {
   imports = [
     ./aichat.nix
+    ./claude-code.nix
     ./email.nix
   ];
 
@@ -95,14 +96,6 @@ in
         (_: {
           enable = true;
         });
-
-    programs.claude-code = {
-      enable = true;
-      settings = {
-        includeCoAuthoredBy = false;
-        model = "claude-opus-4-6";
-      };
-    };
 
     programs.git = {
       settings = {
