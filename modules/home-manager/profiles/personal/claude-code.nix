@@ -19,6 +19,7 @@ in
       settings = {
         includeCoAuthoredBy = false;
         model = "claude-opus-4-6";
+        voiceEnabled = true;
       };
     };
   };
