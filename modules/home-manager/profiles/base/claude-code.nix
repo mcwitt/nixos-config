@@ -5,7 +5,7 @@
   ...
 }:
 let
-  cfg = config.profiles.personal;
+  cfg = config.profiles.base;
 in
 {
   config = lib.mkIf cfg.enable {

@@ -11,7 +11,6 @@ in
 {
   imports = [
     ./aichat.nix
-    ./claude-code.nix
     ./email.nix
   ];
 
