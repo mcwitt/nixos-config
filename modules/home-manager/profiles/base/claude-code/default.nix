@@ -21,6 +21,9 @@ in
         model = "claude-opus-4-6";
         voiceEnabled = true;
       };
+      skills = {
+        nix-init = ./skills/nix-init;
+      };
     };
   };
 }

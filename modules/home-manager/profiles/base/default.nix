@@ -9,7 +9,7 @@
 
   imports = [
     ./emacs
-    ./claude-code.nix
+    ./claude-code
     ./git-annex.nix
     ./jupyter.nix
     ./neovim
