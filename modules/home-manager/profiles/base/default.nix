@@ -29,6 +29,10 @@
       yq
     ];
 
+    home.sessionPath = [
+      "$HOME/.local/bin"
+    ];
+
     home.shellAliases = {
       cdr = ''cd "$(${pkgs.git}/bin/git rev-parse --show-toplevel)"'';
       ec = "${config.programs.emacs.finalPackage}/bin/emacsclient --create-frame";
