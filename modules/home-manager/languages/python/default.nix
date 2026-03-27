@@ -28,10 +28,11 @@ in
       let
         pythonEnv = pkgs.python3.withPackages cfg.globalPackages;
       in
-      [
-        pkgs.basedpyright
-        pythonEnv
-      ];
+      [ pythonEnv ]
+      ++ (with pkgs; [
+        basedpyright
+        uv
+      ]);
 
     programs.emacs.init.usePackage = {
 
