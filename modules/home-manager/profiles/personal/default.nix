@@ -64,8 +64,10 @@ in
         enable = true;
         globalPackages =
           ps: with ps; [
+            anthropic
             httpx
             hypothesis
+            jax
             matplotlib
             notebook
             pandas
