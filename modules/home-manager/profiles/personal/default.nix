@@ -11,7 +11,6 @@ let
 in
 {
   imports = [
-    ./aichat.nix
     ./email.nix
   ];
 
