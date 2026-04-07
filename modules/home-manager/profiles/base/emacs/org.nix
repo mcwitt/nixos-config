@@ -89,7 +89,7 @@
                                           ("r" "reminder" entry (file+headline "tickler.org" "Reminders")
                                            "* %^{What}\nDEADLINE: %^{When}T --%^{Remind before (e.g. 1d, 2w, 3h)|1d}")
                                           ("m" "meeting" entry (file+headline "tickler.org" "Meetings")
-                                           "* Meeting with %^{Person}\n%^{When}T\n** Notes\n%?\n** Actions\n"))
+                                           "* Meeting with %^{Person}\n%^{When}T\n** Prep\n%?\n** Notes\n\n** Actions\n"))
 
                   org-refile-targets '(("gtd.org" :maxlevel . 3));
                   org-stuck-projects '("+LEVEL=2+PROJECT/-DONE" ("NEXT") nil ""))
