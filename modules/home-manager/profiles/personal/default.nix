@@ -1,5 +1,6 @@
 {
   config,
+  inputs,
   lib,
   pkgs,
   ...
@@ -110,6 +111,18 @@ in
         signByDefault = true;
       };
     };
+
+    programs.llm =
+      let
+        pkgsUnstable = import inputs.nixpkgs-unstable { inherit (pkgs) system; };
+      in
+      {
+        enable = true;
+        package = pkgsUnstable.llm;
+        plugins = [ "llm-anthropic" ];
+        defaultModel = "anthropic/claude-opus-4-6";
+        aliases.claude = "anthropic/claude-opus-4-6";
+      };
 
     programs.ncspot.enable = true;
 
