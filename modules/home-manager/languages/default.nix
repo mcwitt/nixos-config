@@ -14,6 +14,7 @@
     ./rust
     ./shell
     ./sql
+    ./typescript
     ./typst
   ];
 }
