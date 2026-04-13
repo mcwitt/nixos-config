@@ -31,14 +31,6 @@
     programs.emacs = {
       enable = true;
       package = pkgs.emacs-unstable;
-      overrides = _: super: {
-        elfeed = super.elfeed.overrideAttrs (_: {
-          # Include elfeed-web in the package
-          postInstall = ''
-            cp -r $src/web $out/share/emacs/site-lisp/elpa/elfeed-*
-          '';
-        });
-      };
     };
 
     programs.emacs.init = {

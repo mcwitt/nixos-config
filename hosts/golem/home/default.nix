@@ -4,10 +4,6 @@ let
   dpi = 183;
 in
 {
-  imports = [
-    ./elfeed-web.nix
-  ];
-
   config = {
     home.stateVersion = "21.11";
 
