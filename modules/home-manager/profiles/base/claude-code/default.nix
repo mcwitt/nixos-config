@@ -1,5 +1,6 @@
 {
   config,
+  inputs,
   lib,
   pkgs,
   ...
@@ -32,6 +33,7 @@ in
         model = "claude-opus-4-6";
         voiceEnabled = true;
       };
+      plugins = [ inputs.superpowers ];
       skills = {
         autoresearch = "${autoresearchPlugin}/skills/autoresearch";
         nix-init = ./skills/nix-init;
