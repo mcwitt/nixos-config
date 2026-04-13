@@ -17,6 +17,8 @@
 
   config = lib.mkIf config.profiles.base.enable {
     fonts.fontconfig.enable = true;
+    # Don't force the GTK3 theme onto GTK4 apps (libadwaita renders better unthemed).
+    gtk.gtk4.theme = null;
 
     home.packages = with pkgs; [
       delta
@@ -25,7 +27,7 @@
       nix-du
       nix-output-monitor
       (parallel-full.override { willCite = true; })
-      nodePackages.prettier
+      prettier
       yq
     ];
 
@@ -183,6 +185,7 @@
 
     programs.zsh = {
       enable = true;
+      dotDir = "${config.xdg.configHome}/zsh";
       autocd = true;
       autosuggestion.enable = true;
       defaultKeymap = "viins";

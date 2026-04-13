@@ -32,12 +32,9 @@ in
         model = "claude-opus-4-6";
         voiceEnabled = true;
       };
-      skillsDir = pkgs.symlinkJoin {
-        name = "claude-code-skills";
-        paths = [
-          "${autoresearchPlugin}/skills"
-          ./skills
-        ];
+      skills = {
+        autoresearch = "${autoresearchPlugin}/skills/autoresearch";
+        nix-init = ./skills/nix-init;
       };
       commandsDir = "${autoresearchPlugin}/commands";
     };

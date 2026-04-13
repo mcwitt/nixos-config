@@ -8,6 +8,7 @@
   config = lib.mkIf config.profiles.base.enable {
     programs.neovim = {
       enable = true;
+      withRuby = false;
       coc.enable = true;
       extraPackages = [ pkgs.nodejs ];
       vimAlias = true;

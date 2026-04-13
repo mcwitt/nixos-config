@@ -2,7 +2,6 @@
 {
   imports = [
     ./hardware-configuration.nix
-    ./android.nix
     ./arduino.nix
     ./synergy-server.nix
   ];

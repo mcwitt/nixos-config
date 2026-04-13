@@ -22,7 +22,7 @@ in
     home.packages = with pkgs; [
       pavucontrol
       xclip
-      xfce.thunar
+      thunar
     ];
 
     programs.chromium = {

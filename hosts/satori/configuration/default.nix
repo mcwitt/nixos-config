@@ -2,7 +2,6 @@
 {
   imports = [
     inputs.disko.nixosModules.disko
-    ./android.nix
     ./arduino.nix
     ./synergy-server.nix
   ];

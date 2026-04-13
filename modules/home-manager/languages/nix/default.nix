@@ -19,7 +19,7 @@ in
       nix-info
       nix-prefetch-git
       nix-prefetch-github
-      nixfmt-rfc-style
+      nixfmt
     ];
 
     programs.emacs.init.usePackage = {
