@@ -28,9 +28,10 @@ in
     programs.claude-code = {
       enable = true;
       settings = {
+        model = "claude-opus-4-6";
+        effortLevel = "high";
         defaultMode = "auto";
         includeCoAuthoredBy = false;
-        model = "claude-opus-4-6";
         voiceEnabled = true;
       };
       plugins = [ inputs.superpowers ];
