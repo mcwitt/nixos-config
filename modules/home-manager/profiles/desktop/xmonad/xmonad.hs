@@ -17,7 +17,6 @@ import XMonad.Hooks.FloatConfigureReq (fixSteamFlicker)
 import XMonad.Hooks.ManageDocks (avoidStruts, docks, manageDocks)
 import XMonad.Hooks.OnPropertyChange (onXPropertyChange)
 import XMonad.Layout.BoringWindows (boringWindows, focusDown, focusMaster, focusUp)
-import XMonad.Layout.Grid (Grid (..))
 import XMonad.Layout.Minimize (minimize)
 import XMonad.Layout.MultiToggle (Toggle (Toggle), mkToggle, single)
 import XMonad.Layout.MultiToggle.Instances (StdTransformers (MIRROR))
@@ -120,10 +119,9 @@ myLayoutHook =
   where
     layout =
       renamed [Replace "ThreeCol"] (ResizableThreeCol 1 (3 % 100) (1 % 2) [])
+        ||| renamed [Replace "Tabbed"] (tabbed shrinkText tabbedTheme)
         ||| renamed [Replace "ThreeColMid"] (ResizableThreeColMid 1 (3 % 100) (1 % 2) [])
         ||| TwoPane (3 % 100) (1 % 2)
-        ||| Grid
-        ||| renamed [Replace "Tabbed"] (tabbed shrinkText tabbedTheme)
 
     tabbedTheme =
       def
