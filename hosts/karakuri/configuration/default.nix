@@ -1,4 +1,4 @@
-{ inputs, ... }:
+{ inputs, lib, ... }:
 
 {
   imports = [
@@ -42,6 +42,13 @@
   services.synergy.client = {
     enable = true;
     serverAddress = "satori";
+  };
+
+  stylix.fonts.sizes = lib.mkForce {
+    applications = 10;
+    desktop = 10;
+    popups = 10;
+    terminal = 10;
   };
 
   services.xserver = {
