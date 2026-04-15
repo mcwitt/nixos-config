@@ -130,7 +130,6 @@
 
           "module/pipewire" =
             let
-              # https://github.com/polybar/polybar-scripts/blob/8a6a2c7fc6beb281515f81ccf5b9fafc830a3230/polybar-scripts/pipewire-simple/pipewire-simple.sh
               script = pkgs.writeShellScript "pipewire.sh" ''
                 PATH=${
                   lib.makeBinPath (
@@ -138,11 +137,14 @@
                     [
                       coreutils
                       pamixer
+                      pulseaudio
                     ]
                   )
                 }
 
-                VOLUME=$(pamixer --get-volume-human)
+                print_volume() {
+                    echo "$(pamixer --get-volume-human)"
+                }
 
                 case $1 in
                     "--up")
@@ -154,16 +156,24 @@
                     "--mute")
                         pamixer --toggle-mute
                         ;;
-                    *)
-                        echo "''${VOLUME}"
+                    "--tail")
+                        print_volume
+                        pactl subscribe 2>/dev/null | while read -r line; do
+                            case "$line" in
+                                *"on sink"*|*"on server"*)
+                                    print_volume
+                                    ;;
+                            esac
+                        done
+                        ;;
                 esac
               '';
             in
             {
               type = "custom/script";
-              exec = "${script} update";
+              exec = "${script} --tail";
+              tail = true;
 
-              interval = 1;
               click-right = "exec ${lib.getExe pkgs.pavucontrol} &";
               click-left = "${script} --mute &";
               scroll-up = "${script} --up &";
