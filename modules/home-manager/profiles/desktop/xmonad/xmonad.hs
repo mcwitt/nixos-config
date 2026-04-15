@@ -104,9 +104,9 @@ main = do
       `additionalKeys` ( first (noModMask,)
                            <$> [ (xF86XK_MonBrightnessUp, spawn "xbacklight -inc 5"),
                                  (xF86XK_MonBrightnessDown, spawn "xbacklight -dec 5"),
-                                 (xF86XK_AudioMute, spawn "amixer -q set Master toggle"),
-                                 (xF86XK_AudioLowerVolume, spawn "amixer -q set Master 5%-"),
-                                 (xF86XK_AudioRaiseVolume, spawn "amixer -q set Master 5%+")
+                                 (xF86XK_AudioMute, spawn "@wpctl@ set-mute @DEFAULT_AUDIO_SINK@ toggle"),
+                                 (xF86XK_AudioLowerVolume, spawn "@wpctl@ set-volume @DEFAULT_AUDIO_SINK@ 5%-"),
+                                 (xF86XK_AudioRaiseVolume, spawn "@wpctl@ set-volume @DEFAULT_AUDIO_SINK@ 5%+")
                                ]
                        )
 

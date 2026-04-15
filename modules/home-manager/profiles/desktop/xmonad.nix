@@ -31,6 +31,7 @@
                 "@colorBase0F@"
                 "@fontMono@"
                 "@fontSize@"
+                "@wpctl@"
               ]
               [
                 colors.withHashtag.base01
@@ -42,6 +43,7 @@
                 colors.withHashtag.base0F
                 fonts.monospace.name
                 (toString fonts.sizes.desktop)
+                "${pkgs.wireplumber}/bin/wpctl"
               ]
               raw;
         in
