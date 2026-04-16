@@ -115,8 +115,8 @@ in
     programs.llm = {
       enable = true;
       plugins = [ "llm-anthropic" ];
-      defaultModel = "anthropic/claude-opus-4-6";
-      aliases.claude = "anthropic/claude-opus-4-6";
+      defaultModel = "anthropic/claude-opus-4-7";
+      aliases.claude = "anthropic/claude-opus-4-7";
     };
 
     programs.ncspot.enable = true;

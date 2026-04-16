@@ -28,7 +28,7 @@ in
     programs.claude-code = {
       enable = true;
       settings = {
-        model = "claude-opus-4-6";
+        model = "claude-opus-4-7";
         effortLevel = "high";
         defaultMode = "auto";
         includeCoAuthoredBy = false;
