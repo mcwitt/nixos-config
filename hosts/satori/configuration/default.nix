@@ -90,6 +90,11 @@
     drivers = [ pkgs.brlaser ];
   };
 
+  services.udev.extraRules = ''
+    # Disable USB autosuspend for OBSBOT Meet 2 webcam
+    ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="3564", ATTR{idProduct}=="fefb", ATTR{power/control}="on"
+  '';
+
   services.xserver = {
     enable = true;
     xkb.layout = "us";
