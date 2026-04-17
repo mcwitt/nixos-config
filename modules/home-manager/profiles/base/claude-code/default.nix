@@ -27,18 +27,21 @@ in
 
     programs.claude-code = {
       enable = true;
+
       settings = {
         model = "claude-opus-4-7";
-        effortLevel = "high";
+        effortLevel = "xhigh";
         defaultMode = "auto";
-        includeCoAuthoredBy = false;
         voiceEnabled = true;
       };
+
       plugins = [ inputs.superpowers ];
+
       skills = {
         autoresearch = "${autoresearchPlugin}/skills/autoresearch";
         nix-init = ./skills/nix-init;
       };
+
       commandsDir = "${autoresearchPlugin}/commands";
     };
   };
