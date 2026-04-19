@@ -3,6 +3,10 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    autoresearch = {
+      url = "github:uditgoenka/autoresearch";
+      flake = false;
+    };
     claude-code.url = "github:sadjow/claude-code-nix";
     "claude-code-ide.el" = {
       url = "github:manzaltu/claude-code-ide.el";

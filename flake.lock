@@ -16,6 +16,22 @@
         "type": "github"
       }
     },
+    "autoresearch": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1776287256,
+        "narHash": "sha256-hm9D8YCvVxmrCrXBcBfz16AACUFMOLEHUVIkonSJ8AY=",
+        "owner": "uditgoenka",
+        "repo": "autoresearch",
+        "rev": "f226ffbf558c33dfdea86e8eb24207d7b73c8891",
+        "type": "github"
+      },
+      "original": {
+        "owner": "uditgoenka",
+        "repo": "autoresearch",
+        "type": "github"
+      }
+    },
     "base16": {
       "inputs": {
         "fromYaml": "fromYaml"
@@ -644,6 +660,7 @@
     },
     "root": {
       "inputs": {
+        "autoresearch": "autoresearch",
         "claude-code": "claude-code",
         "claude-code-ide.el": "claude-code-ide.el",
         "disko": "disko",
