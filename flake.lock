@@ -90,11 +90,11 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1776370363,
-        "narHash": "sha256-Ul2mJIH6irPdJLiVFDUcSbc7rv7ULWutGjIv7IHOvyI=",
+        "lastModified": 1776600631,
+        "narHash": "sha256-9ftpmZu/sTuaV6rJoYakj7rxoGRjcsug1c4G+723u20=",
         "owner": "sadjow",
         "repo": "claude-code-nix",
-        "rev": "9e198808ce7466eceb5bbd341936d6c410f9c664",
+        "rev": "9150fa95a83d2a30b5f3a45d4562c0250da0ce11",
         "type": "github"
       },
       "original": {
@@ -126,11 +126,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1773889306,
-        "narHash": "sha256-PAqwnsBSI9SVC2QugvQ3xeYCB0otOwCacB1ueQj2tgw=",
+        "lastModified": 1776613567,
+        "narHash": "sha256-gC9Cp5ibBmGD5awCA9z7xy6MW6iJufhazTYJOiGlCUI=",
         "owner": "nix-community",
         "repo": "disko",
-        "rev": "5ad85c82cc52264f4beddc934ba57f3789f28347",
+        "rev": "32f4236bfc141ae930b5ba2fb604f561fed5219d",
         "type": "github"
       },
       "original": {
@@ -145,11 +145,11 @@
         "nixpkgs-stable": "nixpkgs-stable"
       },
       "locked": {
-        "lastModified": 1776393187,
-        "narHash": "sha256-12VIGHcCccDSEyHtG9/8lXWZ5i03sZPmgC1BuMRWgfc=",
+        "lastModified": 1776619614,
+        "narHash": "sha256-DlGGTnjZuy6U6V6s8paXmVmOaZdzLig4jcarCT/zHFY=",
         "owner": "nix-community",
         "repo": "emacs-overlay",
-        "rev": "31339b3ad88d4664207f1281db4360873750a51c",
+        "rev": "ebbb9710a27f87a7a5a0847a35bdd686f0971ed6",
         "type": "github"
       },
       "original": {
@@ -342,11 +342,11 @@
         "nixpkgs": "nixpkgs_3"
       },
       "locked": {
-        "lastModified": 1776373306,
-        "narHash": "sha256-iAJIzHngGZeLIkjzuuWI6VBsYJ1n89a/Esq0m8R1vjs=",
+        "lastModified": 1776562531,
+        "narHash": "sha256-Lh5Ns9DI67E+lSMOCGK0S+mFPy0mz0yOGiJTUXiR9JI=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "d401492e2acd4fea42f7705a3c266cea739c9c36",
+        "rev": "5b56ad02dc643808b8af6d5f3ff179e2ce9593f4",
         "type": "github"
       },
       "original": {
@@ -358,11 +358,11 @@
     "monet": {
       "flake": false,
       "locked": {
-        "lastModified": 1758848153,
-        "narHash": "sha256-3e5DIR+X6JLDaY7vRDutH3EAsyaqK3Jc73ugZTDRUrQ=",
+        "lastModified": 1776563377,
+        "narHash": "sha256-C5t7pKcp8lqZUPiWAcrx2H7Gba2NSpojUPxG5AnrMJg=",
         "owner": "stevemolitor",
         "repo": "monet",
-        "rev": "72a18d372fef4b0971267bf13f127dcce681859a",
+        "rev": "ee2e35557e8ae07de842c435486f7c152f3750e0",
         "type": "github"
       },
       "original": {
@@ -452,11 +452,11 @@
     },
     "nixpkgs-stable": {
       "locked": {
-        "lastModified": 1776221942,
-        "narHash": "sha256-FbQAeVNi7G4v3QCSThrSAAvzQTmrmyDLiHNPvTF2qFM=",
+        "lastModified": 1776434932,
+        "narHash": "sha256-gyqXNMgk3sh+ogY5svd2eNLJ6oEwzbAeaoBrrxD0lKk=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "1766437c5509f444c1b15331e82b8b6a9b967000",
+        "rev": "c7f47036d3df2add644c46d712d14262b7d86c0c",
         "type": "github"
       },
       "original": {
@@ -584,11 +584,11 @@
         "nixpkgs": "nixpkgs_6"
       },
       "locked": {
-        "lastModified": 1776398843,
-        "narHash": "sha256-djf282LHVlZeW8xfzsMfvJS9prjRIhHv8grn3P01hzE=",
+        "lastModified": 1776630326,
+        "narHash": "sha256-LvAS5l1cH1+TAIprRYALBUm7oKN2irTi/T6JKz6W6sc=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "742d6b085b8d852840d33d426168b9e7802809da",
+        "rev": "9520b69f0c3de8554e2ffb61e5105d6c4eb959e6",
         "type": "github"
       },
       "original": {
@@ -694,11 +694,11 @@
     "superpowers": {
       "flake": false,
       "locked": {
-        "lastModified": 1775845438,
-        "narHash": "sha256-6rgWGcVN8tqViB/vpQQzdfedsC09TxlZE6ineYvMJio=",
+        "lastModified": 1776406329,
+        "narHash": "sha256-V0tWzAudRg16D0o8nL+J2ZLFBP6LA9at8kpfaRNjulc=",
         "owner": "pcvelz",
         "repo": "superpowers",
-        "rev": "c78dfe331d03386730dc1f6feb4a8a21dd57437e",
+        "rev": "04bad33282e792ecfd1007a138331f1e6b288eed",
         "type": "github"
       },
       "original": {
