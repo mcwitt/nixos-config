@@ -32,7 +32,7 @@ in
       ];
 
       skills = {
-        nix-init = ./skills/nix-init;
+        nixify = ./skills/nixify;
       };
     };
   };

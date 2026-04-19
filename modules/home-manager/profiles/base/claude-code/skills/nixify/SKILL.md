@@ -1,12 +1,17 @@
 ---
-name: nix-init
-description: Set up a Nix flake project with devShell, package build, and git-hooks. Use when the user wants to create a new Nix project, add a flake to an existing project, or set up a Nix development environment.
+name: nixify
+description: Set up a Nix flake project with devShell, package build, and git-hooks. Use when the user wants to create a new Nix project from scratch, add a flake.nix to an existing source repo that does not use Nix, or otherwise set up a Nix development environment.
 argument-hint: "<language> [project-name]"
 ---
 
-# nix-init
+# nixify
 
-Set up a Nix flake project. The user will specify a language (e.g. `python`, `haskell`) and optionally a project name.
+Set up a Nix flake project. Handles two scenarios:
+
+1. **New project from scratch** — no source code yet. Generate the flake plus language project files.
+2. **Existing non-Nix repo** — source code already exists (e.g. `pyproject.toml`, `*.cabal`, `Cargo.toml`, `go.mod`). Generate only the flake and `.envrc`, reading project metadata from the existing files.
+
+The user will specify a language (e.g. `python`, `haskell`) and optionally a project name. If arguments are omitted and the current directory is an existing repo, infer the language from project files and the name from the existing manifest.
 
 ## Overview
 
@@ -364,11 +369,35 @@ use flake
 
 ## Workflow
 
-1. Determine the language from `$ARGUMENTS` (first argument) and project name (second argument, defaulting to the current directory name).
-2. Generate `flake.nix` with the appropriate language configuration. Replace `PROJECT_NAME` with the actual project name.
-3. Generate `.envrc`.
-4. Generate language project files (using native tools like `cabal init` where available, or writing directly).
-5. Initialize a git repo if one doesn't exist (`git init`) — flakes require git.
-6. Add generated files to git staging (`git add`) so Nix can see them.
-7. Run `nix flake check` to verify the flake evaluates correctly.
+First, decide which scenario applies by checking the current directory:
+
+- **New project** if the directory is empty or contains only scaffolding (e.g. `README.md`, `LICENSE`, `.git/`).
+- **Existing repo** if there are language project files (`pyproject.toml`, `setup.py`, `*.cabal`, `stack.yaml`, `Cargo.toml`, `go.mod`, `package.json`, etc.) or source files in the language.
+
+If `$ARGUMENTS` supplies the language, use that; otherwise infer from project files. If the project name is not supplied, take it from the existing manifest (`pyproject.toml` `[project].name`, `*.cabal` `name:`, `Cargo.toml` `[package].name`, module path in `go.mod`, etc.) or fall back to the current directory name.
+
+Before generating files, confirm you won't overwrite existing ones: if `flake.nix` or `.envrc` already exist, stop and ask the user — do not clobber. Refuse to proceed on a repo that already has a flake.
+
+### New project from scratch
+
+1. Generate `flake.nix` with the appropriate language configuration. Replace `PROJECT_NAME` with the actual project name.
+2. Generate `.envrc` with `use flake`.
+3. Generate language project files (using native tools like `cabal init` where available, or writing directly).
+4. Initialize a git repo if one doesn't exist (`git init`) — flakes require git.
+5. Add generated files to git staging (`git add`) so Nix can see them.
+6. Run `nix flake check` to verify the flake evaluates correctly.
+7. Keep output minimal — the user is experienced with Nix.
+
+### Existing non-Nix repo
+
+1. Read the existing project manifest to determine:
+   - Project name and version (copy into `flake.nix`; don't hardcode `0.1.0` if a real version exists).
+   - Build system / backend (e.g. `setuptools` vs `hatchling` vs `poetry-core` for Python) — feed this into the package's `build-system` / equivalent.
+   - Dependencies — prefer deriving them from the manifest at build time where the builder supports it (e.g. `haskellPackages.callCabal2nix` reads `.cabal` automatically; `buildPythonApplication` with `pyproject = true` reads `pyproject.toml` but you still list runtime `dependencies` explicitly from `[project].dependencies`). Don't duplicate dependency lists beyond what the builder requires.
+2. Generate `flake.nix` using the same structure and conventions as for new projects (multi-system via `nix-systems/default`, git-hooks checks, formatter wired to hooks, devShell via `inputsFrom` or `shellFor`). The conventions above apply identically — do not branch on "existing vs new" inside the flake.
+3. Generate `.envrc` with `use flake` (only if one doesn't already exist; if direnv is already configured differently, ask the user).
+4. Do NOT generate language project files — they already exist.
+5. Do NOT run `git init` — assume an existing repo. If by chance there is none, ask the user before initializing.
+6. Stage the generated files with `git add flake.nix .envrc` so Nix can see them.
+7. Run `nix flake check` to verify the flake evaluates and that pre-commit hooks are happy with the existing source. If hooks fail on pre-existing code (e.g. `ruff`, `ormolu`), report this to the user rather than silently reformatting their codebase — offer to run the formatter as a separate, reviewable step.
 8. Keep output minimal — the user is experienced with Nix.
