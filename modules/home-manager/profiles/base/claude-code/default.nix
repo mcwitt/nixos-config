@@ -32,6 +32,7 @@ in
         model = "claude-opus-4-7";
         effortLevel = "xhigh";
         defaultMode = "auto";
+        editorMode = "vim";
         voiceEnabled = true;
       };
 
