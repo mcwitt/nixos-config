@@ -27,7 +27,6 @@
             "C-c C-'" = "claude-code-ide-menu";
           };
           config = ''
-            (setopt claude-code-ide-window-side 'bottom)
             (claude-code-ide-emacs-tools-setup)
           '';
         };
