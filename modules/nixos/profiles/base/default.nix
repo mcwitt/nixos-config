@@ -134,6 +134,9 @@
       # Create an alias mapping docker to podman
       dockerCompat = true;
 
+      # Expose /run/podman/podman.sock as docker.sock so `docker compose` (v2) works
+      dockerSocket.enable = true;
+
       # Required for containers under podman-compose to be able to talk to each other
       defaultNetwork.settings.dns_enabled = true;
     };

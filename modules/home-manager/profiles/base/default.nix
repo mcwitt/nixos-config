@@ -22,6 +22,7 @@
 
     home.packages = with pkgs; [
       delta
+      docker-compose
       ffmpeg
       imagemagick
       nix-du
