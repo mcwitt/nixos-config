@@ -104,7 +104,7 @@
         output = "DP-2";
       }
       {
-        monitorConfig = ''Option "Rotate" "left"'';
+        # monitorConfig = ''Option "Rotate" "left"'';
         output = "DP-0";
       }
     ];
