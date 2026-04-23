@@ -24,6 +24,11 @@
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
     nur.url = "github:nix-community/NUR";
+    peon-ping = {
+      url = "github:PeonPing/peon-ping";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-utils.follows = "flake-utils";
+    };
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     stylix.url = "github:danth/stylix";
     superpowers = {
