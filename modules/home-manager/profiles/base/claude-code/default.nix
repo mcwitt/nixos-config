@@ -118,7 +118,8 @@ in
       settings = {
         model = "claude-opus-4-7";
         effortLevel = "xhigh";
-        defaultMode = "auto";
+        permissions.defaultMode = "auto";
+        skipAutoPermissionPrompt = true;
         editorMode = "vim";
         voiceEnabled = true;
         theme = if config.stylix.polarity == "dark" then "dark-ansi" else "light-ansi";
