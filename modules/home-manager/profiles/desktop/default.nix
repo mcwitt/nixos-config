@@ -25,7 +25,7 @@ in
       pkgs.pavucontrol
       pkgs.xclip
       pkgs.thunar
-      inputs.peon-ping.packages.${pkgs.system}.default
+      inputs.peon-ping.packages.${pkgs.stdenv.hostPlatform.system}.default
     ];
 
     programs.chromium = {
@@ -51,7 +51,7 @@ in
 
     programs.peon-ping = {
       enable = true;
-      package = inputs.peon-ping.packages.${pkgs.system}.default;
+      package = inputs.peon-ping.packages.${pkgs.stdenv.hostPlatform.system}.default;
       installPacks = [
         "peon"
       ];
