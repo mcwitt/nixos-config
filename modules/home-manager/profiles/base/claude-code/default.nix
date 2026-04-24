@@ -127,21 +127,18 @@ in
           type = "command";
           command = "${statuslineScript}";
         };
-        hooks = lib.mkIf config.programs.peon-ping.enable (
-          let
-            peonCmd = {
-              type = "command";
-              command = "${config.programs.peon-ping.package}/bin/peon";
-            };
-            peonHook = {
-              hooks = [ peonCmd ];
-            };
-          in
-          {
-            Stop = [ peonHook ];
-            Notification = [ peonHook ];
-          }
-        );
+        hooks = lib.mkIf config.programs.peon-ping.enable {
+          Notification = [
+            {
+              hooks = [
+                {
+                  type = "command";
+                  command = "${config.programs.peon-ping.package}/bin/peon";
+                }
+              ];
+            }
+          ];
+        };
       };
 
       plugins = with inputs; [
