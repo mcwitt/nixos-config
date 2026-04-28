@@ -25,7 +25,10 @@
     nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
     nur.url = "github:nix-community/NUR";
     peon-ping = {
-      url = "github:PeonPing/peon-ping";
+      # Pinned: rev a3fc765 (HEAD as of 2026-04-25) introduces a duplicate
+      # `home.file` attribute in nix/hm-module.nix that makes the module
+      # fail to evaluate. Unpin once upstream is fixed.
+      url = "github:PeonPing/peon-ping/7a16f0b1da9dc73b5ada2393ba36482a89b42913";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-utils.follows = "flake-utils";
     };
