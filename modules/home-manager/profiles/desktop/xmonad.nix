@@ -7,6 +7,10 @@
 {
   config = lib.mkIf config.profiles.desktop.enable {
 
+    xsession.profileExtra = ''
+      ${pkgs.autorandr}/bin/autorandr --change --default default || true
+    '';
+
     xsession.windowManager.xmonad = {
       enable = true;
 

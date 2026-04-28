@@ -1,4 +1,10 @@
-{ inputs, lib, ... }:
+{
+  config,
+  inputs,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
   imports = [
@@ -33,7 +39,12 @@
     interfaces.wlp0s20f3.useDHCP = true;
   };
 
-  services.autorandr.enable = true;
+  services.autorandr = {
+    enable = true;
+    hooks.postswitch."restore-background" = ''
+      ${pkgs.feh}/bin/feh --no-fehbg --bg-fill ${config.stylix.image}
+    '';
+  };
 
   services.blueman.enable = true;
 
