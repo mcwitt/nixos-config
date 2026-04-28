@@ -122,7 +122,7 @@ in
         skipAutoPermissionPrompt = true;
         editorMode = "vim";
         voiceEnabled = true;
-        theme = if config.stylix.polarity == "dark" then "dark-ansi" else "light-ansi";
+        theme = if config.stylix.polarity == "dark" then "dark" else "light";
         statusLine = {
           type = "command";
           command = "${statuslineScript}";
