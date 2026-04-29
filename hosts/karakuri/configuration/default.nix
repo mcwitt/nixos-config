@@ -23,6 +23,12 @@
 
   hardware.bluetooth.enable = true;
 
+  hardware.i2c.enable = true;
+  users.groups.${config.hardware.i2c.group}.members = lib.attrNames (
+    lib.filterAttrs (_: u: u.isNormalUser) config.users.users
+  );
+  environment.systemPackages = [ pkgs.ddcutil ];
+
   services.libinput = {
     enable = true;
     touchpad = {
