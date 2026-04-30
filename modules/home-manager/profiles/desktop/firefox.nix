@@ -9,6 +9,7 @@
 
     programs.firefox = {
       enable = true;
+      configPath = "${config.xdg.configHome}/mozilla/firefox";
       profiles.default.extensions.packages = with pkgs.nur.repos.rycee.firefox-addons; [
         browserpass
         privacy-badger
