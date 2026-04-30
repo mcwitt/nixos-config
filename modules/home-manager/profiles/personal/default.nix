@@ -121,6 +121,8 @@ in
 
     programs.ncspot.enable = true;
 
+    programs.rclone.enable = true;
+
     programs.spotify.enable = true;
 
     programs.texlive = {
