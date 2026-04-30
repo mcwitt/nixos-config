@@ -95,7 +95,7 @@ let
       printf '%s%s%s%s %s%.0f%%%s' "$sep" "$label_color" "$label" "$reset" "$color" "$pct" "$reset"
       if [[ -n "$reset_at" ]]; then
         local remaining=$(( ''${reset_at%.*} - now ))
-        printf ' %s%s%s' "$chrome" "$(fmt_duration "$remaining")" "$reset"
+        printf ' %s%s%s' "''${color:-$chrome}" "$(fmt_duration "$remaining")" "$reset"
       fi
     }
 
