@@ -229,22 +229,12 @@ in
     };
 
     services.picom = {
-      enable = false; # XXX
+      enable = true;
       backend = "glx";
-      activeOpacity = 1.0;
-      inactiveOpacity = 0.9;
-      fade = true;
-      fadeDelta = 3;
+      vSync = true;
       shadow = true;
       settings = {
-        blur = {
-          method = "gaussian";
-          size = 10;
-          deviation = 5.0;
-        };
-        blur-background-exclude = [
-          "class_g ?= 'zoom'"
-        ];
+        crop-shadow-to-monitor = true;
       };
     };
 
