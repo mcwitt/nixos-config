@@ -84,7 +84,7 @@ in
 
     programs.git.ignores = pkgs.gitignores "Node";
 
-    programs.vscode.profiles.default = mkIf (!pkgs.stdenv.isDarwin) {
+    programs.vscodium.profiles.default = mkIf (!pkgs.stdenv.isDarwin) {
       extensions = with pkgs.vscode-extensions; [
         biomejs.biome
       ];

@@ -39,7 +39,7 @@ in
         });
     };
 
-    programs.vscode.profiles.default.userSettings.files.associations = {
+    programs.vscodium.profiles.default.userSettings.files.associations = {
       "*.cu" = "cpp";
       "*.cuh" = "cpp";
     };

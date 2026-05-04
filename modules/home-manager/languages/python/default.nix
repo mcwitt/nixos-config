@@ -100,7 +100,7 @@ in
       };
     };
 
-    programs.vscode.profiles.default = mkIf (!pkgs.stdenv.isDarwin) {
+    programs.vscodium.profiles.default = mkIf (!pkgs.stdenv.isDarwin) {
       extensions = with pkgs.vscode-extensions; [
         ms-python.python
         ms-python.vscode-pylance

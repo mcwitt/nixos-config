@@ -125,7 +125,7 @@ in
         [ "xft:${fonts.monospace.name}:size=${toString fonts.sizes.applications}:antialias=true" ];
     };
 
-    programs.vscode = {
+    programs.vscodium = {
 
       enable = true;
 

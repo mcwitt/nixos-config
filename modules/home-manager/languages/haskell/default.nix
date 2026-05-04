@@ -102,7 +102,7 @@ in
       ];
     };
 
-    programs.vscode.profiles.default = {
+    programs.vscodium.profiles.default = {
       extensions = with pkgs.vscode-extensions; [
         haskell.haskell
         justusadam.language-haskell

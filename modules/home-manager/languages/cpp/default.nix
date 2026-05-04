@@ -25,7 +25,7 @@ in
       cmake-mode.enable = true;
     };
 
-    programs.vscode.profiles.default.extensions = [
+    programs.vscodium.profiles.default.extensions = [
       pkgs.vscode-extensions.llvm-vs-code-extensions.vscode-clangd
     ];
   };
