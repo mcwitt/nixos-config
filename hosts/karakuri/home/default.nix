@@ -10,6 +10,12 @@ in
 {
   home.stateVersion = "21.11";
 
+  # Apply the matching autorandr profile at session start. Covers the
+  # boot-while-docked case where no hotplug event fires after X is up.
+  xsession.profileExtra = ''
+    ${pkgs.autorandr}/bin/autorandr --change --default default || true
+  '';
+
   programs.rofi.extraConfig.dpi = dpi;
 
   programs.spotify.package = pkgs.spotify.override { deviceScaleFactor = 2.0; };
