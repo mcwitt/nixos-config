@@ -736,15 +736,15 @@
     "superpowers": {
       "flake": false,
       "locked": {
-        "lastModified": 1776406329,
-        "narHash": "sha256-V0tWzAudRg16D0o8nL+J2ZLFBP6LA9at8kpfaRNjulc=",
-        "owner": "pcvelz",
+        "lastModified": 1777932301,
+        "narHash": "sha256-3E3rO6hR87JUfS3XV1Eaoz6SDWOftleWvN9UPNFEMjw=",
+        "owner": "obra",
         "repo": "superpowers",
-        "rev": "04bad33282e792ecfd1007a138331f1e6b288eed",
+        "rev": "f2cbfbefebbfef77321e4c9abc9e949826bea9d7",
         "type": "github"
       },
       "original": {
-        "owner": "pcvelz",
+        "owner": "obra",
         "repo": "superpowers",
         "type": "github"
       }

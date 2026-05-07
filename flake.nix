@@ -35,7 +35,7 @@
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     stylix.url = "github:danth/stylix";
     superpowers = {
-      url = "github:pcvelz/superpowers";
+      url = "github:obra/superpowers";
       flake = false;
     };
   };
