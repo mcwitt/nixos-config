@@ -25,6 +25,7 @@
       docker-compose
       ffmpeg
       imagemagick
+      llm-agents.qmd
       nix-du
       nix-output-monitor
       (parallel-full.override { willCite = true; })

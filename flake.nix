@@ -17,6 +17,8 @@
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     flake-utils.url = "github:numtide/flake-utils";
     home-manager.url = "github:nix-community/home-manager";
+    llm-agents.url = "github:numtide/llm-agents.nix";
+    llm-agents.inputs.nixpkgs.follows = "nixpkgs";
     monet = {
       url = "github:stevemolitor/monet";
       flake = false;
@@ -97,6 +99,7 @@
                     emacs-overlay.overlay
                     nur.overlays.default
                     inputs.claude-code.overlays.default
+                    inputs.llm-agents.overlays.default
                   ];
                   config.allowUnfree = true;
                 };
