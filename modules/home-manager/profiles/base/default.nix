@@ -29,6 +29,7 @@
       nix-du
       nix-output-monitor
       (parallel-full.override { willCite = true; })
+      prek
       prettier
       yq
     ];
