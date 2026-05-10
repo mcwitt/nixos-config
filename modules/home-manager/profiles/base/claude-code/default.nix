@@ -83,12 +83,12 @@ let
 
     fmt_pct() {
       [[ -z "$1" ]] && return 0
-      local pct="$1" label="$2" reset_at="$3"
+      local pct="$1" label="$2" yellow_at="$3" red_at="$4" reset_at="$5"
       local pct_int=''${pct%.*}
       local color=""
-      if (( pct_int >= 85 )); then
+      if (( pct_int >= red_at )); then
         color="$red"
-      elif (( pct_int >= 60 )); then
+      elif (( pct_int >= yellow_at )); then
         color="$yellow"
       fi
       local label_color="''${color:-$chrome}"
@@ -100,9 +100,9 @@ let
     }
 
     printf '%s%s%s' "$abbreviated" "$sep" "$model"
-    fmt_pct "$ctx" "ctx"
-    fmt_pct "$five_h" "5h" "$five_h_reset"
-    fmt_pct "$seven_d" "7d" "$seven_d_reset"
+    fmt_pct "$ctx" "ctx" 40 60
+    fmt_pct "$five_h" "5h" 60 85 "$five_h_reset"
+    fmt_pct "$seven_d" "7d" 60 85 "$seven_d_reset"
   '';
 in
 {
