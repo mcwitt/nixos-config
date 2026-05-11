@@ -10,6 +10,7 @@
   imports = [
     ./emacs
     ./claude-code
+    ./codex
     ./git-annex.nix
     ./jupyter.nix
     ./neovim
