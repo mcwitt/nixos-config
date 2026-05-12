@@ -1,5 +1,6 @@
 {
   config,
+  inputs,
   lib,
   ...
 }:
@@ -17,6 +18,8 @@ in
         approval_policy = "on-request";
         sandbox_mode = "workspace-write";
       };
+
+      skills = "${inputs.superpowers}/skills";
     };
   };
 }
