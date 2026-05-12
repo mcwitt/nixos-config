@@ -8,6 +8,7 @@
       flake = false;
     };
     claude-code.url = "github:sadjow/claude-code-nix";
+    codex-cli.url = "github:sadjow/codex-cli-nix";
     "claude-code-ide.el" = {
       url = "github:manzaltu/claude-code-ide.el";
       flake = false;
@@ -99,6 +100,7 @@
                     emacs-overlay.overlay
                     nur.overlays.default
                     inputs.claude-code.overlays.default
+                    inputs.codex-cli.overlays.default
                     inputs.llm-agents.overlays.default
                   ];
                   config.allowUnfree = true;
