@@ -20,10 +20,6 @@
     home-manager.url = "github:nix-community/home-manager";
     llm-agents.url = "github:numtide/llm-agents.nix";
     llm-agents.inputs.nixpkgs.follows = "nixpkgs";
-    monet = {
-      url = "github:stevemolitor/monet";
-      flake = false;
-    };
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
     nur.url = "github:nix-community/NUR";

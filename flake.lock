@@ -513,22 +513,6 @@
         "type": "github"
       }
     },
-    "monet": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1776563377,
-        "narHash": "sha256-C5t7pKcp8lqZUPiWAcrx2H7Gba2NSpojUPxG5AnrMJg=",
-        "owner": "stevemolitor",
-        "repo": "monet",
-        "rev": "ee2e35557e8ae07de842c435486f7c152f3750e0",
-        "type": "github"
-      },
-      "original": {
-        "owner": "stevemolitor",
-        "repo": "monet",
-        "type": "github"
-      }
-    },
     "nixos-hardware": {
       "locked": {
         "lastModified": 1778593042,
@@ -851,7 +835,6 @@
         "flake-utils": "flake-utils_3",
         "home-manager": "home-manager",
         "llm-agents": "llm-agents",
-        "monet": "monet",
         "nixos-hardware": "nixos-hardware",
         "nixos-raspberrypi": "nixos-raspberrypi",
         "nixpkgs": "nixpkgs_6",
