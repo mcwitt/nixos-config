@@ -72,33 +72,5 @@ in
         { };
   };
 
-  pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
-    (pyFinal: pyPrev: {
-      gehomesdk =
-        let
-          version = "2026.2.0";
-        in
-        assert assertNotStale version pyPrev.gehomesdk.version;
-        pyPrev.gehomesdk.overridePythonAttrs (old: rec {
-          inherit version;
-          src = pyFinal.fetchPypi {
-            inherit (old) pname;
-            inherit version;
-            hash = "sha256-+BWGkUDKd+9QGbdXuLjmJxLm1xUv0dpIRlPlDkUJ25w=";
-          };
-          # Update dependencies based on setup.py from v2026.2.0
-          # https://github.com/simbaja/gehome/blob/v2026.2.0/setup.py
-          propagatedBuildInputs = with pyFinal; [
-            aiohttp
-            beautifulsoup4
-            bidict
-            humanize
-            requests
-            websockets
-          ];
-        });
-    })
-  ];
-
   nerdifyFont = callPackage ./nerdify-font.nix { };
 }
