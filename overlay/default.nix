@@ -14,26 +14,6 @@ let
 
 in
 {
-  emacs-unstable = prev.emacs-unstable.overrideAttrs (old: {
-    patches =
-      (old.patches or [ ])
-      ++ final.lib.optionals final.stdenv.isDarwin [
-        # https://github.com/d12frosted/homebrew-emacs-plus/tree/master/patches/emacs-30
-        (final.fetchpatch {
-          url = "https://raw.githubusercontent.com/d12frosted/homebrew-emacs-plus/refs/heads/master/patches/emacs-28/fix-window-role.patch";
-          hash = "sha256-+z/KfsBm1lvZTZNiMbxzXQGRTjkCFO4QPlEK35upjsE=";
-        })
-        (final.fetchpatch {
-          url = "https://raw.githubusercontent.com/d12frosted/homebrew-emacs-plus/refs/heads/master/patches/emacs-30/round-undecorated-frame.patch";
-          hash = "sha256-uYIxNTyfbprx5mCqMNFVrBcLeo+8e21qmBE3lpcnd+4=";
-        })
-        (final.fetchpatch {
-          url = "https://raw.githubusercontent.com/d12frosted/homebrew-emacs-plus/refs/heads/master/patches/emacs-30/system-appearance.patch";
-          hash = "sha256-3QLq91AQ6E921/W9nfDjdOUWR8YVsqBAT/W9c1woqAw=";
-        })
-      ];
-  });
-
   github-gitignore = callPackage ../packages/data/misc/github-gitignore.nix { };
 
   gitignores = callPackage ../packages/development/misc/gitignores.nix { };
