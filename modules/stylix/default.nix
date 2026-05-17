@@ -20,15 +20,15 @@ let
   #   url = "https://upload.wikimedia.org/wikipedia/commons/9/99/Green_River_Overlook_Ekker_Butte.jpg";
   #   sha256 = "sha256:0qwspj9yr2gbzjj26pvzkiw1l79qda32xbrdzfz3scpl3a6f3dyd";
   # };
-  emerald-lake-alluvial-field = builtins.fetchurl {
+  emerald-lake-alluvial-field = pkgs.fetchurl {
     name = "emerald-lake-alluvial-field-yoho.jpg";
     url = "https://upload.wikimedia.org/wikipedia/commons/b/ba/The_Alluvial_Field_at_Emerald_Lake_in_Yoho_National_Park%2C_BC.jpg";
-    sha256 = "sha256:1y405apgl744ida5jbybm953xlidcglq7ky2bxb59zzqh8wqqla0";
+    sha256 = "1y405apgl744ida5jbybm953xlidcglq7ky2bxb59zzqh8wqqla0";
   };
-  artemis-ii-earth-moon = builtins.fetchurl {
+  artemis-ii-earth-moon = pkgs.fetchurl {
     name = "art002e009289.jpg";
     url = "https://images-assets.nasa.gov/image/art002e009289/art002e009289~orig.jpg";
-    sha256 = "sha256:0xdzmxmf3aqr4wlvrzm79cbxcw9f0m5mhp1hmm2dyg5sh6jc9a1a";
+    sha256 = "0xdzmxmf3aqr4wlvrzm79cbxcw9f0m5mhp1hmm2dyg5sh6jc9a1a";
   };
 in
 {
