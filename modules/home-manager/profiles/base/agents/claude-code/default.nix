@@ -1,5 +1,6 @@
 {
   config,
+  gwsSkills,
   inputs,
   lib,
   pkgs,
@@ -109,12 +110,12 @@ in
   config = lib.mkIf cfg.enable {
 
     home.packages = [
-      pkgs.gws
       pkgs.sox # for voice mode
     ];
 
     programs.claude-code = {
       enable = true;
+      enableMcpIntegration = true;
 
       settings = {
         model = "claude-opus-4-7";
@@ -150,9 +151,7 @@ in
       skills = {
         nixify = ./skills/nixify;
       }
-      // lib.mapAttrs' (name: _: lib.nameValuePair name "${pkgs.gws.src}/skills/${name}") (
-        builtins.readDir "${pkgs.gws.src}/skills"
-      );
+      // gwsSkills;
     };
   };
 }

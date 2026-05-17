@@ -8,9 +8,8 @@
   options.profiles.base.enable = lib.mkEnableOption "Base configuration enabled on most machines";
 
   imports = [
+    ./agents
     ./emacs
-    ./claude-code
-    ./codex
     ./git-annex.nix
     ./jupyter.nix
     ./neovim
@@ -170,8 +169,6 @@
     programs.nushell.enable = true;
 
     programs.nix-index.enable = true;
-
-    programs.opencode.enable = true;
 
     programs.pandoc.enable = true;
 
