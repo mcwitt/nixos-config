@@ -109,6 +109,7 @@ in
   config = lib.mkIf cfg.enable {
 
     home.packages = [
+      pkgs.gws
       pkgs.sox # for voice mode
     ];
 
@@ -148,7 +149,10 @@ in
 
       skills = {
         nixify = ./skills/nixify;
-      };
+      }
+      // lib.mapAttrs' (name: _: lib.nameValuePair name "${pkgs.gws.src}/skills/${name}") (
+        builtins.readDir "${pkgs.gws.src}/skills"
+      );
     };
   };
 }
