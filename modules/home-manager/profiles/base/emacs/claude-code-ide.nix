@@ -28,6 +28,7 @@
           };
           config = ''
             (claude-code-ide-emacs-tools-setup)
+            (setopt claude-code-ide-no-flicker t)
           '';
         };
 
