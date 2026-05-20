@@ -66,7 +66,6 @@ These are the non-obvious things that need attention over time. The code can't t
 
 ### Stale overrides in the overlay
 
-- **Python package version bumps** (e.g. `gehomesdk` in `overlay/default.nix`) are guarded by `assertNotStale`. When the assertion fires, nixpkgs has caught up and the override should usually be removed.
 - **Home Assistant custom components and lovelace modules** (under `packages/servers/home-assistant/`): check upstream releases with `gh release list --repo <owner/repo> --limit 1`. For `scheduler-card`, updating requires regenerating `package-lock.json` (`npm install --package-lock-only` on the new source, then `prefetch-npm-deps` for the hash).
 - **Emacs darwin patches** in `overlay/default.nix`: only applied on `stdenv.isDarwin`. Inert as long as no darwin hosts exist; remove when that's no longer plausible.
 - **`magicattr`** (`packages/development/python-modules/magicattr/`): not in nixpkgs. Check periodically with `nix eval 'nixpkgs#python3Packages.magicattr.version'` to see if it's been upstreamed.

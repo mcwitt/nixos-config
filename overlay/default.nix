@@ -2,16 +2,6 @@
 final: prev:
 let
   inherit (final) callPackage lib;
-
-  assertNotStale =
-    overrideVersion: currentVersion:
-    let
-      inherit (lib) assertMsg versionOlder;
-    in
-    assertMsg (
-      !versionOlder overrideVersion currentVersion
-    ) "Stale override. Update override version if it still applies.";
-
 in
 {
   github-gitignore = callPackage ../packages/data/misc/github-gitignore.nix { };
