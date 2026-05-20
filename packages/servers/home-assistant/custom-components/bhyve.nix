@@ -7,13 +7,13 @@
 buildHomeAssistantComponent rec {
   owner = "sebr";
   domain = "bhyve";
-  version = "3.3.0";
+  version = "4.1.1";
 
   src = fetchFromGitHub {
     inherit owner;
     repo = "bhyve-home-assistant";
     rev = version;
-    hash = "sha256-U+r+xJizd3j1jPMN3HWnBYRzErzBDKLojYmDlSIsyxs=";
+    hash = "sha256-C5WU5nqK3m3GuaKiy5TIClQPP7spMSR0PAxjO8UBANc=";
   };
 
   meta = with lib; {
