@@ -11,7 +11,9 @@
       enable = true;
 
       script = ''
-        polybar main &
+        for m in $(polybar --list-monitors | ${pkgs.coreutils}/bin/cut -d":" -f1); do
+          MONITOR=$m polybar main &
+        done
       '';
 
       settings =
@@ -46,7 +48,7 @@
 
             border-size = 0;
 
-            padding-left = 0;
+            padding-left = 1;
             padding-right = 1;
 
             module-margin = 1;
@@ -63,7 +65,7 @@
                 "${fonts.sansSerif.name}:size=${toString fonts.sizes.desktop};5"
               ];
 
-            modules-left = "xworkspaces xmonad";
+            modules-left = "xmonad";
             modules-center = "date";
             modules-right = lib.mkDefault "wired-network filesystem memory cpu pipewire tray";
 
@@ -79,24 +81,6 @@
 
           "global/wm" = {
             margin-bottom = windowMargin;
-          };
-
-          "module/xworkspaces" = {
-            type = "internal/xworkspaces";
-
-            label-active = "%name%";
-            label-active-background = "\${colors.background-alt}";
-            label-active-underline = "\${colors.primary}";
-            label-active-padding = 1;
-
-            label-occupied = "%name%";
-            label-occupied-padding = 1;
-
-            label-urgent = "%name%";
-            label-urgent-background = "\${colors.alert}";
-            label-urgent-padding = 1;
-
-            label-empty = ""; # hide empty workspaces
           };
 
           "module/xwindow" = {
