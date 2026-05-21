@@ -13,7 +13,8 @@ import Graphics.X11.ExtraTypes.XF86
 import System.Directory (doesDirectoryExist, doesPathExist, getHomeDirectory, listDirectory)
 import System.FilePath ((</>))
 import XMonad
-import XMonad.Actions.DynamicWorkspaces (addHiddenWorkspace, addWorkspace, removeEmptyWorkspace, removeEmptyWorkspaceAfter, renameWorkspaceByName)
+import XMonad.Actions.CycleWS (shiftNextScreen, swapNextScreen)
+import XMonad.Actions.DynamicWorkspaces (addHiddenWorkspace, addWorkspace, removeEmptyWorkspaceAfter, renameWorkspaceByName)
 import XMonad.Actions.EasyMotion (selectWindow)
 import qualified XMonad.Actions.EasyMotion as EM
 import XMonad.Actions.FocusNth (swapNth)
@@ -93,7 +94,6 @@ main = do
                           ("M-S-u", focusUrgent),
                           ("M-o", easyFocus),
                           ("M-S-o", easySwap),
-                          ("C-M-o", spawn "rofi -show-icons -show window"),
                           -- resizable 3col
                           ("M-a", sendMessage MirrorShrink),
                           ("M-z", sendMessage MirrorExpand),
@@ -101,12 +101,18 @@ main = do
                           ("M-\\", withFocused minimizeWindow),
                           ("M-S-\\", withLastMinimized maximizeWindowAndFocus),
                           ("M-x", sendMessage $ Toggle MIRROR),
-                          -- launchers
+                          -- workspaces (base = go, shift = send window there,
+                          -- ctrl = name the current workspace)
                           ("M-n", projectPrompt),
-                          ("M-r", renamePrompt),
-                          ("M-`", openPrompt),
-                          ("M-S-n", removeEmptyWorkspace),
-                          ("M-S-m", shiftPrompt),
+                          ("M-S-n", shiftPrompt),
+                          ("M-i", openPrompt),
+                          ("M-S-i", shiftToOpenPrompt),
+                          ("M-C-n", renamePrompt),
+                          -- screens (M-w/M-e focus left/right by default; r swaps
+                          -- the two screens, S-r sends the focused window across)
+                          ("M-r", swapNextScreen),
+                          ("M-S-r", shiftNextScreen),
+                          -- launchers
                           ( "M-S-<Return>",
                             spawnInProject
                               (\p -> "wezterm start --cwd " ++ shellQuote p)
@@ -115,21 +121,24 @@ main = do
                           ("M-p", spawn "rofi -show-icons -show drun"),
                           ("M-S-p", spawn "rofi -show-icons -show run"),
                           ("M-0", spawn "rofi-rbw --keybindings Ctrl-1:type:username:password,Ctrl-2:type:password,Ctrl-3:copy:password,Ctrl-4:type:totp"),
-                          ("M-i", spawn "rofi -show ssh"),
-                          ("M-;", spawn "rofi -show emoji"),
-                          ("M-'", spawn "rofi -show calc -no-show-match -no-sort"),
                           ("M-y", spawn "emacsclient -c -n -e '(switch-to-buffer nil)'"),
                           ("M-u", spawn "chromium-browser"),
                           ("M-s", spawn "dm-tool switch-to-greeter"),
                           ("C-M-4", spawn "flameshot gui"),
                           ("C-M-5", spawn "flameshot launcher"),
-                          -- scratchpads
-                          ("M-S-h", namedScratchpadAction scratchpads "wezterm"),
-                          ("M-b", namedScratchpadAction scratchpads "btop"),
-                          ("M-v", namedScratchpadAction scratchpads "pavucontrol"),
-                          ("M-S-'", namedScratchpadAction scratchpads "emacs-calc"),
-                          ("M-[", namedScratchpadAction scratchpads "emacs-org-capture"),
-                          ("M-]", namedScratchpadAction scratchpads "emacs-org-agenda")
+                          -- scratchpads (M-; submap)
+                          ("M-; t", namedScratchpadAction scratchpads "wezterm"),
+                          ("M-; b", namedScratchpadAction scratchpads "btop"),
+                          ("M-; v", namedScratchpadAction scratchpads "pavucontrol"),
+                          ("M-; c", namedScratchpadAction scratchpads "emacs-org-capture"),
+                          ("M-; a", namedScratchpadAction scratchpads "emacs-org-agenda"),
+                          ("M-; =", namedScratchpadAction scratchpads "emacs-calc"),
+                          ("M-; m", namedScratchpadAction scratchpads "spotify"),
+                          -- rofi menus (M-' submap)
+                          ("M-' s", spawn "rofi -show ssh"),
+                          ("M-' e", spawn "rofi -show emoji"),
+                          ("M-' c", spawn "rofi -show calc -no-show-match -no-sort"),
+                          ("M-' w", spawn "rofi -show-icons -show window")
                         ]
       `additionalKeys` ( first (noModMask,)
                            <$> [ (xF86XK_MonBrightnessUp, spawn "xbacklight -inc 5"),
@@ -488,9 +497,13 @@ allCandidates = do
   pure $ Set.toList $ Set.fromList (existing ++ enumerated)
 
 -- Toggle to the most recently focused workspace that isn't the current one
--- or NSP. Uses WorkspaceHistory + greedyView so it works across screens —
--- `CycleWS.toggleWS'` only inspects W.hidden, which is empty on
--- multi-monitor setups where N workspaces fill N screens.
+-- or NSP. Built on the WorkspaceHistory hook (an actual focus log) +
+-- greedyView, so it tracks focus correctly across screens. The library
+-- toggles instead derive recency from the windowset, which misses cross-screen
+-- focus: CycleWS.toggleWS' only inspects W.hidden (never the workspace visible
+-- on the other screen, and empty when N workspaces fill N screens), and
+-- CycleRecentWS.toggleRecentWS reconstructs order heuristically via unView.
+-- history's head is the current workspace, hence the t /= current filter.
 historyToggle :: X ()
 historyToggle = do
   hist <- workspaceHistory
@@ -508,18 +521,29 @@ projectPrompt = do
 
 -- Switch to an already-open workspace, picked from open ones only. Free-form
 -- input that doesn't match an open workspace silently no-ops (greedyView on a
--- non-existent tag is a no-op). Bound to M-w.
+-- non-existent tag is a no-op). Bound to M-i.
 openPrompt :: X ()
 openPrompt = do
   candidates <- openTags
   result <- runRofi candidates
   whenJust result $ \name -> removeEmptyWorkspaceAfter (windows (W.greedyView name))
 
+-- Send the focused window to an already-open workspace, picked from open ones
+-- only. The destination already exists, so (unlike shiftPrompt) there is no
+-- workspace to create. Bound to M-S-i, the send-pair of M-i (openPrompt).
+shiftToOpenPrompt :: X ()
+shiftToOpenPrompt = do
+  candidates <- openTags
+  result <- runRofi candidates
+  whenJust result $ \name -> windows (W.shift name)
+
 -- Rename the current workspace to a name picked from the namespace candidates.
 -- Used to associate a workspace (e.g. one of the numerically-named startup
 -- workspaces) with a project so workspace-aware actions resolve the right
 -- cwd. Free-form input is allowed; no-op if the target name already names a
--- different workspace. Bound to M-r.
+-- different workspace. Bound to M-C-n, grouping it with the other
+-- project-name pickers (M-n go, M-S-n send) since it shares their candidate
+-- set.
 renamePrompt :: X ()
 renamePrompt = do
   existing <- existingTags
@@ -532,7 +556,7 @@ renamePrompt = do
 
 -- Shift the focused window to a workspace, picked from the full candidate set.
 -- Creates the destination workspace if it doesn't exist (added hidden so focus
--- doesn't follow the window). Bound to M-S-m.
+-- doesn't follow the window). Bound to M-S-n.
 shiftPrompt :: X ()
 shiftPrompt = do
   candidates <- allCandidates
