@@ -235,6 +235,7 @@ in
       shadow = true;
       settings = {
         crop-shadow-to-monitor = true;
+        corner-radius = 6;
       };
     };
 
