@@ -193,10 +193,7 @@ in
 
     services.flameshot = {
       enable = true;
-      settings.General = {
-        showStartupLaunchMessage = false;
-        useX11LegacyScreenshot = true;
-      };
+      settings.General.showStartupLaunchMessage = false;
     };
 
     services.gammastep = {
