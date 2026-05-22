@@ -22,6 +22,7 @@
           substituted =
             builtins.replaceStrings
               [
+                "@colorBase00@"
                 "@colorBase01@"
                 "@colorBase03@"
                 "@colorBase04@"
@@ -36,6 +37,7 @@
                 "@wpctl@"
               ]
               [
+                colors.withHashtag.base00
                 colors.withHashtag.base01
                 colors.withHashtag.base03
                 colors.withHashtag.base04

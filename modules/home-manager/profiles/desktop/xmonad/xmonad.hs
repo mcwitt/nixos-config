@@ -44,6 +44,8 @@ import XMonad.Util.NamedWindows (getName)
 import XMonad.Util.Run (runProcessWithInput, safeSpawn)
 
 -- Theme colors (substituted by Nix at build time)
+colorBase00 = "@colorBase00@"
+
 colorBase01 = "@colorBase01@"
 
 colorBase03 = "@colorBase03@"
@@ -296,12 +298,12 @@ manageZoomHook =
 emConfig =
   def
     { EM.emFont = "xft:" ++ fontMono ++ ":bold:size=18:antialias=true",
-      EM.bgCol = colorBase04,
-      EM.borderCol = colorBase03,
-      EM.borderPx = 6,
+      EM.bgCol = colorBase0D,
+      EM.borderCol = colorBase0D,
+      EM.borderPx = 1,
       EM.cancelKey = xK_Escape,
-      EM.overlayF = EM.fixedSize 100 100,
-      EM.txtCol = colorBase01
+      EM.overlayF = EM.textSize,
+      EM.txtCol = colorBase00
     }
 
 easyFocus :: X ()
