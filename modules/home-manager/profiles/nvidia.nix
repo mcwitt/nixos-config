@@ -17,7 +17,7 @@ in
       "module/nvidia-gpu" = {
         type = "custom/script";
         exec = ''
-          ${osConfig.hardware.nvidia.package.bin}/bin/nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits | xargs printf '%2d'
+          printf '%2d' "$(${osConfig.hardware.nvidia.package.bin}/bin/nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits)"
         '';
         interval = 1;
         label =
