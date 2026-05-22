@@ -124,8 +124,8 @@ main = do
                           ("M-y", spawn "emacsclient -c -n -e '(switch-to-buffer nil)'"),
                           ("M-u", spawn "chromium-browser"),
                           ("M-s", spawn "dm-tool switch-to-greeter"),
-                          ("C-M-4", spawn "flameshot gui"),
-                          ("C-M-5", spawn "flameshot launcher"),
+                          ("<Print>", spawn "flameshot gui"),
+                          ("S-<Print>", spawn "flameshot screen -c"),
                           -- scratchpads (M-; submap)
                           ("M-; t", namedScratchpadAction scratchpads "wezterm"),
                           ("M-; b", namedScratchpadAction scratchpads "btop"),
