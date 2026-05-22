@@ -350,7 +350,7 @@ runRofi candidates = do
   out <-
     runProcessWithInput
       "rofi"
-      ["-dmenu", "-i", "-matching", "fuzzy", "-p", "workspace", "-format", "s"]
+      ["-dmenu", "-i", "-p", "workspace", "-format", "s"]
       (unlines candidates)
   pure $ case trim out of
     "" -> Nothing
