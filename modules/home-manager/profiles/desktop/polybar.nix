@@ -93,7 +93,7 @@
             type = "custom/script";
             exec = lib.getExe pkgs.xmonad-log;
             tail = true;
-            format = "  <label>";
+            format = "  <label>";
           };
 
           "module/filesystem" = {
