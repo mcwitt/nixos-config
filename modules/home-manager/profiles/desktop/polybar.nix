@@ -27,10 +27,8 @@
             background = colors.base00;
             background-alt = colors.base01;
             foreground = colors.base05;
-            primary = colors.base0F;
-            secondary = colors.base0E;
+            primary = colors.base06;
             alert = colors.base08;
-            warn = colors.base0A;
             disabled = colors.base03;
           };
 
@@ -243,7 +241,7 @@
             label-discharging = "%percentage%% T−%time%";
 
             format-charging = "<animation-charging> <label-charging>";
-            format-charging-foreground = colors.base0D;
+            format-charging-foreground = colors.base06;
             label-charging = "%percentage%% T−%time%";
             animation-charging = [
               "  "

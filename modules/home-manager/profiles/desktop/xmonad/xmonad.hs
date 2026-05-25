@@ -54,13 +54,11 @@ colorBase04 = "@colorBase04@"
 
 colorBase05 = "@colorBase05@"
 
+colorBase06 = "@colorBase06@"
+
 colorBase08 = "@colorBase08@"
 
 colorBase0A = "@colorBase0A@"
-
-colorBase0D = "@colorBase0D@"
-
-colorBase0F = "@colorBase0F@"
 
 fontMono = "@fontMono@"
 
@@ -79,7 +77,7 @@ main = do
     $ def
       { borderWidth = 6,
         normalBorderColor = colorBase03,
-        focusedBorderColor = colorBase0F,
+        focusedBorderColor = colorBase06,
         layoutHook = myLayoutHook,
         logHook = workspaceHistoryHook <+> mkPolybarLogHook logOutput,
         manageHook = myManageHook,
@@ -170,10 +168,10 @@ myLayoutHook =
 
     tabbedTheme =
       def
-        { activeColor = colorBase0D,
+        { activeColor = colorBase06,
           inactiveColor = colorBase03,
           urgentColor = colorBase08,
-          activeBorderColor = colorBase0D,
+          activeBorderColor = colorBase06,
           inactiveBorderColor = colorBase03,
           urgentBorderColor = colorBase08,
           activeTextColor = colorBase01,
@@ -298,8 +296,8 @@ manageZoomHook =
 emConfig =
   def
     { EM.emFont = "xft:" ++ fontMono ++ ":bold:size=18:antialias=true",
-      EM.bgCol = colorBase0D,
-      EM.borderCol = colorBase0D,
+      EM.bgCol = colorBase06,
+      EM.borderCol = colorBase06,
       EM.borderPx = 1,
       EM.cancelKey = xK_Escape,
       EM.overlayF = EM.textSize,
