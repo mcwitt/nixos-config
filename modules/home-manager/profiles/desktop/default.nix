@@ -233,6 +233,7 @@ in
       settings = {
         crop-shadow-to-monitor = true;
         corner-radius = 6;
+        rounded-corners-exclude = [ "window_type = 'dock'" ];
       };
     };
 
