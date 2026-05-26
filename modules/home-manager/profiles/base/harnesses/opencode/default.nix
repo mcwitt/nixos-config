@@ -28,7 +28,7 @@ in
             "Qwen3.6-27B" = {
               name = "Qwen3.6 27B (local)";
               limit = {
-                context = 65536;
+                context = 131072; # must match -c in the private repo's llama-swap.nix
                 output = 8192;
               };
             };
