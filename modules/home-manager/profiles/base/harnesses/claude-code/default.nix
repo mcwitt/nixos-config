@@ -2,6 +2,7 @@
   config,
   gwsSkills,
   inputs,
+  localSkills,
   lib,
   pkgs,
   ...
@@ -148,10 +149,7 @@ in
         superpowers
       ];
 
-      skills = {
-        nixify = ./skills/nixify;
-      }
-      // gwsSkills;
+      skills = localSkills // gwsSkills;
     };
   };
 }

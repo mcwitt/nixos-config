@@ -1,15 +1,13 @@
 {
   config,
   gwsSkills,
-  inputs,
+  localSkills,
+  superpowersSkills,
   lib,
   ...
 }:
 let
   cfg = config.profiles.base;
-  superpowersSkills = lib.mapAttrs' (
-    name: _: lib.nameValuePair name "${inputs.superpowers}/skills/${name}"
-  ) (builtins.readDir "${inputs.superpowers}/skills");
 in
 {
   config = lib.mkIf cfg.enable {
@@ -24,7 +22,7 @@ in
         sandbox_mode = "workspace-write";
       };
 
-      skills = superpowersSkills // gwsSkills;
+      skills = superpowersSkills // gwsSkills // localSkills;
     };
   };
 }

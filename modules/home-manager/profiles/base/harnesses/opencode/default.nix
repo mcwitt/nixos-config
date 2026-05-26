@@ -1,6 +1,8 @@
 {
   config,
   gwsSkills,
+  inputs,
+  localSkills,
   lib,
   ...
 }:
@@ -13,27 +15,29 @@ in
       enable = true;
       enableMcpIntegration = true;
 
-      skills = gwsSkills;
+      skills = gwsSkills // localSkills;
 
-      # Route cheap auxiliary work (title generation, summarization) to the
-      # free local model instead of the paid primary provider.
-      settings.small_model = "llamaswap/Qwen3.6-27B";
+      settings = {
+        plugin = [ "${inputs.superpowers}/.opencode/plugins/superpowers.js" ];
 
-      settings.provider.llamaswap = {
-        npm = "@ai-sdk/openai-compatible";
-        name = "llama-swap (local)";
-        options.baseURL = "http://satori-ts:8080/v1";
-        models = {
-          # key MUST match the llama-swap model name in the private repo's
-          # hosts/satori/configuration/llama-swap.nix
-          "Qwen3.6-27B" = {
-            name = "Qwen3.6 27B (local)";
-            limit = {
-              context = 65536;
-              output = 8192;
+        provider.llamaswap = {
+          npm = "@ai-sdk/openai-compatible";
+          name = "llama-swap (local)";
+          options.baseURL = "http://satori-ts:8080/v1";
+          models = {
+            "Qwen3.6-27B" = {
+              name = "Qwen3.6 27B (local)";
+              limit = {
+                context = 65536;
+                output = 8192;
+              };
             };
           };
         };
+
+        # Route cheap auxiliary work (title generation, summarization) to the
+        # free local model instead of the paid primary provider.
+        small_model = "llamaswap/Qwen3.6-27B";
       };
     };
   };

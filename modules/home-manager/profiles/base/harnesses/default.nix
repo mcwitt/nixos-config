@@ -1,5 +1,6 @@
 {
   config,
+  inputs,
   lib,
   pkgs,
   ...
@@ -21,9 +22,19 @@ in
     ./opencode
   ];
 
+  # Skill bundles shared across all harnesses, exposed as module args so each
+  # harness composes the same set (see ./claude-code, ./codex, ./opencode).
   _module.args.gwsSkills = lib.mapAttrs' (
     name: _: lib.nameValuePair name "${pkgs.gws.src}/skills/${name}"
   ) (lib.filterAttrs (name: _: gwsInclude name) (builtins.readDir "${pkgs.gws.src}/skills"));
+
+  _module.args.superpowersSkills = lib.mapAttrs' (
+    name: _: lib.nameValuePair name "${inputs.superpowers}/skills/${name}"
+  ) (builtins.readDir "${inputs.superpowers}/skills");
+
+  _module.args.localSkills = {
+    nixify = ./skills/nixify;
+  };
 
   home.packages = lib.mkIf cfg.enable [
     pkgs.gws
