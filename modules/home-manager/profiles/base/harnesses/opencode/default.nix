@@ -15,6 +15,10 @@ in
 
       skills = gwsSkills;
 
+      # Route cheap auxiliary work (title generation, summarization) to the
+      # free local model instead of the paid primary provider.
+      settings.small_model = "llamaswap/Qwen3.6-27B";
+
       settings.provider.llamaswap = {
         npm = "@ai-sdk/openai-compatible";
         name = "llama-swap (local)";
