@@ -9,8 +9,8 @@
 
   imports = [
     nurNoPkgs.repos.rycee.hmModules.emacs-init
+    ./agent-shell.nix
     ./citar.nix
-    ./claude-code-ide.nix
     ./consult.nix
     ./corfu.nix
     ./dape.nix

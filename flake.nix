@@ -9,10 +9,6 @@
     };
     claude-code.url = "github:sadjow/claude-code-nix";
     codex-cli.url = "github:sadjow/codex-cli-nix";
-    "claude-code-ide.el" = {
-      url = "github:manzaltu/claude-code-ide.el";
-      flake = false;
-    };
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "nixpkgs";
     emacs-overlay.url = "github:nix-community/emacs-overlay";

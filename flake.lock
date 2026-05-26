@@ -177,22 +177,6 @@
         "type": "github"
       }
     },
-    "claude-code-ide.el": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1775107224,
-        "narHash": "sha256-qH1QnG5G+0UiH/v0KaS7oSpQZY+BkUMZvrjbx6kyFhg=",
-        "owner": "manzaltu",
-        "repo": "claude-code-ide.el",
-        "rev": "56db02ee386d009ddb8b1482310f1f9beeefb810",
-        "type": "github"
-      },
-      "original": {
-        "owner": "manzaltu",
-        "repo": "claude-code-ide.el",
-        "type": "github"
-      }
-    },
     "codex-cli": {
       "inputs": {
         "flake-utils": "flake-utils_2",
@@ -826,7 +810,6 @@
       "inputs": {
         "autoresearch": "autoresearch",
         "claude-code": "claude-code",
-        "claude-code-ide.el": "claude-code-ide.el",
         "codex-cli": "codex-cli",
         "disko": "disko",
         "emacs-overlay": "emacs-overlay",
