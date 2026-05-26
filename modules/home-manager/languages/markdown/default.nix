@@ -50,7 +50,9 @@ in
         config = ''
           ;; Hide markup (revealed at point by markdown-appear) and scale headings.
           (setopt markdown-hide-markup t
-                  markdown-header-scaling t)
+                  markdown-header-scaling t
+                  ;; Smaller, standard-size list bullets; default glyphs are large.
+                  markdown-list-item-bullets '("•" "◦" "▪"))
         '';
       };
 
