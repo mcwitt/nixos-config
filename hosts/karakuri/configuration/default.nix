@@ -45,6 +45,8 @@
     interfaces.wlp0s20f3.useDHCP = true;
   };
 
+  services.tailscale.enable = true;
+
   services.autorandr = {
     enable = true;
     hooks.postswitch."restore-background" = ''

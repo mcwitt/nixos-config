@@ -48,6 +48,8 @@
     interfaces.enp0s31f6.useDHCP = true;
   };
 
+  services.tailscale.enable = true;
+
   nix.settings = {
     trusted-users = [
       "root"

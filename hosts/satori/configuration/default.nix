@@ -80,6 +80,8 @@
 
   networking.hostName = "satori";
 
+  services.tailscale.enable = true;
+
   nix.settings.trusted-users = [
     "root"
     "@wheel"
