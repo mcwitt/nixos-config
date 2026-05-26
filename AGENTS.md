@@ -90,6 +90,10 @@ nix store prefetch-file --json --hash-type sha256 "https://files.pythonhosted.or
 - **`org-latex-preview`** (`modules/home-manager/profiles/base/emacs/org-latex-preview.nix`): pulls org-mode from the tecosaur fork (`code.tecosaur.net/tec/org-mode`, `dev` branch) for the org-latex-preview overhaul. Not yet merged into mainline org-mode — see the [org-mode mailing list thread](https://list.orgmode.org/orgmode/87lek2up0w.fsf@tec.tecosaur.net/). When it lands, drop the fork override and keep just the `usePackage.org` config. To bump the fork: `nix-prefetch-git --url https://code.tecosaur.net/tec/org-mode.git --rev dev --quiet`.
 - **`citar` + native-comp**: previously needed `packageQuickstart = lib.mkForce false` plus `(package-activate-all)` in the prelude due to a `citar-indicator` type error. Workaround removed; if it comes back, see git history.
 
+### Home-manager modules to adopt when upstreamed
+
+- **Shared agent skills** — track home-manager PR [#9247](https://github.com/nix-community/home-manager/pull/9247) (`agent-skills`: shared skills module for AI coding agents). When it lands, replace our per-harness skills injection (`gwsSkills`/`superpowersSkills` passed to each `programs.<harness>.skills` under `modules/home-manager/profiles/base/agents/`, renamed `harnesses/`) with the upstream shared module. Check status: `gh pr view 9247 --repo nix-community/home-manager`.
+
 ### TODO audit
 
 ```bash
