@@ -18,7 +18,7 @@ in
       settings.provider.llamaswap = {
         npm = "@ai-sdk/openai-compatible";
         name = "llama-swap (local)";
-        options.baseURL = "http://satori-ts:11343/v1";
+        options.baseURL = "http://satori-ts:8080/v1";
         models = {
           # key MUST match the llama-swap model name in the private repo's
           # hosts/satori/configuration/llama-swap.nix
