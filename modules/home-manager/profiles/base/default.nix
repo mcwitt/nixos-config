@@ -8,7 +8,7 @@
   options.profiles.base.enable = lib.mkEnableOption "Base configuration enabled on most machines";
 
   imports = [
-    ./agents
+    ./harnesses
     ./emacs
     ./git-annex.nix
     ./jupyter.nix
