@@ -24,6 +24,10 @@ in
           # hosts/satori/configuration/llama-swap.nix
           "Qwen3.6-27B" = {
             name = "Qwen3.6 27B (local)";
+            limit = {
+              context = 65536;
+              output = 8192;
+            };
           };
         };
       };
