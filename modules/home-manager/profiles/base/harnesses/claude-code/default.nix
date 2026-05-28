@@ -119,7 +119,7 @@ in
       enableMcpIntegration = true;
 
       settings = {
-        model = "claude-opus-4-7";
+        model = "claude-opus-4-8";
         effortLevel = "xhigh";
         permissions.defaultMode = "auto";
         skipAutoPermissionPrompt = true;
