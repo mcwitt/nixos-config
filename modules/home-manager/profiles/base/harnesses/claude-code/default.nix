@@ -120,7 +120,18 @@ in
 
       settings = {
         model = "claude-opus-4-8";
+        # `effortLevel` alone is silently ignored on Opus 4.x: a per-model
+        # "launch effort pin" (unpinOpus4{7,8}LaunchEffort, stored in the
+        # mutable ~/.claude.json) forces the model's default effort (high on
+        # 4.8) until you run `/effort` once. But `/effort` writes the new level
+        # into ~/.claude/settings.json *before* clearing the pin, and that path
+        # is a read-only Nix store symlink, so it dies with EROFS and never
+        # unpins. The CLAUDE_CODE_EFFORT_LEVEL env var sidesteps the pin
+        # entirely (top precedence in the resolver) and is model-agnostic, so
+        # it survives future model bumps. See anthropics/claude-code#52534.
+        # `effortLevel` is kept for documentation / as the unpinned fallback.
         effortLevel = "xhigh";
+        env.CLAUDE_CODE_EFFORT_LEVEL = "xhigh";
         permissions.defaultMode = "auto";
         skipAutoPermissionPrompt = true;
         editorMode = "vim";
