@@ -94,6 +94,19 @@ nix store prefetch-file --json --hash-type sha256 "https://files.pythonhosted.or
 
 - **Shared agent skills** — track home-manager PR [#9247](https://github.com/nix-community/home-manager/pull/9247) (`agent-skills`: shared skills module for AI coding agents). When it lands, replace our per-harness skills injection (`gwsSkills`/`superpowersSkills` passed to each `programs.<harness>.skills` under `modules/home-manager/profiles/base/agents/`, renamed `harnesses/`) with the upstream shared module. Check status: `gh pr view 9247 --repo nix-community/home-manager`.
 
+### satori: WezTerm GPU crashes (NVIDIA OpenGL/EGL) — revisit on driver/wezterm bumps
+
+`wezterm-gui` SIGSEGVs intermittently on satori (RTX 3090, X11), taking down every window at once (one GUI process hosts all windows). Recurring since at least April 2026 across multiple WezTerm builds, so it is unlikely to be a single WezTerm-version regression.
+
+- **Root cause:** the fault is inside `libnvidia-eglcore.so` during `glium::ops::draw::draw` ← `wezterm_gui::termwindow::...::paint_impl`, preceded ~1s earlier by `window::egl > make_current failed ... MakeCurrent: BAD_ALLOC` in the gui log. It's the NVIDIA OpenGL/EGL render path faulting, not a WezTerm logic bug.
+- **Evidence:** `coredumpctl list | grep wezterm` (cores in `/var/lib/systemd/coredump/`), then `coredumpctl info <pid>` for the crashing-thread backtrace; per-process logs at `$XDG_RUNTIME_DIR/wezterm/wezterm-gui-log-*.txt` (look for `BAD_ALLOC` / `make_current failed`).
+- **Not fixed; deliberately left on the default path.** Rejected alternatives: `front_end = "WebGpu"` is a lateral move on NVIDIA (its own crash/lag reports — incl. RTX 3090 input lag — though most are Wayland-only and we're on X11) and was previously found sluggish here; `front_end = "Software"` works but drops GPU accel; `prefer_egl = false` is a no-op on X11 (EGL is the only GPU path there).
+- **Driver state:** on the NixOS default (`nvidiaPackages.stable`), no `hardware.nvidia.package` override anywhere; `hardware.nvidia.open = true`. As of 2026-05 stable/production/latest all resolve to 595.71.05 (only `beta` differs, older at 595.45.04), so a branch switch is currently a no-op. Note `open = false` likely won't help — the fault is in userspace `libnvidia-eglcore.so`, identical between open/proprietary kernel modules.
+- **Follow-up:** when a newer NVIDIA driver or WezTerm lands in our pinned nixpkgs, retest whether the crash persists; if it recurs with a meaningfully different driver, consider pinning a specific known-good version via `hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.mkDriver { ... }`. Check the current driver version with:
+  ```bash
+  nix eval --raw '.#nixosConfigurations.satori.config.boot.kernelPackages.nvidiaPackages.stable.version'
+  ```
+
 ### TODO audit
 
 ```bash
