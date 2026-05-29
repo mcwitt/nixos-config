@@ -36,6 +36,17 @@ in
     nixify = ./skills/nixify;
   };
 
+  home.file = lib.mkIf cfg.enable (
+    let
+      memexSkill.source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/projects/memex";
+    in
+    {
+      ".claude/skills/memex" = memexSkill;
+      ".codex/skills/memex" = memexSkill;
+      ".config/opencode/skills/memex" = memexSkill;
+    }
+  );
+
   home.packages = lib.mkIf cfg.enable [
     pkgs.gws
   ];
