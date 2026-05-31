@@ -10,12 +10,20 @@ in
 
   home-assistant = prev.home-assistant.override (old: {
     packageOverrides = lib.composeExtensions (old.packageOverrides or (_: _: { })) (
-      pyFinal: _:
+      pyFinal: pyPrev:
       let
         inherit (pyFinal) callPackage;
       in
       {
         magicattr = callPackage ../packages/development/python-modules/magicattr { };
+
+        gehomesdk = pyPrev.gehomesdk.overridePythonAttrs (oldAttrs: rec {
+          version = "2026.5.4";
+          src = oldAttrs.src.override {
+            inherit version;
+            hash = "sha256-zKYe7vIXSFbtTqaCLEAHQvuDRGGXqorqfFqVVpBWuJs=";
+          };
+        });
       }
     );
   });
