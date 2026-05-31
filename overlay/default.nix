@@ -23,6 +23,7 @@ in
             inherit version;
             hash = "sha256-zKYe7vIXSFbtTqaCLEAHQvuDRGGXqorqfFqVVpBWuJs=";
           };
+          dependencies = oldAttrs.dependencies ++ [ pyFinal.beautifulsoup4 ];
         });
       }
     );
