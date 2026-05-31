@@ -10,13 +10,13 @@
 buildHomeAssistantComponent rec {
   owner = "simbaja";
   domain = "gehome";
-  version = "2026.2.0";
+  version = "2026.2.1";
 
   src = fetchFromGitHub {
     inherit owner;
     repo = "ha_gehome";
     rev = "v${version}";
-    hash = "sha256-7c2GfTagNsIsSiT/sCqSV+BZZJMcvlsecDD+ZDZx9BA=";
+    hash = "sha256-HN5Fw/uCTd3rYgESPtS24rVckzli1RCTcZI9LYgGNPk=";
   };
 
   propagatedBuildInputs = [
