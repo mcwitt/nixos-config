@@ -94,6 +94,10 @@ nix store prefetch-file --json --hash-type sha256 "https://files.pythonhosted.or
 
 - **Shared agent skills** — track home-manager PR [#9247](https://github.com/nix-community/home-manager/pull/9247) (`agent-skills`: shared skills module for AI coding agents). When it lands, replace our per-harness skills injection (`gwsSkills`/`superpowersSkills` passed to each `programs.<harness>.skills` under `modules/home-manager/profiles/base/agents/`, renamed `harnesses/`) with the upstream shared module. Check status: `gh pr view 9247 --repo nix-community/home-manager`.
 
+### Re-pin stylix to release-26.05 when it's cut
+
+The system is pinned to `nixos-26.05` (nixpkgs + home-manager on `release-26.05`), but stylix had not yet branched `release-26.05` at pin time, so `stylix.url` still tracks master with `stylix.inputs.nixpkgs.follows = "nixpkgs"`. Once danth cuts the branch, switch `stylix.url` to `github:danth/stylix/release-26.05` and drop the explanatory comment in `flake.nix`. Check: `git ls-remote --heads https://github.com/danth/stylix release-26.05`.
+
 ### satori: WezTerm GPU crashes (NVIDIA OpenGL/EGL) — revisit on driver/wezterm bumps
 
 `wezterm-gui` SIGSEGVs intermittently on satori (RTX 3090, X11), taking down every window at once (one GUI process hosts all windows). Recurring since at least April 2026 across multiple WezTerm builds, so it is unlikely to be a single WezTerm-version regression.

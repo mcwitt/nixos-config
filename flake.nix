@@ -2,7 +2,7 @@
   description = "NixOS configuration";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
     autoresearch = {
       url = "github:uditgoenka/autoresearch";
       flake = false;
@@ -13,7 +13,8 @@
     disko.inputs.nixpkgs.follows = "nixpkgs";
     emacs-overlay.url = "github:nix-community/emacs-overlay";
     flake-utils.url = "github:numtide/flake-utils";
-    home-manager.url = "github:nix-community/home-manager";
+    home-manager.url = "github:nix-community/home-manager/release-26.05";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
     llm-agents.url = "github:numtide/llm-agents.nix";
     llm-agents.inputs.nixpkgs.follows = "nixpkgs";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
@@ -25,7 +26,10 @@
       inputs.flake-utils.follows = "flake-utils";
     };
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
+    # stylix has not cut a release-26.05 branch yet; track master (still ~= 26.05
+    # for now) but follow our pinned nixpkgs. Re-pin to release-26.05 once it exists.
     stylix.url = "github:danth/stylix";
+    stylix.inputs.nixpkgs.follows = "nixpkgs";
     superpowers = {
       url = "github:obra/superpowers";
       flake = false;
