@@ -94,6 +94,7 @@ main = do
                           ("M-k", focusUp),
                           ("M-m", focusMaster),
                           ("M-<Tab>", removeEmptyWorkspaceAfter historyToggle),
+                          ("M-S-u", focusAttention),
                           ("M-o", easyFocus),
                           ("M-S-o", easySwap),
                           -- resizable 3col
@@ -400,6 +401,10 @@ myManageHook =
 myHandleEventHook =
   fixSteamFlicker
     <+> onXPropertyChange "WM_NAME" manageZoomHook
+    -- External wake from the workspace-attention CLI: `xmonadctl
+    -- agent-attention-refresh` re-runs the logHook so bells appear promptly.
+    -- Fixed one-command list => no arbitrary-exec exposure to X clients.
+    <+> serverModeEventHookCmd' (pure [("agent-attention-refresh", refresh)])
     <+> handleEventHook def
 
 -- https://www.peterstuart.org/posts/2021-09-06-xmonad-zoom/
@@ -641,6 +646,31 @@ historyToggle = do
   current <- gets (W.currentTag . windowset)
   let prev = find (\t -> t /= current && t /= scratchpadWorkspaceTag) hist
   whenJust prev (windows . W.greedyView)
+
+-- Jump to the next thing needing attention: window-urgent windows (focus the
+-- window) or agent-attention workspaces (view the workspace). Off-screen targets
+-- only; window-urgent first. Acting on a target makes it visible, so it drops
+-- out next press — repeated M-S-u cycles through everything. Agent jumps are
+-- workspace-level by necessity (no agent window handle exists; see the design).
+focusAttention :: X ()
+focusAttention = do
+  ws <- gets windowset
+  let curr = W.currentTag ws
+      visibleTags = curr : map (W.tag . W.workspace) (W.visible ws)
+  urgents <- readUrgents
+  existing <- existingTags
+  paths <- io (tagPaths existing)
+  entries <- io readAttn
+  let urgentByTag = mapMaybe (\w -> (\t -> (t, w)) <$> W.findTag w ws) urgents
+      agentTags = mapMaybe (attnTag existing paths) entries
+      targets =
+        filter (`notElem` visibleTags) . nub $
+          map fst urgentByTag ++ agentTags
+  case targets of
+    [] -> pure ()
+    (t : _) -> case lookup t urgentByTag of
+      Just w -> windows (W.focusWindow w)
+      Nothing -> windows (W.greedyView t)
 
 -- View or create-then-view a workspace, picked from the full candidate set
 -- (existing + all namespace entries). Bound to M-n.
