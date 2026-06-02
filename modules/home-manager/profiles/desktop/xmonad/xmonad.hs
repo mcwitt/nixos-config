@@ -5,12 +5,12 @@ import Control.Monad (forM, when)
 import qualified DBus as D
 import qualified DBus.Client as D
 import Data.Bifunctor (first)
-import Data.List (find, isPrefixOf, sort)
+import Data.List (find, isPrefixOf, isSuffixOf, nub, sort, sortOn)
 import Data.Maybe (catMaybes, isJust, mapMaybe)
 import Data.Ratio ((%))
 import qualified Data.Set as Set
 import Graphics.X11.ExtraTypes.XF86
-import System.Directory (doesDirectoryExist, doesPathExist, getHomeDirectory, listDirectory)
+import System.Directory (doesDirectoryExist, doesPathExist, getHomeDirectory, listDirectory, removeFile, renameFile)
 import System.FilePath ((</>))
 import XMonad
 import XMonad.Actions.CycleWS (shiftNextScreen, swapNextScreen)
@@ -25,8 +25,11 @@ import XMonad.Hooks.FloatConfigureReq (fixSteamFlicker)
 import XMonad.Hooks.ManageDocks (avoidStruts, docks, manageDocks)
 import XMonad.Hooks.OnPropertyChange (onXPropertyChange)
 import XMonad.Hooks.StatusBar.PP (filterOutWsPP)
-import XMonad.Hooks.UrgencyHook (UrgencyHook (..), focusUrgent, readUrgents, withUrgencyHook)
+import XMonad.Hooks.UrgencyHook (UrgencyHook (..), readUrgents, withUrgencyHook)
+import XMonad.Hooks.ServerMode (serverModeEventHookCmd')
 import XMonad.Hooks.WorkspaceHistory (workspaceHistory, workspaceHistoryHook)
+import System.Environment (lookupEnv)
+import System.IO (readFile')
 import XMonad.Layout.BoringWindows (boringWindows, focusDown, focusMaster, focusUp)
 import XMonad.Layout.IndependentScreens (countScreens)
 import XMonad.Layout.Minimize (minimize)
@@ -91,7 +94,6 @@ main = do
                           ("M-k", focusUp),
                           ("M-m", focusMaster),
                           ("M-<Tab>", removeEmptyWorkspaceAfter historyToggle),
-                          ("M-S-u", focusUrgent),
                           ("M-o", easyFocus),
                           ("M-S-o", easySwap),
                           -- resizable 3col
@@ -206,13 +208,18 @@ mkPolybarLogHook output = do
   windowCount <- withWindowSet (pure . length . W.index)
   minimizedCount <- withMinimized (pure . length)
   currentTag <- gets (W.currentTag . windowset)
+  visibleOther <- gets (map (W.tag . W.workspace) . W.visible . windowset)
+  existing <- existingTags
+  let visibleTags = currentTag : visibleOther
+  agentTags <- processAttention existing visibleTags
   let urgentExtras = do
         urgents <- readUrgents
         ws <- gets windowset
-        let tags =
-              Set.toList . Set.fromList . filter validTag $
-                mapMaybe (`W.findTag` ws) urgents
-            validTag t = t /= currentTag && t /= scratchpadWorkspaceTag
+        let winTags = mapMaybe (`W.findTag` ws) urgents
+            tags =
+              Set.toList . Set.fromList $
+                filter validTag (winTags ++ agentTags)
+            validTag t = t `notElem` visibleTags && t /= scratchpadWorkspaceTag
         pure $ case tags of
           [] -> Nothing
           _ -> Just $ highlight colorBase0A (bellIcon ++ " " ++ unwords tags)
@@ -241,8 +248,128 @@ mkPolybarLogHook output = do
   where
     positive n = if n > 0 then Just n else Nothing
     color c = wrap ("%{F" ++ c ++ "}") "%{F-}"
-    highlight bg = wrap ("%{B" ++ bg ++ "}%{F" ++ colorBase01 ++ "} ") " %{F-}%{B-}"
+    -- Dark text on the yellow (base0A) background; base01 was too low-contrast.
+    -- NOTE: assumes a dark theme (base00 = darkest). On a light theme use a dark
+    -- foreground such as base07 instead.
+    highlight bg = wrap ("%{B" ++ bg ++ "}%{F" ++ colorBase00 ++ "} ") " %{F-}%{B-}"
     bellIcon = "\xf0f3"
+
+-- Agent attention: a cross-process channel under $XDG_RUNTIME_DIR. The
+-- `workspace-attention` CLI writes one file per attention episode; xmonad reads
+-- them here, attributes each to an existing workspace, renders off-screen ones
+-- as urgent, fires a dunst popup once per episode, and clears on view. Keep the
+-- subdir name in sync with workspace-attention.sh.
+attentionSubdir :: FilePath
+attentionSubdir = "workspace-attention"
+
+data Attn = Attn
+  { attnFile :: FilePath, -- absolute path to the state file (may end ".seen")
+    attnIdent :: Either FilePath String, -- Left cwd | Right explicit tag
+    attnSource :: String,
+    attnMessage :: String,
+    attnNotified :: Bool -- True iff the popup already fired (".seen" suffix)
+  }
+
+attentionDir :: IO (Maybe FilePath)
+attentionDir = fmap (</> attentionSubdir) <$> lookupEnv "XDG_RUNTIME_DIR"
+
+-- Read and parse all state files. Robust to a missing dir / unreadable files.
+readAttn :: IO [Attn]
+readAttn = do
+  mdir <- attentionDir
+  case mdir of
+    Nothing -> pure []
+    Just dir -> do
+      ok <- safeIO False (doesDirectoryExist dir)
+      if not ok
+        then pure []
+        else do
+          names <- safeIO [] (listDirectory dir)
+          catMaybes <$> traverse (parseAttn dir) names
+
+parseAttn :: FilePath -> FilePath -> IO (Maybe Attn)
+parseAttn dir name = do
+  let path = dir </> name
+      notified = ".seen" `isSuffixOf` name
+  -- Ignore the CLI's in-flight temp files.
+  if ".tmp." `isPrefixOf` name
+    then pure Nothing
+    else do
+      contents <- safeIO "" (readFile' path)
+      let kv =
+            mapMaybe
+              ( \l -> case break (== '=') l of
+                  (k, '=' : v) -> Just (k, v)
+                  _ -> Nothing
+              )
+              (lines contents)
+          ident = case (lookup "tag" kv, lookup "cwd" kv) of
+            (Just t, _) -> Just (Right t)
+            (_, Just c) -> Just (Left c)
+            _ -> Nothing
+      pure $
+        ( \i ->
+            Attn
+              path
+              i
+              (maybe "agent" id (lookup "source" kv))
+              (maybe "needs attention" id (lookup "message" kv))
+              notified
+        )
+          <$> ident
+
+-- True iff `anc` is `path` or a path-component ancestor of it.
+isAncestorOf :: FilePath -> FilePath -> Bool
+isAncestorOf anc path = path == anc || (anc ++ "/") `isPrefixOf` path
+
+-- The longest existing tag whose resolved directory is an ancestor of cwd.
+attributeCwd :: [(String, FilePath)] -> FilePath -> Maybe String
+attributeCwd tagPathList cwd =
+  case sortOn (negate . length . snd) [tp | tp@(_, p) <- tagPathList, p `isAncestorOf` cwd] of
+    ((t, _) : _) -> Just t
+    [] -> Nothing
+
+-- Map each path-namespaced existing tag to its resolved directory (string only).
+tagPaths :: [String] -> IO [(String, FilePath)]
+tagPaths tags = do
+  nss <- namespaces
+  pure
+    [ (tag, nsRoot ns </> key)
+      | tag <- tags,
+        Just (pfx, key) <- [splitWorkspace tag],
+        Just ns <- [findNamespace pfx nss]
+    ]
+
+-- The workspace tag an entry belongs to, or Nothing if it cannot be placed.
+attnTag :: [String] -> [(String, FilePath)] -> Attn -> Maybe String
+attnTag existing paths e = case attnIdent e of
+  Right t -> if t `elem` existing then Just t else Nothing
+  Left cwd -> attributeCwd paths cwd
+
+safeRemoveFile :: FilePath -> IO ()
+safeRemoveFile p = safeIO () (removeFile p)
+
+markSeen :: FilePath -> IO ()
+markSeen p = safeIO () (renameFile p (p ++ ".seen"))
+
+-- Side-effecting per render: clear markers for visible workspaces, fire a popup
+-- for each newly-attributed off-screen one, and return the off-screen tags that
+-- should show the bell.
+processAttention :: [String] -> [String] -> X [String]
+processAttention existing visibleTags = do
+  paths <- io (tagPaths existing)
+  entries <- io readAttn
+  fmap catMaybes . forM entries $ \e ->
+    case attnTag existing paths e of
+      Nothing -> pure Nothing
+      Just t
+        | t `elem` visibleTags ->
+            io (safeRemoveFile (attnFile e)) >> pure Nothing
+        | otherwise -> do
+            when (not (attnNotified e)) $ do
+              safeSpawn notifySend ["-a", attnSource e, "-u", "normal", t, attnMessage e]
+              io (markSeen (attnFile e))
+            pure (Just t)
 
 setupLogOutput :: IO (String -> IO ())
 setupLogOutput = do
@@ -358,6 +485,9 @@ runRofi candidates = do
 
 data Namespace = Namespace
   { nsPrefix :: String,
+    -- | Absolute root directory for this namespace (e.g. ~/projects). Used by
+    -- attribution to map an existing tag back to its path by string only.
+    nsRoot :: FilePath,
     -- | Resolve a key (no prefix) to an absolute path. Nothing if the path
     -- does not exist on disk.
     nsResolve :: String -> IO (Maybe FilePath),
@@ -384,6 +514,7 @@ mkPathNamespace ::
 mkPathNamespace prefix root depth markers =
   Namespace
     { nsPrefix = prefix,
+      nsRoot = root,
       nsResolve = resolve,
       nsCandidates = enumerate
     }
