@@ -186,16 +186,6 @@ in
       settings =
         let
           colors = config.lib.stylix.colors.withHashtag;
-          # Subtle red background wash for critical notifications, taken from the
-          # modus theme family the palette derives from (bg-red-subtle). Stylix
-          # leaves critical on the normal background; this makes it pop beyond the
-          # frame alone. The "FF" suffix matches the alpha stylix computes for
-          # popups (popup opacity is 1.0).
-          criticalBg =
-            if config.stylix.polarity == "dark" then
-              "#620f2aFF" # modus-vivendi bg-red-subtle
-            else
-              "#ffcfbfFF"; # modus-operandi bg-red-subtle
         in
         {
           global = {
@@ -203,20 +193,22 @@ in
             markup = "full";
             max_icon_size = 100;
             text_icon_padding = 10;
+            scale = 1;
+            frame_width = 6;
+            origin = "top-right";
+            offset = "12x58";
+            width = 450;
           };
 
-          # Align the normal-urgency frame/highlight with the desktop focus color.
-          # xmonad's focusedBorderColor, the active tab, and polybar's primary all
-          # use base06; stylix defaults dunst to base0D, which clashes. low
-          # (base03) and critical (base08) already match the window manager.
+          urgency_low.foreground = lib.mkForce colors.base04;
+
           urgency_normal = {
             frame_color = lib.mkForce colors.base06;
             highlight = lib.mkForce colors.base06;
+            foreground = lib.mkForce colors.base06;
           };
 
-          # Keep the red (base08) frame, but add a subtle red background tint so
-          # critical notifications stand out beyond the frame alone.
-          urgency_critical.background = lib.mkForce criticalBg;
+          urgency_critical.foreground = lib.mkForce colors.base08;
         };
     };
 
