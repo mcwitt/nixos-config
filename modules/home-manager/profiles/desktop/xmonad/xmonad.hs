@@ -1,17 +1,19 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 import Control.Exception (IOException, handle)
-import Control.Monad (forM, when)
+import Control.Monad (forM, unless, when)
 import qualified DBus as D
 import qualified DBus.Client as D
 import Data.Bifunctor (first)
 import Data.List (find, isPrefixOf, isSuffixOf, nub, sort, sortOn)
-import Data.Maybe (catMaybes, isJust, mapMaybe)
+import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe)
 import Data.Ratio ((%))
 import qualified Data.Set as Set
 import Graphics.X11.ExtraTypes.XF86
 import System.Directory (doesDirectoryExist, doesPathExist, getHomeDirectory, listDirectory, removeFile, renameFile)
+import System.Environment (lookupEnv)
 import System.FilePath ((</>))
+import System.IO (readFile')
 import XMonad
 import XMonad.Actions.CycleWS (shiftNextScreen, swapNextScreen)
 import XMonad.Actions.DynamicWorkspaces (addHiddenWorkspace, addWorkspace, removeEmptyWorkspaceAfter, renameWorkspaceByName)
@@ -24,12 +26,10 @@ import XMonad.Hooks.EwmhDesktops (ewmh, ewmhFullscreen)
 import XMonad.Hooks.FloatConfigureReq (fixSteamFlicker)
 import XMonad.Hooks.ManageDocks (avoidStruts, docks, manageDocks)
 import XMonad.Hooks.OnPropertyChange (onXPropertyChange)
+import XMonad.Hooks.ServerMode (serverModeEventHookCmd')
 import XMonad.Hooks.StatusBar.PP (filterOutWsPP)
 import XMonad.Hooks.UrgencyHook (UrgencyHook (..), readUrgents, withUrgencyHook)
-import XMonad.Hooks.ServerMode (serverModeEventHookCmd')
 import XMonad.Hooks.WorkspaceHistory (workspaceHistory, workspaceHistoryHook)
-import System.Environment (lookupEnv)
-import System.IO (readFile')
 import XMonad.Layout.BoringWindows (boringWindows, focusDown, focusMaster, focusUp)
 import XMonad.Layout.IndependentScreens (countScreens)
 import XMonad.Layout.Minimize (minimize)
@@ -313,8 +313,8 @@ parseAttn dir name = do
             Attn
               path
               i
-              (maybe "agent" id (lookup "source" kv))
-              (maybe "needs attention" id (lookup "message" kv))
+              (fromMaybe "agent" (lookup "source" kv))
+              (fromMaybe "needs attention" (lookup "message" kv))
               notified
         )
           <$> ident
@@ -336,9 +336,9 @@ tagPaths tags = do
   nss <- namespaces
   pure
     [ (tag, nsRoot ns </> key)
-      | tag <- tags,
-        Just (pfx, key) <- [splitWorkspace tag],
-        Just ns <- [findNamespace pfx nss]
+    | tag <- tags,
+      Just (pfx, key) <- [splitWorkspace tag],
+      Just ns <- [findNamespace pfx nss]
     ]
 
 -- The workspace tag an entry belongs to, or Nothing if it cannot be placed.
@@ -367,7 +367,7 @@ processAttention existing visibleTags = do
         | t `elem` visibleTags ->
             io (safeRemoveFile (attnFile e)) >> pure Nothing
         | otherwise -> do
-            when (not (attnNotified e)) $ do
+            unless (attnNotified e) $ do
               safeSpawn notifySend ["-a", attnSource e, "-u", "normal", t, attnMessage e]
               io (markSeen (attnFile e))
             pure (Just t)
@@ -661,7 +661,7 @@ focusAttention = do
   existing <- existingTags
   paths <- io (tagPaths existing)
   entries <- io readAttn
-  let urgentByTag = mapMaybe (\w -> (\t -> (t, w)) <$> W.findTag w ws) urgents
+  let urgentByTag = [(t, w) | w <- urgents, Just t <- [W.findTag w ws]]
       agentTags = mapMaybe (attnTag existing paths) entries
       targets =
         filter (`notElem` visibleTags) . nub $
