@@ -16,6 +16,7 @@ in
     ./firefox.nix
     ./polybar.nix
     ./rofi.nix
+    ./workspace-attention.nix
     ./xmonad.nix
   ];
 
