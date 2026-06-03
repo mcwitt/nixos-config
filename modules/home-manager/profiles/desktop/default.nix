@@ -198,7 +198,7 @@ in
             frame_width = 6;
             origin = "top-right";
             offset = "12x58";
-            width = 450;
+            width = 600;
           };
 
           urgency_low.foreground = lib.mkForce colors.base04;
