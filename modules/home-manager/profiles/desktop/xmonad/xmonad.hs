@@ -1,7 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 import Control.Exception (IOException, handle)
-import Control.Monad (forM, unless, when)
+import Control.Monad (forM, forM_, unless, when)
 import qualified DBus as D
 import qualified DBus.Client as D
 import Data.Bifunctor (first)
@@ -60,8 +60,6 @@ colorBase05 = "@colorBase05@"
 colorBase06 = "@colorBase06@"
 
 colorBase08 = "@colorBase08@"
-
-colorBase0A = "@colorBase0A@"
 
 fontMono = "@fontMono@"
 
@@ -186,8 +184,8 @@ myLayoutHook =
 
     diminish = (renamed [CutWordsLeft 1] .)
 
--- Fires a dunst notification when a window signals urgency. The framework
--- deduplicates per window, so this is safe to leave unconditional.
+-- Fires a dunst popup when a window signals urgency; the framework dedupes per
+-- window, so it is safe to leave unconditional.
 data NotifyUrgencyHook = NotifyUrgencyHook deriving (Read, Show)
 
 instance UrgencyHook NotifyUrgencyHook where
@@ -197,13 +195,6 @@ instance UrgencyHook NotifyUrgencyHook where
     let body = maybe (show name) (\t -> "[" ++ t ++ "] " ++ show name) wsTag
     safeSpawn notifySend ["-a", "xmonad", "Urgent window", body]
 
--- Renders "<current-ws> [🔔 <urgent-ws...>] | <layout> [count] (min) | <title>"
--- to the polybar DBus channel. The workspace strip always shows the current
--- workspace's tag, even when it contains an urgent window. Off-screen urgent
--- workspaces are listed in a single bell-prefixed highlight injected via
--- ppExtras — the alternative (per-workspace ppUrgent) would have given each
--- one its own highlight box, and would have replaced the current label with
--- empty/urgent style when the current workspace was urgent.
 mkPolybarLogHook :: (String -> IO ()) -> X ()
 mkPolybarLogHook output = do
   windowCount <- withWindowSet (pure . length . W.index)
@@ -212,18 +203,8 @@ mkPolybarLogHook output = do
   visibleOther <- gets (map (W.tag . W.workspace) . W.visible . windowset)
   existing <- existingTags
   let visibleTags = currentTag : visibleOther
-  agentTags <- processAttention existing visibleTags
-  let urgentExtras = do
-        urgents <- readUrgents
-        ws <- gets windowset
-        let winTags = mapMaybe (`W.findTag` ws) urgents
-            tags =
-              Set.toList . Set.fromList $
-                filter validTag (winTags ++ agentTags)
-            validTag t = t `notElem` visibleTags && t /= scratchpadWorkspaceTag
-        pure $ case tags of
-          [] -> Nothing
-          _ -> Just $ highlight colorBase0A (bellIcon ++ " " ++ unwords tags)
+  -- Run for its popup + clear-on-view side effects; the result is unused here.
+  processAttention existing visibleTags
   dynamicLogWithPP $
     filterOutWsPP [scratchpadWorkspaceTag] $
       def
@@ -234,7 +215,6 @@ mkPolybarLogHook output = do
           ppHidden = const "",
           ppHiddenNoWindows = const "",
           ppUrgent = \t -> if t == currentTag then t else "",
-          ppExtras = [urgentExtras],
           ppLayout =
             let windowCountLabel =
                   unwords $
@@ -243,38 +223,29 @@ mkPolybarLogHook output = do
                         color colorBase04 . wrap "(" ")" . show <$> positive minimizedCount
                       ]
              in (++ " " ++ windowCountLabel),
-          ppOrder = \(ws : l : win : extras) -> ws : extras ++ [l, win],
           ppOutput = output
         }
   where
     positive n = if n > 0 then Just n else Nothing
     color c = wrap ("%{F" ++ c ++ "}") "%{F-}"
-    -- Dark text on the yellow (base0A) background; base01 was too low-contrast.
-    -- NOTE: assumes a dark theme (base00 = darkest). On a light theme use a dark
-    -- foreground such as base07 instead.
-    highlight bg = wrap ("%{B" ++ bg ++ "}%{F" ++ colorBase00 ++ "} ") " %{F-}%{B-}"
-    bellIcon = "\xf0f3"
 
--- Agent attention: a cross-process channel under $XDG_RUNTIME_DIR. The
--- `workspace-attention` CLI writes one file per attention episode; xmonad reads
--- them here, attributes each to an existing workspace, renders off-screen ones
--- as urgent, fires a dunst popup once per episode, and clears on view. Keep the
--- subdir name in sync with workspace-attention.sh.
+-- Agent attention: state files under $XDG_RUNTIME_DIR written by the
+-- workspace-attention CLI and read here. Keep in sync with workspace-attention.sh.
 attentionSubdir :: FilePath
 attentionSubdir = "workspace-attention"
 
 data Attn = Attn
-  { attnFile :: FilePath, -- absolute path to the state file (may end ".seen")
+  { attnFile :: FilePath, -- state file path (".seen" suffix once notified)
     attnIdent :: Either FilePath String, -- Left cwd | Right explicit tag
     attnSource :: String,
     attnMessage :: String,
-    attnNotified :: Bool -- True iff the popup already fired (".seen" suffix)
+    attnNotified :: Bool -- popup already fired (".seen" file)
   }
 
 attentionDir :: IO (Maybe FilePath)
 attentionDir = fmap (</> attentionSubdir) <$> lookupEnv "XDG_RUNTIME_DIR"
 
--- Read and parse all state files. Robust to a missing dir / unreadable files.
+-- Tolerant of a missing dir or unreadable files (returns []).
 readAttn :: IO [Attn]
 readAttn = do
   mdir <- attentionDir
@@ -292,7 +263,7 @@ parseAttn :: FilePath -> FilePath -> IO (Maybe Attn)
 parseAttn dir name = do
   let path = dir </> name
       notified = ".seen" `isSuffixOf` name
-  -- Ignore the CLI's in-flight temp files.
+  -- Skip the CLI's in-flight atomic-write temp files.
   if ".tmp." `isPrefixOf` name
     then pure Nothing
     else do
@@ -319,18 +290,18 @@ parseAttn dir name = do
         )
           <$> ident
 
--- True iff `anc` is `path` or a path-component ancestor of it.
+-- `anc` is `path` or a path-component ancestor (not a bare string prefix).
 isAncestorOf :: FilePath -> FilePath -> Bool
 isAncestorOf anc path = path == anc || (anc ++ "/") `isPrefixOf` path
 
--- The longest existing tag whose resolved directory is an ancestor of cwd.
+-- Longest existing tag whose resolved directory is an ancestor of cwd.
 attributeCwd :: [(String, FilePath)] -> FilePath -> Maybe String
 attributeCwd tagPathList cwd =
   case sortOn (negate . length . snd) [tp | tp@(_, p) <- tagPathList, p `isAncestorOf` cwd] of
     ((t, _) : _) -> Just t
     [] -> Nothing
 
--- Map each path-namespaced existing tag to its resolved directory (string only).
+-- Resolve each path-namespaced tag to its directory (by string; no disk check).
 tagPaths :: [String] -> IO [(String, FilePath)]
 tagPaths tags = do
   nss <- namespaces
@@ -341,7 +312,6 @@ tagPaths tags = do
       Just ns <- [findNamespace pfx nss]
     ]
 
--- The workspace tag an entry belongs to, or Nothing if it cannot be placed.
 attnTag :: [String] -> [(String, FilePath)] -> Attn -> Maybe String
 attnTag existing paths e = case attnIdent e of
   Right t -> if t `elem` existing then Just t else Nothing
@@ -353,24 +323,21 @@ safeRemoveFile p = safeIO () (removeFile p)
 markSeen :: FilePath -> IO ()
 markSeen p = safeIO () (renameFile p (p ++ ".seen"))
 
--- Side-effecting per render: clear markers for visible workspaces, fire a popup
--- for each newly-attributed off-screen one, and return the off-screen tags that
--- should show the bell.
-processAttention :: [String] -> [String] -> X [String]
+-- Side effects per render: clear markers for visible workspaces; fire a dunst
+-- popup once per off-screen episode.
+processAttention :: [String] -> [String] -> X ()
 processAttention existing visibleTags = do
   paths <- io (tagPaths existing)
   entries <- io readAttn
-  fmap catMaybes . forM entries $ \e ->
+  forM_ entries $ \e ->
     case attnTag existing paths e of
-      Nothing -> pure Nothing
+      Nothing -> pure ()
       Just t
-        | t `elem` visibleTags ->
-            io (safeRemoveFile (attnFile e)) >> pure Nothing
-        | otherwise -> do
+        | t `elem` visibleTags -> io (safeRemoveFile (attnFile e))
+        | otherwise ->
             unless (attnNotified e) $ do
               safeSpawn notifySend ["-a", attnSource e, "-u", "normal", t, attnMessage e]
               io (markSeen (attnFile e))
-            pure (Just t)
 
 setupLogOutput :: IO (String -> IO ())
 setupLogOutput = do
@@ -401,9 +368,9 @@ myManageHook =
 myHandleEventHook =
   fixSteamFlicker
     <+> onXPropertyChange "WM_NAME" manageZoomHook
-    -- External wake from the workspace-attention CLI: `xmonadctl
-    -- agent-attention-refresh` re-runs the logHook so bells appear promptly.
-    -- Fixed one-command list => no arbitrary-exec exposure to X clients.
+    -- External wake from the workspace-attention CLI (`xmonadctl
+    -- agent-attention-refresh`): re-runs the logHook so popups fire promptly.
+    -- Fixed command list => no arbitrary exec exposed to X clients.
     <+> serverModeEventHookCmd' (pure [("agent-attention-refresh", refresh)])
     <+> handleEventHook def
 
@@ -647,11 +614,9 @@ historyToggle = do
   let prev = find (\t -> t /= current && t /= scratchpadWorkspaceTag) hist
   whenJust prev (windows . W.greedyView)
 
--- Jump to the next thing needing attention: window-urgent windows (focus the
--- window) or agent-attention workspaces (view the workspace). Off-screen targets
--- only; window-urgent first. Acting on a target makes it visible, so it drops
--- out next press — repeated M-S-u cycles through everything. Agent jumps are
--- workspace-level by necessity (no agent window handle exists; see the design).
+-- Jump to the next off-screen thing needing attention: an urgent window (focus
+-- it) or an agent-attention workspace (view it). Acting makes the target
+-- visible, so repeated presses cycle through everything.
 focusAttention :: X ()
 focusAttention = do
   ws <- gets windowset
