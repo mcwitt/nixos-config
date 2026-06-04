@@ -26,9 +26,7 @@
       inputs.flake-utils.follows = "flake-utils";
     };
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
-    # stylix has not cut a release-26.05 branch yet; track master (still ~= 26.05
-    # for now) but follow our pinned nixpkgs. Re-pin to release-26.05 once it exists.
-    stylix.url = "github:danth/stylix";
+    stylix.url = "github:danth/stylix/release-26.05";
     stylix.inputs.nixpkgs.follows = "nixpkgs";
     superpowers = {
       url = "github:obra/superpowers";

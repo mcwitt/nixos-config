@@ -17,8 +17,6 @@
 
   config = lib.mkIf config.profiles.base.enable {
     fonts.fontconfig.enable = true;
-    # Don't force the GTK3 theme onto GTK4 apps (libadwaita renders better unthemed).
-    gtk.gtk4.theme = null;
 
     home.packages = with pkgs; [
       delta
