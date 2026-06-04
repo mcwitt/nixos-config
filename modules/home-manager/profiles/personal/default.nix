@@ -142,10 +142,5 @@ in
           ;
       };
     };
-
-    tools = {
-      # aws.enable = true;
-      kubernetes.enable = true;
-    };
   };
 }

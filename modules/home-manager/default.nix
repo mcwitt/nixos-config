@@ -4,6 +4,5 @@
     ./languages
     ./profiles
     ./programs
-    ./tools
   ];
 }

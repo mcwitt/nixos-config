@@ -1,6 +1,0 @@
-{
-  imports = [
-    ./aws
-    ./kubernetes
-  ];
-}
