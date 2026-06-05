@@ -90,7 +90,6 @@ main = do
                           ("M-m", focusMaster),
                           ("M-<Tab>", removeEmptyWorkspaceAfter historyToggle),
                           ("M-S-u", focusAttention),
-                          ("M-S-g", spawn "claude-agents-attach"),
                           ("M-o", easyFocus),
                           ("M-S-o", easySwap),
                           -- resizable 3col
@@ -133,7 +132,6 @@ main = do
                           ("M-; a", namedScratchpadAction scratchpads "emacs-org-agenda"),
                           ("M-; =", namedScratchpadAction scratchpads "emacs-calc"),
                           ("M-; m", namedScratchpadAction scratchpads "spotify"),
-                          ("M-; g", namedScratchpadAction scratchpads "claude-agents"),
                           -- rofi menus (M-' submap)
                           ("M-' s", spawn "rofi -show ssh"),
                           ("M-' e", spawn "rofi -show emoji"),
@@ -591,12 +589,7 @@ scratchpads =
       "emacs-calc"
       "emacsclient -c -n -F '((name . \"full-calc-dedicated\"))' -e '(full-calc)'"
       (title =? "full-calc-dedicated")
-      scratchpadFloat,
-    NS
-      "claude-agents"
-      "wezterm start --class wezterm-claude-agents --cwd $HOME/projects -- claude agents"
-      (className =? "wezterm-claude-agents")
-      (customFloating $ W.RationalRect (1 / 20) (1 / 20) (9 / 10) (9 / 10))
+      scratchpadFloat
   ]
     ++ [mkTermAppScratchpad "btop"]
   where

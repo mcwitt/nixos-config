@@ -16,7 +16,6 @@ in
     ./firefox.nix
     ./polybar.nix
     ./rofi.nix
-    ./claude-agents-attach.nix
     ./xmonad.nix
   ];
 
