@@ -18,24 +18,6 @@ let
   chromeRgb = rgbTriple "base04";
   yellowRgb = rgbTriple "base0A";
   redRgb = rgbTriple "base08";
-  agentNotifyApp = pkgs.writeShellApplication {
-    name = "claude-agent-notify";
-    # Only jq/libnotify/coreutils are pinned; `claude` (for `claude agents
-    # --json`) is resolved from the session PATH at hook runtime (the hook always
-    # runs inside a live claude process), which avoids a closure dep / eval cycle.
-    runtimeInputs = [
-      pkgs.jq
-      pkgs.libnotify
-      pkgs.coreutils
-    ];
-    text = builtins.readFile ./claude-agent-notify.sh;
-  };
-  # Audio cue for claude-agent-notify (empty => no sound), passed via env so the
-  # script stays pure/testable. peon-ping is retained purely as this sound source.
-  agentNotifySound = lib.optionalString config.programs.peon-ping.enable "${config.programs.peon-ping.package}/bin/peon";
-  agentNotify =
-    mode:
-    "CLAUDE_AGENT_NOTIFY_SOUND=${agentNotifySound} ${agentNotifyApp}/bin/claude-agent-notify ${mode}";
   statuslineScript = pkgs.writeShellScript "claude-statusline" ''
     mapfile -t f < <(
       ${pkgs.jq}/bin/jq -r '
@@ -158,34 +140,6 @@ in
         statusLine = {
           type = "command";
           command = "${statuslineScript}";
-        };
-        hooks = lib.optionalAttrs config.profiles.desktop.enable {
-          # Fires when the agent is blocked waiting on the user. No matcher =>
-          # fires on every Notification event (audio + dunst, both via
-          # claude-agent-notify); a matcher can be added later to drop e.g. auth
-          # pings.
-          Notification = [
-            {
-              hooks = [
-                {
-                  type = "command";
-                  command = agentNotify "needs-input";
-                }
-              ];
-            }
-          ];
-          # Fires on turn-end; the script no-ops unless CLAUDE_JOB_DIR is set
-          # (i.e. only background agent-view sessions, not foreground ones).
-          Stop = [
-            {
-              hooks = [
-                {
-                  type = "command";
-                  command = agentNotify "done";
-                }
-              ];
-            }
-          ];
         };
       };
 

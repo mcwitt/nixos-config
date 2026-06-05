@@ -750,29 +750,6 @@
         "type": "github"
       }
     },
-    "peon-ping": {
-      "inputs": {
-        "flake-utils": [
-          "flake-utils"
-        ],
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1780075346,
-        "narHash": "sha256-wR1Leg87cNsidP5gQ5aDcgyB58P7wYU1pe92/k1fnag=",
-        "owner": "PeonPing",
-        "repo": "peon-ping",
-        "rev": "7aaa44bcf512ea463d36bec0120a088cdc006956",
-        "type": "github"
-      },
-      "original": {
-        "owner": "PeonPing",
-        "repo": "peon-ping",
-        "type": "github"
-      }
-    },
     "pre-commit-hooks": {
       "inputs": {
         "flake-compat": "flake-compat_2",
@@ -807,7 +784,6 @@
         "nixos-raspberrypi": "nixos-raspberrypi",
         "nixpkgs": "nixpkgs_6",
         "nur": "nur",
-        "peon-ping": "peon-ping",
         "pre-commit-hooks": "pre-commit-hooks",
         "stylix": "stylix",
         "superpowers": "superpowers"

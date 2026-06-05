@@ -1,6 +1,5 @@
 {
   config,
-  inputs,
   lib,
   pkgs,
   ...
@@ -12,7 +11,6 @@ in
   options.profiles.desktop.enable = lib.mkEnableOption "Profile for machines with graphical desktops";
 
   imports = [
-    inputs.peon-ping.homeManagerModules.default
     ./firefox.nix
     ./polybar.nix
     ./rofi.nix
@@ -25,7 +23,6 @@ in
       pkgs.pavucontrol
       pkgs.xclip
       pkgs.thunar
-      inputs.peon-ping.packages.${pkgs.stdenv.hostPlatform.system}.default
     ];
 
     programs.chromium = {
@@ -48,22 +45,6 @@ in
     programs.feh.enable = true;
 
     programs.mpv.enable = true;
-
-    programs.peon-ping = {
-      enable = true;
-      package = inputs.peon-ping.packages.${pkgs.stdenv.hostPlatform.system}.default;
-      installPacks = [
-        "peon"
-      ];
-      settings = {
-        default_pack = "peon";
-        enabled = true;
-        volume = 1.0;
-        desktop_notifications = false;
-      };
-      enableBashIntegration = false;
-      enableZshIntegration = false;
-    };
 
     programs.wezterm = {
       enable = true;
