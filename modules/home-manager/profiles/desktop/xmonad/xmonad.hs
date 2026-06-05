@@ -1,19 +1,17 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 import Control.Exception (IOException, handle)
-import Control.Monad (forM, forM_, unless, when)
+import Control.Monad (forM, when)
 import qualified DBus as D
 import qualified DBus.Client as D
 import Data.Bifunctor (first)
-import Data.List (find, isPrefixOf, isSuffixOf, nub, sort, sortOn)
-import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe)
+import Data.List (find, isPrefixOf, nub, sort)
+import Data.Maybe (catMaybes, isJust)
 import Data.Ratio ((%))
 import qualified Data.Set as Set
 import Graphics.X11.ExtraTypes.XF86
-import System.Directory (doesDirectoryExist, doesPathExist, getHomeDirectory, listDirectory, removeFile, renameFile)
-import System.Environment (lookupEnv)
+import System.Directory (doesDirectoryExist, doesPathExist, getHomeDirectory, listDirectory)
 import System.FilePath ((</>))
-import System.IO (readFile')
 import XMonad
 import XMonad.Actions.CycleWS (shiftNextScreen, swapNextScreen)
 import XMonad.Actions.DynamicWorkspaces (addHiddenWorkspace, addWorkspace, removeEmptyWorkspaceAfter, renameWorkspaceByName)
@@ -26,7 +24,6 @@ import XMonad.Hooks.EwmhDesktops (ewmh, ewmhFullscreen)
 import XMonad.Hooks.FloatConfigureReq (fixSteamFlicker)
 import XMonad.Hooks.ManageDocks (avoidStruts, docks, manageDocks)
 import XMonad.Hooks.OnPropertyChange (onXPropertyChange)
-import XMonad.Hooks.ServerMode (serverModeEventHookCmd')
 import XMonad.Hooks.StatusBar.PP (filterOutWsPP)
 import XMonad.Hooks.UrgencyHook (UrgencyHook (..), readUrgents, withUrgencyHook)
 import XMonad.Hooks.WorkspaceHistory (workspaceHistory, workspaceHistoryHook)
@@ -200,11 +197,6 @@ mkPolybarLogHook output = do
   windowCount <- withWindowSet (pure . length . W.index)
   minimizedCount <- withMinimized (pure . length)
   currentTag <- gets (W.currentTag . windowset)
-  visibleOther <- gets (map (W.tag . W.workspace) . W.visible . windowset)
-  existing <- existingTags
-  let visibleTags = currentTag : visibleOther
-  -- Run for its popup + clear-on-view side effects; the result is unused here.
-  processAttention existing visibleTags
   dynamicLogWithPP $
     filterOutWsPP [scratchpadWorkspaceTag] $
       def
@@ -228,116 +220,6 @@ mkPolybarLogHook output = do
   where
     positive n = if n > 0 then Just n else Nothing
     color c = wrap ("%{F" ++ c ++ "}") "%{F-}"
-
--- Agent attention: state files under $XDG_RUNTIME_DIR written by the
--- workspace-attention CLI and read here. Keep in sync with workspace-attention.sh.
-attentionSubdir :: FilePath
-attentionSubdir = "workspace-attention"
-
-data Attn = Attn
-  { attnFile :: FilePath, -- state file path (".seen" suffix once notified)
-    attnIdent :: Either FilePath String, -- Left cwd | Right explicit tag
-    attnSource :: String,
-    attnMessage :: String,
-    attnNotified :: Bool -- popup already fired (".seen" file)
-  }
-
-attentionDir :: IO (Maybe FilePath)
-attentionDir = fmap (</> attentionSubdir) <$> lookupEnv "XDG_RUNTIME_DIR"
-
--- Tolerant of a missing dir or unreadable files (returns []).
-readAttn :: IO [Attn]
-readAttn = do
-  mdir <- attentionDir
-  case mdir of
-    Nothing -> pure []
-    Just dir -> do
-      ok <- safeIO False (doesDirectoryExist dir)
-      if not ok
-        then pure []
-        else do
-          names <- safeIO [] (listDirectory dir)
-          catMaybes <$> traverse (parseAttn dir) names
-
-parseAttn :: FilePath -> FilePath -> IO (Maybe Attn)
-parseAttn dir name = do
-  let path = dir </> name
-      notified = ".seen" `isSuffixOf` name
-  -- Skip the CLI's in-flight atomic-write temp files.
-  if ".tmp." `isPrefixOf` name
-    then pure Nothing
-    else do
-      contents <- safeIO "" (readFile' path)
-      let kv =
-            mapMaybe
-              ( \l -> case break (== '=') l of
-                  (k, '=' : v) -> Just (k, v)
-                  _ -> Nothing
-              )
-              (lines contents)
-          ident = case (lookup "tag" kv, lookup "cwd" kv) of
-            (Just t, _) -> Just (Right t)
-            (_, Just c) -> Just (Left c)
-            _ -> Nothing
-      pure $
-        ( \i ->
-            Attn
-              path
-              i
-              (fromMaybe "agent" (lookup "source" kv))
-              (fromMaybe "needs attention" (lookup "message" kv))
-              notified
-        )
-          <$> ident
-
--- `anc` is `path` or a path-component ancestor (not a bare string prefix).
-isAncestorOf :: FilePath -> FilePath -> Bool
-isAncestorOf anc path = path == anc || (anc ++ "/") `isPrefixOf` path
-
--- Longest existing tag whose resolved directory is an ancestor of cwd.
-attributeCwd :: [(String, FilePath)] -> FilePath -> Maybe String
-attributeCwd tagPathList cwd =
-  case sortOn (negate . length . snd) [tp | tp@(_, p) <- tagPathList, p `isAncestorOf` cwd] of
-    ((t, _) : _) -> Just t
-    [] -> Nothing
-
--- Resolve each path-namespaced tag to its directory (by string; no disk check).
-tagPaths :: [String] -> IO [(String, FilePath)]
-tagPaths tags = do
-  nss <- namespaces
-  pure
-    [ (tag, nsRoot ns </> key)
-    | tag <- tags,
-      Just (pfx, key) <- [splitWorkspace tag],
-      Just ns <- [findNamespace pfx nss]
-    ]
-
-attnTag :: [String] -> [(String, FilePath)] -> Attn -> Maybe String
-attnTag existing paths e = case attnIdent e of
-  Right t -> if t `elem` existing then Just t else Nothing
-  Left cwd -> attributeCwd paths cwd
-
-safeRemoveFile :: FilePath -> IO ()
-safeRemoveFile p = safeIO () (removeFile p)
-
-markSeen :: FilePath -> IO ()
-markSeen p = safeIO () (renameFile p (p ++ ".seen"))
-
--- Side effects per render: clear markers for visible workspaces; fire a dunst
--- popup once per off-screen episode.
-processAttention :: [String] -> [String] -> X ()
-processAttention existing visibleTags = do
-  paths <- io (tagPaths existing)
-  entries <- io readAttn
-  forM_ entries $ \e ->
-    case attnTag existing paths e of
-      Nothing -> pure ()
-      Just t
-        | t `elem` visibleTags -> io (safeRemoveFile (attnFile e))
-        | otherwise ->
-            unless (attnNotified e) $ do
-              safeSpawn notifySend ["-a", attnSource e, "-u", "normal", t, attnMessage e]
-              io (markSeen (attnFile e))
 
 setupLogOutput :: IO (String -> IO ())
 setupLogOutput = do
@@ -368,10 +250,6 @@ myManageHook =
 myHandleEventHook =
   fixSteamFlicker
     <+> onXPropertyChange "WM_NAME" manageZoomHook
-    -- External wake from the workspace-attention CLI (`xmonadctl
-    -- agent-attention-refresh`): re-runs the logHook so popups fire promptly.
-    -- Fixed command list => no arbitrary exec exposed to X clients.
-    <+> serverModeEventHookCmd' (pure [("agent-attention-refresh", refresh)])
     <+> handleEventHook def
 
 -- https://www.peterstuart.org/posts/2021-09-06-xmonad-zoom/
@@ -614,28 +492,18 @@ historyToggle = do
   let prev = find (\t -> t /= current && t /= scratchpadWorkspaceTag) hist
   whenJust prev (windows . W.greedyView)
 
--- Jump to the next off-screen thing needing attention: an urgent window (focus
--- it) or an agent-attention workspace (view it). Acting makes the target
--- visible, so repeated presses cycle through everything.
+-- Jump to the next off-screen urgent window and focus it. Acting makes the
+-- target visible, so repeated presses cycle through everything urgent.
 focusAttention :: X ()
 focusAttention = do
   ws <- gets windowset
-  let curr = W.currentTag ws
-      visibleTags = curr : map (W.tag . W.workspace) (W.visible ws)
+  let visibleTags = W.currentTag ws : map (W.tag . W.workspace) (W.visible ws)
   urgents <- readUrgents
-  existing <- existingTags
-  paths <- io (tagPaths existing)
-  entries <- io readAttn
   let urgentByTag = [(t, w) | w <- urgents, Just t <- [W.findTag w ws]]
-      agentTags = mapMaybe (attnTag existing paths) entries
-      targets =
-        filter (`notElem` visibleTags) . nub $
-          map fst urgentByTag ++ agentTags
+      targets = filter (`notElem` visibleTags) . nub $ map fst urgentByTag
   case targets of
     [] -> pure ()
-    (t : _) -> case lookup t urgentByTag of
-      Just w -> windows (W.focusWindow w)
-      Nothing -> windows (W.greedyView t)
+    (t : _) -> whenJust (lookup t urgentByTag) (windows . W.focusWindow)
 
 -- View or create-then-view a workspace, picked from the full candidate set
 -- (existing + all namespace entries). Bound to M-n.

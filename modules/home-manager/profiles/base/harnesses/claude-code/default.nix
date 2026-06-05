@@ -18,14 +18,6 @@ let
   chromeRgb = rgbTriple "base04";
   yellowRgb = rgbTriple "base0A";
   redRgb = rgbTriple "base08";
-  attentionStopApp = pkgs.writeShellApplication {
-    name = "claude-stop-attention";
-    runtimeInputs = [
-      pkgs.jq
-      config.profiles.desktop.workspaceAttention.package
-    ];
-    text = builtins.readFile ./claude-stop-attention.sh;
-  };
   statuslineScript = pkgs.writeShellScript "claude-statusline" ''
     mapfile -t f < <(
       ${pkgs.jq}/bin/jq -r '
@@ -149,31 +141,18 @@ in
           type = "command";
           command = "${statuslineScript}";
         };
-        hooks =
-          (lib.optionalAttrs config.programs.peon-ping.enable {
-            Notification = [
-              {
-                hooks = [
-                  {
-                    type = "command";
-                    command = "${config.programs.peon-ping.package}/bin/peon";
-                  }
-                ];
-              }
-            ];
-          })
-          // (lib.optionalAttrs config.profiles.desktop.enable {
-            Stop = [
-              {
-                hooks = [
-                  {
-                    type = "command";
-                    command = "${attentionStopApp}/bin/claude-stop-attention";
-                  }
-                ];
-              }
-            ];
-          });
+        hooks = lib.optionalAttrs config.programs.peon-ping.enable {
+          Notification = [
+            {
+              hooks = [
+                {
+                  type = "command";
+                  command = "${config.programs.peon-ping.package}/bin/peon";
+                }
+              ];
+            }
+          ];
+        };
       };
 
       plugins = with inputs; [
