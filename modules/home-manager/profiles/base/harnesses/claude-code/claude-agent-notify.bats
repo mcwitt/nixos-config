@@ -34,7 +34,8 @@ EOF
   sleep 0.3
   run cat "$NOTIFY"
   [[ "$output" == *"-u critical"* ]]
-  [[ "$output" == *"needs input · flaky-fix"* ]]
+  [[ "$output" == *"Claude Code · flaky-fix"* ]]
+  [[ "$output" == *"needs input"* ]]
   [ -f "$SOUND" ]
 }
 
@@ -45,7 +46,8 @@ EOF
     | bash "$SCRIPT" done
   run cat "$NOTIFY"
   [[ "$output" == *"-u normal"* ]]
-  [[ "$output" == *"done · foo"* ]]
+  [[ "$output" == *"Claude Code · foo"* ]]
+  [[ "$output" == *"completed"* ]]
 }
 
 @test "done (foreground): no CLAUDE_JOB_DIR -> no notification" {
@@ -59,5 +61,6 @@ EOF
   export AGENTS_JSON='[]'
   echo '{"session_id":"zzz"}' | bash "$SCRIPT" done
   run cat "$NOTIFY"
-  [[ "$output" == *"done · agent"* ]]
+  [[ "$output" == *"Claude Code · agent"* ]]
+  [[ "$output" == *"completed"* ]]
 }

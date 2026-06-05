@@ -37,8 +37,8 @@ if [ -n "$sound" ] && [ -x "$sound" ]; then
 fi
 
 case "$mode" in
-  needs-input) notify-send -a claude -u critical "needs input · $label" ;;
-  done) notify-send -a claude -u normal "done · $label" ;;
+  needs-input) notify-send -a claude -u critical "Claude Code · $label" "needs input" ;;
+  done) notify-send -a claude -u normal "Claude Code · $label" "completed" ;;
   *)
     echo "claude-agent-notify: unknown mode: $mode" >&2
     exit 2
