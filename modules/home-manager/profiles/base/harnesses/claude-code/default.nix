@@ -146,6 +146,9 @@ in
       plugins = with inputs; [
         "${autoresearch}/claude-plugin"
         superpowers
+        # v0.50.0 plugin root is the repo root: .claude-plugin/plugin.json there
+        # references ./skills/{worktrunk,wt-switch-create} and ./.claude-plugin/hooks.
+        "${pkgs.worktrunk.src}"
       ];
 
       skills = localSkills // gwsSkills;
