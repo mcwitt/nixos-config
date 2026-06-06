@@ -119,6 +119,25 @@ nix store prefetch-file --json --hash-type sha256 "https://files.pythonhosted.or
 grep -rn 'TODO\|FIXME\|HACK\|XXX' --include='*.nix' --include='*.el' .
 ```
 
+### worktrunk + harness plugins
+
+`pkgs.worktrunk` provides the `wt` CLI, the Claude Code plugin
+(`${pkgs.worktrunk.src}` repo root), the Codex `worktrunk` skill
+(`${pkgs.worktrunk.src}/skills/worktrunk`), and the OpenCode activity plugin
+(`${pkgs.worktrunk.src}/dev/opencode-plugin.ts`). All three integrations are
+sourced from the package's own `src`, so they cannot skew from the binary — bump
+them together by bumping nixpkgs.
+
+- Check the packaged version: `nix eval --raw 'nixpkgs#worktrunk.version'`.
+- On a major bump, re-verify the Claude plugin path: v0.50.0 keeps the plugin at
+  the repo root (`.claude-plugin/plugin.json`); newer `main` moved it under
+  `plugins/worktrunk/`. If `${pkgs.worktrunk.src}/.claude-plugin/plugin.json`
+  disappears, repoint the `plugins` entry in
+  `harnesses/claude-code/default.nix`.
+- worktree path template and lifecycle hooks live in
+  `modules/home-manager/profiles/base/worktrunk.nix` (read-only at
+  `~/.config/worktrunk/config.toml` — edit the Nix module, not the file).
+
 ## Conventions
 
 - Package upgrade commit subjects: `<package-path>: <old-version> -> <new-version>` (e.g. `python3Packages.gehomesdk: 2025.11.5 -> 2026.2.0`).
