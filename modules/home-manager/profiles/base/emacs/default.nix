@@ -547,6 +547,13 @@
           "C-x M-g" = "magit-dispatch";
           "C-c M-g" = "magit-file-dispatch";
         };
+        config = ''
+          ;; Show all sibling worktrees in magit-status (RET jumps to one).
+          ;; magit-insert-worktrees ships with magit; no extra package.
+          (magit-add-section-hook 'magit-status-sections-hook
+                                  'magit-insert-worktrees
+                                  'magit-insert-stashes)
+        '';
       };
 
       magit-extras = {
