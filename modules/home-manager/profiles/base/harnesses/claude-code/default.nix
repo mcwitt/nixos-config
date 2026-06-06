@@ -18,6 +18,7 @@ let
   chromeRgb = rgbTriple "base04";
   yellowRgb = rgbTriple "base0A";
   redRgb = rgbTriple "base08";
+  greenRgb = rgbTriple "base0B";
   statuslineScript = pkgs.writeShellScript "claude-statusline" ''
     mapfile -t f < <(
       ${pkgs.jq}/bin/jq -r '
@@ -60,6 +61,7 @@ let
     chrome=$'\033[38;2;${chromeRgb}m'
     yellow=$'\033[38;2;${yellowRgb}m'
     red=$'\033[38;2;${redRgb}m'
+    green=$'\033[38;2;${greenRgb}m'
     reset=$'\033[0m'
     sep=" $chrome·$reset "
 
@@ -129,30 +131,20 @@ let
       # unpushed vs upstream
       unpushed=$(${pkgs.git}/bin/git -C "$cwd" rev-list --count '@{upstream}..HEAD' 2>/dev/null)
 
-      # working diff vs HEAD (insertions/deletions) — off-the-rails gauge.
-      # NOTE: untracked files aren't counted by `diff`; they still trip `!` above.
+      # working diff vs HEAD (insertions/deletions). NOTE: untracked files
+      # aren't counted by `diff`; they still trip `!` above.
       shortstat=$(${pkgs.git}/bin/git -C "$cwd" diff HEAD --shortstat 2>/dev/null)
       ins=$(grep -oE '[0-9]+ insertion' <<<"$shortstat" | grep -oE '[0-9]+'); ins=''${ins:-0}
       del=$(grep -oE '[0-9]+ deletion' <<<"$shortstat" | grep -oE '[0-9]+'); del=''${del:-0}
 
-      # worktrunk activity marker (git config JSON: {"marker":"💬",...})
-      marker=""
-      raw=$(${pkgs.git}/bin/git -C "$cwd" config --get "worktrunk.state.$branch.marker" 2>/dev/null)
-      [[ -n "$raw" ]] && marker=$(${pkgs.jq}/bin/jq -r '.marker // empty' <<<"$raw" 2>/dev/null)
-
       # --- render ---
-      printf '%s%s%s' "$sep" "$chrome" "$branch"
-      [[ -n "$marker" ]] && printf ' %s' "$marker"
-      printf '%s' "$reset"
+      printf '%s%s%s%s' "$sep" "$chrome" "$branch" "$reset"
       [[ -n "$dirty" ]] && printf ' %s%s%s' "$yellow" "$dirty" "$reset"
       [[ -n "$ahead" && "$ahead" -gt 0 ]] && printf ' %s↑%s%s' "$chrome" "$ahead" "$reset"
       [[ -n "$unpushed" && "$unpushed" -gt 0 ]] && printf ' %s⇡%s%s' "$chrome" "$unpushed" "$reset"
-      if (( ins > 0 || del > 0 )); then
-        dcolor="$chrome"
-        (( ins + del >= 500 )) && dcolor="$yellow"
-        (( ins + del >= 2000 )) && dcolor="$red"
-        printf ' %s+%s -%s%s' "$dcolor" "$ins" "$del" "$reset"
-      fi
+      # working diff: +added (green) / -removed (red)
+      (( ins > 0 )) && printf ' %s+%s%s' "$green" "$ins" "$reset"
+      (( del > 0 )) && printf ' %s-%s%s' "$red" "$del" "$reset"
     fi
   '';
 in
