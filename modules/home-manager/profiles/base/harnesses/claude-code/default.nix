@@ -61,7 +61,7 @@ let
     yellow=$'\033[38;2;${yellowRgb}m'
     red=$'\033[38;2;${redRgb}m'
     reset=$'\033[0m'
-    sep=" $chrome|$reset "
+    sep=" $chrome·$reset "
 
     fmt_duration() {
       local secs="$1"
@@ -105,6 +105,55 @@ let
     fmt_pct "$ctx" "ctx" 40 60
     fmt_pct "$five_h" "5h" 60 85 "$five_h_reset"
     fmt_pct "$seven_d" "7d" 60 85 "$seven_d_reset"
+
+    # --- worktree git segment (local-only; instant, no network) ---
+    # Rendered in the existing theme ($sep / $chrome / $yellow / $red / $reset).
+    if [[ "$(${pkgs.git}/bin/git -C "$cwd" rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]]; then
+      branch=$(${pkgs.git}/bin/git -C "$cwd" branch --show-current 2>/dev/null)
+      [[ -z "$branch" ]] && branch="detached"
+
+      # dirty: any staged/unstaged/untracked change
+      dirty=""
+      [[ -n "$(${pkgs.git}/bin/git -C "$cwd" status --porcelain 2>/dev/null)" ]] && dirty="!"
+
+      # base branch for "ahead": prefer origin/HEAD, else local main/master
+      base=$(${pkgs.git}/bin/git -C "$cwd" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null)
+      if [[ -z "$base" ]]; then
+        for b in main master; do
+          ${pkgs.git}/bin/git -C "$cwd" rev-parse --verify -q "$b" >/dev/null 2>&1 && { base="$b"; break; }
+        done
+      fi
+      ahead=""
+      [[ -n "$base" ]] && ahead=$(${pkgs.git}/bin/git -C "$cwd" rev-list --count "$base"..HEAD 2>/dev/null)
+
+      # unpushed vs upstream
+      unpushed=$(${pkgs.git}/bin/git -C "$cwd" rev-list --count '@{upstream}..HEAD' 2>/dev/null)
+
+      # working diff vs HEAD (insertions/deletions) — off-the-rails gauge.
+      # NOTE: untracked files aren't counted by `diff`; they still trip `!` above.
+      shortstat=$(${pkgs.git}/bin/git -C "$cwd" diff HEAD --shortstat 2>/dev/null)
+      ins=$(grep -oE '[0-9]+ insertion' <<<"$shortstat" | grep -oE '[0-9]+'); ins=''${ins:-0}
+      del=$(grep -oE '[0-9]+ deletion' <<<"$shortstat" | grep -oE '[0-9]+'); del=''${del:-0}
+
+      # worktrunk activity marker (git config JSON: {"marker":"💬",...})
+      marker=""
+      raw=$(${pkgs.git}/bin/git -C "$cwd" config --get "worktrunk.state.$branch.marker" 2>/dev/null)
+      [[ -n "$raw" ]] && marker=$(${pkgs.jq}/bin/jq -r '.marker // empty' <<<"$raw" 2>/dev/null)
+
+      # --- render ---
+      printf '%s%s%s' "$sep" "$chrome" "$branch"
+      [[ -n "$marker" ]] && printf ' %s' "$marker"
+      printf '%s' "$reset"
+      [[ -n "$dirty" ]] && printf ' %s%s%s' "$yellow" "$dirty" "$reset"
+      [[ -n "$ahead" && "$ahead" -gt 0 ]] && printf ' %s↑%s%s' "$chrome" "$ahead" "$reset"
+      [[ -n "$unpushed" && "$unpushed" -gt 0 ]] && printf ' %s⇡%s%s' "$chrome" "$unpushed" "$reset"
+      if (( ins > 0 || del > 0 )); then
+        dcolor="$chrome"
+        (( ins + del >= 500 )) && dcolor="$yellow"
+        (( ins + del >= 2000 )) && dcolor="$red"
+        printf ' %s+%s -%s%s' "$dcolor" "$ins" "$del" "$reset"
+      fi
+    fi
   '';
 in
 {
