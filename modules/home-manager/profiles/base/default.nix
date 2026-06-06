@@ -13,6 +13,7 @@
     ./git-annex.nix
     ./jupyter.nix
     ./neovim
+    ./worktrunk.nix
   ];
 
   config = lib.mkIf config.profiles.base.enable {
