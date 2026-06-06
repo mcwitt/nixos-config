@@ -4,6 +4,7 @@
   inputs,
   localSkills,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -18,7 +19,10 @@ in
       skills = gwsSkills // localSkills;
 
       settings = {
-        plugin = [ "${inputs.superpowers}/.opencode/plugins/superpowers.js" ];
+        plugin = [
+          "${inputs.superpowers}/.opencode/plugins/superpowers.js"
+          "${pkgs.worktrunk.src}/dev/opencode-plugin.ts"
+        ];
 
         provider.llamaswap = {
           npm = "@ai-sdk/openai-compatible";

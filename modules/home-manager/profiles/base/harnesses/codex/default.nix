@@ -4,6 +4,7 @@
   localSkills,
   superpowersSkills,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -22,7 +23,13 @@ in
         sandbox_mode = "workspace-write";
       };
 
-      skills = superpowersSkills // gwsSkills // localSkills;
+      skills =
+        superpowersSkills
+        // gwsSkills
+        // localSkills
+        // {
+          worktrunk = "${pkgs.worktrunk.src}/skills/worktrunk";
+        };
     };
   };
 }
