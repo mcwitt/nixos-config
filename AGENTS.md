@@ -89,6 +89,7 @@ nix store prefetch-file --json --hash-type sha256 "https://files.pythonhosted.or
 
 - **`org-latex-preview`** (`modules/home-manager/profiles/base/emacs/org-latex-preview.nix`): pulls org-mode from the tecosaur fork (`code.tecosaur.net/tec/org-mode`, `dev` branch) for the org-latex-preview overhaul. Not yet merged into mainline org-mode — see the [org-mode mailing list thread](https://list.orgmode.org/orgmode/87lek2up0w.fsf@tec.tecosaur.net/). When it lands, drop the fork override and keep just the `usePackage.org` config. To bump the fork: `nix-prefetch-git --url https://code.tecosaur.net/tec/org-mode.git --rev dev --quiet`.
 - **`citar` + native-comp**: previously needed `packageQuickstart = lib.mkForce false` plus `(package-activate-all)` in the prelude due to a `citar-indicator` type error. Workaround removed; if it comes back, see git history.
+- **`lexical-binding` cookie in the generated init wrappers** (`modules/home-manager/profiles/base/emacs/default.nix`, the `home.file` block): the `rycee.hmModules.emacs-init` module emits `~/.emacs.d/early-init.el` and `init.el` (thin wrappers that `require` the real `hm-{early-,}init.el`) without a `lexical-binding` cookie, which Emacs 31 warns about on every startup. We `lib.mkForce`-override both wrappers to add the cookie. Drop the override once the module adds it upstream — check the `home.file` block in `hm-modules/emacs-init.nix` of `nurNoPkgs.repos.rycee` (the wrappers don't currently carry the cookie even though the generated `hm-init.el` does).
 
 ### Home-manager modules to adopt when upstreamed
 

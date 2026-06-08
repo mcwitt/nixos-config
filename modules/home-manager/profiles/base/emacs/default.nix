@@ -55,6 +55,26 @@
       '';
     };
 
+    # The emacs-init module hardcodes these wrapper files without a
+    # `lexical-binding` cookie, which Emacs 31 warns about on every startup
+    # (the generated hm-init.el / hm-early-init.el they require do have it).
+    # Re-emit them with the cookie.
+    # TODO: remove once the emacs-init module adds the cookie upstream
+    # (rycee hmModules.emacs-init, hm-modules/emacs-init.nix `home.file` block).
+    home.file = {
+      ".emacs.d/early-init.el".text = lib.mkForce ''
+        ;;; early-init.el --- -*- lexical-binding: t; -*-
+        (require 'hm-early-init)
+        (provide 'early-init)
+      '';
+
+      ".emacs.d/init.el".text = lib.mkForce ''
+        ;;; init.el --- -*- lexical-binding: t; -*-
+        (require 'hm-init)
+        (provide 'init)
+      '';
+    };
+
     programs.emacs.init.usePackage = {
 
       all-the-icons = {
