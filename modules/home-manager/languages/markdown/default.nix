@@ -40,7 +40,7 @@ in
         ];
         hook = [
           "(markdown-mode . turn-on-visual-line-mode)"
-          "(markdown-mode . turn-on-flyspell)"
+          "(markdown-mode . flyspell-mode)"
         ];
         mode = [
           ''("README\\.md\\'" . gfm-mode)''
