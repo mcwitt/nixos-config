@@ -1,7 +1,7 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 
 let
-  dpi = 183;
+  dpi = 163;
 in
 {
   config = {
@@ -13,6 +13,8 @@ in
 
     services.polybar = {
       settings = {
+        "bar/main".dpi = lib.mkForce dpi;
+
         "bar/main".modules-right =
           "wired-network filesystem memory cpu temperature nvidia-gpu pipewire tray";
 
