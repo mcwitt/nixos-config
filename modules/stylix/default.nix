@@ -80,10 +80,10 @@ in
       };
 
       sizes = {
-        applications = 9;
-        desktop = 9;
-        popups = 9;
-        terminal = 9;
+        applications = 10;
+        desktop = 10;
+        popups = 10;
+        terminal = 10;
       };
     };
   };
