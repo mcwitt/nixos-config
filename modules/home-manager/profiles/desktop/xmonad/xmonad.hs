@@ -5,7 +5,7 @@ import Control.Monad (forM, when)
 import qualified DBus as D
 import qualified DBus.Client as D
 import Data.Bifunctor (first)
-import Data.List (find, isPrefixOf, nub, sort)
+import Data.List (elemIndex, find, isPrefixOf, nub, sort)
 import Data.Maybe (catMaybes, isJust)
 import Data.Ratio ((%))
 import qualified Data.Set as Set
@@ -28,14 +28,16 @@ import XMonad.Hooks.StatusBar.PP (filterOutWsPP)
 import XMonad.Hooks.UrgencyHook (UrgencyHook (..), readUrgents, withUrgencyHook)
 import XMonad.Hooks.WorkspaceHistory (workspaceHistory, workspaceHistoryHook)
 import XMonad.Layout.BoringWindows (boringWindows, focusDown, focusMaster, focusUp)
+import XMonad.Layout.Decoration (DecorationStyle (..), decoration, fi, findWindowByDecoration)
 import XMonad.Layout.IndependentScreens (countScreens)
 import XMonad.Layout.Minimize (minimize)
 import XMonad.Layout.MultiToggle (Toggle (Toggle), mkToggle, single)
 import XMonad.Layout.MultiToggle.Instances (StdTransformers (MIRROR))
 import XMonad.Layout.Renamed (Rename (CutWordsLeft, Replace), renamed)
 import XMonad.Layout.ResizableThreeColumns (MirrorResize (MirrorExpand, MirrorShrink), ResizableThreeCol (ResizableThreeCol, ResizableThreeColMid))
+import XMonad.Layout.Simplest (Simplest (Simplest))
 import XMonad.Layout.Spacing (spacingWithEdge)
-import XMonad.Layout.Tabbed (Theme (..), shrinkText, tabbed)
+import XMonad.Layout.Tabbed (Theme (..), shrinkText)
 import XMonad.Layout.TwoPane (TwoPane (TwoPane))
 import qualified XMonad.StackSet as W
 import XMonad.Util.EZConfig (additionalKeys, additionalKeysP, removeKeysP)
@@ -160,7 +162,7 @@ myLayoutHook =
   where
     layout =
       renamed [Replace "ThreeCol"] (ResizableThreeCol 1 (3 % 100) (1 % 2) [])
-        ||| renamed [Replace "Tabbed"] (tabbed shrinkText tabbedTheme)
+        ||| renamed [Replace "Tabbed"] (decoration shrinkText tabbedTheme (GapTab tabGap) Simplest)
         ||| renamed [Replace "ThreeColMid"] (ResizableThreeColMid 1 (3 % 100) (1 % 2) [])
         ||| TwoPane (3 % 100) (1 % 2)
 
@@ -176,10 +178,43 @@ myLayoutHook =
           inactiveTextColor = colorBase05,
           urgentTextColor = colorBase01,
           fontName = "xft:" ++ fontMono ++ ":size=" ++ fontSize ++ ":antialias=true",
-          decoHeight = 32
+          decoHeight = 44
         }
 
+    tabGap = 6
+
     diminish = (renamed [CutWordsLeft 1] .)
+
+-- A tabbed decoration that insets each tab horizontally by tabGap, leaving real
+-- gaps between tab windows (the desktop shows through) instead of edge-to-edge
+-- tabs. Mirrors XMonad.Layout.Tabbed's top-tab placement plus its click-to-focus
+-- / middle-click-close handler.
+newtype GapTab a = GapTab Dimension deriving (Read, Show)
+
+instance (Eq a) => DecorationStyle GapTab a where
+  describeDeco _ = "Tabbed"
+
+  decorationEventHook _ ds ButtonEvent {ev_window = ew, ev_event_type = et, ev_button = eb}
+    | et == buttonPress,
+      Just ((w, _), _) <- findWindowByDecoration ew ds =
+        if eb == button2 then killWindow w else focus w
+  decorationEventHook _ _ _ = return ()
+
+  shrink _ (Rectangle _ _ _ dh) (Rectangle x y w h) =
+    Rectangle x (y + fi dh) w (h - dh)
+
+  pureDecoration (GapTab gap) _ ht _ s wrs (win, r@(Rectangle x y wh _))
+    | numWindows > 1 = Just (Rectangle (nx + half) y tabW (fi ht))
+    | otherwise = Nothing
+    where
+      ws = filter (`elem` map fst (filter ((== r) . snd) wrs)) (W.integrate s)
+      numWindows = length ws
+      loc k h i = k + fi ((h * fi i) `div` max 1 (fi (length ws)))
+      esize k h = fi $ maybe k (\i -> loc k h (i + 1) - loc k h i) (win `elemIndex` ws)
+      slotW = esize x wh
+      nx = maybe x (loc x wh) (win `elemIndex` ws)
+      half = fi (gap `div` 2)
+      tabW = if slotW > gap then slotW - gap else 1
 
 -- Fires a dunst popup when a window signals urgency; the framework dedupes per
 -- window, so it is safe to leave unconditional.
