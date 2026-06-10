@@ -67,6 +67,7 @@ These are the non-obvious things that need attention over time. The code can't t
 ### Stale overrides in the overlay
 
 - **Home Assistant custom components and lovelace modules** (under `packages/servers/home-assistant/`): check upstream releases with `gh release list --repo <owner/repo> --limit 1`. For `scheduler-card`, updating requires regenerating `package-lock.json` (`npm install --package-lock-only` on the new source, then `prefetch-npm-deps` for the hash).
+- **`scheduler-card` is version-capped until Home Assistant is upgraded — do NOT bump it past 4.0.10.** Newer releases require a newer HA core than our pinned nixpkgs provides (4.0.11+ needs ≥ 2026.1, 4.0.17+ needs ≥ 2026.4); on older cores the schedule popups render scrambled and unusable (upstream issue nielsfaber/scheduler-card#1130). Before any bump, compare the `homeassistant` key in the release's `hacs.json` against `nix eval --raw '.#nixosConfigurations.hob.config.services.home-assistant.package.version'`. When HA is finally new enough and the card is bumped, also try dropping the two build pins carried in our vendored `package.json` (typescript held at 5.8.3, picomatch held at 2.3.1 — see the comment in the package's `default.nix`).
 - **`magicattr`** (`packages/development/python-modules/magicattr/`): not in nixpkgs. Check periodically with `nix eval 'nixpkgs#python3Packages.magicattr.version'` to see if it's been upstreamed.
 
 ### Useful version-checking commands
