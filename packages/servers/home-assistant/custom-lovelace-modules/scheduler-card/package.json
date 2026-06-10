@@ -1,0 +1,48 @@
+{
+  "name": "scheduler-card",
+  "version": "1.0.0",
+  "description": "Scheduler card for Lovelace",
+  "main": "dist/scheduler-card.js",
+  "scripts": {
+    "build": "npm run lint && npm run format && npm run rollup",
+    "rollup": "rollup -c",
+    "lint": "eslint src/**/*.ts --fix",
+    "format": "prettier --write '**/*.ts'",
+    "start": "rollup -c --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nielsfaber/scheduler-card.git"
+  },
+  "author": "nielsfaber",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nielsfaber/scheduler-card/issues"
+  },
+  "homepage": "https://github.com/nielsfaber/scheduler-card#readme",
+  "dependencies": {
+    "@formatjs/intl-utils": "^3.8.4",
+    "@mdi/js": "^7.4.47",
+    "fecha": "^4.2.3",
+    "home-assistant-js-websocket": "^8.0.1",
+    "lit": "^2.7.4",
+    "rollup": "^1.32.1",
+    "rollup-plugin-babel": "^4.3.3",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-ignore": "^1.0.10",
+    "rollup-plugin-json": "^4.0.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-serve": "^1.0.1",
+    "rollup-plugin-terser": "^5.1.2",
+    "rollup-plugin-typescript2": "^0.31.1",
+    "rollup-plugin-uglify": "^6.0.3",
+    "rollup-plugin-visualizer": "^4.2.0",
+    "typescript": "5.8.3",
+    "picomatch": "2.3.1"
+  },
+  "devDependencies": {
+    "@parcel/transformer-inline-string": "^2.8.3",
+    "@rollup/plugin-dynamic-import-vars": "^2.1.2",
+    "parcel": "^2.8.3"
+  }
+}
