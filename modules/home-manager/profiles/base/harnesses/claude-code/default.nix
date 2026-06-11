@@ -146,6 +146,11 @@ let
       (( ins > 0 )) && printf ' %s+%s%s' "$green" "$ins" "$reset"
       (( del > 0 )) && printf ' %s-%s%s' "$red" "$del" "$reset"
     fi
+
+    # The `cond && action` lines above return 1 when the condition is false;
+    # if one of them is the last command, that becomes the script's exit
+    # status and Claude Code hides the statusline. Always exit successfully.
+    exit 0
   '';
 in
 {
