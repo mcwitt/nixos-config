@@ -58,6 +58,7 @@ in
       args = [
         "--browser=chrome"
         "--executable-path=${lib.getExe pkgs.chromium}"
+        "--headless"
       ];
     };
   };
