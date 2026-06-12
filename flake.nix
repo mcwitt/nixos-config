@@ -7,7 +7,11 @@
       url = "github:uditgoenka/autoresearch";
       flake = false;
     };
-    claude-code.url = "github:sadjow/claude-code-nix";
+    # Pinned to claude-code 2.1.168: 2.1.169+ has a TUI renderer regression
+    # (text painted at wrong rows, duplicated input box, interleaved frames in
+    # scrollback) — see anthropics/claude-code#68052. Fable 5 works fine on
+    # 2.1.168 via the model setting. Unpin once the upstream fix ships.
+    claude-code.url = "github:sadjow/claude-code-nix/2370568ed1eac96474fa3bb2e73081cc971f9c03";
     codex-cli.url = "github:sadjow/codex-cli-nix";
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "nixpkgs";
