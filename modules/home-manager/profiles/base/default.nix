@@ -219,6 +219,12 @@
     # in the personal profile).
     services.ssh-agent.enable = true;
 
+    # The ssh-agent module exports SSH_AUTH_SOCK via shell init only; publish
+    # it to the systemd user environment (environment.d) as well so user
+    # services — notably the emacs daemon, which signs commits via magit —
+    # can reach the agent.
+    systemd.user.sessionVariables.SSH_AUTH_SOCK = "$XDG_RUNTIME_DIR/ssh-agent";
+
     programs.keychain = {
       enable = true;
       keys = [ "id_ed25519" ];
