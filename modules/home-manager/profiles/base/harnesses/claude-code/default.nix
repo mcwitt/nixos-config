@@ -169,7 +169,11 @@ in
           effortLevel = "high";
         in
         {
-          model = "claude-fable-5";
+          # The [1m] suffix makes claude-code 2.1.168 (pinned in flake.nix) use
+          # Fable 5's real 1M context window; without it the client assumes the
+          # 200k default, so the ctx gauge and auto-compaction run ~5x early.
+          # 2.1.170+ knows fable-5 natively — drop the suffix when unpinning.
+          model = "claude-fable-5[1m]";
           inherit effortLevel;
 
           # NOTE: effortLevel in settings.json is sometimes overridden, but the env var always takes precedence
