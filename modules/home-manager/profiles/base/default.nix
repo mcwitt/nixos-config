@@ -213,12 +213,6 @@
       client.enable = true;
     };
 
-    services.gpg-agent = {
-      enable = true;
-      defaultCacheTtl = 4 * 60 * 60;
-      maxCacheTtl = 4 * 60 * 60;
-    };
-
     # Plain ssh-agent holds keys in memory only; keychain re-adds the listed
     # keys at the first interactive shell after each boot (one passphrase
     # prompt per key). Profiles append further keys (e.g. the git signing key

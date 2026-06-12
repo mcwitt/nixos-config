@@ -208,25 +208,6 @@ in
       };
     };
 
-    services.gpg-agent = {
-      pinentry.package = pkgs.pinentry-gtk2;
-
-      # TODO: pinentry-rofi breaks in ssh sessions
-      # extraConfig =
-      #   let
-      #     pinentry-rofi-with-env = pkgs.writeShellApplication {
-      #       name = "pinentry-rofi-with-env";
-      #       runtimeInputs = with pkgs; [ coreutils rofi ];
-      #       text = ''
-      #         "${pkgs.pinentry-rofi}/bin/pinentry-rofi" "$@"
-      #       '';
-      #     };
-      #   in
-      #   ''
-      #     pinentry-program ${pinentry-rofi-with-env}/bin/pinentry-rofi-with-env
-      #   '';
-    };
-
     services.picom = {
       enable = true;
       backend = "glx";
