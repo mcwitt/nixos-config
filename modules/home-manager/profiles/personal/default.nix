@@ -12,6 +12,7 @@ in
 {
   imports = [
     ./email.nix
+    ./git-signing.nix
   ];
 
   options.profiles.personal.enable = mkEnableOption "Profile for use on machines I own";
@@ -98,18 +99,10 @@ in
           enable = true;
         });
 
-    programs.git = {
-      settings = {
-        user.name = "Matt Wittmann";
-        user.email = "mcwitt@gmail.com";
-        gitHub.user = "mcwitt";
-      };
-
-      signing = {
-        format = "openpgp";
-        key = "B19E6AC805563E38";
-        signByDefault = true;
-      };
+    programs.git.settings = {
+      user.name = "Matt Wittmann";
+      user.email = "mcwitt@gmail.com";
+      gitHub.user = "mcwitt";
     };
 
     programs.llm = {
