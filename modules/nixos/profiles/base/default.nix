@@ -73,7 +73,6 @@
     programs.gnupg.agent = {
       enable = true;
       pinentryPackage = pkgs.pinentry-gtk2;
-      enableSSHSupport = true;
     };
 
     programs.mtr.enable = true;
