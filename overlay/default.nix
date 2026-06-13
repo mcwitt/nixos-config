@@ -52,4 +52,22 @@ in
   };
 
   nerdifyFont = callPackage ./nerdify-font.nix { };
+
+  # Bump llm-anthropic past our pinned nixpkgs (0.25) so `llm` knows about
+  # claude-opus-4-8 (added upstream in 0.25.1; alias claude-opus-4.8). `pkgs.llm`
+  # resolves withPlugins entries from python3Packages, so override there.
+  # Drop this once the nixpkgs pin advances past commit ce95dc8 (2026-06-06,
+  # "python3Packages.llm-anthropic: 0.25 -> 0.25.1"):
+  #   nix eval --raw 'nixpkgs#python3Packages.llm-anthropic.version'  # expect >= 0.25.1
+  pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
+    (_: pyPrev: {
+      llm-anthropic = pyPrev.llm-anthropic.overridePythonAttrs (oldAttrs: rec {
+        version = "0.25.1";
+        src = oldAttrs.src.override {
+          tag = version;
+          hash = "sha256-b9XnPxKDGsiy20Me70sYrkMVO36OF3EwWOHLyEd5z4E=";
+        };
+      });
+    })
+  ];
 }
