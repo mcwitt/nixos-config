@@ -213,10 +213,12 @@
       client.enable = true;
     };
 
-    # Plain ssh-agent holds keys in memory only; keychain re-adds the listed
-    # keys at the first interactive shell after each boot (one passphrase
-    # prompt per key). Profiles append further keys (e.g. the git signing key
-    # in the personal profile).
+    # Plain ssh-agent holds keys in memory only; load them manually once per
+    # boot with e.g. `ssh-add ~/.ssh/id_ed25519` (they persist until
+    # shutdown). NOTE: keychain was tried for automating this and removed —
+    # keychain 2.9 spawns its own agent under ~/.ssh/agent/ instead of
+    # inheriting this one, so keys ended up invisible to systemd user
+    # services like the emacs daemon.
     services.ssh-agent.enable = true;
 
     # The ssh-agent module exports SSH_AUTH_SOCK via shell init only; publish
@@ -224,10 +226,5 @@
     # services — notably the emacs daemon, which signs commits via magit —
     # can reach the agent.
     systemd.user.sessionVariables.SSH_AUTH_SOCK = "$XDG_RUNTIME_DIR/ssh-agent";
-
-    programs.keychain = {
-      enable = true;
-      keys = [ "id_ed25519" ];
-    };
   };
 }
