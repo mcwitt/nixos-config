@@ -17,6 +17,8 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     llm-agents.url = "github:numtide/llm-agents.nix";
     llm-agents.inputs.nixpkgs.follows = "nixpkgs";
+    nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-26.05";
+    nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
     nur.url = "github:nix-community/NUR";
@@ -37,6 +39,7 @@
       emacs-overlay,
       flake-utils,
       home-manager,
+      nix-darwin,
       nixos-raspberrypi,
       nur,
       pre-commit-hooks,
@@ -148,6 +151,97 @@
             )
           ]
           ++ extraNixosModules;
+        }
+      );
+
+      lib.makeDarwinSystem = nixpkgs.lib.makeOverridable (
+        {
+          system,
+          users,
+          extraDarwinModules ? [ ],
+          extraHmModules ? [ ],
+          extraSpecialArgs ? { },
+          extraExtraSpecialArgs ? { },
+        }:
+        nix-darwin.lib.darwinSystem {
+          inherit system;
+
+          specialArgs = {
+            inherit inputs;
+          }
+          // extraSpecialArgs;
+
+          modules = [
+            home-manager.darwinModules.home-manager
+
+            stylix.darwinModules.stylix
+            self.nixosModules.stylix
+
+            (
+              {
+                config,
+                lib,
+                pkgs,
+                ...
+              }:
+              {
+                nixpkgs = {
+                  overlays = [
+                    self.overlays.default
+                    emacs-overlay.overlay
+                    nur.overlays.default
+                    inputs.claude-code.overlays.default
+                    inputs.codex-cli.overlays.default
+                    inputs.llm-agents.overlays.default
+                  ];
+                  config.allowUnfree = true;
+                };
+
+                users.users = builtins.listToAttrs (
+                  map (user: lib.nameValuePair user { home = "/Users/${user}"; }) users
+                );
+
+                system.primaryUser = builtins.head users;
+
+                home-manager = {
+                  backupFileExtension = "backup-before-home-manager";
+
+                  extraSpecialArgs = {
+                    inherit inputs;
+
+                    # gross hack to use modules from NUR
+                    # https://discourse.nixos.org/t/importing-nur-home-manager-modules-in-nix-flakes/16457
+                    nurNoPkgs = import nur {
+                      pkgs = null;
+                      nurpkgs = pkgs;
+                    };
+                  }
+                  // extraExtraSpecialArgs;
+
+                  useGlobalPkgs = true;
+
+                  users = builtins.listToAttrs (
+                    map (
+                      user:
+                      lib.nameValuePair user {
+                        imports = [
+                          self.homeModules.default
+                        ]
+                        ++ extraHmModules;
+
+                        profiles.base.enable = true;
+                      }
+                    ) users
+                  );
+
+                  useUserPackages = true;
+                };
+
+                stylix.enable = true;
+              }
+            )
+          ]
+          ++ extraDarwinModules;
         }
       );
 
