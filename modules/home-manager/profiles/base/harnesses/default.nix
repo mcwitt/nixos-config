@@ -53,8 +53,12 @@ in
           command = lib.getExe pkgs.playwright-mcp;
           args = [
             "--browser=chrome"
-            "--executable-path=${lib.getExe pkgs.chromium}"
             "--headless"
+          ]
+          # chromium is not available on darwin; let playwright resolve its own
+          # browser there rather than pinning the nixpkgs build.
+          ++ lib.optionals pkgs.stdenv.isLinux [
+            "--executable-path=${lib.getExe pkgs.chromium}"
           ];
         };
       };
