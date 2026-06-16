@@ -30,7 +30,7 @@
 
     programs.emacs = {
       enable = true;
-      package = pkgs.emacs-unstable;
+      package = if pkgs.stdenv.isDarwin then pkgs.emacs-macport else pkgs.emacs-unstable;
     };
 
     programs.emacs.init = {
