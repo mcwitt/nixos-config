@@ -175,6 +175,7 @@
 
           modules = [
             home-manager.darwinModules.home-manager
+            ./modules/nixos/nix-community-cache.nix
 
             stylix.darwinModules.stylix
             self.nixosModules.stylix
