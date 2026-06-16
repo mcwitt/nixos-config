@@ -8,7 +8,7 @@ let
   cfg = config.profiles.desktop;
 in
 {
-  options.profiles.desktop.enable = lib.mkEnableOption "Profile for machines with graphical desktops";
+  options.profiles.desktop.enable = lib.mkEnableOption "Profile for headed (graphical) machines";
 
   imports = [
     ./firefox.nix
@@ -17,267 +17,272 @@ in
     ./xmonad.nix
   ];
 
-  config = lib.mkIf cfg.enable {
+  config = lib.mkIf cfg.enable (
+    lib.mkMerge [
+      {
+        programs.wezterm = {
+          enable = true;
 
-    home.packages = [
-      pkgs.pavucontrol
-      pkgs.xclip
-      pkgs.thunar
-    ];
+          colorSchemes.custom = with config.lib.stylix.colors.withHashtag; {
+            # https://github.com/chriskempson/base16-shell/blob/master/templates/default.mustache
+            ansi = [
+              base00
+              red
+              green
+              yellow
+              blue
+              magenta
+              cyan
+              base05
+            ];
+            brights = [
+              base03
+              red
+              green
+              yellow
+              blue
+              magenta
+              cyan
+              base07
+            ];
 
-    programs.chromium = {
-      enable = true;
-      extensions =
-        let
-          bitwarden = "nngceckbapebfimnlniiiahkandclblb";
-          link-to-text-fragment = "pbcodcjpfjdpcineamnnmbkkmkdpajjg";
-          privacy-badger = "pkehgijcmpdhfbdbbnkijodmdjhbjlgp";
-          vimium = "dbepggeogbaibhgnhhndojpepiihcmeb";
-        in
-        [
-          bitwarden
-          link-to-text-fragment
-          privacy-badger
-          vimium
-        ];
-    };
-
-    programs.feh.enable = true;
-
-    programs.mpv.enable = true;
-
-    programs.wezterm = {
-      enable = true;
-
-      colorSchemes.custom = with config.lib.stylix.colors.withHashtag; {
-        # https://github.com/chriskempson/base16-shell/blob/master/templates/default.mustache
-        ansi = [
-          base00
-          red
-          green
-          yellow
-          blue
-          magenta
-          cyan
-          base05
-        ];
-        brights = [
-          base03
-          red
-          green
-          yellow
-          blue
-          magenta
-          cyan
-          base07
-        ];
-
-        background = base00;
-        cursor_bg = base05;
-        cursor_border = base05;
-        cursor_fg = base00;
-        foreground = base05;
-        selection_bg = base05;
-        selection_fg = base00;
-      };
-      extraConfig =
-        let
-          inherit (config.stylix) fonts;
-        in
-        ''
-          return {
-            font = wezterm.font "${fonts.monospace.name}",
-            font_size = ${toString fonts.sizes.applications},
-            color_scheme = "custom",
-            hide_tab_bar_if_only_one_tab = true,
-            check_for_updates = false,
-            audible_bell = "Disabled",
-            keys = {{key="Enter", mods="SHIFT", action=wezterm.action{SendString="\x1b\r"}}},
+            background = base00;
+            cursor_bg = base05;
+            cursor_border = base05;
+            cursor_fg = base00;
+            foreground = base05;
+            selection_bg = base05;
+            selection_fg = base00;
           };
-        '';
-    };
+          extraConfig =
+            let
+              inherit (config.stylix) fonts;
+            in
+            ''
+              return {
+                font = wezterm.font "${fonts.monospace.name}",
+                font_size = ${toString fonts.sizes.applications},
+                color_scheme = "custom",
+                hide_tab_bar_if_only_one_tab = true,
+                check_for_updates = false,
+                audible_bell = "Disabled",
+                keys = {{key="Enter", mods="SHIFT", action=wezterm.action{SendString="\x1b\r"}}},
+              };
+            '';
+        };
 
-    programs.urxvt = {
-      enable = true;
-      fonts =
-        let
-          inherit (config.stylix) fonts;
-        in
-        [ "xft:${fonts.monospace.name}:size=${toString fonts.sizes.applications}:antialias=true" ];
-    };
+        stylix.enable = true;
+      }
 
-    programs.vscodium = {
-
-      enable = true;
-
-      package = pkgs.vscodium-fhs;
-
-      profiles.default = {
-
-        extensions = with pkgs.vscode-extensions; [
-          arrterian.nix-env-selector
-          ms-toolsai.jupyter
-          vscodevim.vim
+      (lib.mkIf pkgs.stdenv.isLinux {
+        home.packages = [
+          pkgs.pavucontrol
+          pkgs.xclip
+          pkgs.thunar
         ];
 
-        keybindings = [
-          {
-            key = "alt+n";
-            command = "editor.action.marker.nextInFiles";
-            when = "editorFocus";
-          }
-          {
-            key = "alt+p";
-            command = "editor.action.marker.prevInFiles";
-            when = "editorFocus";
-          }
-        ];
+        programs.chromium = {
+          enable = true;
+          extensions =
+            let
+              bitwarden = "nngceckbapebfimnlniiiahkandclblb";
+              link-to-text-fragment = "pbcodcjpfjdpcineamnnmbkkmkdpajjg";
+              privacy-badger = "pkehgijcmpdhfbdbbnkijodmdjhbjlgp";
+              vimium = "dbepggeogbaibhgnhhndojpepiihcmeb";
+            in
+            [
+              bitwarden
+              link-to-text-fragment
+              privacy-badger
+              vimium
+            ];
+        };
 
-        userSettings = {
+        programs.feh.enable = true;
 
-          update.mode = "none";
-          extensions.autoUpdate = false;
+        programs.mpv.enable = true;
 
-          editor = {
-            fontFamily = "'${config.stylix.fonts.monospace.name}'";
-            fontLigatures = true;
-            formatOnSave = true;
-          };
+        programs.urxvt = {
+          enable = true;
+          fonts =
+            let
+              inherit (config.stylix) fonts;
+            in
+            [ "xft:${fonts.monospace.name}:size=${toString fonts.sizes.applications}:antialias=true" ];
+        };
 
-          vim = {
-            hlsearch = true;
-            insertModeKeyBindings = [
+        programs.vscodium = {
+
+          enable = true;
+
+          package = pkgs.vscodium-fhs;
+
+          profiles.default = {
+
+            extensions = with pkgs.vscode-extensions; [
+              arrterian.nix-env-selector
+              ms-toolsai.jupyter
+              vscodevim.vim
+            ];
+
+            keybindings = [
               {
-                before = [
-                  "f"
-                  "d"
-                ];
-                after = [ "<Esc>" ];
+                key = "alt+n";
+                command = "editor.action.marker.nextInFiles";
+                when = "editorFocus";
+              }
+              {
+                key = "alt+p";
+                command = "editor.action.marker.prevInFiles";
+                when = "editorFocus";
               }
             ];
+
+            userSettings = {
+
+              update.mode = "none";
+              extensions.autoUpdate = false;
+
+              editor = {
+                fontFamily = "'${config.stylix.fonts.monospace.name}'";
+                fontLigatures = true;
+                formatOnSave = true;
+              };
+
+              vim = {
+                hlsearch = true;
+                insertModeKeyBindings = [
+                  {
+                    before = [
+                      "f"
+                      "d"
+                    ];
+                    after = [ "<Esc>" ];
+                  }
+                ];
+              };
+            };
           };
         };
-      };
-    };
 
-    programs.zathura.enable = true;
+        programs.zathura.enable = true;
 
-    services.dunst = {
-      enable = true;
-      settings =
-        let
-          colors = config.lib.stylix.colors.withHashtag;
-        in
-        {
-          global = {
-            browser = "${config.programs.chromium.package}/bin/chromium-browser";
-            markup = "full";
-            max_icon_size = 100;
-            text_icon_padding = 10;
-            scale = 1;
-            frame_width = 6;
-            origin = "top-right";
-            offset = "12x58";
-            width = 600;
-          };
+        services.dunst = {
+          enable = true;
+          settings =
+            let
+              colors = config.lib.stylix.colors.withHashtag;
+            in
+            {
+              global = {
+                browser = "${config.programs.chromium.package}/bin/chromium-browser";
+                markup = "full";
+                max_icon_size = 100;
+                text_icon_padding = 10;
+                scale = 1;
+                frame_width = 6;
+                origin = "top-right";
+                offset = "12x58";
+                width = 600;
+              };
 
-          urgency_low.foreground = lib.mkForce colors.base04;
+              urgency_low.foreground = lib.mkForce colors.base04;
 
-          urgency_normal = {
-            frame_color = lib.mkForce colors.base06;
-            highlight = lib.mkForce colors.base06;
-            foreground = lib.mkForce colors.base06;
-          };
+              urgency_normal = {
+                frame_color = lib.mkForce colors.base06;
+                highlight = lib.mkForce colors.base06;
+                foreground = lib.mkForce colors.base06;
+              };
 
-          urgency_critical.foreground = lib.mkForce colors.base08;
+              urgency_critical.foreground = lib.mkForce colors.base08;
+            };
         };
-    };
 
-    services.flameshot = {
-      enable = true;
-      settings.General.showStartupLaunchMessage = false;
-    };
+        services.flameshot = {
+          enable = true;
+          settings.General.showStartupLaunchMessage = false;
+        };
 
-    services.gammastep = {
-      enable = true;
-      tray = true;
-      provider = "geoclue2";
-      settings.general = {
-        adjustment-method = "randr";
-        brightness-night = 0.6;
-      };
-    };
-
-    services.picom = {
-      enable = true;
-      backend = "glx";
-      vSync = true;
-      shadow = true;
-      settings = {
-        crop-shadow-to-monitor = true;
-        corner-radius = 6;
-        rounded-corners-exclude = [ "window_type = 'dock'" ];
-      };
-    };
-
-    services.polybar.enable = true;
-
-    services.udiskie = {
-      enable = true;
-      tray = "always";
-    };
-
-    stylix.enable = true;
-
-    xdg = {
-      enable = true;
-
-      desktopEntries.org-protocol = {
-        name = "org-protocol";
-        comment = "Intercept calls from emacsclient to trigger custom actions";
-        categories = [ "X-Other" ];
-        icon = "emacs";
-        type = "Application";
-        exec = "emacsclient -- %u";
-        terminal = false;
-        mimeType = [ "x-scheme-handler/org-protocol" ];
-      };
-
-      mimeApps = {
-        enable = true;
-        defaultApplications =
-          let
-            mkDefaults = apps: types: builtins.listToAttrs (map (type: lib.nameValuePair type apps) types);
-          in
-          mkDefaults
-            [ "feh.desktop" ]
-            [
-              "image/bmp"
-              "image/gif"
-              "image/jpeg"
-              "image/jpg"
-              "image/png"
-              "image/webp"
-            ]
-          //
-            mkDefaults
-              [ "chromium-browser.desktop" ]
-              [
-                "text/html"
-                "x-scheme-handler/http"
-                "x-scheme-handler/https"
-                "x-scheme-handler/ftp"
-              ]
-          // {
-            "application/pdf" = [ "org.pwmt.zathura.desktop" ];
-            "text/plain" = [ "emacsclient.desktop" ];
+        services.gammastep = {
+          enable = true;
+          tray = true;
+          provider = "geoclue2";
+          settings.general = {
+            adjustment-method = "randr";
+            brightness-night = 0.6;
           };
-      };
-    };
+        };
 
-    xsession = {
-      enable = true;
-      windowManager.xmonad.enable = true;
-    };
-  };
+        services.picom = {
+          enable = true;
+          backend = "glx";
+          vSync = true;
+          shadow = true;
+          settings = {
+            crop-shadow-to-monitor = true;
+            corner-radius = 6;
+            rounded-corners-exclude = [ "window_type = 'dock'" ];
+          };
+        };
+
+        services.polybar.enable = true;
+
+        services.udiskie = {
+          enable = true;
+          tray = "always";
+        };
+
+        xdg = {
+          enable = true;
+
+          desktopEntries.org-protocol = {
+            name = "org-protocol";
+            comment = "Intercept calls from emacsclient to trigger custom actions";
+            categories = [ "X-Other" ];
+            icon = "emacs";
+            type = "Application";
+            exec = "emacsclient -- %u";
+            terminal = false;
+            mimeType = [ "x-scheme-handler/org-protocol" ];
+          };
+
+          mimeApps = {
+            enable = true;
+            defaultApplications =
+              let
+                mkDefaults = apps: types: builtins.listToAttrs (map (type: lib.nameValuePair type apps) types);
+              in
+              mkDefaults
+                [ "feh.desktop" ]
+                [
+                  "image/bmp"
+                  "image/gif"
+                  "image/jpeg"
+                  "image/jpg"
+                  "image/png"
+                  "image/webp"
+                ]
+              //
+                mkDefaults
+                  [ "chromium-browser.desktop" ]
+                  [
+                    "text/html"
+                    "x-scheme-handler/http"
+                    "x-scheme-handler/https"
+                    "x-scheme-handler/ftp"
+                  ]
+              // {
+                "application/pdf" = [ "org.pwmt.zathura.desktop" ];
+                "text/plain" = [ "emacsclient.desktop" ];
+              };
+          };
+        };
+
+        xsession = {
+          enable = true;
+          windowManager.xmonad.enable = true;
+        };
+      })
+    ]
+  );
 }

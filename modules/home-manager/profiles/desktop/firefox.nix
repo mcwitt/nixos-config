@@ -5,7 +5,7 @@
   ...
 }:
 {
-  config = lib.mkIf config.profiles.desktop.enable {
+  config = lib.mkIf (config.profiles.desktop.enable && pkgs.stdenv.isLinux) {
 
     programs.firefox = {
       enable = true;
