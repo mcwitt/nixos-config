@@ -246,6 +246,15 @@
                 };
 
                 stylix.enable = true;
+
+                # Enlarge fonts on macOS to roughly match the system default
+                # (~13pt), since the base stylix size (10) is small on Retina.
+                stylix.fonts.sizes = lib.mkForce {
+                  applications = 13;
+                  desktop = 13;
+                  popups = 13;
+                  terminal = 13;
+                };
               }
             )
           ]
