@@ -233,6 +233,9 @@
                         ++ extraHmModules;
 
                         profiles.base.enable = true;
+
+                        targets.darwin.copyApps.enable = true;
+                        targets.darwin.linkApps.enable = false;
                       }
                     ) users
                   );
