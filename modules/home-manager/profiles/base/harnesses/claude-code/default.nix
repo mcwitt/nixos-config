@@ -63,7 +63,7 @@ let
     red=$'\033[38;2;${redRgb}m'
     green=$'\033[38;2;${greenRgb}m'
     reset=$'\033[0m'
-    sep=" $chrome·$reset "
+    sep=" ''${chrome}·''${reset} "
 
     fmt_duration() {
       local secs="$1"
