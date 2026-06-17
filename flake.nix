@@ -206,6 +206,8 @@
 
                 system.primaryUser = builtins.head users;
 
+                programs.fish.enable = true;
+
                 home-manager = {
                   backupFileExtension = "backup-before-home-manager";
 
