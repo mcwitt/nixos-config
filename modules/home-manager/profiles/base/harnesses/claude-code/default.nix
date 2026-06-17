@@ -63,7 +63,11 @@ let
     red=$'\033[38;2;${redRgb}m'
     green=$'\033[38;2;${greenRgb}m'
     reset=$'\033[0m'
-    sep=" $chrome·$reset "
+    # Brace ''${chrome}: under a UTF-8 locale, bash 5.3 extends an unbraced
+    # variable name into the bytes of an adjacent multibyte literal, so
+    # "$chrome·" swallows $chrome and the dot's 0xC2 lead byte, emitting a
+    # bare invalid 0xB7 that terminals render as a replacement box.
+    sep=" ''${chrome}·''${reset} "
 
     fmt_duration() {
       local secs="$1"
