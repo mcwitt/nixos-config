@@ -67,6 +67,9 @@ in
                 check_for_updates = false,
                 audible_bell = "Disabled",
                 keys = {{key="Enter", mods="SHIFT", action=wezterm.action{SendString="\x1b\r"}}},
+                ${lib.optionalString pkgs.stdenv.isDarwin ''
+                  default_prog = { "${lib.getExe config.programs.fish.package}", "-l" },
+                ''}
               };
             '';
         };
