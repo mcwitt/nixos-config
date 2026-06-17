@@ -75,7 +75,31 @@
       '';
     };
 
+    launchd.agents.emacs = lib.mkIf pkgs.stdenv.isDarwin {
+      enable = true;
+      config = {
+        ProgramArguments = [
+          "/usr/bin/open"
+          "-W"
+          "${config.programs.emacs.finalPackage}/Applications/Emacs.app"
+        ];
+        RunAtLoad = true;
+        KeepAlive = {
+          Crashed = true;
+          SuccessfulExit = false;
+        };
+      };
+    };
+
     programs.emacs.init.usePackage = {
+
+      server = {
+        enable = pkgs.stdenv.isDarwin;
+        config = ''
+          (unless (server-running-p)
+            (server-start))
+        '';
+      };
 
       all-the-icons = {
         enable = true;

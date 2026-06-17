@@ -56,11 +56,6 @@
           ALTERNATE_EDITOR = "${pkgs.vim}/bin/vim";
         };
 
-        services.emacs = {
-          enable = true;
-          client.enable = true;
-        };
-
         languages.nix.enable = true;
 
         # NOTE: if hm activation fails, delete ~/cache
@@ -217,6 +212,11 @@
         fonts.fontconfig.enable = true;
 
         home.shellAliases.open = "${pkgs.xdg-utils}/bin/xdg-open";
+
+        services.emacs = {
+          enable = true;
+          client.enable = true;
+        };
 
         # Plain ssh-agent holds keys in memory only; load them manually once per
         # boot with e.g. `ssh-add ~/.ssh/id_ed25519` (they persist until
