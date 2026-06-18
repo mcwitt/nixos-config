@@ -56,10 +56,7 @@ in
         '';
       };
 
-      markdown-appear = {
-        enable = true;
-        hook = [ "(markdown-mode . markdown-appear-mode)" ];
-      };
+      markdown-appear.enable = true;
 
       org.config = ''
         (require 'ox-gfm)
