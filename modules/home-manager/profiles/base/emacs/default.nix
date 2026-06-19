@@ -318,6 +318,8 @@
       eldoc = {
         enable = true;
         config = ''
+          (setopt eldoc-help-at-pt t)
+
           ;; Replace HTML escapes in eldoc when using eglot
           ;; https://emacs.stackexchange.com/a/82952
 
@@ -405,6 +407,8 @@
 
           ;; Don't insert a double space between sentences when filling
           (setq-default sentence-end-double-space nil)
+
+          (setopt kill-region-dwim 'emacs-word)
 
           ;; Always show line and column numbers
           (line-number-mode)
@@ -690,6 +694,14 @@
         enable = true;
         config = ''
           (undo-fu-session-global-mode)
+        '';
+      };
+
+      vc = {
+        enable = true;
+        config = ''
+          (setopt vc-dir-auto-hide-up-to-date 'revert
+                  vc-allow-rewriting-published-history t)
         '';
       };
 
