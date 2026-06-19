@@ -23,6 +23,7 @@
     ./snippets.nix
     ./theme.nix
     ./treesit.nix
+    ./tty.nix
     ./vertico.nix
   ];
 
