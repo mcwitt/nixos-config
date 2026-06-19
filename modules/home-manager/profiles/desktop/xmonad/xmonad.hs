@@ -30,6 +30,7 @@ import XMonad.Hooks.WorkspaceHistory (workspaceHistory, workspaceHistoryHook)
 import XMonad.Layout.BoringWindows (boringWindows, focusDown, focusMaster, focusUp)
 import XMonad.Layout.Decoration (DecorationStyle (..), decoration, fi, findWindowByDecoration)
 import XMonad.Layout.IndependentScreens (countScreens)
+import XMonad.Layout.Master (mastered)
 import XMonad.Layout.Minimize (minimize)
 import XMonad.Layout.MultiToggle (Toggle (Toggle), mkToggle, single)
 import XMonad.Layout.MultiToggle.Instances (StdTransformers (MIRROR))
@@ -165,6 +166,7 @@ myLayoutHook =
         ||| renamed [Replace "Tabbed"] (decoration shrinkText tabbedTheme (GapTab tabGap) Simplest)
         ||| renamed [Replace "ThreeColMid"] (ResizableThreeColMid 1 (3 % 100) (1 % 2) [])
         ||| renamed [Replace "TwoPane"] (TwoPanePersistent Nothing (3 % 100) (1 % 2))
+        ||| renamed [Replace "MasterTabbed"] (mastered (3 % 100) (1 % 2) (decoration shrinkText tabbedTheme (GapTab tabGap) Simplest))
 
     tabbedTheme =
       def
