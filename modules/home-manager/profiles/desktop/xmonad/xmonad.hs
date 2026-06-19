@@ -38,7 +38,7 @@ import XMonad.Layout.ResizableThreeColumns (MirrorResize (MirrorExpand, MirrorSh
 import XMonad.Layout.Simplest (Simplest (Simplest))
 import XMonad.Layout.Spacing (spacingWithEdge)
 import XMonad.Layout.Tabbed (Theme (..), shrinkText)
-import XMonad.Layout.TwoPane (TwoPane (TwoPane))
+import XMonad.Layout.TwoPanePersistent (TwoPanePersistent (TwoPanePersistent))
 import qualified XMonad.StackSet as W
 import XMonad.Util.EZConfig (additionalKeys, additionalKeysP, removeKeysP)
 import XMonad.Util.NamedScratchpad (NamedScratchpad (NS), customFloating, namedScratchpadAction, namedScratchpadManageHook, scratchpadWorkspaceTag)
@@ -164,7 +164,7 @@ myLayoutHook =
       renamed [Replace "ThreeCol"] (ResizableThreeCol 1 (3 % 100) (1 % 2) [])
         ||| renamed [Replace "Tabbed"] (decoration shrinkText tabbedTheme (GapTab tabGap) Simplest)
         ||| renamed [Replace "ThreeColMid"] (ResizableThreeColMid 1 (3 % 100) (1 % 2) [])
-        ||| TwoPane (3 % 100) (1 % 2)
+        ||| renamed [Replace "TwoPane"] (TwoPanePersistent Nothing (3 % 100) (1 % 2))
 
     tabbedTheme =
       def
