@@ -69,17 +69,14 @@ in
 
       typescript-ts-mode = {
         enable = true;
+        # `.mts'/`.cts' aren't registered by core.
         mode = [
-          ''("\\.ts\\'" . typescript-ts-mode)''
           ''("\\.mts\\'" . typescript-ts-mode)''
           ''("\\.cts\\'" . typescript-ts-mode)''
         ];
       };
 
-      tsx-ts-mode = {
-        enable = true;
-        mode = [ ''("\\.tsx\\'" . tsx-ts-mode)'' ];
-      };
+      tsx-ts-mode.enable = true;
     };
 
     programs.git.ignores = pkgs.gitignores "Node";

@@ -63,8 +63,7 @@ The module provides editor configuration (primarily Emacs) plus a small set of g
    - **format-all** disable hook when reformatter is in use
    - **ligature** config for the mode
    - **subword** or **superword** mode hook
-   - **ts-mode registration** via `mode = [ ''("\\.ext\\'" . <lang>-ts-mode)'' ];` if not built-in
-   - **major-mode-remap-alist** entry if both a legacy mode and ts-mode exist (see `nix/default.nix`)
+   - **ts-mode registration**: built-in ts-modes are auto-remapped by `treesit-enabled-modes t` (set in `treesit.nix`), so you usually need *nothing* here. Add an explicit `mode = [ ''("\\.ext\\'" . <lang>-ts-mode)'' ];` only for extensions core doesn't register (e.g. `.mts`/`.cts` in `typescript/default.nix`) or for an external ts-mode that doesn't self-register in `treesit-major-mode-remap-alist` (e.g. `nix-ts-mode`, which still needs a manual `(add-to-list 'major-mode-remap-alist '(nix-mode . nix-ts-mode))` — see `nix/default.nix`)
    - **`programs.git.ignores = pkgs.gitignores "<Name>"`** using a [github/gitignore](https://github.com/github/gitignore) template name
    - **`programs.vscode.profiles.default.extensions`** wrapped in `mkIf (!pkgs.stdenv.isDarwin)`
    - A **`globalPackages`** option (see `python/default.nix`) only if the language has a meaningful "user packages" concept
