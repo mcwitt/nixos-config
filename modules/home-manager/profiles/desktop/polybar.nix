@@ -19,7 +19,7 @@
       settings =
         let
           colors = config.lib.stylix.colors.withHashtag;
-          runTermAppOnClick = bin: label: "%{A1:${lib.getExe pkgs.wezterm} start ${bin}:}${label}%{A}";
+          runTermAppOnClick = bin: label: "%{A1:${lib.getExe pkgs.ghostty} -e ${bin}:}${label}%{A}";
           windowMargin = 8;
         in
         {

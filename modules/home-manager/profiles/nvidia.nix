@@ -22,7 +22,7 @@ in
         interval = 1;
         label =
           let
-            runTermAppOnClick = bin: label: "%{A1:${lib.getExe pkgs.wezterm} start ${bin}:}${label}%{A}";
+            runTermAppOnClick = bin: label: "%{A1:${lib.getExe pkgs.ghostty} -e ${bin}:}${label}%{A}";
           in
           runTermAppOnClick (lib.getExe pkgs.nvtopPackages.nvidia) "%output%%";
 

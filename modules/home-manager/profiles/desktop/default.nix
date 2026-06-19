@@ -20,58 +20,25 @@ in
   config = lib.mkIf cfg.enable (
     lib.mkMerge [
       {
-        programs.wezterm = {
+        programs.ghostty = {
           enable = true;
 
-          colorSchemes.custom = with config.lib.stylix.colors.withHashtag; {
-            # https://github.com/chriskempson/base16-shell/blob/master/templates/default.mustache
-            ansi = [
-              base00
-              red
-              green
-              yellow
-              blue
-              magenta
-              cyan
-              base05
-            ];
-            brights = [
-              base03
-              red
-              green
-              yellow
-              blue
-              magenta
-              cyan
-              base07
-            ];
+          # pkgs.ghostty is Linux-only; on darwin the app is installed via a
+          # Homebrew cask (see nixos-config-private) and we only write the
+          # shared config. Theming is handled by the stylix ghostty target.
+          package = lib.mkIf pkgs.stdenv.isDarwin null;
 
-            background = base00;
-            cursor_bg = base05;
-            cursor_border = base05;
-            cursor_fg = base00;
-            foreground = base05;
-            selection_bg = base05;
-            selection_fg = base00;
+          settings = {
+            window-show-tab-bar = "auto"; # zellij owns tabs; hide the lone one
+            auto-update = "off"; # updates come from nix / Homebrew
+            clipboard-read = "allow";
+            clipboard-write = "allow"; # let emacs clipetty OSC-52 through
+          }
+          // lib.optionalAttrs pkgs.stdenv.isDarwin {
+            # macOS default shell is zsh/bash; force a fish login shell,
+            # matching the old wezterm default_prog.
+            command = "${lib.getExe config.programs.fish.package} -l";
           };
-          extraConfig =
-            let
-              inherit (config.stylix) fonts;
-            in
-            ''
-              return {
-                font = wezterm.font "${fonts.monospace.name}",
-                font_size = ${toString fonts.sizes.applications},
-                color_scheme = "custom",
-                hide_tab_bar_if_only_one_tab = true,
-                check_for_updates = false,
-                audible_bell = "Disabled",
-                keys = {{key="Enter", mods="SHIFT", action=wezterm.action{SendString="\x1b\r"}}},
-                ${lib.optionalString pkgs.stdenv.isDarwin ''
-                  default_prog = { "${lib.getExe config.programs.fish.package}", "-l" },
-                ''}
-              };
-            '';
         };
 
         stylix.enable = true;

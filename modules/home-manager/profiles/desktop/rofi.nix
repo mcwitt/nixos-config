@@ -15,7 +15,7 @@
         rofi-emoji
       ];
 
-      terminal = "${pkgs.wezterm}/bin/wezterm";
+      terminal = "${pkgs.ghostty}/bin/ghostty";
 
       theme =
         let
