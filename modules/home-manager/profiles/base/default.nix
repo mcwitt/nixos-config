@@ -177,11 +177,6 @@
           settings.directory.fish_style_pwd_dir_length = 1;
         };
 
-        programs.tmux = {
-          enable = true;
-          keyMode = "vi";
-        };
-
         programs.zsh = {
           enable = true;
           dotDir = "${config.xdg.configHome}/zsh";
@@ -212,6 +207,20 @@
         fonts.fontconfig.enable = true;
 
         home.shellAliases.open = "${pkgs.xdg-utils}/bin/xdg-open";
+
+        # zellij is the persistent multiplexer (replaces tmux). Linux-only: the
+        # MacBook reaches zellij over SSH on the desktop, never locally.
+        programs.zellij = {
+          enable = true;
+          settings = {
+            # "unlock-first" / non-colliding preset: start locked so every
+            # Ctrl- key passes through to emacs/shell; Ctrl-g unlocks.
+            default_mode = "locked";
+            # Persist the session across reboots, including pane scrollback.
+            session_serialization = true;
+            serialize_pane_viewport = true;
+          };
+        };
 
         services.emacs = {
           enable = true;

@@ -51,6 +51,23 @@ in
           pkgs.thunar
         ];
 
+        # Land local terminals in the persistent `main` session. The
+        # home-manager zellij shell integration only emits a bare
+        # `zellij attach -c` (no name), and zellij does not read a
+        # ZELLIJ_SESSION_NAME env var, so attach to `main` explicitly instead.
+        # Scoped to desktop + Linux so it never fires on the MacBook (which
+        # reaches zellij over SSH).
+        programs.fish.interactiveShellInit = ''
+          if status is-interactive; and not set -q ZELLIJ
+              ${lib.getExe config.programs.zellij.package} attach --create main
+          end
+        '';
+        programs.zsh.initContent = lib.mkOrder 200 ''
+          if [[ -o interactive && -z "$ZELLIJ" ]]; then
+            ${lib.getExe config.programs.zellij.package} attach --create main
+          fi
+        '';
+
         programs.chromium = {
           enable = true;
           extensions =
