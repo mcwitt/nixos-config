@@ -4,6 +4,17 @@
   pkgs,
   ...
 }:
+let
+  # Pick a GUI frame (-c) when a display is present and we're local; otherwise
+  # a terminal frame (-t), for emacsclient over SSH / in a tty.
+  emacsclient-auto = pkgs.writeShellScriptBin "emacsclient-auto" ''
+    if [ -n "$SSH_CONNECTION" ] || { [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; }; then
+      exec ${config.programs.emacs.finalPackage}/bin/emacsclient -t "$@"
+    else
+      exec ${config.programs.emacs.finalPackage}/bin/emacsclient -c "$@"
+    fi
+  '';
+in
 {
   options.profiles.base.enable = lib.mkEnableOption "Base configuration enabled on most machines";
 
@@ -19,7 +30,10 @@
   config = lib.mkIf config.profiles.base.enable (
     lib.mkMerge [
       {
-        home.packages = with pkgs; [
+        home.packages = [
+          emacsclient-auto
+        ]
+        ++ (with pkgs; [
           delta
           docker-compose
           ffmpeg
@@ -27,11 +41,10 @@
           llm-agents.qmd
           nix-du
           nix-output-monitor
-          (parallel-full.override { willCite = true; })
           prek
           prettier
           yq
-        ];
+        ]);
 
         home.sessionPath = [
           "$HOME/.local/bin"
@@ -39,7 +52,7 @@
 
         home.shellAliases = {
           cdr = ''cd "$(${pkgs.git}/bin/git rev-parse --show-toplevel)"'';
-          ec = "${config.programs.emacs.finalPackage}/bin/emacsclient --create-frame";
+          ec = lib.getExe emacsclient-auto;
           ff = "${pkgs.fd}/bin/fd";
           g = "${pkgs.git}/bin/git";
           gb = "${pkgs.git}/bin/git b";
@@ -52,7 +65,7 @@
         };
 
         home.sessionVariables = {
-          EDITOR = "${config.programs.emacs.finalPackage}/bin/emacsclient -c";
+          EDITOR = lib.getExe emacsclient-auto;
           ALTERNATE_EDITOR = "${pkgs.vim}/bin/vim";
         };
 
@@ -137,7 +150,8 @@
             };
 
             # https://github.com/davidshepherd7/frames-only-mode#integrating-with-command-line-git
-            core.editor = "emacsclient -c";
+            # emacsclient-auto picks -t (TUI) over SSH / in a tty, -c (GUI) locally.
+            core.editor = lib.getExe emacsclient-auto;
 
             # https://stackoverflow.com/a/9463536
             format.pretty = "format:%C(auto,yellow)%h%C(auto,magenta)% G? %C(auto,blue)%>(12,trunc)%ad %C(auto,green)%<(7,trunc)%aN%C(auto,reset)%s%C(auto,red)% gD% D";
