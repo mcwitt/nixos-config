@@ -160,8 +160,12 @@
       breadcrumb = {
         enable = true;
         config = ''
-          ;; Workaround for slow performance when visiting files in /nix/store
-          ;; https://github.com/joaotavora/breadcrumb/issues/41
+          ;; Workaround for slow performance when visiting files in /nix/store.
+          ;; https://github.com/joaotavora/breadcrumb/issues/41 was closed as a
+          ;; duplicate (->#38->#18), not fixed. Still needed as of breadcrumb
+          ;; 1.0.1 / Emacs 31 (2026-06): the breadcrumb header takes ~80ms per
+          ;; update on a /nix/store file vs ~0ms for the same file elsewhere
+          ;; (the project/path crumb walks the huge store).
           (defun my/buffer-in-nix-store-p ()
             "Return whether the current buffer's file path starts with /nix/store."
             (let ((file (buffer-file-name)))
