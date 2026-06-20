@@ -54,20 +54,6 @@ in
           pkgs.thunar
         ];
 
-        # Attach local terminals to the shared `main` session (hm's zellij
-        # integration emits a bare `zellij attach -c`, which can't name it).
-        # NO_AUTO_ZELLIJ=1 opts out, e.g. `env NO_AUTO_ZELLIJ=1 ghostty`.
-        programs.fish.interactiveShellInit = ''
-          if status is-interactive; and not set -q ZELLIJ; and not set -q NO_AUTO_ZELLIJ
-              ${lib.getExe config.programs.zellij.package} attach --create main
-          end
-        '';
-        programs.zsh.initContent = lib.mkOrder 200 ''
-          if [[ -o interactive && -z "$ZELLIJ" && -z "$NO_AUTO_ZELLIJ" ]]; then
-            ${lib.getExe config.programs.zellij.package} attach --create main
-          fi
-        '';
-
         programs.chromium = {
           enable = true;
           extensions =

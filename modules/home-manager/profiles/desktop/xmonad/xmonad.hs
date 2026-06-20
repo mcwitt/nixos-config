@@ -118,8 +118,8 @@ main = do
                               (\p -> "ghostty --working-directory=" ++ shellQuote p)
                               "ghostty"
                           ),
-                          -- scratch terminal (no zellij)
-                          ("M-C-<Return>", spawn "env NO_AUTO_ZELLIJ=1 ghostty"),
+                          -- launch into the persistent `main` zellij session
+                          ("M-C-<Return>", spawn "ghostty -e zellij attach -c main"),
                           ("M-p", spawn "rofi -show-icons -show drun"),
                           ("M-S-p", spawn "rofi -show-icons -show run"),
                           ("M-0", spawn "rofi-rbw --keybindings Ctrl-1:type:username:password,Ctrl-2:type:password,Ctrl-3:copy:password,Ctrl-4:type:totp"),

@@ -222,6 +222,10 @@ in
 
         home.shellAliases.open = "${pkgs.xdg-utils}/bin/xdg-open";
 
+        # Opt in to the persistent `main` session. On satori this is the
+        # resumable workspace the roaming machines reattach to via `desk`.
+        home.shellAliases.zj = "${lib.getExe config.programs.zellij.package} attach --create main";
+
         # Linux-only; the MacBook attaches over SSH, never runs zellij locally.
         programs.zellij = {
           enable = true;
