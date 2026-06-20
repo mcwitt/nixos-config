@@ -222,18 +222,28 @@ in
 
         home.shellAliases.open = "${pkgs.xdg-utils}/bin/xdg-open";
 
-        # zellij is the persistent multiplexer (replaces tmux). Linux-only: the
-        # MacBook reaches zellij over SSH on the desktop, never locally.
+        # Linux-only; the MacBook attaches over SSH, never runs zellij locally.
         programs.zellij = {
           enable = true;
           settings = {
-            # "unlock-first" / non-colliding preset: start locked so every
-            # Ctrl- key passes through to emacs/shell; Ctrl-g unlocks.
+            # unlock-first: start locked so Ctrl- keys reach emacs/the shell.
             default_mode = "locked";
-            # Persist the session across reboots, including pane scrollback.
             session_serialization = true;
             serialize_pane_viewport = true;
           };
+          # Ctrl-g is emacs keyboard-quit; use Ctrl-\ for the lock toggle.
+          extraConfig = ''
+            keybinds {
+                locked {
+                    unbind "Ctrl g"
+                    bind "Ctrl \\" { SwitchToMode "Normal"; }
+                }
+                shared_except "locked" {
+                    unbind "Ctrl g"
+                    bind "Ctrl \\" { SwitchToMode "Locked"; }
+                }
+            }
+          '';
         };
 
         services.emacs = {
