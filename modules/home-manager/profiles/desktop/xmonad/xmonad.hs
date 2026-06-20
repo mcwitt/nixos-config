@@ -83,7 +83,7 @@ main = do
         manageHook = myManageHook,
         handleEventHook = myHandleEventHook,
         modMask = mod4Mask,
-        terminal = "wezterm",
+        terminal = "ghostty",
         workspaces = map show [1 .. max 1 nScreens]
       }
       `additionalKeysP` [ -- focus
@@ -115,9 +115,11 @@ main = do
                           -- launchers
                           ( "M-S-<Return>",
                             spawnInProject
-                              (\p -> "wezterm start --cwd " ++ shellQuote p)
-                              "wezterm"
+                              (\p -> "ghostty --working-directory=" ++ shellQuote p)
+                              "ghostty"
                           ),
+                          -- scratch terminal (no zellij)
+                          ("M-C-<Return>", spawn "env NO_AUTO_ZELLIJ=1 ghostty"),
                           ("M-p", spawn "rofi -show-icons -show drun"),
                           ("M-S-p", spawn "rofi -show-icons -show run"),
                           ("M-0", spawn "rofi-rbw --keybindings Ctrl-1:type:username:password,Ctrl-2:type:password,Ctrl-3:copy:password,Ctrl-4:type:totp"),
