@@ -32,6 +32,9 @@ in
             auto-update = "off";
             clipboard-read = "allow";
             clipboard-write = "allow"; # for emacs clipetty (OSC-52)
+            # ghostty defaults to 2pt; give the text room to breathe.
+            window-padding-x = 8;
+            window-padding-y = 8;
           }
           // lib.optionalAttrs pkgs.stdenv.isLinux {
             window-decoration = "none";
