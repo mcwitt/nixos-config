@@ -23,21 +23,24 @@ in
         programs.ghostty = {
           enable = true;
 
-          # pkgs.ghostty is Linux-only; on darwin the app is installed via a
-          # Homebrew cask (see nixos-config-private) and we only write the
-          # shared config. Theming is handled by the stylix ghostty target.
+          # nixpkgs ghostty is Linux-only; darwin installs the app via Homebrew
+          # (see nixos-config-private), so write config only.
           package = lib.mkIf pkgs.stdenv.isDarwin null;
 
           settings = {
-            window-show-tab-bar = "auto"; # zellij owns tabs; hide the lone one
-            auto-update = "off"; # updates come from nix / Homebrew
+            window-show-tab-bar = "auto";
+            auto-update = "off";
             clipboard-read = "allow";
-            clipboard-write = "allow"; # let emacs clipetty OSC-52 through
+            clipboard-write = "allow"; # for emacs clipetty (OSC-52)
+          }
+          // lib.optionalAttrs pkgs.stdenv.isLinux {
+            window-decoration = "none";
           }
           // lib.optionalAttrs pkgs.stdenv.isDarwin {
-            # macOS default shell is zsh/bash; force a fish login shell,
-            # matching the old wezterm default_prog.
-            command = "${lib.getExe config.programs.fish.package} -l";
+            command = "${lib.getExe config.programs.fish.package} -l"; # macOS defaults to zsh
+            # stylix scales the terminal font by 4/3 on darwin, rendering larger
+            # than every other app; pin to the unscaled size.
+            font-size = lib.mkForce config.stylix.fonts.sizes.terminal;
           };
         };
 
@@ -51,19 +54,16 @@ in
           pkgs.thunar
         ];
 
-        # Land local terminals in the persistent `main` session. The
-        # home-manager zellij shell integration only emits a bare
-        # `zellij attach -c` (no name), and zellij does not read a
-        # ZELLIJ_SESSION_NAME env var, so attach to `main` explicitly instead.
-        # Scoped to desktop + Linux so it never fires on the MacBook (which
-        # reaches zellij over SSH).
+        # Attach local terminals to the shared `main` session (hm's zellij
+        # integration emits a bare `zellij attach -c`, which can't name it).
+        # NO_AUTO_ZELLIJ=1 opts out, e.g. `env NO_AUTO_ZELLIJ=1 ghostty`.
         programs.fish.interactiveShellInit = ''
-          if status is-interactive; and not set -q ZELLIJ
+          if status is-interactive; and not set -q ZELLIJ; and not set -q NO_AUTO_ZELLIJ
               ${lib.getExe config.programs.zellij.package} attach --create main
           end
         '';
         programs.zsh.initContent = lib.mkOrder 200 ''
-          if [[ -o interactive && -z "$ZELLIJ" ]]; then
+          if [[ -o interactive && -z "$ZELLIJ" && -z "$NO_AUTO_ZELLIJ" ]]; then
             ${lib.getExe config.programs.zellij.package} attach --create main
           fi
         '';
@@ -207,7 +207,7 @@ in
           shadow = true;
           settings = {
             crop-shadow-to-monitor = true;
-            corner-radius = 6;
+            corner-radius = 8;
             rounded-corners-exclude = [ "window_type = 'dock'" ];
           };
         };
