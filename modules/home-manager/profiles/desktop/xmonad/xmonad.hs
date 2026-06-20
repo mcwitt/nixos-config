@@ -129,7 +129,6 @@ main = do
                           ("<Print>", spawn "flameshot gui"),
                           ("S-<Print>", spawn "flameshot screen -c"),
                           -- scratchpads (M-; submap)
-                          ("M-; t", namedScratchpadAction scratchpads "wezterm"),
                           ("M-; b", namedScratchpadAction scratchpads "btop"),
                           ("M-; v", namedScratchpadAction scratchpads "pavucontrol"),
                           ("M-; c", namedScratchpadAction scratchpads "emacs-org-capture"),
@@ -598,11 +597,6 @@ shiftPrompt = do
 
 scratchpads =
   [ NS
-      "wezterm"
-      "wezterm start --class wezterm-scratchpad"
-      (className =? "wezterm-scratchpad")
-      scratchpadFloat,
-    NS
       "pavucontrol"
       "pavucontrol"
       (className =? "pavucontrol")
@@ -626,17 +620,14 @@ scratchpads =
       "emacs-calc"
       "emacsclient -c -n -F '((name . \"full-calc-dedicated\"))' -e '(full-calc)'"
       (title =? "full-calc-dedicated")
+      scratchpadFloat,
+    -- ghostty's `class` must be a valid GTK app-id, so tag the scratchpad with
+    -- the free-form X11 instance name instead (matched via appName).
+    NS
+      "btop"
+      "ghostty --x11-instance-name=btop-scratchpad -e btop"
+      (appName =? "btop-scratchpad")
       scratchpadFloat
   ]
-    ++ [mkTermAppScratchpad "btop"]
   where
-    mkTermAppScratchpad prog =
-      NS
-        prog
-        (unwords ["wezterm", "start", "--class", windowClass, prog])
-        (className =? windowClass)
-        scratchpadFloat
-      where
-        windowClass = prog ++ "-scratchpad"
-
     scratchpadFloat = customFloating $ W.RationalRect (3 / 10) (1 / 5) (2 / 5) (3 / 5)
