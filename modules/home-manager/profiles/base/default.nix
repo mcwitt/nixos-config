@@ -222,14 +222,8 @@ in
 
         home.shellAliases.open = "${pkgs.xdg-utils}/bin/xdg-open";
 
-        home.shellAliases.zj = "${lib.getExe config.programs.zellij.package} attach --create main";
-
         programs.zellij = {
           enable = true;
-          settings = {
-            session_serialization = true;
-            serialize_pane_viewport = true;
-          };
           # Ctrl-g is emacs keyboard-quit; use Ctrl-\ for the lock toggle.
           extraConfig = ''
             keybinds {
