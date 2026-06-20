@@ -222,16 +222,11 @@ in
 
         home.shellAliases.open = "${pkgs.xdg-utils}/bin/xdg-open";
 
-        # Opt in to the persistent `main` session. On satori this is the
-        # resumable workspace the roaming machines reattach to via `desk`.
         home.shellAliases.zj = "${lib.getExe config.programs.zellij.package} attach --create main";
 
-        # Linux-only; the MacBook attaches over SSH, never runs zellij locally.
         programs.zellij = {
           enable = true;
           settings = {
-            # unlock-first: start locked so Ctrl- keys reach emacs/the shell.
-            default_mode = "locked";
             session_serialization = true;
             serialize_pane_viewport = true;
           };
@@ -255,12 +250,6 @@ in
           client.enable = true;
         };
 
-        # Plain ssh-agent holds keys in memory only; load them manually once per
-        # boot with e.g. `ssh-add ~/.ssh/id_ed25519` (they persist until
-        # shutdown). NOTE: keychain was tried for automating this and removed —
-        # keychain 2.9 spawns its own agent under ~/.ssh/agent/ instead of
-        # inheriting this one, so keys ended up invisible to systemd user
-        # services like the emacs daemon.
         services.ssh-agent.enable = true;
 
         # The ssh-agent module exports SSH_AUTH_SOCK via shell init only; publish
