@@ -12,6 +12,8 @@ let
 in
 {
   config = lib.mkIf cfg.enable {
+    stylix.targets.opencode.enable = false;
+
     programs.opencode = {
       enable = true;
       enableMcpIntegration = true;
@@ -43,6 +45,8 @@ in
         # free local model instead of the paid primary provider.
         small_model = "llamaswap/Qwen3.6-27B";
       };
+
+      tui.theme = "system";
     };
   };
 }
