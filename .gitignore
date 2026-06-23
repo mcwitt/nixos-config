@@ -1,3 +1,5 @@
 .pre-commit-config.yaml
 # Visual brainstorming companion scratch dir
 .superpowers/
+# Runtime logs from project-local Claude Code hooks
+.claude/hooks/.logs/
