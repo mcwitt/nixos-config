@@ -172,6 +172,8 @@ in
           model = "claude-opus-4-8";
           inherit effortLevel;
 
+          tui = "fullscreen";
+
           # NOTE: effortLevel in settings.json is sometimes overridden, but the env var always takes precedence
           env.CLAUDE_CODE_EFFORT_LEVEL = effortLevel;
 
