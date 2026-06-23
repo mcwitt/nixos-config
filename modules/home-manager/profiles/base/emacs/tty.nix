@@ -14,6 +14,7 @@
 
       clipetty = {
         enable = true;
+        diminish = [ "clipetty-mode" ];
         config = ''
           (global-clipetty-mode +1)
         '';
