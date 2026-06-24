@@ -21,6 +21,7 @@ in
     ./codex
     ./memex.nix
     ./opencode
+    ./pi
   ];
 
   config = lib.mkMerge [
