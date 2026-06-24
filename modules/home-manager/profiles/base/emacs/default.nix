@@ -17,6 +17,7 @@
     ./embark.nix
     ./forge.nix
     ./format-all.nix
+    ./gptel-agent.nix
     ./jupyter.nix
     ./org.nix
     # ./org-latex-preview.nix
