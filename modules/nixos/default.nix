@@ -2,6 +2,7 @@
   imports = [
     ./codex-cli-cache.nix
     ./nix-community-cache.nix
+    ./numtide-cache.nix
     ./tailscale-shutdown.nix
     ./profiles
   ];
