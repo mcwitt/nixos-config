@@ -35,6 +35,7 @@ in
             # ghostty defaults to 2pt; give the text room to breathe.
             window-padding-x = 8;
             window-padding-y = 8;
+            mouse-scroll-multiplier = "discrete:0.75";
           }
           // lib.optionalAttrs pkgs.stdenv.isLinux {
             window-decoration = "none";
