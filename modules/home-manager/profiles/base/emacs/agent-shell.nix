@@ -15,12 +15,6 @@
           "C-c C-'" = "agent-shell";
         };
         config = ''
-          (setopt agent-shell-anthropic-claude-acp-command
-                  '("${pkgs.claude-agent-acp}/bin/claude-agent-acp"))
-          (setopt agent-shell-anthropic-authentication
-                  (agent-shell-anthropic-make-authentication
-                   :api-key (lambda () (getenv "ANTHROPIC_API_KEY"))))
-
           (setopt agent-shell-openai-codex-acp-command
                   '("${pkgs.codex-acp}/bin/codex-acp"))
           (setopt agent-shell-openai-authentication
