@@ -40,10 +40,6 @@ in
             };
           };
         };
-
-        # Route cheap auxiliary work (title generation, summarization) to the
-        # free local model instead of the paid primary provider.
-        small_model = "llamaswap/Qwen3.6-27B";
       };
 
       tui.theme = "system";
