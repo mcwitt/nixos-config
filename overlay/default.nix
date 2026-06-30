@@ -8,6 +8,8 @@ in
 
   gitignores = callPackage ../packages/development/misc/gitignores.nix { };
 
+  pi-acp = callPackage ../packages/development/misc/pi-acp { };
+
   home-assistant = prev.home-assistant.override (old: {
     packageOverrides = lib.composeExtensions (old.packageOverrides or (_: _: { })) (
       pyFinal: pyPrev:
