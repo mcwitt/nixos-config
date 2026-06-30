@@ -33,6 +33,11 @@
       init.usePackage.agent-shell = {
         enable = true;
         command = [ "agent-shell" ];
+        init = ''
+          (with-eval-after-load 'project
+            (add-to-list 'project-switch-commands
+                         '(agent-shell "Agent shell" ?a) t))
+        '';
         config = ''
           ;; Minimal UI: text header instead of the tall graphical banner.
           (setopt agent-shell-header-style 'text)
@@ -57,6 +62,8 @@
         };
         config = ''
           (setopt agent-shell-manager-side 'bottom)
+          (with-eval-after-load 'evil
+            (evil-set-initial-state 'agent-shell-manager-mode 'emacs))
         '';
       };
     };
