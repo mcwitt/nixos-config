@@ -68,14 +68,11 @@
         config = ''
           (setopt agent-shell-manager-side 'bottom)
 
-          ;; agent-shell-manager-mode derives from tabulated-list-mode, which
-          ;; evil-collection puts in motion state -- but it has no
-          ;; evil-collection support, so its single-key commands were shadowed.
-          ;; Rebind them in motion state, keeping h/j/k/l and gg/G movement; k
-          ;; and l collide with motions, so kill moves to K and logging to L.
+          ;; evil shadows the mode's plain single-key bindings; re-express them
+          ;; as a normal-state aux (falls through to evil-collection's
+          ;; tabulated-list bindings). k/l are motions, so kill->K, logging->L.
           (with-eval-after-load 'evil
-            (evil-set-initial-state 'agent-shell-manager-mode 'motion)
-            (evil-define-key 'motion agent-shell-manager-mode-map
+            (evil-define-key* 'normal agent-shell-manager-mode-map
               (kbd "RET") #'agent-shell-manager-goto
               "gr" #'agent-shell-manager-refresh
               "q" #'quit-window
