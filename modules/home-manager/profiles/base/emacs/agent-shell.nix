@@ -22,6 +22,11 @@
               hash = "sha256-JPB/OnOhYbM0LMirSYQhpB6hW8SAg0Ri6buU8tMP7rA=";
             };
             packageRequires = [ self.agent-shell ];
+
+            postPatch = ''
+              substituteInPlace agent-shell-manager.el \
+                --replace-fail "(agent-shell t)" "(agent-shell '(4))"
+            '';
           };
       };
 
@@ -62,8 +67,27 @@
         };
         config = ''
           (setopt agent-shell-manager-side 'bottom)
+
+          ;; agent-shell-manager-mode derives from tabulated-list-mode, which
+          ;; evil-collection puts in motion state -- but it has no
+          ;; evil-collection support, so its single-key commands were shadowed.
+          ;; Rebind them in motion state, keeping h/j/k/l and gg/G movement; k
+          ;; and l collide with motions, so kill moves to K and logging to L.
           (with-eval-after-load 'evil
-            (evil-set-initial-state 'agent-shell-manager-mode 'emacs))
+            (evil-set-initial-state 'agent-shell-manager-mode 'motion)
+            (evil-define-key 'motion agent-shell-manager-mode-map
+              (kbd "RET") #'agent-shell-manager-goto
+              "gr" #'agent-shell-manager-refresh
+              "q" #'quit-window
+              "K" #'agent-shell-manager-kill
+              "c" #'agent-shell-manager-new
+              "r" #'agent-shell-manager-restart
+              "d" #'agent-shell-manager-delete-killed
+              "m" #'agent-shell-manager-set-mode
+              "M" #'agent-shell-manager-set-model
+              (kbd "C-c C-c") #'agent-shell-manager-interrupt
+              "t" #'agent-shell-manager-view-traffic
+              "L" #'agent-shell-manager-toggle-logging))
         '';
       };
     };
