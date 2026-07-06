@@ -12,6 +12,14 @@ in
 
   config = mkIf cfg.enable {
 
+    programs.emacs.overrides = _: super: {
+      quarto-mode = super.quarto-mode.overrideAttrs (old: {
+        postPatch = (old.postPatch or "") + ''
+          substituteInPlace quarto-mode.el --replace-warn '"--no-watch-inputs"' ""
+        '';
+      });
+    };
+
     programs.emacs.init.usePackage.quarto-mode = {
       enable = true;
       mode = [ ''("\\.qmd\\'" . poly-quarto-mode)'' ];
