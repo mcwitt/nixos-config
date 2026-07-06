@@ -613,6 +613,12 @@
       magit-extras = {
         enable = true;
         demand = true; # e.g. to add entry to `project-switch-commands'
+        config = ''
+          (with-eval-after-load 'project
+            (keymap-set project-prefix-map "m" #'magit-project-status)
+            (add-to-list 'project-switch-commands
+                         '(magit-project-status "Magit") t))
+        '';
       };
 
       marginalia = {

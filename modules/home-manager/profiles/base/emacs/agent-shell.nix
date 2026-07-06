@@ -35,8 +35,9 @@
         command = [ "agent-shell" ];
         init = ''
           (with-eval-after-load 'project
+            (keymap-set project-prefix-map "a" #'agent-shell)
             (add-to-list 'project-switch-commands
-                         '(agent-shell "Agent shell" ?a) t))
+                         '(agent-shell "Agent shell") t))
         '';
         config = ''
           ;; Minimal UI: text header instead of the tall graphical banner.
