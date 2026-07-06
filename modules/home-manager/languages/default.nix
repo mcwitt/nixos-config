@@ -11,6 +11,7 @@
     ./markdown
     ./nix
     ./python
+    ./quarto
     ./rust
     ./shell
     ./sql

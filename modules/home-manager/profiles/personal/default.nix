@@ -90,6 +90,7 @@ in
           "graphviz-dot"
           "html"
           "markdown"
+          "quarto"
           "rust"
           "shell"
           "sql"
