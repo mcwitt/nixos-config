@@ -40,6 +40,21 @@ let
   needsWrapper = piCfg.envKeyFiles != { } || piCfg.extraArgs != [ ];
   package = if needsWrapper then wrapped else piPkg;
 
+  # pi-acp spawns `pi --mode rpc` via a bare PATH lookup (see
+  # src/pi-rpc/command.ts in svkozak/pi-acp). Emacs launched from the GUI
+  # doesn't inherit `~/.nix-profile/bin` on exec-path, so the spawn fails
+  # with ENOENT and prompts silently go nowhere. Wrap the adapter to prepend
+  # the final pi binary's bin dir to PATH, so it resolves regardless of the
+  # Emacs process environment.
+  acpPackage = pkgs.symlinkJoin {
+    name = "pi-acp-wrapped";
+    paths = [ pkgs.pi-acp ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram $out/bin/pi-acp --prefix PATH : ${lib.makeBinPath [ package ]}
+    '';
+  };
+
   # Stylix-matched theme, generated from the base16 palette so pi tracks the
   # system scheme. Chrome (accent/borders/titles/bullets) uses base06, the
   # canonical desktop focus/accent slot; content uses the semantic base16 roles.
@@ -153,12 +168,35 @@ in
         a read-only nix-store symlink is safe.
       '';
     };
+
+    finalPackage = lib.mkOption {
+      type = lib.types.package;
+      readOnly = true;
+      description = ''
+        The final `pi` package, wrapped per {option}`envKeyFiles` and
+        {option}`extraArgs` when applicable. Consumers that spawn `pi` as a
+        subprocess (e.g. `pi-acp`) should use this rather than
+        `pkgs.llm-agents.pi` so they resolve the same env-injected binary.
+      '';
+    };
+
+    acpPackage = lib.mkOption {
+      type = lib.types.package;
+      readOnly = true;
+      description = ''
+        `pkgs.pi-acp` wrapped to find {option}`finalPackage` on its `PATH`,
+        so the adapter can spawn `pi --mode rpc` without relying on the
+        user-level profile being on Emacs's `exec-path`.
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable (
     lib.mkMerge [
       {
         home.packages = [ package ];
+        harnesses.pi.finalPackage = package;
+        harnesses.pi.acpPackage = acpPackage;
       }
       (lib.mkIf (piCfg.modelsJson != { }) {
         home.file.".pi/agent/models.json".source =

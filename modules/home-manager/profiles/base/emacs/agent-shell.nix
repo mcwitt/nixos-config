@@ -52,7 +52,7 @@
                   '("${pkgs.opencode}/bin/opencode" "acp"))
 
           (setopt agent-shell-pi-acp-command
-                  '("${pkgs.pi-acp}/bin/pi-acp"))
+                  '("${config.harnesses.pi.acpPackage}/bin/pi-acp"))
         '';
       };
 
