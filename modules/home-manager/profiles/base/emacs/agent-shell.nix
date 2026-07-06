@@ -30,11 +30,6 @@
           };
       };
 
-      extraPackages = epkgs: [
-        epkgs.agent-shell
-        epkgs.agent-shell-manager
-      ];
-
       init.usePackage.agent-shell = {
         enable = true;
         command = [ "agent-shell" ];
