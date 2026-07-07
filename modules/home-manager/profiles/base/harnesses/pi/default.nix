@@ -221,7 +221,10 @@ in
           else
             _pi_settings='{"theme":"stylix"}'
           fi
-          run install -m644 /dev/stdin "$PI_SETTINGS" <<< "$_pi_settings"
+          _pi_tmp="$(${lib.getExe' pkgs.coreutils "mktemp"})"
+          printf '%s\n' "$_pi_settings" > "$_pi_tmp"
+          run install -m644 "$_pi_tmp" "$PI_SETTINGS"
+          rm -f "$_pi_tmp"
         '';
       })
     ]
