@@ -32,6 +32,10 @@ in
             auto-update = "off";
             clipboard-read = "allow";
             clipboard-write = "allow"; # for emacs clipetty (OSC-52)
+            # Push ghostty's terminfo to remote hosts on ssh (and set a sane
+            # TERM fallback) so ncurses tools (watch, tmux, htop) don't fail
+            # with "Error opening terminal: xterm-ghostty".
+            shell-integration-features = "ssh-env,ssh-terminfo";
             # ghostty defaults to 2pt; give the text room to breathe.
             window-padding-x = 8;
             window-padding-y = 8;
