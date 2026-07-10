@@ -47,13 +47,6 @@
 
   services.tailscale.enable = true;
 
-  services.autorandr = {
-    enable = true;
-    hooks.postswitch."restore-background" = ''
-      ${pkgs.feh}/bin/feh --no-fehbg --bg-fill ${config.stylix.image}
-    '';
-  };
-
   services.blueman.enable = true;
 
   services.printing.enable = true;
@@ -68,15 +61,6 @@
     desktop = 10;
     popups = 10;
     terminal = 10;
-  };
-
-  services.xserver = {
-    enable = true;
-    desktopManager.xterm.enable = true;
-    displayManager.lightdm.greeters.gtk.extraConfig = ''
-      xft-dpi=200
-    '';
-    xkb.layout = "us";
   };
 
   system.stateVersion = "21.11";

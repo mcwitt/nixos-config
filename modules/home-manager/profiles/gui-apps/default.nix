@@ -5,17 +5,12 @@
   ...
 }:
 let
-  cfg = config.profiles.desktop;
+  cfg = config.profiles.gui-apps;
 in
 {
-  options.profiles.desktop.enable = lib.mkEnableOption "Profile for headed (graphical) machines";
+  options.profiles.gui-apps.enable = lib.mkEnableOption "Shared GUI applications (session-agnostic)";
 
-  imports = [
-    ./firefox.nix
-    ./polybar.nix
-    ./rofi.nix
-    ./xmonad.nix
-  ];
+  imports = [ ./firefox.nix ];
 
   config = lib.mkIf cfg.enable (
     lib.mkMerge [
@@ -54,8 +49,8 @@ in
 
       (lib.mkIf pkgs.stdenv.isLinux {
         home.packages = [
+          pkgs.imv # image viewer (X11 + Wayland backends)
           pkgs.pavucontrol
-          pkgs.xclip
           pkgs.thunar
         ];
 
@@ -76,18 +71,7 @@ in
             ];
         };
 
-        programs.feh.enable = true;
-
         programs.mpv.enable = true;
-
-        programs.urxvt = {
-          enable = true;
-          fonts =
-            let
-              inherit (config.stylix) fonts;
-            in
-            [ "xft:${fonts.monospace.name}:size=${toString fonts.sizes.applications}:antialias=true" ];
-        };
 
         programs.vscodium = {
 
@@ -145,66 +129,6 @@ in
 
         programs.zathura.enable = true;
 
-        services.dunst = {
-          enable = true;
-          settings =
-            let
-              colors = config.lib.stylix.colors.withHashtag;
-            in
-            {
-              global = {
-                browser = "${config.programs.chromium.package}/bin/chromium-browser";
-                markup = "full";
-                max_icon_size = 100;
-                text_icon_padding = 10;
-                scale = 1;
-                frame_width = 6;
-                origin = "top-right";
-                offset = "12x58";
-                width = 600;
-              };
-
-              urgency_low.foreground = lib.mkForce colors.base04;
-
-              urgency_normal = {
-                frame_color = lib.mkForce colors.base06;
-                highlight = lib.mkForce colors.base06;
-                foreground = lib.mkForce colors.base06;
-              };
-
-              urgency_critical.foreground = lib.mkForce colors.base08;
-            };
-        };
-
-        services.flameshot = {
-          enable = true;
-          settings.General.showStartupLaunchMessage = false;
-        };
-
-        services.gammastep = {
-          enable = true;
-          tray = true;
-          provider = "geoclue2";
-          settings.general = {
-            adjustment-method = "randr";
-            brightness-night = 0.6;
-          };
-        };
-
-        services.picom = {
-          enable = true;
-          backend = "glx";
-          vSync = true;
-          shadow = true;
-          settings = {
-            crop-shadow-to-monitor = true;
-            corner-radius = 8;
-            rounded-corners-exclude = [ "window_type = 'dock'" ];
-          };
-        };
-
-        services.polybar.enable = true;
-
         services.udiskie = {
           enable = true;
           tray = "always";
@@ -231,7 +155,7 @@ in
                 mkDefaults = apps: types: builtins.listToAttrs (map (type: lib.nameValuePair type apps) types);
               in
               mkDefaults
-                [ "feh.desktop" ]
+                [ "imv.desktop" ]
                 [
                   "image/bmp"
                   "image/gif"
@@ -254,11 +178,6 @@ in
                 "text/plain" = [ "emacsclient.desktop" ];
               };
           };
-        };
-
-        xsession = {
-          enable = true;
-          windowManager.xmonad.enable = true;
         };
       })
     ]

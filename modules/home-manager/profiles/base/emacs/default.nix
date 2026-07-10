@@ -1,5 +1,6 @@
 {
   config,
+  inputs,
   lib,
   nurNoPkgs,
   pkgs,
@@ -32,8 +33,23 @@
 
     programs.emacs = {
       enable = true;
-      package = if pkgs.stdenv.isDarwin then pkgs.emacs-macport else pkgs.emacs-unstable;
+      # pgtk is required to host the ewm Wayland compositor; it also runs fine
+      # under X, so use it for all Linux desktop hosts during the migration.
+      package = if pkgs.stdenv.isDarwin then pkgs.emacs-macport else pkgs.emacs-unstable-pgtk;
     };
+
+    # On ewm (Wayland) hosts, Emacs IS the window manager: add the ewm elisp
+    # library (which bundles the Smithay compositor module) plus vterm. The ewm
+    # package is built against the same base Emacs as our package set to avoid
+    # byte-code version skew. See docs/superpowers/plans/2026-06-27-ewm-wayland-migration.md (R1).
+    programs.emacs.extraPackages =
+      epkgs:
+      lib.optionals (pkgs.stdenv.isLinux && config.profiles.wayland.enable) [
+        epkgs.vterm
+        (inputs.ewm.packages.${pkgs.stdenv.hostPlatform.system}.default.override {
+          emacsPackage = pkgs.emacs-unstable-pgtk;
+        })
+      ];
 
     programs.emacs.init = {
       enable = true;
@@ -536,7 +552,10 @@
       };
 
       frames-only-mode = {
-        enable = true;
+        # Under ewm (Wayland), Emacs IS the window manager and tiling is done
+        # with Emacs-internal windows; frames-only-mode (one OS frame per buffer,
+        # tiled by xmonad) is the X11 model and would fight ewm. Disable it there.
+        enable = !(pkgs.stdenv.isLinux && config.profiles.wayland.enable);
 
         # NOTE: mkAfter ensures that we enable the mode after
         # configuration of e.g. frames-only-mode-use-window-functions

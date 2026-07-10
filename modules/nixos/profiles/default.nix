@@ -1,10 +1,12 @@
 {
   imports = [
+    ./audio
     ./base
     ./cuda
-    ./desktop
     ./home-automation
     ./nvidia
     ./personal
+    ./wayland
+    ./x11
   ];
 }

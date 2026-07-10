@@ -12,6 +12,8 @@
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "nixpkgs";
     emacs-overlay.url = "github:nix-community/emacs-overlay";
+    ewm.url = "https://codeberg.org/ezemtsov/ewm/archive/master.tar.gz";
+    ewm.inputs.nixpkgs.follows = "nixpkgs";
     flake-utils.url = "github:numtide/flake-utils";
     home-manager.url = "github:nix-community/home-manager/release-26.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
@@ -76,6 +78,7 @@
             ./modules/stylix/dark.nix
 
             self.nixosModules.default
+            inputs.ewm.nixosModules.default
 
             (
               {
@@ -89,6 +92,7 @@
                   overlays = [
                     self.overlays.default
                     emacs-overlay.overlay
+                    inputs.ewm.overlays.default
                     nur.overlays.default
                     inputs.claude-code.overlays.default
                     inputs.codex-cli.overlays.default
@@ -192,6 +196,7 @@
                   overlays = [
                     self.overlays.default
                     emacs-overlay.overlay
+                    inputs.ewm.overlays.default
                     nur.overlays.default
                     inputs.claude-code.overlays.default
                     inputs.codex-cli.overlays.default
@@ -270,17 +275,22 @@
             ./hosts/golem/configuration
             {
               profiles = {
+                audio.enable = true;
                 cuda.enable = true;
-                desktop.enable = true;
+                wayland.enable = true;
                 personal.enable = true;
                 nvidia.enable = true;
               };
 
               home-manager.users.matt.profiles = {
-                desktop.enable = true;
+                gui-apps.enable = true;
+                wayland.enable = true;
                 nvidia.enable = true;
                 personal.enable = true;
               };
+
+              # NVIDIA + Smithay knob; see satori for rationale.
+              environment.sessionVariables.GBM_BACKEND = "nvidia-drm";
             }
           ];
           extraHmModules = [ ./hosts/golem/home ];
@@ -353,11 +363,13 @@
             ./hosts/karakuri/configuration
             {
               profiles = {
-                desktop.enable = true;
+                audio.enable = true;
+                wayland.enable = true;
                 personal.enable = true;
               };
               home-manager.users.matt.profiles = {
-                desktop.enable = true;
+                gui-apps.enable = true;
+                wayland.enable = true;
                 personal.enable = true;
               };
             }
@@ -379,18 +391,28 @@
               };
 
               profiles = {
+                audio.enable = true;
                 cuda.enable = true;
-                desktop.enable = true;
+                wayland.enable = true;
                 personal.enable = true;
                 nvidia.enable = true;
               };
 
               home-manager.users.matt.profiles = {
-                desktop.enable = true;
+                gui-apps.enable = true;
+                wayland.enable = true;
                 distrobox.enable = true;
                 nvidia.enable = true;
                 personal.enable = true;
               };
+
+              # NVIDIA + Smithay: nvidia-drm.modeset=1 is already set by the
+              # nvidia profile (hardware.nvidia.modesetting.enable). GBM_BACKEND
+              # is the most common extra knob for EGL/GBM device selection on
+              # NVIDIA; first thing to toggle if ewm fails to start. renderDevice
+              # is left null (auto-detect the primary GPU); set it to the nvidia
+              # /dev/dri/renderD12x node if ewm comes up on the wrong GPU.
+              environment.sessionVariables.GBM_BACKEND = "nvidia-drm";
             }
           ];
           extraHmModules = [ ./hosts/satori/home ];

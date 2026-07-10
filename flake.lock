@@ -235,6 +235,24 @@
         "type": "github"
       }
     },
+    "ewm": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1782594864,
+        "narHash": "sha256-FKd1B/ob3YAkRBSwI2X2mhEkGcLekmnFd7rEdS4mnfg=",
+        "rev": "44a94ed684c20369eb45125fce3ff86353bdcf85",
+        "type": "tarball",
+        "url": "https://codeberg.org/api/v1/repos/ezemtsov/ewm/archive/44a94ed684c20369eb45125fce3ff86353bdcf85.tar.gz"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://codeberg.org/ezemtsov/ewm/archive/master.tar.gz"
+      }
+    },
     "firefox-gnome-theme": {
       "flake": false,
       "locked": {
@@ -776,6 +794,7 @@
         "codex-cli": "codex-cli",
         "disko": "disko",
         "emacs-overlay": "emacs-overlay",
+        "ewm": "ewm",
         "flake-utils": "flake-utils_3",
         "home-manager": "home-manager",
         "llm-agents": "llm-agents",

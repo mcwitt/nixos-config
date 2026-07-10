@@ -63,21 +63,6 @@
     drivers = [ pkgs.brlaser ];
   };
 
-  services.xserver = {
-    enable = true;
-    xkb.layout = "us";
-    xrandrHeads = [
-      {
-        primary = true;
-        output = "DP-4";
-      }
-      {
-        monitorConfig = ''Option "Rotate" "left"'';
-        output = "DP-2";
-      }
-    ];
-  };
-
   system.stateVersion = "21.11";
 
   time.timeZone = "America/Los_Angeles";

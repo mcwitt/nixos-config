@@ -246,6 +246,17 @@ in
           client.enable = true;
         };
 
+        # On ewm hosts the compositor runs its own `emacs --fg-daemon` on the
+        # same server socket. Let ewm.service supersede this daemon when a
+        # graphical session starts (Conflicts stops it first; Before orders the
+        # stop ahead of ewm's start), while ssh-only/headless logins still get
+        # an always-on daemon. Once the ewm session is up, emacsclient over ssh
+        # reaches the compositor's daemon on the default socket.
+        systemd.user.services.emacs.Unit = lib.mkIf config.profiles.wayland.enable {
+          Conflicts = [ "ewm.service" ];
+          Before = [ "ewm.service" ];
+        };
+
         services.ssh-agent.enable = true;
 
         # The ssh-agent module exports SSH_AUTH_SOCK via shell init only; publish

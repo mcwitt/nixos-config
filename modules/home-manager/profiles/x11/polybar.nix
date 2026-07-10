@@ -5,7 +5,7 @@
   ...
 }:
 {
-  config = lib.mkIf (config.profiles.desktop.enable && pkgs.stdenv.isLinux) {
+  config = lib.mkIf (config.profiles.x11.enable && pkgs.stdenv.isLinux) {
 
     services.polybar = {
       enable = true;

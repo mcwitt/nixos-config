@@ -97,21 +97,6 @@
     ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="3564", ATTR{idProduct}=="fefb", ATTR{power/control}="on"
   '';
 
-  services.xserver = {
-    enable = true;
-    xkb.layout = "us";
-    xrandrHeads = [
-      {
-        primary = true;
-        output = "DP-2";
-      }
-      {
-        # monitorConfig = ''Option "Rotate" "left"'';
-        output = "DP-0";
-      }
-    ];
-  };
-
   system.stateVersion = "25.05";
 
   time.timeZone = "America/Los_Angeles";

@@ -1,10 +1,8 @@
 { config, lib, ... }:
 {
-  imports = [ ./pipewire.nix ];
+  options.profiles.x11.enable = lib.mkEnableOption "X11 session stack (xserver, lightdm; xmonad on the home-manager side)";
 
-  options.profiles.desktop.enable = lib.mkEnableOption "Profile for use on machines that run a graphical desktop";
-
-  config = lib.mkIf config.profiles.desktop.enable {
+  config = lib.mkIf config.profiles.x11.enable {
     # required for `gtk.enable = true` in home-manager
     programs.dconf.enable = true;
 
