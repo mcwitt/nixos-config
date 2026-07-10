@@ -1,14 +1,12 @@
 {
   config,
-  gwsSkills,
   inputs,
-  localSkills,
   lib,
   pkgs,
   ...
 }:
 let
-  cfg = config.profiles.base;
+  cfg = config.harnesses;
   rgbTriple =
     name:
     let
@@ -196,7 +194,7 @@ in
         "${pkgs.worktrunk.src}"
       ];
 
-      skills = localSkills // gwsSkills;
+      skills = cfg.skills;
     };
   };
 }

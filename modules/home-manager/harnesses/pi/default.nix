@@ -5,7 +5,7 @@
   ...
 }:
 let
-  cfg = config.profiles.base;
+  cfg = config.harnesses;
   piCfg = config.harnesses.pi;
 
   # Sourced from the numtide/llm-agents.nix overlay (already applied in
@@ -197,6 +197,12 @@ in
         home.packages = [ package ];
         harnesses.pi.finalPackage = package;
         harnesses.pi.acpPackage = acpPackage;
+
+        # pi has no skills option either; it discovers skills by scanning
+        # ~/.pi/agent/skills for SKILL.md at startup.
+        home.file = lib.mapAttrs' (
+          name: source: lib.nameValuePair ".pi/agent/skills/${name}" { inherit source; }
+        ) cfg.skills;
       }
       (lib.mkIf (piCfg.modelsJson != { }) {
         home.file.".pi/agent/models.json".source =

@@ -1,14 +1,12 @@
 {
   config,
-  gwsSkills,
   inputs,
-  localSkills,
   lib,
   pkgs,
   ...
 }:
 let
-  cfg = config.profiles.base;
+  cfg = config.harnesses;
 in
 {
   config = lib.mkIf cfg.enable {
@@ -18,7 +16,7 @@ in
       enable = true;
       enableMcpIntegration = true;
 
-      skills = gwsSkills // localSkills;
+      skills = cfg.skills;
 
       settings = {
         plugin = [
