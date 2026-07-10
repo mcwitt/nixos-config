@@ -19,7 +19,6 @@ in
   options.profiles.base.enable = lib.mkEnableOption "Base configuration enabled on most machines";
 
   imports = [
-    ./harnesses
     ./emacs
     ./git-annex.nix
     ./jupyter.nix
@@ -30,6 +29,8 @@ in
   config = lib.mkIf config.profiles.base.enable (
     lib.mkMerge [
       {
+        harnesses.enable = true;
+
         home.packages = [
           emacsclient-auto
         ]

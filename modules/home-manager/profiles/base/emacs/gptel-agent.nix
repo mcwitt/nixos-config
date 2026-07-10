@@ -1,7 +1,5 @@
 {
   config,
-  gwsSkills,
-  localSkills,
   lib,
   pkgs,
   ...
@@ -11,7 +9,7 @@ let
   # Curated skill set, mirroring the bundles the other harnesses share. The
   # symlink farm is a single parent dir; gptel-agent scans it recursively for
   # SKILL.md (following symlinks into the store).
-  skillDir = pkgs.linkFarm "gptel-agent-skills" (gwsSkills // localSkills);
+  skillDir = pkgs.linkFarm "gptel-agent-skills" config.harnesses.skills;
 in
 {
   config = lib.mkIf cfg.enable {
