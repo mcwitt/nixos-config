@@ -1,6 +1,6 @@
 { config, lib, ... }:
 let
-  cfg = config.profiles.base;
+  cfg = config.harnesses;
 in
 {
   # memex deliberately bypasses programs.<harness>.skills: it's a live dev
@@ -17,6 +17,7 @@ in
       ".claude/skills/memex" = memexSkill;
       ".codex/skills/memex" = memexSkill;
       ".config/opencode/skills/memex" = memexSkill;
+      ".pi/agent/skills/memex" = memexSkill;
     }
   );
 }

@@ -1,14 +1,15 @@
 {
   config,
-  gwsSkills,
-  localSkills,
-  superpowersSkills,
+  inputs,
   lib,
   pkgs,
   ...
 }:
 let
-  cfg = config.profiles.base;
+  cfg = config.harnesses;
+  superpowersSkills = lib.mapAttrs' (
+    name: _: lib.nameValuePair name "${inputs.superpowers}/skills/${name}"
+  ) (builtins.readDir "${inputs.superpowers}/skills");
   # Relative path home-manager would manage; we copy it writable instead.
   configFile = ".codex/config.toml";
   envKeyFiles = config.harnesses.codex.envKeyFiles;
@@ -42,8 +43,7 @@ in
 
       skills =
         superpowersSkills
-        // gwsSkills
-        // localSkills
+        // cfg.skills
         // {
           worktrunk = "${pkgs.worktrunk.src}/skills/worktrunk";
         };

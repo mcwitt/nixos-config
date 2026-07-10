@@ -94,8 +94,8 @@ nix store prefetch-file --json --hash-type sha256 "https://files.pythonhosted.or
 
 ### Home-manager modules to adopt when upstreamed
 
-- **Shared agent skills** — track home-manager PR [#9247](https://github.com/nix-community/home-manager/pull/9247) (`agent-skills`: shared skills module for AI coding agents). When it lands, replace our per-harness skills injection (`gwsSkills`/`superpowersSkills` passed to each `programs.<harness>.skills` under `modules/home-manager/profiles/base/agents/`, renamed `harnesses/`) with the upstream shared module. Check status: `gh pr view 9247 --repo nix-community/home-manager`.
-- **Writable codex `config.toml`** — track home-manager issue [#9397](https://github.com/nix-community/home-manager/issues/9397) (proposes `programs.codex.mutableUserSettings`, mirroring `programs.zed-editor`). codex (>= ~0.58, see [openai/codex#6646](https://github.com/openai/codex/issues/6646)) rewrites `~/.codex/config.toml` at startup — per-project `trust_level` (`config/batchWrite`) and `[tui.*]` counters — so the default read-only `/nix/store` symlink makes codex fail to start ("config/batchWrite failed in TUI"). Our workaround in `modules/home-manager/profiles/base/harnesses/codex/default.nix` disables the symlink (`home.file.".codex/config.toml".enable = lib.mkForce false`) and seeds a writable copy of the generated config via a `home.activation` script (cost: codex's runtime writes reset to the declarative baseline on each switch). When `mutableUserSettings` (or equivalent jq-merge) lands, drop the activation workaround and set the option. Check status: `gh issue view 9397 --repo nix-community/home-manager`.
+- **Shared agent skills** — track home-manager PR [#9247](https://github.com/nix-community/home-manager/pull/9247) (`agent-skills`: shared skills module for AI coding agents). When it lands, replace our shared-skills wiring (the `harnesses.skills` option in `modules/home-manager/harnesses/`, composed into each `programs.<harness>.skills`) with the upstream shared module. Check status: `gh pr view 9247 --repo nix-community/home-manager`.
+- **Writable codex `config.toml`** — track home-manager issue [#9397](https://github.com/nix-community/home-manager/issues/9397) (proposes `programs.codex.mutableUserSettings`, mirroring `programs.zed-editor`). codex (>= ~0.58, see [openai/codex#6646](https://github.com/openai/codex/issues/6646)) rewrites `~/.codex/config.toml` at startup — per-project `trust_level` (`config/batchWrite`) and `[tui.*]` counters — so the default read-only `/nix/store` symlink makes codex fail to start ("config/batchWrite failed in TUI"). Our workaround in `modules/home-manager/harnesses/codex/default.nix` disables the symlink (`home.file.".codex/config.toml".enable = lib.mkForce false`) and seeds a writable copy of the generated config via a `home.activation` script (cost: codex's runtime writes reset to the declarative baseline on each switch). When `mutableUserSettings` (or equivalent jq-merge) lands, drop the activation workaround and set the option. Check status: `gh issue view 9397 --repo nix-community/home-manager`.
 
 ### TODO audit
 
@@ -117,7 +117,7 @@ them together by bumping nixpkgs.
   the repo root (`.claude-plugin/plugin.json`); newer `main` moved it under
   `plugins/worktrunk/`. If `${pkgs.worktrunk.src}/.claude-plugin/plugin.json`
   disappears, repoint the `plugins` entry in
-  `harnesses/claude-code/default.nix`.
+  `modules/home-manager/harnesses/claude-code/default.nix`.
 - worktree path template and lifecycle hooks live in
   `modules/home-manager/profiles/base/worktrunk.nix` (read-only at
   `~/.config/worktrunk/config.toml` — edit the Nix module, not the file).
