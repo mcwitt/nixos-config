@@ -92,7 +92,6 @@
                     nur.overlays.default
                     inputs.claude-code.overlays.default
                     inputs.codex-cli.overlays.default
-                    inputs.llm-agents.overlays.default
                   ];
                   config.allowUnfree = true;
                 };
@@ -195,7 +194,6 @@
                     nur.overlays.default
                     inputs.claude-code.overlays.default
                     inputs.codex-cli.overlays.default
-                    inputs.llm-agents.overlays.default
                   ];
                   config.allowUnfree = true;
                 };
