@@ -4,6 +4,13 @@ let
   inherit (final) callPackage lib;
 in
 {
+  # numtide/llm-agents.nix dropped its `overlays.default` output in the
+  # 2026-07 restructure; recreate it here so `pkgs.llm-agents.<pkg>` keeps
+  # working. Same semantics as the removed upstream overlay: expose the
+  # flake's packages as-is (they already build against our nixpkgs via the
+  # `follows` in flake.nix).
+  llm-agents = inputs.llm-agents.packages.${final.stdenv.hostPlatform.system};
+
   github-gitignore = callPackage ../packages/data/misc/github-gitignore.nix { };
 
   gitignores = callPackage ../packages/development/misc/gitignores.nix { };
