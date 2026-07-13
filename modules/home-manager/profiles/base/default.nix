@@ -159,6 +159,7 @@ in
 
             log.date = "relative";
             merge.conflictStyle = "diff3";
+            merge.ff = "only";
             pull.rebase = true;
             init.defaultBranch = "main";
           };
