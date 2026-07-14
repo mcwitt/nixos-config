@@ -95,21 +95,6 @@
                   org-stuck-projects '("+LEVEL=2+PROJECT/-DONE" ("NEXT") nil ""))
 
 
-          ;; Resize Org headings
-          ;; https://sophiebos.io/posts/prettifying-emacs-org-mode/
-          (dolist (face '((org-level-1 . 1.35)
-                          (org-level-2 . 1.3)
-                          (org-level-3 . 1.2)
-                          (org-level-4 . 1.1)
-                          (org-level-5 . 1.1)
-                          (org-level-6 . 1.1)
-                          (org-level-7 . 1.1)
-                          (org-level-8 . 1.1)))
-            (set-face-attribute (car face) nil :weight 'bold :height (cdr face)))
-
-          ;; Make the document title a bit bigger
-          (set-face-attribute 'org-document-title nil :weight 'bold :height 1.8)
-
           ;; The following is used to treat frames named "org-capture"
           ;; as dedicated capture frames, meaning they will
           ;;
