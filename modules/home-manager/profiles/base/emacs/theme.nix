@@ -28,6 +28,14 @@
         bind."<f5>" = "modus-themes-toggle";
         config = ''
           (setopt modus-themes-to-toggle '(modus-operandi-tinted modus-vivendi-tinted))
+
+          ;; Heading sizes; 0 is the org document title.
+          (setopt modus-themes-headings '((0 . (bold 1.8))
+                                          (1 . (bold 1.35))
+                                          (2 . (bold 1.3))
+                                          (3 . (bold 1.2))
+                                          (t . (bold 1.1))))
+
           (load-theme 'modus-operandi-tinted :no-confirm)
         '';
       };
