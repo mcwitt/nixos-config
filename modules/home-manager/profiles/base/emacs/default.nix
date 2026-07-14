@@ -717,6 +717,11 @@
         '';
       };
 
+      vterm = {
+        enable = true;
+        command = [ "vterm" ];
+      };
+
       vundo = {
         enable = true;
         bind = {
