@@ -175,6 +175,10 @@ in
           # NOTE: effortLevel in settings.json is sometimes overridden, but the env var always takes precedence
           env.CLAUDE_CODE_EFFORT_LEVEL = effortLevel;
 
+          # always a terminal frame for Ctrl+g: emacsclient-auto's display
+          # sniffing misfires inside a multiplexer attached over SSH
+          env.VISUAL = "emacsclient -t";
+
           permissions.defaultMode = "auto";
           skipAutoPermissionPrompt = true;
           editorMode = "vim";
