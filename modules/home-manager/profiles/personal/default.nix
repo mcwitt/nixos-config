@@ -12,7 +12,6 @@ in
 {
   imports = [
     ./email.nix
-    ./git-signing.nix
   ];
 
   options.profiles.personal.enable = mkEnableOption "Profile for use on machines I own";
@@ -100,10 +99,18 @@ in
           enable = true;
         });
 
-    programs.git.settings = {
-      user.name = "Matt Wittmann";
-      user.email = "mcwitt@gmail.com";
-      gitHub.user = "mcwitt";
+    programs.git = {
+      settings = {
+        user.name = "Matt Wittmann";
+        user.email = "mcwitt@gmail.com";
+        gitHub.user = "mcwitt";
+      };
+
+      signing = {
+        format = "ssh";
+        key = "~/.ssh/id_ed25519.pub";
+        signByDefault = true;
+      };
     };
 
     programs.ncspot.enable = true;
