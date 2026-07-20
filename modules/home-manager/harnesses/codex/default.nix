@@ -38,7 +38,20 @@ in
         model = "gpt-5.6-sol";
         model_reasoning_effort = "high";
         approval_policy = "on-request";
-        sandbox_mode = "workspace-write";
+        approvals_reviewer = "auto_review";
+        default_permissions = ":workspace";
+
+        tui = {
+          vim_mode_default = true;
+          status_line = [
+            "thread-title"
+            "model-with-reasoning"
+            "current-dir"
+            "context-used"
+            "five-hour-limit"
+            "weekly-limit"
+          ];
+        };
       };
 
       skills =
