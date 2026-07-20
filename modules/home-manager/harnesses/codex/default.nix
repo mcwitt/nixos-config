@@ -40,6 +40,7 @@ in
         approval_policy = "on-request";
         approvals_reviewer = "auto_review";
         default_permissions = ":workspace";
+        notice.hide_rate_limit_model_nudge = true;
 
         tui = {
           vim_mode_default = true;
