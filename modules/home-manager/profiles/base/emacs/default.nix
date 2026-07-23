@@ -18,6 +18,7 @@
     ./forge.nix
     ./format-all.nix
     ./gptel-agent.nix
+    ./hunk-notes.nix
     ./jupyter.nix
     ./org.nix
     # ./org-latex-preview.nix
