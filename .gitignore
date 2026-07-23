@@ -1,4 +1,5 @@
 .pre-commit-config.yaml
+.worktrees/
 # Visual brainstorming companion scratch dir
 .superpowers/
 # Runtime logs from project-local Claude Code hooks
