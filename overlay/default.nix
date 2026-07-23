@@ -11,6 +11,15 @@ in
   # `follows` in flake.nix).
   llm-agents = inputs.llm-agents.packages.${final.stdenv.hostPlatform.system};
 
+  # claude-code 2.1.206+ emits command_lifecycle frames that
+  # claude-agent-acp < 0.59.0 treats as errors on every prompt.
+  # Drop once the nixpkgs pin provides >= 0.59.0:
+  #   nix eval --raw --impure --expr '
+  #     let flake = builtins.getFlake (toString ./.);
+  #     in flake.inputs.nixpkgs.legacyPackages.${builtins.currentSystem}.claude-agent-acp.version
+  #   '
+  claude-agent-acp = callPackage ../packages/development/misc/claude-agent-acp.nix { };
+
   github-gitignore = callPackage ../packages/data/misc/github-gitignore.nix { };
 
   gitignores = callPackage ../packages/development/misc/gitignores.nix { };
