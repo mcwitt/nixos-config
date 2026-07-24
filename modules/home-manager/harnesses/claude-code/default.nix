@@ -167,7 +167,7 @@ in
           effortLevel = "high";
         in
         {
-          model = "claude-fable-5";
+          model = "claude-opus-5";
           inherit effortLevel;
 
           tui = "fullscreen";
