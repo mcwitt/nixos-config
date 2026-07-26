@@ -7,10 +7,6 @@
 }:
 let
   cfg = config.harnesses;
-  superpowersSkills = lib.mapAttrs' (
-    name: _: lib.nameValuePair name "${inputs.superpowers}/skills/${name}"
-  ) (builtins.readDir "${inputs.superpowers}/skills");
-  # Relative path home-manager would manage; we copy it writable instead.
   configFile = ".codex/config.toml";
   envKeyFiles = config.harnesses.codex.envKeyFiles;
 in
@@ -55,12 +51,9 @@ in
         };
       };
 
-      skills =
-        superpowersSkills
-        // cfg.skills
-        // {
-          worktrunk = "${pkgs.worktrunk.src}/skills/worktrunk";
-        };
+      skills = cfg.skills // {
+        worktrunk = "${pkgs.worktrunk.src}/skills/worktrunk";
+      };
     };
 
     programs.codex.package = lib.mkIf (envKeyFiles != { }) (
