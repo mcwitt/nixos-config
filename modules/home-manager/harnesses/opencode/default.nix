@@ -19,7 +19,6 @@ in
 
       settings = {
         plugin = [
-          "${inputs.superpowers}/.opencode/plugins/superpowers.js"
           "${pkgs.worktrunk.src}/dev/opencode-plugin.ts"
         ];
 

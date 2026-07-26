@@ -759,8 +759,7 @@
         "nixpkgs": "nixpkgs_6",
         "nur": "nur",
         "pre-commit-hooks": "pre-commit-hooks",
-        "stylix": "stylix",
-        "superpowers": "superpowers"
+        "stylix": "stylix"
       }
     },
     "stylix": {
@@ -794,22 +793,6 @@
         "owner": "danth",
         "ref": "release-26.05",
         "repo": "stylix",
-        "type": "github"
-      }
-    },
-    "superpowers": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1784852836,
-        "narHash": "sha256-F5LEk0yNWbMpan1vZSFZM76XSpsFGvA7h8q6Idrvenk=",
-        "owner": "obra",
-        "repo": "superpowers",
-        "rev": "3dcbd5c4b48e02263fbf4a3c01e3fe4f81d584d9",
-        "type": "github"
-      },
-      "original": {
-        "owner": "obra",
-        "repo": "superpowers",
         "type": "github"
       }
     },

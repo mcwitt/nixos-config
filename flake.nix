@@ -25,10 +25,6 @@
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     stylix.url = "github:danth/stylix/release-26.05";
     stylix.inputs.nixpkgs.follows = "nixpkgs";
-    superpowers = {
-      url = "github:obra/superpowers";
-      flake = false;
-    };
   };
 
   outputs =
