@@ -51,7 +51,7 @@ in
     prev.home-assistant-custom-components
     // (
       let
-        inherit (final.home-assistant.python.pkgs) callPackage;
+        inherit (final.home-assistant.python3Packages) callPackage;
       in
       {
         bhyve = callPackage ../packages/servers/home-assistant/custom-components/bhyve.nix { };
