@@ -32,8 +32,7 @@ in
             auto-update = "off";
             clipboard-read = "allow";
             clipboard-write = "allow"; # for emacs clipetty (OSC-52)
-            # launches ssh with TERM=xterm-256color for remote ncurses tools
-            shell-integration-features = "ssh-env";
+            shell-integration-features = "ssh-env,ssh-terminfo";
             # ghostty defaults to 2pt; give the text room to breathe.
             window-padding-x = 8;
             window-padding-y = 8;
