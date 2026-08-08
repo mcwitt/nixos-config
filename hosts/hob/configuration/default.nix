@@ -1,10 +1,15 @@
 { inputs, pkgs, ... }:
 
 {
+  # page-size-16k is deliberately not imported: it overrides jemalloc's page
+  # size, which rebuilds rustc and therefore every Rust package in nixpkgs.
+  # nixpkgs already defaults aarch64 jemalloc to 64K pages, which is compatible
+  # with the rpi5's 16K pages; the overlay only saves memory. Upstream
+  # downgraded it from "recommended" to optional for this reason.
+  # https://github.com/nvmd/nixos-raspberrypi/issues/185
   imports = with inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5; [
     base
     display-vc4
-    page-size-16k
   ];
 
   # https://github.com/nix-community/disko?tab=readme-ov-file#sample-configuration-and-cli-command
