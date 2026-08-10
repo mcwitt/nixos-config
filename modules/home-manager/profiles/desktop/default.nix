@@ -32,7 +32,6 @@ in
             auto-update = "off";
             clipboard-read = "allow";
             clipboard-write = "allow"; # for emacs clipetty (OSC-52)
-            shell-integration-features = "ssh-env,ssh-terminfo";
             # ghostty defaults to 2pt; give the text room to breathe.
             window-padding-x = 8;
             window-padding-y = 8;
