@@ -55,6 +55,11 @@
         (setopt package-archives nil) ; make package archives unavailable (use Nix)
         (setopt custom-file "~/.emacs.d/custom.el")
         (load custom-file 'noerror)
+      ''
+      + lib.optionalString pkgs.stdenv.isDarwin ''
+        (setopt mac-command-modifier 'super
+                mac-option-modifier 'meta
+                mac-right-option-modifier nil)
       '';
     };
 
