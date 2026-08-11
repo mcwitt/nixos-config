@@ -55,6 +55,10 @@
         (setopt package-archives nil) ; make package archives unavailable (use Nix)
         (setopt custom-file "~/.emacs.d/custom.el")
         (load custom-file 'noerror)
+
+        ;; resolve remote commands via the remote user's own login-shell PATH
+        (with-eval-after-load 'tramp
+          (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
       ''
       + lib.optionalString pkgs.stdenv.isDarwin ''
         (setopt mac-command-modifier 'super
