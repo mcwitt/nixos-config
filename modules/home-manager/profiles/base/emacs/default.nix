@@ -665,7 +665,7 @@
           ''
         ];
         config = ''
-          (pdf-tools-install t t)
+          (pdf-tools-install-noverify)
           (setopt pdf-view-use-scaling t)
           (setq-default pdf-view-display-size 'fit-page)
           (add-to-list 'revert-without-query "\\.pdf\\'")
