@@ -247,6 +247,10 @@ in
           client.enable = true;
         };
 
+        # tty client frames take color capabilities from the daemon's
+        # environment, not the client's; every terminal here is truecolor
+        systemd.user.services.emacs.Service.Environment = [ "COLORTERM=truecolor" ];
+
         services.ssh-agent.enable = true;
 
         # The ssh-agent module exports SSH_AUTH_SOCK via shell init only; publish
