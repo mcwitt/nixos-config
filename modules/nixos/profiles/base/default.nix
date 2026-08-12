@@ -115,7 +115,12 @@
       interval = "hourly";
     };
 
-    services.openssh.enable = true;
+    services.openssh = {
+      enable = true;
+      # let clients advertise truecolor when their TERM can't (e.g. ghostty's
+      # ssh-env integration downgrades TERM to xterm-256color)
+      settings.AcceptEnv = [ "COLORTERM" ];
+    };
 
     # needed for thunar to display thumbnail images
     services.tumbler.enable = true;
