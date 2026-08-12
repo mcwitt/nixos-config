@@ -162,33 +162,26 @@ in
       enable = true;
       enableMcpIntegration = true;
 
-      settings =
-        let
-          effortLevel = "high";
-        in
-        {
-          model = "claude-opus-5";
-          inherit effortLevel;
+      settings = {
+        model = "claude-opus-5";
+        effortLevel = "high";
 
-          tui = "fullscreen";
+        tui = "fullscreen";
 
-          # NOTE: effortLevel in settings.json is sometimes overridden, but the env var always takes precedence
-          env.CLAUDE_CODE_EFFORT_LEVEL = effortLevel;
+        # always a terminal frame for Ctrl+g: emacsclient-auto's display
+        # sniffing misfires inside a multiplexer attached over SSH
+        env.VISUAL = "emacsclient -t";
 
-          # always a terminal frame for Ctrl+g: emacsclient-auto's display
-          # sniffing misfires inside a multiplexer attached over SSH
-          env.VISUAL = "emacsclient -t";
-
-          permissions.defaultMode = "auto";
-          skipAutoPermissionPrompt = true;
-          editorMode = "vim";
-          voiceEnabled = true;
-          theme = if config.stylix.polarity == "dark" then "dark" else "light";
-          statusLine = {
-            type = "command";
-            command = "${statuslineScript}";
-          };
+        permissions.defaultMode = "auto";
+        skipAutoPermissionPrompt = true;
+        editorMode = "vim";
+        voiceEnabled = true;
+        theme = if config.stylix.polarity == "dark" then "dark" else "light";
+        statusLine = {
+          type = "command";
+          command = "${statuslineScript}";
         };
+      };
 
       plugins = with inputs; [
         "${autoresearch}/claude-plugin"
