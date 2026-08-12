@@ -13,6 +13,7 @@ let
       colors = config.lib.stylix.colors;
     in
     "${colors."${name}-rgb-r"};${colors."${name}-rgb-g"};${colors."${name}-rgb-b"}";
+  settingsFile = "${config.programs.claude-code.configDir}/settings.json";
   chromeRgb = rgbTriple "base04";
   yellowRgb = rgbTriple "base0A";
   redRgb = rgbTriple "base08";
@@ -190,5 +191,17 @@ in
 
       inherit (cfg) skills;
     };
+
+    # install a writable copy of the settings, since Claude Code persists to it
+    home.file.${settingsFile}.enable = lib.mkForce false;
+
+    home.activation.claudeCodeWritableSettings =
+      let
+        target = "${config.home.homeDirectory}/${config.home.file.${settingsFile}.target}";
+      in
+      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        run rm -f "${target}"
+        run install -D -m600 ${config.home.file.${settingsFile}.source} "${target}"
+      '';
   };
 }
