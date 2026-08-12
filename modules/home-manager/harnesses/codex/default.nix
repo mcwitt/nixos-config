@@ -74,15 +74,7 @@ in
       }
     );
 
-    # codex (>= ~0.137) persists runtime state back into config.toml — most
-    # notably per-project trust via its `config/batchWrite` RPC. A read-only
-    # nix-store symlink makes every such write fail ("config/batchWrite failed
-    # in TUI"), so codex can't even get past the trust prompt on startup.
-    #
-    # Keep the config declarative (so the generated MCP nix-store paths refresh
-    # on every rebuild) but install it as a writable copy on activation rather
-    # than letting home-manager symlink it. Trade-off: codex's own writes (e.g.
-    # trust decisions) are reset to this declarative baseline on each switch.
+    # install a writable copy of the config, since codex persists to it
     home.file.${configFile}.enable = lib.mkForce false;
 
     home.activation.codexWritableConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
