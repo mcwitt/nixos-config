@@ -31,7 +31,7 @@ in
             window-show-tab-bar = "auto";
             auto-update = "off";
             clipboard-read = "allow";
-            clipboard-write = "allow"; # for emacs clipetty (OSC-52)
+            clipboard-write = "allow"; # for OSC-52 kills from emacs -nw over ssh
             # ghostty defaults to 2pt; give the text room to breathe.
             window-padding-x = 8;
             window-padding-y = 8;
