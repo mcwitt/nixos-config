@@ -1,5 +1,6 @@
 {
   config,
+  inputs,
   lib,
   pkgs,
   ...
@@ -47,6 +48,7 @@ in
 
   config = lib.mkIf cfg.enable {
     harnesses.skills = gwsSkills // {
+      asd-ste100 = "${inputs.asd-ste100}";
       nixify = ./skills/nixify;
     };
 

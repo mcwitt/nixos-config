@@ -3,6 +3,10 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
+    asd-ste100 = {
+      url = "github:danyuchn/asd-ste100-skill";
+      flake = false;
+    };
     autoresearch = {
       url = "github:uditgoenka/autoresearch";
       flake = false;
