@@ -6,11 +6,11 @@
 
 buildNpmPackage rec {
   pname = "pi-acp";
-  version = "0.0.31";
+  version = "0.0.33";
 
   src = fetchurl {
     url = "https://registry.npmjs.org/pi-acp/-/pi-acp-${version}.tgz";
-    hash = "sha256-H+ovaHoIKiNQEZn5OVnpw4oImx9up8whYgIZ4/ovZJE=";
+    hash = "sha256-n964pngMBWsywHJC81kIRHIAcwjhq1d1fzM53ZYw3ks=";
   };
 
   postPatch = ''
@@ -18,7 +18,7 @@ buildNpmPackage rec {
     cp ${./package-lock.json} package-lock.json
   '';
 
-  npmDepsHash = "sha256-Zoez4AXmLHVQJx3nCTccI+shL+A8OKVOPyKtpX37TE8=";
+  npmDepsHash = "sha256-A7Ap4pgxUaVTQuKio6NR65tGJNBH1ZOvO0ZGt+Q2bcY=";
 
   dontNpmBuild = true;
 

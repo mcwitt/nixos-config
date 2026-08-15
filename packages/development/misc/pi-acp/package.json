@@ -1,6 +1,6 @@
 {
   "name": "pi-acp",
-  "version": "0.0.31",
+  "version": "0.0.33",
   "type": "module",
   "bin": {
     "pi-acp": "dist/index.js"
