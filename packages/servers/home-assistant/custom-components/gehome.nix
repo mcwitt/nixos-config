@@ -4,12 +4,11 @@
   fetchFromGitHub,
   gehomesdk,
   magicattr,
-  slixmpp,
 }:
 
 buildHomeAssistantComponent rec {
   owner = "simbaja";
-  domain = "gehome";
+  domain = "ge_home";
   version = "2026.6.0";
 
   src = fetchFromGitHub {
@@ -22,10 +21,7 @@ buildHomeAssistantComponent rec {
   propagatedBuildInputs = [
     gehomesdk
     magicattr
-    slixmpp
   ];
-
-  dontCheckManifest = true; # pinned slixmpp version not in nixpkgs
 
   meta = with lib; {
     description = "GE Home Appliances (SmartHQ) for Home Assistant";
