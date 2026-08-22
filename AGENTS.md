@@ -106,7 +106,7 @@ grep -rn 'TODO\|FIXME\|HACK\|XXX' --include='*.nix' --include='*.el' .
 ### worktrunk + harness plugins
 
 `pkgs.worktrunk` provides the `wt` CLI, the Claude Code plugin
-(`${pkgs.worktrunk.src}` repo root), the Codex `worktrunk` skill
+(`${pkgs.worktrunk.src}` repo root), the shared `worktrunk` skill
 (`${pkgs.worktrunk.src}/skills/worktrunk`), and the OpenCode activity plugin
 (`${pkgs.worktrunk.src}/dev/opencode-plugin.ts`). All three integrations are
 sourced from the package's own `src`, so they cannot skew from the binary — bump

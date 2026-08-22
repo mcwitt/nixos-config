@@ -51,9 +51,7 @@ in
         };
       };
 
-      skills = cfg.skills // {
-        worktrunk = "${pkgs.worktrunk.src}/skills/worktrunk";
-      };
+      inherit (cfg) skills;
     };
 
     programs.codex.package = lib.mkIf (envKeyFiles != { }) (
