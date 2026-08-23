@@ -4,27 +4,29 @@
 }:
 {
   stylix = {
-    # Colors taken from modus-operandi-tinted emacs theme
+    # Hand-authored Base16 projection of the ef-melissa-dark Emacs theme.
+    # Keep syntax colors readable against bg-main rather than using the
+    # theme's low-contrast border/background colors in foreground slots.
     base16Scheme = {
-      base00 = "#fbf7f0"; # bg-main
-      base01 = "#efe9dd"; # bg-dim
-      base02 = "#c9b9b0"; # bg-active
-      base03 = "#9f9690"; # border
-      base04 = "#595959"; # fg-dim
-      base05 = "#000000"; # fg-main
-      base06 = "#193668"; # fg-alt
-      base07 = "#0000b0"; # blue-cooler
-      base08 = "#a60000"; # red
-      base09 = "#6d5000"; # yellow
-      base0A = "#f3d000"; # bg-yellow-intense
-      base0B = "#006300"; # green
-      base0C = "#00598b"; # cyan
-      base0D = "#0031a9"; # blue
-      base0E = "#8f0075"; # magenta-warmer
-      base0F = "#8a290f"; # rust
+      base00 = "#352718"; # bg-main
+      base01 = "#483426"; # bg-dim
+      base02 = "#79665f"; # bg-active / selection
+      base03 = "#90918a"; # fg-dim / comments
+      base04 = "#ccaa70"; # fg-alt
+      base05 = "#e8e4b1"; # fg-main
+      base06 = "#f8efd8"; # fg-mode-line-active
+      base07 = "#f8efd8"; # strongest foreground (Base16 compatibility)
+      base08 = "#ff7f7f"; # red
+      base09 = "#ffa21f"; # yellow-warmer / orange
+      base0A = "#e4b53f"; # yellow
+      base0B = "#6fd560"; # green
+      base0C = "#6fcad0"; # cyan
+      base0D = "#57aff6"; # blue
+      base0E = "#f0aac5"; # magenta
+      base0F = "#ff7f4f"; # red-warmer / rust
     };
 
-    polarity = "light";
+    polarity = "dark";
 
     fonts = {
       monospace = {

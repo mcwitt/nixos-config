@@ -22,12 +22,12 @@
                               :family "${fonts.serif.name}")
         '';
 
-      modus-themes = {
+      ef-themes = {
         enable = true;
         demand = true;
-        bind."<f5>" = "modus-themes-toggle";
+        bind."<f5>" = "ef-themes-toggle";
         config = ''
-          (setopt modus-themes-to-toggle '(modus-operandi-tinted modus-vivendi-tinted))
+          (setopt ef-themes-to-toggle '(ef-melissa-light ef-melissa-dark))
 
           ;; Heading sizes; 0 is the org document title.
           (setopt modus-themes-headings '((0 . (bold 1.8))
@@ -36,7 +36,9 @@
                                           (3 . (bold 1.2))
                                           (t . (bold 1.1))))
 
-          (load-theme 'modus-operandi-tinted :no-confirm)
+          (modus-themes-load-theme '${
+            if config.stylix.polarity == "dark" then "ef-melissa-dark" else "ef-melissa-light"
+          })
         '';
       };
     };

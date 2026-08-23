@@ -73,7 +73,7 @@
             stylix.nixosModules.stylix
             self.nixosModules.stylix
             ./modules/stylix/linux.nix
-            ./modules/stylix/dark.nix
+            ./modules/stylix/light.nix
 
             self.nixosModules.default
 

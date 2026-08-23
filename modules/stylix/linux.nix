@@ -25,6 +25,11 @@ let
     url = "https://upload.wikimedia.org/wikipedia/commons/b/ba/The_Alluvial_Field_at_Emerald_Lake_in_Yoho_National_Park%2C_BC.jpg";
     sha256 = "1y405apgl744ida5jbybm953xlidcglq7ky2bxb59zzqh8wqqla0";
   };
+  artemis-ii-earth-moon = pkgs.fetchurl {
+    name = "art002e009289.jpg";
+    url = "https://images-assets.nasa.gov/image/art002e009289/art002e009289~orig.jpg";
+    sha256 = "0xdzmxmf3aqr4wlvrzm79cbxcw9f0m5mhp1hmm2dyg5sh6jc9a1a";
+  };
 in
 {
   # cursor and wallpaper are desktop targets absent from nix-darwin's stylix, so
@@ -36,6 +41,8 @@ in
       size = 32;
     };
 
-    image = lib.mkDefault emerald-lake-alluvial-field;
+    image = lib.mkDefault artemis-ii-earth-moon;
   };
+
+  specialisation.light.configuration.stylix.image = lib.mkForce emerald-lake-alluvial-field;
 }
