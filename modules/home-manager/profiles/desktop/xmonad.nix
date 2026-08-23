@@ -29,6 +29,7 @@
                 "@colorBase05@"
                 "@colorBase06@"
                 "@colorBase08@"
+                "@colorBase09@"
                 "@fontMono@"
                 "@fontSize@"
                 "@notifySend@"
@@ -42,6 +43,7 @@
                 colors.withHashtag.base05
                 colors.withHashtag.base06
                 colors.withHashtag.base08
+                colors.withHashtag.base09
                 fonts.monospace.name
                 (toString fonts.sizes.desktop)
                 "${pkgs.libnotify}/bin/notify-send"

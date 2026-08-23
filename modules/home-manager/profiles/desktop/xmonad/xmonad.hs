@@ -60,6 +60,8 @@ colorBase06 = "@colorBase06@"
 
 colorBase08 = "@colorBase08@"
 
+colorBase09 = "@colorBase09@"
+
 fontMono = "@fontMono@"
 
 fontSize = "@fontSize@"
@@ -77,7 +79,7 @@ main = do
     $ def
       { borderWidth = 6,
         normalBorderColor = colorBase03,
-        focusedBorderColor = colorBase06,
+        focusedBorderColor = colorBase09,
         layoutHook = myLayoutHook,
         logHook = workspaceHistoryHook <+> mkPolybarLogHook logOutput,
         manageHook = myManageHook,
@@ -170,7 +172,7 @@ myLayoutHook =
         { activeColor = colorBase06,
           inactiveColor = colorBase03,
           urgentColor = colorBase08,
-          activeBorderColor = colorBase06,
+          activeBorderColor = colorBase09,
           inactiveBorderColor = colorBase03,
           urgentBorderColor = colorBase08,
           activeTextColor = colorBase01,
