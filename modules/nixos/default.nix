@@ -1,5 +1,6 @@
 {
   imports = [
+    ./coding-agent
     ./codex-cli-cache.nix
     ./nix-community-cache.nix
     ./numtide-cache.nix
