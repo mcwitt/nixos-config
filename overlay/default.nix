@@ -4,6 +4,26 @@ let
   inherit (final) callPackage lib;
 in
 {
+  # nixos-26.05's manually packaged Ghostel shadows the current package from
+  # emacs-overlay. Backport the package from emacs-overlay's nixpkgs input so
+  # Ghostel's native module is still built declaratively rather than downloaded
+  # on first use.
+  emacsPackagesFor =
+    emacs:
+    let
+      emacsPackages = prev.emacsPackagesFor emacs;
+    in
+    assert lib.assertMsg (lib.versionOlder emacsPackages.ghostel.version "0.51.0")
+      "nixos-26.05 now has Ghostel >= 0.51.0; drop this backport.";
+    emacsPackages.overrideScope (
+      emacsFinal: _: {
+        ghostel =
+          emacsFinal.callPackage
+            "${inputs.emacs-overlay.inputs.nixpkgs}/pkgs/applications/editors/emacs/elisp-packages/manual-packages/ghostel/package.nix"
+            { };
+      }
+    );
+
   # numtide/llm-agents.nix dropped its `overlays.default` output in the
   # 2026-07 restructure; recreate it here so `pkgs.llm-agents.<pkg>` keeps
   # working. Same semantics as the removed upstream overlay: expose the

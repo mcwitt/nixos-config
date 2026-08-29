@@ -87,8 +87,8 @@
               {
                 nixpkgs = {
                   overlays = [
-                    self.overlays.default
                     emacs-overlay.overlay
+                    self.overlays.default
                     nur.overlays.default
                     inputs.claude-code.overlays.default
                     inputs.codex-cli.overlays.default
@@ -189,8 +189,8 @@
               {
                 nixpkgs = {
                   overlays = [
-                    self.overlays.default
                     emacs-overlay.overlay
+                    self.overlays.default
                     nur.overlays.default
                     inputs.claude-code.overlays.default
                     inputs.codex-cli.overlays.default
