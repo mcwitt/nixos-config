@@ -723,9 +723,9 @@
         '';
       };
 
-      vterm = {
+      ghostel = {
         enable = true;
-        command = [ "vterm" ];
+        command = [ "ghostel" ];
       };
 
       vundo = {
