@@ -497,6 +497,15 @@
         diminish = [ "evil-escape-mode" ];
       };
 
+      evil-ghostel = {
+        enable = true;
+        after = [
+          "ghostel"
+          "evil"
+        ];
+        hook = [ "(ghostel-mode . evil-ghostel-mode)" ];
+      };
+
       evil-numbers = {
         enable = true;
         bind = {
