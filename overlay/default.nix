@@ -36,10 +36,10 @@ in
         magicattr = callPackage ../packages/development/python-modules/magicattr { };
 
         gehomesdk = pyPrev.gehomesdk.overridePythonAttrs (oldAttrs: rec {
-          version = "2026.5.4";
+          version = "2026.8.0";
           src = oldAttrs.src.override {
             inherit version;
-            hash = "sha256-zKYe7vIXSFbtTqaCLEAHQvuDRGGXqorqfFqVVpBWuJs=";
+            hash = "sha256-4WGkodI608LmlHpzYfPIrexZBNAsImmj2B55+WJgq2E=";
           };
           dependencies = oldAttrs.dependencies ++ [ pyFinal.beautifulsoup4 ];
         });
