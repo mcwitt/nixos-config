@@ -150,7 +150,6 @@ in
               ];
             };
 
-            # https://github.com/davidshepherd7/frames-only-mode#integrating-with-command-line-git
             # emacsclient-auto picks -t (TUI) over SSH / in a tty, -c (GUI) locally.
             core.editor = lib.getExe emacsclient-auto;
 

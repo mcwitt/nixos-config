@@ -32,13 +32,6 @@
         enable = true;
         bindLocal.flyspell-mode-map."C-;" = "nil"; # save C-; for embark-act
       };
-
-      frames-only-mode = {
-        config = ''
-          ;; Prevent error when attempting to open in a new frame
-          (add-to-list 'frames-only-mode-use-window-functions #'embark-act)
-        '';
-      };
     };
   };
 }
