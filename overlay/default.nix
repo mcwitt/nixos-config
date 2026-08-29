@@ -57,9 +57,6 @@ in
         bhyve = callPackage ../packages/servers/home-assistant/custom-components/bhyve.nix { };
         eero = callPackage ../packages/servers/home-assistant/custom-components/eero.nix { };
         gehome = callPackage ../packages/servers/home-assistant/custom-components/gehome.nix { };
-        scheduler-component =
-          callPackage ../packages/servers/home-assistant/custom-components/scheduler-component.nix
-            { };
       }
     );
 

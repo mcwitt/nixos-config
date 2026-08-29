@@ -71,7 +71,7 @@ in
         bhyve
         eero
         gehome
-        scheduler-component
+        scheduler
       ];
 
       customLovelaceModules = with pkgs.home-assistant-custom-lovelace-modules; [
