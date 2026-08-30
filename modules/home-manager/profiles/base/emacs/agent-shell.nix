@@ -58,7 +58,6 @@
                   '("${pkgs.claude-agent-acp}/bin/claude-agent-acp"))
           (setopt agent-shell-anthropic-authentication
                   (agent-shell-anthropic-make-authentication :login t))
-          (setopt agent-shell-preferred-agent-config '(preselect . claude-code))
 
           (setopt agent-shell-opencode-acp-command
                   '("${pkgs.opencode}/bin/opencode" "acp"))
