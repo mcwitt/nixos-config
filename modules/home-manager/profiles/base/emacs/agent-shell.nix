@@ -43,6 +43,12 @@
           ;; Minimal UI: text header instead of the tall graphical banner.
           (setopt agent-shell-header-style 'text)
 
+          ;; evil-collection's comint bindings capture graphical <return>,
+          ;; bypassing agent-shell's drawer map and submitting instead.
+          ;; Remove once agent-shell binds <return> upstream.
+          (define-key agent-shell-ui-fragment-map
+                      (kbd "<return>") #'agent-shell-ui-toggle-fragment)
+
           (setopt agent-shell-openai-codex-acp-command
                   '("${pkgs.codex-acp}/bin/codex-acp"))
           (setopt agent-shell-openai-authentication
