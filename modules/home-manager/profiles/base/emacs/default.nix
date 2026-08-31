@@ -724,6 +724,11 @@
       ghostel = {
         enable = true;
         command = [ "ghostel" ];
+        init = ''
+          (with-eval-after-load 'project
+            (keymap-set project-prefix-map "t" #'ghostel-project)
+            (add-to-list 'project-switch-commands '(ghostel-project "Terminal") t))
+        '';
       };
 
       vundo = {
