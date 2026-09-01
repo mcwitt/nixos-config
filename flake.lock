@@ -32,22 +32,6 @@
         "type": "github"
       }
     },
-    "autoresearch": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1786573603,
-        "narHash": "sha256-Hwxlit87HPoHLLDiX/Tz4L5ONvmDf5B71KhTePNLyhU=",
-        "owner": "uditgoenka",
-        "repo": "autoresearch",
-        "rev": "050e30dc4ba0974b03f2873111b9901ec3211390",
-        "type": "github"
-      },
-      "original": {
-        "owner": "uditgoenka",
-        "repo": "autoresearch",
-        "type": "github"
-      }
-    },
     "base16": {
       "inputs": {
         "fromYaml": "fromYaml"
@@ -744,7 +728,6 @@
     "root": {
       "inputs": {
         "asd-ste100": "asd-ste100",
-        "autoresearch": "autoresearch",
         "claude-code": "claude-code",
         "codex-cli": "codex-cli",
         "disko": "disko",

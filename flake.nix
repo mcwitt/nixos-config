@@ -7,10 +7,6 @@
       url = "github:danyuchn/asd-ste100-skill";
       flake = false;
     };
-    autoresearch = {
-      url = "github:uditgoenka/autoresearch";
-      flake = false;
-    };
     claude-code.url = "github:sadjow/claude-code-nix";
     codex-cli.url = "github:sadjow/codex-cli-nix";
     disko.url = "github:nix-community/disko";

@@ -1,6 +1,5 @@
 {
   config,
-  inputs,
   lib,
   pkgs,
   ...
@@ -184,10 +183,7 @@ in
         };
       };
 
-      plugins = with inputs; [
-        "${autoresearch}/claude-plugin"
-        "${pkgs.worktrunk.src}"
-      ];
+      plugins = [ "${pkgs.worktrunk.src}" ];
 
       inherit (cfg) skills;
     };
