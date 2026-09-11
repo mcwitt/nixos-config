@@ -606,6 +606,22 @@
           "C-c M-g" = "magit-file-dispatch";
         };
         config = ''
+          ;; Follow worktrunk's sibling layout: <repo>.<branch>.  This is
+          ;; Magit's built-in sibling reader with "." in place of "_".
+          (defun my/magit-read-worktree-directory-sibling (prompt commit)
+            "Read a sibling worktree directory named <repo>.<commit>."
+            (let* ((path (directory-file-name default-directory))
+                   (name (file-name-nondirectory path)))
+              (read-directory-name
+               prompt (file-name-directory path) nil nil
+               (concat (if (string-match "\\." name)
+                           (substring name 0 (match-beginning 0))
+                         name)
+                       "."
+                       (and commit (string-replace "/" "-" commit))))))
+          (setopt magit-read-worktree-directory-function
+                  #'my/magit-read-worktree-directory-sibling)
+
           ;; Show all sibling worktrees in magit-status (RET jumps to one).
           ;; magit-insert-worktrees ships with magit; no extra package.
           (magit-add-section-hook 'magit-status-sections-hook
