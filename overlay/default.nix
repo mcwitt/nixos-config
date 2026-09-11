@@ -33,7 +33,7 @@ in
 
   # claude-code 2.1.206+ emits command_lifecycle frames that
   # claude-agent-acp < 0.59.0 treats as errors on every prompt.
-  # Drop once the nixpkgs pin provides >= 0.75.1:
+  # Drop once the nixpkgs pin provides >= 0.76.0:
   #   nix eval --raw --impure --expr '
   #     let flake = builtins.getFlake (toString ./.);
   #     in flake.inputs.nixpkgs.legacyPackages.${builtins.currentSystem}.claude-agent-acp.version
