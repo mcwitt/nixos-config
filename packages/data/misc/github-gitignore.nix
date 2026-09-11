@@ -3,6 +3,6 @@
 fetchFromGitHub {
   owner = "github";
   repo = "gitignore";
-  rev = "361f1e6afa729dc58ec33bf0849772a03ddf6822";
-  hash = "sha256-1sItRz+K76RiPMccX/G3QwU2/sCWTS44AsiUxibmCsE=";
+  rev = "356fd7baab4c05e092194a41f64dbd5afc8817e4";
+  hash = "sha256-Nm+gwWE8yZye19qffYwk95Q0A9zMa1hdP7p5J5bBuUI=";
 }
