@@ -410,6 +410,21 @@
       {
 
         checks = {
+          agent-identity-guard =
+            pkgs.runCommand "agent-identity-guard-check"
+              {
+                nativeBuildInputs = [
+                  pkgs.bash
+                  pkgs.jq
+                  pkgs.shfmt
+                  pkgs.python3
+                ];
+              }
+              ''
+                python3 ${./modules/home-manager/profiles/agent-identity/test_guard.py} \
+                  ${./modules/home-manager/profiles/agent-identity/guard.sh}
+                touch $out
+              '';
           pre-commit-check = pre-commit-hooks.lib.${system}.run {
             src = ./.;
             excludes = [ "hardware-configuration\\.nix" ];

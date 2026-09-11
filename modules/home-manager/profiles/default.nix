@@ -1,5 +1,6 @@
 {
   imports = [
+    ./agent-identity
     ./base
     ./desktop
     ./distrobox.nix
