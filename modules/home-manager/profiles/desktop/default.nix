@@ -63,12 +63,14 @@ in
           extensions =
             let
               bitwarden = "nngceckbapebfimnlniiiahkandclblb";
+              floccus = "fnaicdffflnofjppbagibeoednhnbjhg";
               link-to-text-fragment = "pbcodcjpfjdpcineamnnmbkkmkdpajjg";
               privacy-badger = "pkehgijcmpdhfbdbbnkijodmdjhbjlgp";
               vimium = "dbepggeogbaibhgnhhndojpepiihcmeb";
             in
             [
               bitwarden
+              floccus
               link-to-text-fragment
               privacy-badger
               vimium
