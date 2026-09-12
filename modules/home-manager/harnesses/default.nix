@@ -28,6 +28,7 @@ let
 in
 {
   imports = [
+    ./antigravity-cli
     ./claude-code
     ./codex
     ./memex.nix
@@ -36,7 +37,7 @@ in
   ];
 
   options.harnesses = {
-    enable = lib.mkEnableOption "the agent CLI harnesses (claude-code, codex, opencode, pi)";
+    enable = lib.mkEnableOption "the agent CLI harnesses (antigravity-cli, claude-code, codex, opencode, pi)";
 
     skills = lib.mkOption {
       type = lib.types.attrsOf lib.types.path;
@@ -55,6 +56,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    programs.antigravity-cli.context.GEMINI = context;
     programs.claude-code.context = context;
     programs.codex.context = context;
     programs.opencode.context = context;

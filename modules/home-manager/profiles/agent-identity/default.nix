@@ -26,6 +26,17 @@ let
       ];
     }
   ];
+  antigravityHooks.agent-github-identity.PreToolUse = [
+    {
+      matcher = "run_command";
+      hooks = [
+        {
+          type = "command";
+          command = lib.getExe guard;
+        }
+      ];
+    }
+  ];
 in
 {
   options.profiles.agent-identity = {
@@ -42,6 +53,7 @@ in
       })
     ];
 
+    programs.antigravity-cli.context.GEMINI = instructions;
     programs.claude-code = {
       context = instructions;
       settings.hooks = hooks;
@@ -51,6 +63,10 @@ in
       settings.hooks = hooks;
     };
     programs.opencode.context = instructions;
+    home.file.".gemini/config/hooks.json" = lib.mkIf (config.harnesses.enable or false) {
+      source = (pkgs.formats.json { }).generate "antigravity-agent-identity-hooks.json" antigravityHooks;
+    };
+
     # Pi is installed by the harness bundle; it has no Home Manager program option.
     home.file.".pi/agent/AGENTS.md" = lib.mkIf (config.harnesses.enable or false) {
       text = instructions;

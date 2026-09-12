@@ -14,6 +14,7 @@ in
       memexSkill.source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/projects/memex";
     in
     {
+      ".gemini/antigravity-cli/skills/memex" = memexSkill;
       ".claude/skills/memex" = memexSkill;
       ".codex/skills/memex" = memexSkill;
       ".config/opencode/skills/memex" = memexSkill;
