@@ -63,6 +63,7 @@ in
 
     harnesses.skills = gwsSkills // {
       asd-ste100 = "${inputs.asd-ste100}";
+      assisted-review = ./skills/assisted-review;
       nixify = ./skills/nixify;
       worktrunk = "${pkgs.worktrunk.src}/skills/worktrunk";
     };
