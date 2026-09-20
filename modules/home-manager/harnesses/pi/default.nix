@@ -7,6 +7,7 @@
 let
   cfg = config.harnesses;
   piCfg = config.harnesses.pi;
+  jsonFormat = pkgs.formats.json { };
 
   # Sourced from the numtide/llm-agents.nix overlay (already applied in
   # flake.nix) rather than nixpkgs: it tracks pi's near-daily releases, whereas
@@ -158,14 +159,15 @@ in
     };
 
     modelsJson = lib.mkOption {
-      type = lib.types.attrs;
+      type = jsonFormat.type;
       default = { };
       description = ''
         Contents of `~/.pi/agent/models.json` (custom providers/models). When
         non-empty it is written declaratively; pi reloads it when you open
         `/model`. Use to surface provider slugs pi does not ship built-in. pi
         only reads this file (it persists credentials to auth.json instead), so
-        a read-only nix-store symlink is safe.
+        a read-only nix-store symlink is safe. Definitions from separate modules
+        merge recursively, so each provider can be declared where it is wired.
       '';
     };
 
@@ -205,15 +207,12 @@ in
         ) cfg.skills;
       }
       (lib.mkIf (piCfg.modelsJson != { }) {
-        home.file.".pi/agent/models.json".source =
-          (pkgs.formats.json { }).generate "pi-models.json"
-            piCfg.modelsJson;
+        home.file.".pi/agent/models.json".source = jsonFormat.generate "pi-models.json" piCfg.modelsJson;
       })
       (lib.mkIf haveStylix {
         # The theme file is read-only (pi only reads themes/ and hot-reloads).
         home.file.".pi/agent/themes/stylix.json".source =
-          (pkgs.formats.json { }).generate "pi-stylix-theme.json"
-            stylixTheme;
+          jsonFormat.generate "pi-stylix-theme.json" stylixTheme;
 
         # Activate it via settings.json. pi rewrites settings.json on
         # interactive /settings changes, so we seed it writably (jq-merge,
