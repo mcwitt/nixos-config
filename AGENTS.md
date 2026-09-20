@@ -50,7 +50,7 @@ Hosts compose profiles in `flake.nix` under their `nixosConfigurations.<host>` e
 Two patterns, visible in `flake.nix`:
 
 - **`self.lib.makeNixosSystem`** (golem, karakuri, satori): helper that wires home-manager, overlays, stylix, and the default modules. Use this for any new desktop host.
-- **`nixpkgs.lib.nixosSystem` directly** (hal, hestia, hob): used when a host needs to skip home-manager or use a different `nixosSystem` builder (hob uses `nixos-raspberrypi.lib.nixosSystem` and cross-compiles from x86_64).
+- **`nixpkgs.lib.nixosSystem` directly** (hestia): used when a host needs to skip home-manager. Shared-server host definitions are maintained separately and are not deployment outputs of this flake. Reusable public modules and packages remain here.
 
 ### The private config
 
@@ -67,7 +67,7 @@ These are the non-obvious things that need attention over time. The code can't t
 ### Stale overrides in the overlay
 
 - **Home Assistant custom components and lovelace modules** (under `packages/servers/home-assistant/`): check upstream releases with `gh release list --repo <owner/repo> --limit 1`. For `scheduler-card`, updating requires regenerating `package-lock.json` (`npm install --package-lock-only` on the new source, then `prefetch-npm-deps` for the hash).
-- **`scheduler-card` is version-capped until Home Assistant is upgraded — do NOT bump it past 4.0.10.** Newer releases require a newer HA core than our pinned nixpkgs provides (4.0.11+ needs ≥ 2026.1, 4.0.17+ needs ≥ 2026.4); on older cores the schedule popups render scrambled and unusable (upstream issue nielsfaber/scheduler-card#1130). Before any bump, compare the `homeassistant` key in the release's `hacs.json` against `nix eval --raw '.#nixosConfigurations.hob.config.services.home-assistant.package.version'`. When HA is finally new enough and the card is bumped, also try dropping the two build pins carried in our vendored `package.json` (typescript held at 5.8.3, picomatch held at 2.3.1 — see the comment in the package's `default.nix`).
+- **`scheduler-card` is version-capped until Home Assistant is upgraded — do NOT bump it past 4.0.10.** Newer releases require a newer HA core than our pinned nixpkgs provides (4.0.11+ needs ≥ 2026.1, 4.0.17+ needs ≥ 2026.4); on older cores the schedule popups render scrambled and unusable (upstream issue nielsfaber/scheduler-card#1130). Before any bump, compare the `homeassistant` key in the release's `hacs.json` against the Home Assistant package version evaluated from the active deployment flake (shared host outputs no longer live here). When HA is finally new enough and the card is bumped, also try dropping the two build pins carried in our vendored `package.json` (typescript held at 5.8.3, picomatch held at 2.3.1 — see the comment in the package's `default.nix`).
 - **`magicattr`** (`packages/development/python-modules/magicattr/`): not in nixpkgs. Check periodically with `nix eval 'nixpkgs#python3Packages.magicattr.version'` to see if it's been upstreamed.
 
 ### Useful version-checking commands

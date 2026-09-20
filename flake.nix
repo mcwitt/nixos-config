@@ -280,24 +280,6 @@
           extraHmModules = [ ./hosts/golem/home ];
         };
 
-        hal = nixpkgs.lib.makeOverridable nixpkgs.lib.nixosSystem {
-          system = "aarch64-linux";
-          modules = [
-            nur.modules.nixos.default
-            self.nixosModules.default
-            ./hosts/hal/configuration
-            {
-              nixpkgs = {
-                overlays = [ self.overlays.default ];
-                config.allowUnfree = true;
-              };
-            }
-          ];
-          specialArgs = {
-            inherit inputs;
-          };
-        };
-
         hestia = nixpkgs.lib.makeOverridable nixpkgs.lib.nixosSystem {
           system = "aarch64-linux";
           modules = [
@@ -312,31 +294,6 @@
           ];
           specialArgs = {
             inherit inputs;
-          };
-        };
-
-        hob = nixpkgs.lib.makeOverridable nixos-raspberrypi.lib.nixosSystem {
-          system = "aarch64-linux";
-          modules = [
-            disko.nixosModules.disko
-            nur.modules.nixos.default
-            self.nixosModules.default
-            ./hosts/hob/configuration
-            {
-              nixpkgs = {
-                overlays = [ self.overlays.default ];
-                config = {
-                  allowUnfree = true;
-                  allowUnsupportedSystem = true;
-                };
-              };
-
-              profiles.home-automation.enable = true;
-            }
-          ];
-          specialArgs = {
-            inherit inputs;
-            inherit (inputs) nixos-raspberrypi;
           };
         };
 
