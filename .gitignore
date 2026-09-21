@@ -4,3 +4,6 @@
 .superpowers/
 # Runtime logs from project-local Claude Code hooks
 .claude/hooks/.logs/
+# nix build output links
+result
+result-*
