@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 {
   imports = [
     ./hardware-configuration.nix
@@ -18,6 +18,8 @@
   hardware.keyboard.zsa.enable = true;
 
   hardware.nvidia.open = false;
+  # TITAN X (Pascal) is supported only through the 580 legacy driver series.
+  hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.legacy_580;
 
   hardware.graphics.enable = true;
   hardware.graphics.enable32Bit = true;
