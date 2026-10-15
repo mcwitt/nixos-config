@@ -172,6 +172,9 @@ in
         # sniffing misfires inside a multiplexer attached over SSH
         env.VISUAL = "emacsclient -t";
 
+        # omit the claude.ai session link from commits and PR bodies
+        attribution.sessionUrl = false;
+
         permissions.defaultMode = "auto";
         skipAutoPermissionPrompt = true;
         editorMode = "vim";
