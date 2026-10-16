@@ -382,6 +382,19 @@
                   ${./modules/home-manager/profiles/agent-identity/guard.sh}
                 touch $out
               '';
+          branch-cleanup =
+            pkgs.runCommand "branch-cleanup-check"
+              {
+                nativeBuildInputs = [
+                  pkgs.git
+                  pkgs.python3
+                ];
+              }
+              ''
+                python3 ${./modules/home-manager/harnesses/tests/test_branch_cleanup.py} \
+                  ${./modules/home-manager/harnesses/skills/branch-cleanup/scripts/branch_cleanup.py}
+                touch $out
+              '';
           pre-commit-check = pre-commit-hooks.lib.${system}.run {
             src = ./.;
             excludes = [ "hardware-configuration\\.nix" ];
