@@ -31,6 +31,8 @@ in
   # `follows` in flake.nix).
   llm-agents = inputs.llm-agents.packages.${final.stdenv.hostPlatform.system};
 
+  agy-acp-server = callPackage ../packages/development/misc/agy-acp-server.nix { };
+
   # claude-code 2.1.206+ emits command_lifecycle frames that
   # claude-agent-acp < 0.59.0 treats as errors on every prompt.
   # Drop once the nixpkgs pin provides >= 0.76.0:
