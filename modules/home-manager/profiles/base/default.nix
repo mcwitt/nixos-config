@@ -23,6 +23,7 @@ in
     ./git-annex.nix
     ./jupyter.nix
     ./neovim
+    ./tmux.nix
     ./worktrunk.nix
   ];
 
