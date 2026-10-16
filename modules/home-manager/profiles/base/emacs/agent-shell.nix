@@ -64,6 +64,11 @@
 
           (setopt agent-shell-pi-acp-command
                   '("${config.harnesses.pi.acpPackage}/bin/pi-acp"))
+
+          ;; Keep agent-shell's per-platform arguments ("--uid=" on Linux).
+          (setopt agent-shell-antigravity-acp-command
+                  (cons "${pkgs.agy-acp-server}/bin/agy_acp_server.par"
+                        (cdr agent-shell-antigravity-acp-command)))
         '';
       };
 
