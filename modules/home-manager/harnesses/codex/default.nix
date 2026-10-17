@@ -1,6 +1,5 @@
 {
   config,
-  inputs,
   lib,
   pkgs,
   ...
@@ -31,7 +30,6 @@ in
       enableMcpIntegration = true;
 
       settings = {
-        model = "gpt-5.6-sol";
         model_reasoning_effort = "high";
         approval_policy = "on-request";
         approvals_reviewer = "auto_review";
@@ -72,7 +70,10 @@ in
       }
     );
 
-    # install a writable copy of the config, since codex persists to it
+    # release-26.05 still needs a writable config because Codex persists to it.
+    # Replace this with programs.codex.mutableSettings = true when adopting
+    # a Home Manager release containing the master-only fix from PR #10000:
+    # https://github.com/nix-community/home-manager/pull/10000
     home.file.${configFile}.enable = lib.mkForce false;
 
     home.activation.codexWritableConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''

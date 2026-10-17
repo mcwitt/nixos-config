@@ -1,6 +1,5 @@
 {
   config,
-  inputs,
   lib,
   pkgs,
   ...
@@ -10,6 +9,8 @@ let
 in
 {
   config = lib.mkIf cfg.enable {
+    # The built-in system theme inherits the terminal's ANSI palette, which
+    # Stylix already manages, and preserves its foreground/background colors.
     stylix.targets.opencode.enable = false;
 
     programs.opencode = {
@@ -22,20 +23,6 @@ in
           "${pkgs.worktrunk.src}/dev/opencode-plugin.ts"
         ];
 
-        provider.llamaswap = {
-          npm = "@ai-sdk/openai-compatible";
-          name = "llama-swap (local)";
-          options.baseURL = "http://satori-ts:8080/v1";
-          models = {
-            "Qwen3.6-27B" = {
-              name = "Qwen3.6 27B (local)";
-              limit = {
-                context = 131072; # must match -c in the private repo's llama-swap.nix
-                output = 8192;
-              };
-            };
-          };
-        };
       };
 
       tui.theme = "system";
