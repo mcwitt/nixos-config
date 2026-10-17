@@ -382,6 +382,16 @@
                   ${./modules/home-manager/profiles/agent-identity/guard.sh}
                 touch $out
               '';
+          assisted-review =
+            pkgs.runCommand "assisted-review-check"
+              {
+                nativeBuildInputs = [ pkgs.python3 ];
+              }
+              ''
+                python3 ${./modules/home-manager/harnesses/tests/test_assisted_review.py} \
+                  ${./modules/home-manager/harnesses/skills/assisted-review}/scripts/review_deck.py
+                touch $out
+              '';
           branch-cleanup =
             pkgs.runCommand "branch-cleanup-check"
               {

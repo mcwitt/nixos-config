@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<title>Assisted review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,600;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&display=swap">
+<link rel="stylesheet" href="deck.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/18.1.1/lib/marked.umd.min.js" integrity="sha384-7sjOQLpS2mL+qbjUOYVEk350vVNi+nPTKMQFruUWMDTzgcxzTJiwye3rHDJCJ9ZL" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.4.17/purify.min.js" integrity="sha384-P0JNneQf81HOl9VwNXK76cQ9VMD6Nfsnepxb0cCOg8+UzEdzgPHAPV4wVQrvYQSx" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.2/highlight.min.js" integrity="sha384-pZ4gLQJIEk/VKnGk59xUSQK8Ne/erZQR9cpnPXPLB9iN1tXsVkRVfHYGdFYrSkv1" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.2/languages/nix.min.js" integrity="sha384-vl+ui94oTgJioVwFcrjQJfrY2BqLIh98PADFgTizGEYFiU2y3vcxvhNzSyQrav/S" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.2/languages/haskell.min.js" integrity="sha384-GOuPg18AUGiwCf1w41ZskSpzyWuhOqgAKOXGE0tvtcOl632Jo6vZ85qyJH46j9Xq" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.2/languages/dockerfile.min.js" integrity="sha384-0zNCDFuDropscQQX105Gh/3QcoGRmz/FNUFCljVEETiDYRYMhSEyRydgyjQTlgds" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.2/languages/lisp.min.js" integrity="sha384-nZelEaLvnEkKZKcAvQcTGW0CPd0OJSRWSyzSwtUbMgjQmkodbAxbLTaqAFkpdIDg" crossorigin="anonymous"></script>
+<script src="deck.js" defer></script>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="bar">
+    <div class="bar-title">
+      <span class="mark" aria-hidden="true">±</span>
+      <div class="bar-names">
+        <h1 id="deck-title">Loading the review…</h1>
+        <p id="deck-scope" class="scope"></p>
+      </div>
+    </div>
+    <nav class="track" id="track" aria-label="Slides"></nav>
+    <div class="bar-actions">
+      <button type="button" class="ghost" id="toc-btn" aria-expanded="false" aria-controls="toc">Contents</button>
+      <button type="button" class="ghost icon" id="theme-btn" title="Theme: system">◐</button>
+    </div>
+  </header>
+
+  <div class="banner" id="banner" role="status" hidden></div>
+
+  <main class="stage" id="stage">
+    <article class="slide" id="slide" tabindex="-1" aria-live="polite"></article>
+
+    <aside class="ask" id="ask" aria-labelledby="ask-title">
+      <div class="ask-head">
+        <div class="ask-names">
+          <h2 id="ask-title">Questions</h2>
+          <p id="ask-sub"></p>
+        </div>
+        <span class="listen" id="listen-pill" data-on="false">Not listening</span>
+        <button type="button" class="ghost small" id="clear-btn" hidden>Clear</button>
+        <button type="button" class="ghost small sheet-only" id="ask-close">Close</button>
+      </div>
+      <div class="thread" id="thread"></div>
+      <form class="composer" id="composer">
+        <div class="chips" id="chips"></div>
+        <label class="visually-hidden" for="question">Your question</label>
+        <textarea id="question" rows="3" placeholder="Ask about this slide"></textarea>
+        <div class="composer-row">
+          <span class="hint" id="hint">Enter sends · Shift+Enter adds a line · click line numbers, diagram parts or callouts, or select text, to quote them</span>
+          <button type="submit" id="send" disabled>Ask</button>
+        </div>
+      </form>
+    </aside>
+  </main>
+
+  <footer class="nav">
+    <button type="button" class="nav-btn" id="prev"><span aria-hidden="true">←</span> <span id="prev-label">Previous</span></button>
+    <span class="pos" id="pos"></span>
+    <button type="button" class="nav-btn next" id="next"><span id="next-label">Next</span> <span aria-hidden="true">→</span></button>
+    <button type="button" class="sheet-only ask-open" id="ask-open">Ask <span id="ask-count"></span></button>
+  </footer>
+
+  <div class="toc" id="toc" hidden>
+    <div class="toc-panel" role="dialog" aria-label="Contents">
+      <div class="toc-head">
+        <h2>Contents</h2>
+        <button type="button" class="ghost small" id="toc-close">Close</button>
+      </div>
+      <div class="toc-about" id="toc-about"></div>
+      <p class="toc-cover" id="toc-cover"></p>
+      <ol class="toc-list" id="toc-list"></ol>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+</div>
+</body>
+</html>

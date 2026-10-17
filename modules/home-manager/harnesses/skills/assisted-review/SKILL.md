@@ -1,39 +1,89 @@
 ---
 name: assisted-review
-description: Help a human understand a code change with a high-level summary followed by an interactive, logically ordered walkthrough of diff hunks. Use when the user asks to be walked through a change, commit, branch, or pull request one step at a time; ordinary automated bug reviews do not need this skill.
+description: Walk a human through a code change (commit, branch, pull request or local edits) as a slideshow in their browser, with diagrams, diff excerpts and a question box on every slide that you answer from the session. Use when the user asks to be walked through a change or helped to understand it; ordinary automated bug reviews do not need this skill.
 ---
 
 # Assisted review
 
-Build the reader's understanding of the change. Keep the source and Git state unchanged during the walkthrough. Use the conversation itself; no extra tools, generated reports, or session files are required.
+Build the reader's understanding of the change. Present it as a slideshow served from this machine: each slide teaches one idea with prose, diff excerpts and diagrams, and has its own question box. You stay in the session and answer the questions. Keep the source and Git state unchanged throughout.
 
-## Establish the change
+The bundled script `scripts/review_deck.py` (Python ≥ 3.11, standard library only) checks the deck, serves the page and passes questions to you. Read `references/deck.md` for the deck format before writing one.
 
-Resolve the requested commit, branch comparison, pull request, or local changes from the user's request and conversation. If the target is materially ambiguous, ask before choosing it. State the scope and comparison base. For a branch, compare against its merge base with the base branch. For local changes, account for staged, unstaged, and untracked files, and distinguish their contents.
+## 1. Establish the change
 
-Read the diff and enough surrounding code, callers, configuration, and tests to explain its behavior. Use commit messages or the pull request description for stated intent. Distinguish observed behavior, documented intent, and inferred rationale; do not invent the author's reasons. If the change is empty or unavailable, say so rather than constructing a walkthrough.
+Resolve the requested commit, branch comparison, pull request, or local changes from the user's request and conversation. If the target is materially ambiguous, ask before choosing it. For a branch, compare against its merge base with the base branch. For local changes, account for staged, unstaged and untracked files, and keep them apart.
 
-## Orient the reader
+Read the diff and enough surrounding code, callers, configuration and tests to explain its behavior. Use commit messages or the pull request description for stated intent. Distinguish observed behavior, documented intent and inferred rationale; do not invent the author's reasons. If the change is empty or unavailable, say so rather than building a deck.
 
-Start with a short summary of the problem, resulting behavior, and overall approach. Give a compact reading itinerary ordered by conceptual dependencies and execution flow rather than filename or commit order. For declarative changes, follow how configuration is composed and takes effect.
+Create a deck directory in a scratch location outside the repository and write the diff into it. Use these flags: an external diff tool, colors or other prefixes break the parser.
 
-Assign every changed hunk to a step. A step covers one hunk or a tightly related group of hunks that teaches one idea. Split large hunks into manageable excerpts; explicitly group mechanical or generated changes. Include tests and supporting configuration where they help explain the behavior. Track what remains so small changes do not disappear from the walkthrough.
+```sh
+git diff --no-ext-diff --no-color --src-prefix=a/ --dst-prefix=b/ BASE...HEAD > DECK/change.diff
+```
 
-Present the overview, itinerary, and first step without a separate approval gate. Adapt depth to the reader's questions and stated familiarity.
+For a single commit, diff it against its parent (`REV^ REV`, or `git show --format= --no-ext-diff --no-color --src-prefix=a/ --dst-prefix=b/ REV` for a root commit). For a pull request, diff its head against the merge base with its base branch. For local changes, write staged changes (`git diff --cached …`), unstaged changes (`git diff …`) and untracked files (`git diff --no-index … /dev/null FILE` for each, run from the repository root; it exits with status 1 when the file has content) to separate files and list them with labels in the deck.
 
-## Walk one step at a time
+Run `python3 <skill-dir>/scripts/review_deck.py hunks DECK` to list the files, hunks and changed line ranges.
 
-For each step:
+## 2. Write the deck
 
-1. Name the step and its position in the itinerary. Give repository-relative file paths and line locations, linking to source when supported.
-2. Show the relevant diff excerpt, with enough context to see the before and after. Label omissions; keep each excerpt small enough to discuss comfortably.
-3. Explain what changed, why it matters, and how it connects to the preceding steps. Use a concrete input or example when it clarifies behavior. Explain meaningful consequences rather than paraphrasing syntax.
-4. Briefly name what comes next, invite questions, and end the turn. Wait for the reader before advancing.
+Shape the deck around what the reader needs to understand, not around files or hunks. Scale it to the change: a few-line fix may need two slides (why and what, perhaps risks), while a large change needs many slides of concepts. These sections usually work, in this order:
 
-Answer questions about the current step without advancing the counter. On “next” or “continue,” move to the next step. Honor requests to go deeper, revisit, jump, skip, stop, or show several steps at once. Record explicit skips separately from explained hunks. Do not treat elapsed time or a missing response as permission to advance.
+- **Why**: the problem or motivation, and what was wrong or missing before.
+- **What**: the resulting behavior and the overall approach, at a high level.
+- **Key ideas**: the concepts, data structures and algorithms the change relies on, usually over several slides, in order of conceptual dependency and execution flow. Explain each with diagrams, pseudocode, concrete examples and the diff excerpts that implement it.
+- **Risks and tradeoffs**: what the approach costs, what it rules out, the alternatives, and what could break.
+- **Validation**: how the change was tested or measured, often over several slides: tests, benchmarks, manual checks. Separate checks you ran from ones you only read.
+- **Appendix**: the remaining changes, in curated groups with short explanations.
 
-If you notice a concrete correctness concern, explain it at the relevant step and identify uncertainty. Keep the walkthrough focused on understanding; a request to fix the code is separate work. If the underlying diff changes, refresh the affected steps and coverage before continuing.
+Give each slide one idea and put slide breaks where a reader would pause. Illustrate key or tricky concepts with clean diagrams. Make a diagram interactive or animated when stepping through it or changing an input teaches something, such as an algorithm's iterations, a request's path through components, or state over time. Keep it static otherwise.
 
-## Finish
+Readers ask better questions when they can point at things. They can click to quote diagram parts and callouts into a question, and select any text to quote it. Make slides easy to point at: put each risk, tradeoff or open question in its own callout, prefer a diagram of labeled parts to a paragraph that describes them, and give hand-drawn diagram parts labels that make sense on their own.
 
-After the final step, briefly connect the pieces back to the initial summary. Account for all changed hunks as explained, explicitly grouped, or skipped; name any unreadable or otherwise unresolved material. State which checks were actually run or merely inspected. Finishing the walkthrough does not imply the reader approved the change.
+Show changed code where it teaches the idea, in small excerpts selected by line range. A hunk can be split across slides, and lines can appear more than once.
+
+Coverage is the one firm rule: every changed line must appear on some slide. Put lines that teach nothing new in appendix groups, such as renames, formatting, generated files, test fixtures or plumbing. Give each group a title and a one- or two-sentence note saying what the changes are and why they are safe to skim. `check` fails while any changed line is missing and prints a block you can paste for each gap.
+
+If you notice a concrete correctness concern, raise it on the relevant slide as a `risk` callout and say how sure you are. Keep the deck about understanding; fixing the code is separate work.
+
+Write `DECK/deck.json`, then run `python3 <skill-dir>/scripts/review_deck.py check DECK` until it passes.
+
+## 3. Serve it
+
+```sh
+python3 <skill-dir>/scripts/review_deck.py serve DECK --detach
+```
+
+This prints a URL with a secret token. The server listens on 127.0.0.1. If the reader's browser runs on another machine, either pass `--host` with an address that machine can reach, or have them forward the port (`ssh -L PORT:127.0.0.1:PORT HOST`). If your harness sandboxes commands, the server needs permission to listen on a port.
+
+Give the reader the URL, a one-sentence summary of the change and the number of slides. Tell them they can ask on any slide, quote code by clicking line numbers (shift-click or drag to extend), and click diagram parts or callouts, or select text, to quote those. Then start listening.
+
+## 4. Answer questions
+
+```sh
+python3 <skill-dir>/scripts/review_deck.py listen DECK --timeout SECONDS
+```
+
+`listen` waits for the reader's next question, prints it with its slide and any quoted lines, and marks it as being answered. Investigate as needed. Then write a concise Markdown answer to a file, citing `path:line`, and post it while waiting for the next question:
+
+```sh
+python3 <skill-dir>/scripts/review_deck.py listen DECK --answer ID --file ANSWER.md --timeout SECONDS
+```
+
+Every `listen` run prints the exact command to run next. Questions and answers pass through files in the deck directory, so `listen` needs no network access.
+
+- Use the longest timeout your harness allows for a command (the default is 100 seconds). If your harness can run a command in the background and notify you when it exits, run `listen` that way, so the user can still talk to you in between. Otherwise run it in the foreground.
+- When a run ends without a question, run it again. Stop listening when the reader finishes the walkthrough (`listen` reports it), when the user tells you to stop, or when no page has had the deck open for about 30 minutes. Then tell the user how to resume.
+- Answer the question asked. Distinguish what the code shows from what you infer, and do not change the code.
+- If the reader asks for more depth, a diagram, a correction or a new slide, edit `deck.json` and run `check`. The open page reloads in place and keeps the reader's slide. Say in the answer what changed.
+- If `listen` hands you a question you already claimed, you lost track of it; answer it now.
+
+The page shows the reader whether you are listening, answering or away. Questions asked while you are away wait in the queue.
+
+## 5. Finish
+
+When the reader finishes, connect the pieces back to the opening summary in the conversation. Name anything you could not read or resolve, and say which checks were actually run and which were only inspected. Finishing the walkthrough does not mean the reader approved the change. Stop the server with `python3 <skill-dir>/scripts/review_deck.py stop DECK` (it also exits after 12 idle hours). The questions and answers remain in `DECK/threads.json`.
+
+## Without a browser
+
+If no browser can reach this machine, or the reader prefers to stay in the conversation, present the same deck there. Give the summary (why and what) and the list of slides, then stop and invite questions before showing any diff. After that, present one slide per turn and wait for the reader before moving on. Answer questions without advancing, and honor requests to go deeper, go back, jump, skip or stop. Do not treat elapsed time or a missing response as permission to continue.
