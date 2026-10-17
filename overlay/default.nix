@@ -26,9 +26,9 @@ in
 
   # numtide/llm-agents.nix dropped its `overlays.default` output in the
   # 2026-07 restructure; recreate it here so `pkgs.llm-agents.<pkg>` keeps
-  # working. Same semantics as the removed upstream overlay: expose the
-  # flake's packages as-is (they already build against our nixpkgs via the
-  # `follows` in flake.nix).
+  # working. Expose the flake's packages as-is, built against its own tested
+  # nixpkgs pin rather than our stable package set. Do not use the upstream
+  # shared-nixpkgs overlay here: it would build against our stable nixpkgs.
   llm-agents = inputs.llm-agents.packages.${final.stdenv.hostPlatform.system};
 
   agy-acp-server = callPackage ../packages/development/misc/agy-acp-server.nix { };

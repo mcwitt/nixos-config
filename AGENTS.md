@@ -64,6 +64,17 @@ grep -r "<symbol>" ~/projects/nixos-config-private/
 
 These are the non-obvious things that need attention over time. The code can't tell you when they've gone stale.
 
+### Agent package updates
+
+Update `llm-agents` with `nix flake update llm-agents`. Keep its own upstream
+`nixpkgs-unstable` pin: making it follow this flake's stable nixpkgs breaks
+packages that require newer helpers (for example, `installAgentSkills`). The
+local overlay exposes upstream packages unchanged so they can use Numtide's
+binary cache. Do not replace this with `overlays.shared-nixpkgs`, which builds
+against the consumer's package set. Updating only this repository's revision in
+a downstream flake does not advance `llm-agents` beyond the revision locked
+here; update this lock first.
+
 ### Stale overrides in the overlay
 
 - **Home Assistant custom components and lovelace modules** (under `packages/servers/home-assistant/`): check upstream releases with `gh release list --repo <owner/repo> --limit 1`. For `scheduler-card`, updating requires regenerating `package-lock.json` (`npm install --package-lock-only` on the new source, then `prefetch-npm-deps` for the hash).
