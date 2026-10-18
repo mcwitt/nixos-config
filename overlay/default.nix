@@ -33,6 +33,22 @@ in
 
   agy-acp-server = callPackage ../packages/development/misc/agy-acp-server.nix { };
 
+  # MCP profiles are mutable state, but nixpkgs points PLAYWRIGHT_BROWSERS_PATH
+  # at the read-only store. Keep the browser binaries there and use Playwright's
+  # normal per-user cache for profiles, preserving its per-project names.
+  # Drop when https://github.com/microsoft/playwright/issues/40892 is fixed.
+  playwright-mcp = prev.playwright-mcp.override {
+    playwright-test = prev.playwright-test.overrideAttrs (old: {
+      postInstall = (old.postInstall or "") + ''
+        profile_factory="$out/lib/node_modules/playwright-core/lib/tools/mcp/browserFactory.js"
+        chmod u+w "$profile_factory"
+        substituteInPlace "$profile_factory" \
+          --replace-fail 'process.env.PWMCP_PROFILES_DIR_FOR_TEST ?? import_registry.registryDirectory' \
+                         'process.env.PWMCP_PROFILES_DIR_FOR_TEST ?? import_registry.defaultRegistryDirectory'
+      '';
+    });
+  };
+
   # claude-code 2.1.206+ emits command_lifecycle frames that
   # claude-agent-acp < 0.59.0 treats as errors on every prompt.
   # Drop once the nixpkgs pin provides >= 0.76.0:
