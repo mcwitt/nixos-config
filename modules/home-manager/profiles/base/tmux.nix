@@ -68,16 +68,18 @@ in
         # Agent state, set per window by Claude Code hooks as @agent_state:
         # "input" (blocked on a permission prompt or question), "done" (idle
         # at the prompt) or "working".
-        set -g @agent_glyph '#{?#{==:#{@agent_state},input},#[fg=red bold]!#[default],#{?#{==:#{@agent_state},done},#[fg=yellow]✓#[default],}}'
+        # Glyphs are followed by a space: terminals may draw them two cells
+        # wide while tmux reserves one, which would hide the next character.
+        set -g @agent_glyph '#{?#{==:#{@agent_state},input},#[fg=red bold]! #[default],#{?#{==:#{@agent_state},done},#[fg=yellow]✓ #[default],}}'
         # Count agents in each state; prefix A lists the waiting ones.
         set -g @agents_working '#{n:#{S:#{W:#{?#{==:#{@agent_state},working},x,}}}}'
         set -g @agents_done '#{n:#{S:#{W:#{?#{==:#{@agent_state},done},x,}}}}'
         set -g @agents_input '#{n:#{S:#{W:#{?#{==:#{@agent_state},input},x,}}}}'
 
         set -g status-left-length 30
-        set -g status-right '#{?#{!=:#{E:@agents_working},0},●#{E:@agents_working} ,}#{?#{!=:#{E:@agents_done},0},#[fg=yellow]✓#{E:@agents_done}#[default] ,}#{?#{!=:#{E:@agents_input},0},#[fg=red bold]!#{E:@agents_input}#[default] ,}%H:%M'
-        set -g window-status-format '#I:#W#{E:@agent_glyph}#{?window_flags,#{window_flags}, }'
-        set -g window-status-current-format '#I:#W#{E:@agent_glyph}#{?window_flags,#{window_flags}, }'
+        set -g status-right '#{?#{!=:#{E:@agents_working},0},  ● #{E:@agents_working},}#{?#{!=:#{E:@agents_done},0},  #[fg=yellow]✓ #{E:@agents_done}#[default],}#{?#{!=:#{E:@agents_input},0},  #[fg=red bold]! #{E:@agents_input}#[default],} '
+        set -g window-status-format '#I:#W#{?#{E:@agent_glyph}, #{E:@agent_glyph},}#{?window_flags,#{window_flags}, }'
+        set -g window-status-current-format '#I:#W#{?#{E:@agent_glyph}, #{E:@agent_glyph},}#{?window_flags,#{window_flags}, }'
 
         set -g @tree_format '#{?pane_format,#{pane_current_command},#{?window_format,#{window_name}#{window_flags},#{session_windows}w#{?session_attached, (attached),}}}#{?pane_format,, #{E:@agent_glyph}}'
         bind s choose-tree -Zs -F '#{E:@tree_format}'
