@@ -70,7 +70,7 @@ in
         # at the prompt) or "working".
         # Glyphs are followed by a space: terminals may draw them two cells
         # wide while tmux reserves one, which would hide the next character.
-        set -g @agent_glyph '#{?#{==:#{@agent_state},input},#[fg=red bold]! #[default],#{?#{==:#{@agent_state},done},#[fg=yellow]✓ #[default],}}'
+        set -g @agent_glyph '#{?#{==:#{@agent_state},input},#[fg=red bold]! #[default],#{?#{==:#{@agent_state},done},#[fg=yellow]✓ #[default],#{?#{==:#{@agent_state},working},● ,}}}'
         # Count agents in each state; prefix A lists the waiting ones.
         set -g @agents_working '#{n:#{S:#{W:#{?#{==:#{@agent_state},working},x,}}}}'
         set -g @agents_done '#{n:#{S:#{W:#{?#{==:#{@agent_state},done},x,}}}}'
