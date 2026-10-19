@@ -27,13 +27,13 @@ Run `python3 <skill-dir>/scripts/review_deck.py hunks DECK` to list the files, h
 
 ## 2. Write the deck
 
-Shape the deck around what the reader needs to understand, not around files or hunks. Scale it to the change: a few-line fix may need two slides (why and what, perhaps risks), while a large change needs many slides of concepts. These sections usually work, in this order:
+Shape the deck around what the reader needs to understand, not around files or hunks. Keep it short: a reader who feels there is too much material skims, and a skimmed deck teaches nothing. Budget by the change, counting checks but not the appendix: two to four slides for a small fix, six to eight for a typical feature, and rarely more than a dozen for a large change. When a draft runs over, cut whole slides rather than trimming each one: merge why and what, fold a key idea the decision does not hinge on into the slide that uses it, and move everything else to the appendix. These sections usually work, in this order:
 
-- **Why**: the problem or motivation, and what was wrong or missing before.
+- **Why**: the problem or motivation, and what was wrong or missing before. For a small change, one slide with what.
 - **What**: the resulting behavior and the overall approach, at a high level.
-- **Key ideas**: the concepts, data structures and algorithms the change relies on, usually over several slides, in order of conceptual dependency and execution flow. Explain each with diagrams, pseudocode, concrete examples and the diff excerpts that implement it.
+- **Key ideas**: the concepts, data structures and algorithms the reader must grasp to judge the change, one slide each, in order of conceptual dependency and execution flow. Explain each with one diagram or concrete example and the diff excerpt that implements it; one diagram that teaches an idea beats three excerpts that show it. Ideas the decision does not hinge on go to the appendix.
 - **Risks and tradeoffs**: what the approach costs, what it rules out, the alternatives, and what could break.
-- **Validation**: how the change was tested or measured, often over several slides: tests, benchmarks, manual checks. Separate checks you ran from ones you only read.
+- **Validation**: how the change was tested or measured. One slide unless a result is surprising. Separate checks you ran from ones you only read.
 - **Appendix**: the remaining changes, in curated groups with short explanations.
 
 Give each slide one idea and put slide breaks where a reader would pause. Illustrate key or tricky concepts with clean diagrams. Make a diagram interactive or animated when stepping through it or changing an input teaches something, such as an algorithm's iterations, a request's path through components, or state over time. Keep it static otherwise.
