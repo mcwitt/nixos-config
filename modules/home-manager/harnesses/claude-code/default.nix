@@ -8,6 +8,7 @@ let
   cfg = config.harnesses;
   settingsFile = "${config.programs.claude-code.configDir}/settings.json";
   statuslineScript = import ./statusline.nix { inherit config pkgs; };
+  tmuxStateHooks = import ./tmux-state.nix { inherit config pkgs; };
 in
 {
   config = lib.mkIf cfg.enable {
@@ -46,6 +47,8 @@ in
           type = "command";
           command = "${statuslineScript}";
         };
+
+        hooks = tmuxStateHooks;
       };
 
       plugins = [ "${pkgs.worktrunk.src}" ];
