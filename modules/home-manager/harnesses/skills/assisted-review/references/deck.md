@@ -9,7 +9,7 @@ A deck directory holds `deck.json` and the diff files it names. `review_deck.py 
   "title": "Incremental hunk parser",
   "subtitle": "Parse diffs as they stream instead of after the download",
   "scope": "Branch stream-parse against main, merge base 1a2b3c4",
-  "source_url": "https://github.com/OWNER/REPO/blob/HEAD_SHA/{path}#L{line}",
+  "source_url": "https://github.com/OWNER/REPO/blob/HEAD_SHA/{path}#L{line}-L{end}",
   "diffs": ["change.diff"],
   "slides": [],
   "appendix": []
@@ -18,7 +18,7 @@ A deck directory holds `deck.json` and the diff files it names. `review_deck.py 
 
 - `title` (required): a short name for the change. It is also the browser tab's title.
 - `subtitle`, `scope`: one line each, shown under the title. State the comparison base in `scope`.
-- `source_url` (optional): a link template for each excerpt's file, with `{path}` and `{line}` placeholders.
+- `source_url` (optional): a link template to the new version of a file, with `{path}`, `{line}` and `{end}` placeholders. Each excerpt links to its first line, and selected lines get a "View in context" link to their range; `{end}` is the range's last line and equals `{line}` for a single line. Set it when the change is on GitHub (a commit, a pushed branch or a pull request), pointing at the head commit as in the example; leave it out for local changes.
 - `diffs`: the diff files, relative to the deck directory; defaults to `["change.diff"]`. Give each separate local diff a label, as in `[{"file": "staged.diff", "label": "staged"}, {"file": "unstaged.diff", "label": "unstaged"}]`. Paths from a labeled diff are written `LABEL:PATH`.
 
 ## Slides
@@ -125,7 +125,7 @@ Use the page's CSS variables for colors: `--ink`, `--ink-2`, `--ink-3`, `--panel
 
 Readers can quote parts of a slide into a question, and the quote reaches you with the question:
 
-- **Diff lines:** clicking line numbers in an excerpt (shift-click or drag to extend).
+- **Diff lines:** clicking line numbers in an excerpt (shift-click or drag to extend). With `source_url` set, the selection also offers "View in context", which opens those lines in the file.
 - **Callouts:** clicking a callout quotes its whole text.
 - **Text:** selecting any text on a slide shows an "Ask about this text" button.
 - **Mermaid diagrams:** every node, participant, message and edge label is clickable automatically.

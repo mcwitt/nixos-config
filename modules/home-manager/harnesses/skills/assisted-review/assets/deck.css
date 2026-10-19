@@ -402,6 +402,7 @@ tr.sel-actions td {
   font-family: var(--font-body);
 }
 tr.sel-actions .row { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+tr.sel-actions .row a { font-size: var(--step--1); margin-inline: 0.25rem; }
 
 
 /* syntax colors, from highlight.js classes */

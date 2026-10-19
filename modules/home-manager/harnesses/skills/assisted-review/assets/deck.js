@@ -408,13 +408,28 @@
 
   // ---- diff excerpts ----
 
-  function sourceLink(f, b) {
+  // The deck's source_url template links a file's new-side lines; {end} is
+  // the last line of a range and equals {line} for a single line.
+  function sourceHref(path, line, end = line) {
     const tpl = S.deck.sourceUrl;
-    if (!tpl || f.status === "deleted") return null;
+    if (!tpl) return null;
+    return tpl.replaceAll("{path}", encodeURI(path)).replaceAll("{line}", line).replaceAll("{end}", end);
+  }
+
+  function sourceLink(f, b) {
+    if (f.status === "deleted") return null;
     const first = b.pieces[0] && S.hunks.get(b.pieces[0].hunk);
     const row = first && first.rows.slice(b.pieces[0].lo).find((r) => r[2] != null);
-    const href = tpl.replaceAll("{path}", encodeURI(f.path)).replaceAll("{line}", row ? row[2] : 1);
-    return h("a", { href, target: "_blank", rel: "noopener noreferrer" }, "View source");
+    const href = sourceHref(f.path, row ? row[2] : 1);
+    return href && h("a", { href, target: "_blank", rel: "noopener noreferrer" }, "View source");
+  }
+
+  // Selected lines link to the same place, when some of them exist in the
+  // new file; a selection of only removed lines has nowhere to go.
+  function contextLink(hk, lo, hi) {
+    const nums = hk.rows.slice(lo, hi + 1).map((r) => r[2]).filter((n) => n != null);
+    const href = nums.length && hk.file.status !== "deleted" ? sourceHref(hk.file.path, nums[0], nums.at(-1)) : null;
+    return href && h("a", { href, target: "_blank", rel: "noopener noreferrer" }, "View in context");
   }
 
   function excerptEl(b) {
@@ -507,6 +522,7 @@
           "div",
           { class: "row" },
           h("button", { type: "button", class: "primary small", onclick: () => quoteSel() }, `Ask about ${label}`),
+          contextLink(hk, sel.lo, sel.hi),
           h("button", { type: "button", class: "ghost small", onclick: () => clearSel() }, "Cancel"),
         ),
       ),

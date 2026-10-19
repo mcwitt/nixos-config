@@ -46,6 +46,8 @@ Coverage is the one firm rule: every changed line must appear on some slide. Put
 
 If you notice a concrete correctness concern, raise it on the relevant slide as a `risk` callout and say how sure you are. Keep the deck about understanding; fixing the code is separate work.
 
+When the change is on GitHub (a commit, a pushed branch or a pull request), set `source_url` to a permalink template at the head commit, `https://github.com/OWNER/REPO/blob/HEAD_SHA/{path}#L{line}-L{end}`, so excerpts and selected lines link to the file in context. Leave it out for local changes.
+
 Write `DECK/deck.json`, then run `python3 <skill-dir>/scripts/review_deck.py check DECK` until it passes.
 
 ## 3. Serve it
