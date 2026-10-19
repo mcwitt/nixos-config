@@ -415,6 +415,16 @@
               ormolu.enable = true;
             };
           };
+          prose-review =
+            pkgs.runCommand "prose-review-check"
+              {
+                nativeBuildInputs = [ pkgs.python3 ];
+              }
+              ''
+                python3 ${./modules/home-manager/harnesses/tests/test_prose_review.py} \
+                  ${./modules/home-manager/harnesses/skills/prose-review}/scripts/prose_review.py
+                touch $out
+              '';
         };
 
         formatter =

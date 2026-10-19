@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<title>Prose review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,600;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&display=swap">
+<link rel="stylesheet" href="prose.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/13.0.2/markdown-it.min.js" integrity="sha384-iS/Lm1p6UwCovMGM5zjm6KQXwxbiNjuElmSYQGYKNpbQAFbwI75j/ebYEuxDVbRU" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.4.17/purify.min.js" integrity="sha384-P0JNneQf81HOl9VwNXK76cQ9VMD6Nfsnepxb0cCOg8+UzEdzgPHAPV4wVQrvYQSx" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.2/highlight.min.js" integrity="sha384-pZ4gLQJIEk/VKnGk59xUSQK8Ne/erZQR9cpnPXPLB9iN1tXsVkRVfHYGdFYrSkv1" crossorigin="anonymous"></script>
+<script src="prose.js" defer></script>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="bar">
+    <div class="bar-title">
+      <span class="mark" aria-hidden="true">¶</span>
+      <div class="bar-names">
+        <h1 id="doc-title">Loading the document…</h1>
+        <p id="doc-scope" class="scope"></p>
+      </div>
+    </div>
+    <div class="bar-actions">
+      <button type="button" class="ghost small changes" id="changes-btn" hidden title="Edits since you last marked the document read · click to mark it read"></button>
+      <button type="button" class="ghost" id="toc-btn" aria-expanded="false" aria-controls="toc">Contents</button>
+      <button type="button" class="ghost" id="finish-btn" title="Tell the review session you are done">Finish</button>
+      <button type="button" class="ghost icon" id="theme-btn" title="Theme: system">◐</button>
+      <button type="button" class="sheet-only ask-open" id="ask-open">Ask <span id="ask-count"></span></button>
+    </div>
+  </header>
+
+  <div class="banner" id="banner" role="status" hidden></div>
+
+  <main class="stage" id="stage">
+    <article class="doc" id="doc" tabindex="-1"></article>
+
+    <aside class="ask" id="ask" aria-labelledby="ask-title">
+      <div class="ask-grip" id="ask-grip" role="separator" aria-orientation="vertical" aria-controls="ask" aria-label="Question panel width" tabindex="0" title="Drag to resize · arrow keys adjust · double-click or Enter resets"></div>
+      <div class="ask-head">
+        <div class="ask-names">
+          <h2 id="ask-title">Questions</h2>
+          <p id="ask-sub"></p>
+        </div>
+        <span class="listen" id="listen-pill" data-on="false">Not listening</span>
+        <button type="button" class="ghost small" id="clear-btn" hidden>Clear</button>
+        <button type="button" class="ghost small sheet-only" id="ask-close">Close</button>
+      </div>
+      <div class="thread" id="thread"></div>
+      <form class="composer" id="composer">
+        <div class="chips" id="chips"></div>
+        <label class="visually-hidden" for="question">Your question</label>
+        <textarea id="question" rows="3" placeholder="Ask about the document, or ask for a change"></textarea>
+        <div class="composer-row">
+          <span class="hint" id="hint">Enter sends · Shift+Enter adds a line · select text to quote it</span>
+          <button type="submit" id="send" disabled>Ask</button>
+        </div>
+      </form>
+    </aside>
+  </main>
+
+  <div class="toc" id="toc" hidden>
+    <div class="toc-panel" role="dialog" aria-label="Contents">
+      <div class="toc-head">
+        <h2>Contents</h2>
+        <button type="button" class="ghost small" id="toc-close">Close</button>
+      </div>
+      <div class="toc-about" id="toc-about"></div>
+      <p class="toc-cover" id="toc-cover"></p>
+      <ol class="toc-list" id="toc-list"></ol>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+</div>
+</body>
+</html>

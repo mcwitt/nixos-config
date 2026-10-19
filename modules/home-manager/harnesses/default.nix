@@ -68,6 +68,7 @@ in
       explanatory = ./skills/explanatory;
       learning = ./skills/learning;
       nixify = ./skills/nixify;
+      prose-review = ./skills/prose-review;
       worktrunk = "${pkgs.worktrunk.src}/skills/worktrunk";
     };
 
