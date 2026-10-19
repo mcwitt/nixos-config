@@ -24,6 +24,7 @@
     visited: new Set(),
     cleanups: [],
     banners: new Map(),
+    askW: null,
   };
 
   // ---- small helpers ----
@@ -1067,6 +1068,61 @@
     store.set("theme", t);
   }
 
+  // ---- question panel width ----
+
+  // The docked panel's width lives in --ask-w; the stylesheet's default
+  // applies until the reader drags the handle. Null means "use the default".
+  const ASK_MIN = 280;
+  const askMax = () => Math.max(ASK_MIN, Math.min(innerWidth - 480, 900));
+  const askWidth = () => $("#ask").getBoundingClientRect().width;
+
+  function setAskWidth(w, { save = true } = {}) {
+    S.askW = w == null ? null : Math.round(Math.max(ASK_MIN, Math.min(askMax(), w)));
+    const root = document.documentElement.style;
+    if (S.askW == null) root.removeProperty("--ask-w");
+    else root.setProperty("--ask-w", `${S.askW}px`);
+    const grip = $("#ask-grip");
+    grip.setAttribute("aria-valuemin", ASK_MIN);
+    grip.setAttribute("aria-valuemax", askMax());
+    grip.setAttribute("aria-valuenow", Math.round(askWidth()));
+    if (save) store.set("ask-width", S.askW);
+  }
+
+  function bindAskGrip() {
+    const grip = $("#ask-grip");
+    let resize = null;
+    const end = () => {
+      if (!resize) return;
+      resize = null;
+      document.body.classList.remove("resizing");
+      store.set("ask-width", S.askW);
+    };
+    grip.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      resize = { x: e.clientX, w: askWidth() };
+      grip.setPointerCapture(e.pointerId);
+      document.body.classList.add("resizing");
+    });
+    grip.addEventListener("pointermove", (e) => resize && setAskWidth(resize.w + resize.x - e.clientX, { save: false }));
+    grip.addEventListener("pointerup", end);
+    grip.addEventListener("pointercancel", end);
+    grip.addEventListener("dblclick", () => setAskWidth(null));
+    grip.addEventListener("keydown", (e) => {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      const step = e.shiftKey ? 64 : 16;
+      const cur = askWidth();
+      const next = { ArrowLeft: cur + step, ArrowRight: cur - step, Home: askMax(), End: ASK_MIN, Enter: null }[e.key];
+      if (next === undefined) return;
+      e.preventDefault();
+      setAskWidth(next);
+    });
+    window.addEventListener(
+      "resize",
+      debounce(() => S.askW != null && setAskWidth(S.askW, { save: false }), 100),
+    );
+  }
+
   const PRESENCE = {
     listening: ["Listening", "The review session is waiting for questions."],
     answering: ["Answering", "The review session is answering a question; new ones wait their turn."],
@@ -1167,6 +1223,7 @@
     };
     $("#ask-open").onclick = () => $("#ask").classList.add("open");
     $("#ask-close").onclick = () => $("#ask").classList.remove("open");
+    bindAskGrip();
     $("#clear-btn").onclick = async (e) => {
       const btn = e.currentTarget;
       if (btn.dataset.confirm !== "1") {
@@ -1233,6 +1290,7 @@
 
   async function boot() {
     applyTheme(store.get("theme", "system"));
+    setAskWidth(store.get("ask-width", null), { save: false });
     S.drafts = store.get("drafts", {});
     S.visited = new Set(store.get("visited", []));
     bindUI();

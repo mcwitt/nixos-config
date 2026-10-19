@@ -1,6 +1,7 @@
 /* Layout: a header with the slide track, then the slide (a reading column
-   with full-width code) beside a docked question panel; under 960px the
-   panel becomes a bottom sheet. */
+   with full-width code) beside a docked question panel whose width
+   (--ask-w) the reader can drag; under 960px the panel becomes a bottom
+   sheet of fixed size. */
 :root {
   --bg: #f3f4f7;
   --panel: #ffffff;
@@ -461,6 +462,7 @@ tr.sel-actions .row { display: flex; gap: 0.5rem; align-items: center; flex-wrap
 /* ---- question panel ---- */
 
 .ask {
+  position: relative;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   grid-template-columns: minmax(0, 1fr);
@@ -469,6 +471,26 @@ tr.sel-actions .row { display: flex; gap: 0.5rem; align-items: center; flex-wrap
   background: var(--panel);
   border-left: 1px solid var(--rule);
 }
+.ask-grip {
+  position: absolute;
+  top: 0; bottom: 0; left: -4px;
+  width: 9px;
+  cursor: col-resize;
+  touch-action: none;
+  z-index: 1;
+}
+.ask-grip::after {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0; left: 3px;
+  width: 3px;
+  border-radius: 2px;
+  background: transparent;
+  transition: background 120ms ease;
+}
+.ask-grip:hover::after, .ask-grip:focus-visible::after, body.resizing .ask-grip::after { background: var(--accent); }
+.ask-grip:focus-visible { outline: none; }
+body.resizing { cursor: col-resize; user-select: none; }
 .ask-head {
   display: flex; align-items: center; gap: 0.5rem;
   padding: 0.85rem 1rem 0.6rem;
@@ -632,6 +654,7 @@ tr.sel-actions .row { display: flex; gap: 0.5rem; align-items: center; flex-wrap
     transition: transform 180ms ease;
   }
   .ask.open { transform: none; }
+  .ask-grip { display: none; }
   .sheet-only { display: inline-flex; }
   .ask-open { gap: 0.35rem; align-items: center; }
   .bar { grid-template-columns: minmax(0, 1fr) auto; }
