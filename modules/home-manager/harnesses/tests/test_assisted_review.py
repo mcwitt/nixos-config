@@ -96,6 +96,23 @@ FULL_APPENDIX = [
 ]
 
 
+CHECK = {
+    "id": "check",
+    "title": "Check: the return value",
+    "section": "What",
+    "quiz": [
+        {
+            "q": "What does `main` return now?",
+            "see": "what",
+            "choices": [
+                {"text": "Nothing", "why": "It gained `return 0`.", "see": "what"},
+                {"text": "`0`", "why": "Right: `return 0` was added.", "correct": True},
+            ],
+        }
+    ],
+}
+
+
 def deck_spec(**extra):
     spec = {
         "title": "Sample change",
@@ -238,6 +255,53 @@ class DeckTest(unittest.TestCase):
                        "non-empty list", "not a file or hunk", "exactly one of", "at least two frames"):
             self.assertIn(needle, text)
 
+    def test_check_slides(self):
+        self.write(deck_spec())
+        self.assertIn("no check slides", run("check", self.dir).stdout)
+        spec = deck_spec()
+        spec["slides"].append(CHECK)
+        self.write(spec)
+        deck = self.rd.load_deck(self.dir)
+        self.assertEqual([s["id"] for s in deck.checks()], ["check"])
+        q = deck.checks()[0]["quiz"][0]
+        self.assertEqual([c["correct"] for c in q["choices"]], [False, True])
+        self.assertEqual((q["see"], q["choices"][0]["see"], q["choices"][1]["see"]), ("what", "what", ""))
+        self.assertEqual(deck.checks()[0]["blocks"], [])
+        self.assertIn("ending with a final check", run("check", self.dir).stdout)
+        spec["slides"].insert(1, spec["slides"].pop())
+        self.write(spec)
+        self.assertIn("last authored slide is not a check", run("check", self.dir).stdout)
+
+    def test_check_validation(self):
+        spec = deck_spec()
+        q = CHECK["quiz"][0]
+        spec["slides"] += [
+            {"id": "c1", "title": "Both", "blocks": [{"md": "x"}], "quiz": [q]},
+            {"id": "c2", "title": "No key", "quiz": [{**q, "choices": [dict(c, correct=False) for c in q["choices"]]}]},
+            {"id": "c3", "title": "Two keys", "quiz": [{**q, "choices": [dict(c, correct=True) for c in q["choices"]]}]},
+            {"id": "c4", "title": "Self", "quiz": [{**q, "see": "c4"}]},
+            {"id": "c5", "title": "Other check", "quiz": [{**q, "see": "check"}, {**q, "see": "nope"}]},
+            {"id": "c6", "title": "One choice", "quiz": [{**q, "choices": q["choices"][:1]}]},
+            {"id": "c7", "title": "No why", "quiz": [{**q, "choices": [{"text": "a", "correct": True}, {"text": "b"}]}]},
+            {"id": "c8", "title": "Empty", "quiz": []},
+            CHECK,
+        ]
+        self.write(spec)
+        with self.assertRaises(self.rd.DeckInvalid) as cm:
+            self.rd.load_deck(self.dir)
+        errors = cm.exception.errors
+        text = "\n".join(errors)
+        self.assertIn("slide 'c1': a check slide has quiz, not blocks", text)
+        self.assertIn("slide 'c2'.quiz[0].choices: expected exactly one choice with \"correct\": true, found 0", text)
+        self.assertIn("slide 'c3'.quiz[0].choices: expected exactly one choice with \"correct\": true, found 2", text)
+        self.assertIn("slide 'c4'.quiz[0].see: expected the id of a content slide", text)
+        self.assertIn("slide 'c5'.quiz[0].see: expected the id of a content slide", text)
+        self.assertIn("slide 'c5'.quiz[1].see: expected the id of a content slide", text)
+        self.assertIn("slide 'c6'.quiz[0].choices: expected 2 to 5 choices", text)
+        self.assertIn("slide 'c7'.quiz[0].choices[0].why: expected a non-empty string", text)
+        self.assertIn("slide 'c8'.quiz: expected a list of 1 to 6 questions", text)
+        self.assertFalse([e for e in errors if "'check'" in e], errors)
+
     def test_labeled_diffs(self):
         (self.dir / "staged.diff").write_text(DIFF)
         spec = deck_spec(diffs=[{"file": "staged.diff", "label": "staged"}])
@@ -342,6 +406,36 @@ class ServerTest(unittest.TestCase):
 
         self.post("api/finish", {})
         self.assertIn("finished", run("listen", self.dir, "--timeout", 5).stdout)
+
+    def test_check_answers(self):
+        spec = deck_spec()
+        spec["slides"].append(CHECK)
+        (self.dir / "deck.json").write_text(json.dumps(spec))
+        self.wait_for(lambda: "check" in [s["id"] for s in self.get("api/deck")["slides"]])
+        self.assertEqual(self.get("api/quiz"), {})
+        for bad in ({"slide": "why", "question": 0, "choice": 0}, {"slide": "check", "question": 1, "choice": 0},
+                    {"slide": "check", "question": 0, "choice": 2}, {"slide": "check", "question": "0", "choice": 0}):
+            with self.assertRaises(urllib.error.HTTPError) as cm:
+                self.post("api/answer", bad)
+            self.assertEqual(cm.exception.code, 400)
+        self.post("api/answer", {"slide": "check", "question": 0, "choice": 0})
+        self.assertEqual(self.get("api/quiz"), {"check": {"0": 0}})
+        self.assertEqual(json.loads((self.dir / "quiz.json").read_text())["answers"], {"check": {"0": 0}})
+        self.post("api/finish", {})
+        out = run("listen", self.dir, "--timeout", 5).stdout
+        self.assertIn("finished", out)
+        self.assertIn("Checks: 0 of 1 answered correctly.", out)
+        self.assertIn("Check: the return value, question 1: What does main return now?", out)
+        self.assertIn("chose: Nothing", out)
+        self.assertIn("correct: 0", out)
+        self.assertIn("covered on slide 2 of 4: What", out)
+        self.post("api/answer", {"slide": "check", "question": 0, "choice": None})
+        self.assertEqual(self.get("api/quiz"), {"check": {}})
+        self.post("api/answer", {"slide": "check", "question": 0, "choice": 1})
+        self.post("api/finish", {})
+        out = run("listen", self.dir, "--timeout", 5).stdout
+        self.assertIn("Checks: 1 of 1 answered correctly.", out)
+        self.assertNotIn("chose:", out)
 
     def test_deck_edits_reload(self):
         spec = deck_spec(title="Renamed")

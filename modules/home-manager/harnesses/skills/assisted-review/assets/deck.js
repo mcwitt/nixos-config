@@ -15,6 +15,7 @@
     hunks: new Map(),
     hl: new Map(),
     threads: {},
+    quiz: {},
     status: { session: "away" },
     idx: 0,
     refs: [],
@@ -128,6 +129,13 @@
     return el;
   }
 
+  // Markdown for a phrase: a single paragraph loses its <p> wrapper.
+  function mdInline(src) {
+    const html = md(src);
+    const m = html.match(/^<p>([\s\S]*)<\/p>\s*$/);
+    return m && !m[1].includes("<p>") ? m[1] : html;
+  }
+
   // Split highlighted HTML into lines, closing and reopening spans that
   // cross line breaks so each table row is well formed.
   function splitLines(html) {
@@ -230,6 +238,17 @@
     }
   }
 
+  // The reader's answers on check slides come from the server so that the
+  // review session sees them too; the local copy covers an unreachable server.
+  async function loadQuiz() {
+    try {
+      S.quiz = await getJSON("api/quiz");
+      store.set("quiz", S.quiz);
+    } catch {
+      S.quiz = store.get("quiz", {});
+    }
+  }
+
   // ---- rendering ----
 
   function render() {
@@ -264,12 +283,13 @@
         S.visited.has(s.id) && "visited",
         msgs.length && "has-thread",
         msgs.some(pending) && "pending",
+        s.quiz.length && "quiz",
       ].filter(Boolean);
       group.append(
         h("button", {
           type: "button",
           class: cls.join(" "),
-          title: `${i + 1}. ${s.title}${s.section ? ` (${s.section})` : ""}`,
+          title: `${i + 1}. ${s.title}${s.section ? ` (${s.section})` : ""}${s.quiz.length ? ` · check, ${scoreText(s)}` : ""}`,
           "aria-label": `Slide ${i + 1}: ${s.title}`,
           "aria-current": i === S.idx ? "step" : null,
           onclick: () => go(i),
@@ -278,9 +298,10 @@
     });
   }
 
-  function renderSlide() {
+  function renderSlide({ keepScroll = false } = {}) {
     const s = slide();
     const el = $("#slide");
+    const top = el.scrollTop;
     const inner = h(
       "div",
       { class: "slide-inner" },
@@ -289,16 +310,19 @@
         { class: "eyebrow" },
         s.section ? h("span", { class: "sec" }, s.section) : null,
         h("span", {}, `${S.idx + 1} / ${S.deck.slides.length}`),
+        s.quiz.length ? h("span", { class: "check-tag" }, `Check · ${scoreText(s)}`) : null,
         skipControls(),
       ),
       h("h2", { class: "slide-title" }, s.title),
     );
     for (const b of s.blocks) inner.append(renderBlock(b));
+    if (s.quiz.length) inner.append(quizEl(s));
+    if (S.idx === S.deck.slides.length - 1) inner.append(tallyEl());
     inner.append(nextUp());
     el.replaceChildren(inner);
     markAskable(el);
     paintQuoted();
-    el.scrollTop = 0;
+    el.scrollTop = keepScroll ? top : 0;
   }
 
   function renderBlock(b) {
@@ -403,6 +427,166 @@
         },
         "Finish the walkthrough",
       ),
+    );
+  }
+
+  // ---- checks ----
+
+  // The reader's choice on question i of check slide s, or null.
+  function choiceOf(s, i) {
+    const c = S.quiz[s.id]?.[i];
+    return Number.isInteger(c) && c >= 0 && c < s.quiz[i].choices.length ? c : null;
+  }
+
+  function score(s) {
+    const picks = s.quiz.map((q, i) => choiceOf(s, i));
+    const done = picks.filter((c) => c != null).length;
+    const right = picks.filter((c, i) => c != null && s.quiz[i].choices[c].correct).length;
+    return { total: s.quiz.length, done, right };
+  }
+
+  function scoreText(s) {
+    const { total, done, right } = score(s);
+    return done ? `${right} of ${total} correct` : `${total} question${total === 1 ? "" : "s"}`;
+  }
+
+  function seeLink(s, q, ch) {
+    const i = slideIndex(ch.see || q.see);
+    if (i < 0) return null;
+    const target = S.deck.slides[i];
+    return h("a", { href: `#${target.id}` }, `See slide ${i + 1}: ${target.title}`);
+  }
+
+  function quizEl(s) {
+    const root = h("div", { class: "quiz" });
+    s.quiz.forEach((q, i) => {
+      const c = choiceOf(s, i);
+      const ch = c == null ? null : q.choices[c];
+      const card = h(
+        "section",
+        { class: `block check ${ch ? (ch.correct ? "right" : "wrong") : "open"}`, "aria-label": `Question ${i + 1}` },
+        h("div", { class: "check-label" }, `Question ${i + 1} of ${s.quiz.length}`),
+        mdEl(q.q, "prose check-q"),
+        h(
+          "ol",
+          { class: "choices" },
+          q.choices.map((x, j) =>
+            h(
+              "li",
+              {},
+              h(
+                "button",
+                {
+                  type: "button",
+                  class: ["choice", j === c && "chosen", ch && x.correct && "correct"].filter(Boolean).join(" "),
+                  disabled: !!ch,
+                  "aria-pressed": ch ? String(j === c) : null,
+                  onclick: () => answer(s, i, j),
+                },
+                h("span", { class: "key", "aria-hidden": "true" }, String(j + 1)),
+                h("span", { class: "choice-text", html: mdInline(x.text) }),
+              ),
+            ),
+          ),
+        ),
+      );
+      if (ch) {
+        card.append(
+          h(
+            "div",
+            { class: "check-feedback", tabindex: "-1" },
+            h("div", { class: "verdict" }, ch.correct ? "Correct." : "Not quite."),
+            mdEl(ch.why),
+            h(
+              "div",
+              { class: "row" },
+              ch.correct ? null : seeLink(s, q, ch),
+              h("button", { type: "button", class: "ghost small", onclick: () => disagree(s, i) }, "Disagree? Ask"),
+            ),
+          ),
+        );
+      }
+      root.append(card);
+    });
+    const { done, total } = score(s);
+    if (done === total) {
+      root.append(h("div", { class: "check-foot" }, h("button", { type: "button", class: "ghost small", onclick: () => retake(s) }, "Retake this check")));
+    }
+    return root;
+  }
+
+  async function record(s, i, choice) {
+    const got = (S.quiz[s.id] ||= {});
+    if (choice == null) delete got[i];
+    else got[i] = choice;
+    store.set("quiz", S.quiz);
+    try {
+      await post("api/answer", { slide: s.id, question: i, choice });
+    } catch (e) {
+      toast(`Could not record the answer: ${e.message}`);
+    }
+  }
+
+  function answer(s, i, j) {
+    if (choiceOf(s, i) != null) return;
+    record(s, i, j);
+    renderSlide({ keepScroll: true });
+    renderTrack();
+    renderToc();
+    const fb = $("#slide").querySelectorAll(".check-feedback")[s.quiz.slice(0, i + 1).filter((q, k) => choiceOf(s, k) != null).length - 1];
+    if (fb) {
+      fb.focus({ preventScroll: true });
+      fb.scrollIntoView({ block: "nearest" });
+    }
+  }
+
+  function retake(s) {
+    for (let i = 0; i < s.quiz.length; i++) if (choiceOf(s, i) != null) record(s, i, null);
+    render();
+  }
+
+  // Quote the question, the reader's answer and the key into the question box.
+  function disagree(s, i) {
+    const q = s.quiz[i];
+    const mine = q.choices[choiceOf(s, i)];
+    const key = q.choices.find((x) => x.correct);
+    addRef(quote(`Question: ${q.q}\nMy answer: ${mine.text}\nMarked correct: ${key.text}`, "quiz"));
+    if (narrow()) $("#ask").classList.add("open");
+    $("#question").focus();
+  }
+
+  // On the last slide: every check's outcome, with links to what was missed.
+  function tallyEl() {
+    const checks = S.deck.slides.map((s, i) => [s, i]).filter(([s]) => s.quiz.length);
+    if (!checks.length) return null;
+    let total = 0;
+    let right = 0;
+    const missed = [];
+    const open = [];
+    for (const [s, i] of checks) {
+      const sc = score(s);
+      total += sc.total;
+      right += sc.right;
+      if (sc.done < sc.total) open.push([s, i]);
+      s.quiz.forEach((q, k) => {
+        const c = choiceOf(s, k);
+        if (c != null && !q.choices[c].correct) missed.push([s, i, q, q.choices[c]]);
+      });
+    }
+    const item = (s, i) => h("a", { href: `#${s.id}` }, `${i + 1}. ${s.title}`);
+    return h(
+      "div",
+      { class: "block tally" },
+      h("h3", {}, `Checks: ${right} of ${total} correct`),
+      missed.length
+        ? h(
+            "ul",
+            {},
+            missed.map(([s, i, q, ch]) => h("li", {}, h("span", { html: mdInline(q.q) }), " ", h("span", { class: "tally-where" }, "(", item(s, i), ") · "), seeLink(s, q, ch))),
+          )
+        : null,
+      open.length ? h("p", {}, "Not finished: ", ...open.flatMap(([s, i], k) => [k ? ", " : "", item(s, i)])) : null,
+      !missed.length && !open.length ? h("p", {}, "Nothing missed.") : null,
     );
   }
 
@@ -1050,6 +1234,7 @@
       if (s.section && s.section !== label) list.append(h("li", { class: "toc-sec" }, s.section));
       label = s.section;
       const q = messages(s.id).filter((m) => m.role === "user").length;
+      const sc = s.quiz.length ? score(s) : null;
       list.append(
         h(
           "li",
@@ -1058,8 +1243,12 @@
             "button",
             { type: "button", onclick: () => (closeToc(), go(i)) },
             h("span", { class: "toc-num" }, String(i + 1)),
-            h("span", {}, s.title),
-            q ? h("span", { class: "toc-q" }, `${q} question${q === 1 ? "" : "s"}`) : h("span"),
+            h("span", {}, s.title, sc ? h("span", { class: "toc-tag" }, "check") : null),
+            h(
+              "span",
+              { class: `toc-q ${sc && sc.done ? (sc.right === sc.total ? "ok" : "warn") : ""}` },
+              [sc && sc.done ? `${sc.right}/${sc.total}` : "", q ? `${q} question${q === 1 ? "" : "s"}` : ""].filter(Boolean).join(" · "),
+            ),
           ),
         ),
       );
@@ -1202,11 +1391,20 @@
         renderToc();
       } catch {}
     }, 150);
+    const quizChanged = debounce(async () => {
+      const before = JSON.stringify(S.quiz);
+      await loadQuiz();
+      if (JSON.stringify(S.quiz) === before) return;
+      if (slide().quiz.length || S.idx === S.deck.slides.length - 1) renderSlide({ keepScroll: true });
+      renderTrack();
+      renderToc();
+    }, 150);
     es.addEventListener("hello", (e) => {
       const d = JSON.parse(e.data);
       if (failures) {
         banner("conn", null);
         threadsChanged();
+        quizChanged();
       }
       failures = 0;
       setStatus(d.status);
@@ -1217,6 +1415,7 @@
       banner("deck", "The review session's latest edit to the deck has errors, so this page still shows the previous version.", JSON.parse(e.data).errors),
     );
     es.addEventListener("thread", threadsChanged);
+    es.addEventListener("quiz", quizChanged);
     es.addEventListener("status", (e) => setStatus(JSON.parse(e.data)));
     es.onerror = () => {
       failures += 1;
@@ -1283,6 +1482,23 @@
         return;
       }
       if (e.target.closest?.("textarea, input, [contenteditable], table.diff, .stepper, .diagram-body")) return;
+      const s = slide();
+      if (s.quiz.length && /^[1-9]$/.test(e.key) && !e.shiftKey) {
+        const i = s.quiz.findIndex((q, k) => choiceOf(s, k) == null);
+        if (i >= 0 && +e.key <= s.quiz[i].choices.length) {
+          e.preventDefault();
+          answer(s, i, +e.key - 1);
+        }
+        return;
+      }
+      if (s.quiz.length && e.key === "Enter" && !e.target.closest?.("button, a")) {
+        const { done, total } = score(s);
+        if (done === total && S.idx < S.deck.slides.length - 1) {
+          e.preventDefault();
+          go(S.idx + 1);
+        }
+        return;
+      }
       if (e.shiftKey && e.key === "ArrowRight") {
         e.preventDefault();
         const j = nextSection(S.idx);
@@ -1313,6 +1529,7 @@
     try {
       await loadDeck();
       await loadThreads();
+      await loadQuiz();
     } catch (e) {
       $("#deck-title").textContent = "The review server is not reachable";
       banner("deck", `Could not load the deck: ${e.message}. Ask the review session to start the server again.`);

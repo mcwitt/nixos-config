@@ -39,7 +39,7 @@ ASSETS = Path(__file__).resolve().parent.parent / "assets"
 SCRIPT = Path(__file__).resolve()
 SLIDE_ID = re.compile(r"^[A-Za-z][A-Za-z0-9._~-]{0,63}$")
 QUESTION_ID = re.compile(r"^q-[0-9a-z-]+$")
-QUOTE_SOURCES = {"diagram": "a diagram", "callout": "a callout", "text": "the slide's text"}
+QUOTE_SOURCES = {"diagram": "a diagram", "callout": "a callout", "text": "the slide's text", "quiz": "a check"}
 HUNK_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@ ?(.*)$")
 RANGE_RE = re.compile(r"^(new|old|rows):(\d+)(?:-(\d+))?$")
 HEARTBEAT = 15.0
@@ -331,6 +331,8 @@ def numbered(h: Hunk, lo: int = 0, hi: int | None = None) -> str:
 
 APPENDIX_ROWS = 160  # rows per appendix slide before groups spill onto the next
 UNCOVERED_GAP = 6  # uncovered runs closer than this are reported together
+QUIZ_QUESTIONS = (1, 6)  # questions per check slide
+QUIZ_CHOICES = (2, 5)  # choices per question
 
 
 class DeckInvalid(Exception):
@@ -356,6 +358,9 @@ class Deck:
         where = f"slide {self.slides.index(s) + 1} of {len(self.slides)}"
         return f"{where}, {s['section']}" if s["section"] else where
 
+    def checks(self) -> list[dict]:
+        return [s for s in self.slides if s["quiz"]]
+
 
 def _str(v, where: str, errors: list[str], required: bool = False) -> str:
     if v is None and not required:
@@ -364,6 +369,57 @@ def _str(v, where: str, errors: list[str], required: bool = False) -> str:
         errors.append(f"{where}: expected {'a non-empty ' if required else 'a '}string")
         return ""
     return v
+
+
+def _see(v, where: str, sid: str, targets: set[str], errors: list[str], required: bool = False) -> str:
+    if v is None and not required:
+        return ""
+    if not isinstance(v, str) or v not in targets or v == sid:
+        errors.append(f"{where}: expected the id of a content slide that settles the question")
+        return ""
+    return v
+
+
+def _quiz(quiz, where: str, sid: str, targets: set[str], errors: list[str]) -> list[dict]:
+    """Normalize a check slide's questions; `targets` are the content slide ids."""
+    lo, hi = QUIZ_QUESTIONS
+    if not isinstance(quiz, list) or not lo <= len(quiz) <= hi:
+        errors.append(f"{where}.quiz: expected a list of {lo} to {hi} questions")
+        return []
+    out = []
+    for i, q in enumerate(quiz):
+        qw = f"{where}.quiz[{i}]"
+        if not isinstance(q, dict):
+            errors.append(f"{qw}: expected {{q, see, choices}}")
+            continue
+        item = {
+            "q": _str(q.get("q"), f"{qw}.q", errors, True),
+            "see": _see(q.get("see"), f"{qw}.see", sid, targets, errors, True),
+            "choices": [],
+        }
+        choices = q.get("choices")
+        lo, hi = QUIZ_CHOICES
+        if not isinstance(choices, list) or not lo <= len(choices) <= hi:
+            errors.append(f"{qw}.choices: expected {lo} to {hi} choices")
+            choices = []
+        for j, c in enumerate(choices):
+            cw = f"{qw}.choices[{j}]"
+            if not isinstance(c, dict):
+                errors.append(f"{cw}: expected {{text, why, correct, see}}")
+                continue
+            item["choices"].append(
+                {
+                    "text": _str(c.get("text"), f"{cw}.text", errors, True),
+                    "why": _str(c.get("why"), f"{cw}.why", errors, True),
+                    "correct": c.get("correct", False) is True,
+                    "see": _see(c.get("see"), f"{cw}.see", sid, targets, errors),
+                }
+            )
+        n = sum(c["correct"] for c in item["choices"])
+        if choices and n != 1:
+            errors.append(f'{qw}.choices: expected exactly one choice with "correct": true, found {n}')
+        out.append(item)
+    return out
 
 
 def _diagram(d, where: str, errors: list[str]) -> dict | None:
@@ -474,7 +530,7 @@ def _appendix_slides(groups: list[dict]) -> list[dict]:
             blocks.append({"type": "md", "md": heading + g["note"]})
             blocks += g["blocks"]
         out.append({"id": f"appendix-{n}", "title": title, "section": "Appendix",
-                    "prompts": [], "blocks": blocks})
+                    "prompts": [], "blocks": blocks, "quiz": []})
     return out
 
 
@@ -523,6 +579,8 @@ def load_deck(deck_dir: Path) -> Deck:
     shown_files: set[str] = set()
     seen_ids: set[str] = set()
     slides: list[dict] = []
+    # Checks point at the content slides that settle their questions.
+    content_ids = {s.get("id") for s in slides_in if isinstance(s, dict) and "quiz" not in s}
     for k, s in enumerate(slides_in):
         where = f"slides[{k}]"
         if not isinstance(s, dict):
@@ -544,12 +602,19 @@ def load_deck(deck_dir: Path) -> Deck:
             "section": _str(s.get("section"), f"{where}.section", errors),
             "prompts": [],
             "blocks": [],
+            "quiz": [],
         }
         prompts = s.get("prompts") or []
         if not isinstance(prompts, list) or not all(isinstance(p, str) for p in prompts):
             errors.append(f"{where}.prompts: expected a list of strings")
         else:
             out["prompts"] = prompts
+        if "quiz" in s:
+            if "blocks" in s:
+                errors.append(f"{where}: a check slide has quiz, not blocks")
+            out["quiz"] = _quiz(s["quiz"], where, sid, content_ids, errors)
+            slides.append(out)
+            continue
         blocks = s.get("blocks")
         if not isinstance(blocks, list) or not blocks:
             errors.append(f"{where}.blocks: expected a non-empty list")
@@ -779,6 +844,67 @@ class Queue:
 # Server
 
 
+class QuizAnswers:
+    """The reader's answers on check slides, persisted to quiz.json as
+    {slide id: {question index: choice index}}. Only the server writes it."""
+
+    def __init__(self, path: Path):
+        self.path = path
+        self.lock = threading.Lock()
+        try:
+            self.data = json.loads(path.read_text()).get("answers", {})
+        except (OSError, ValueError):
+            self.data = {}
+
+    def set(self, slide: str, question: int, choice: int | None):
+        with self.lock:
+            answers = self.data.setdefault(slide, {})
+            if choice is None:
+                answers.pop(str(question), None)
+            else:
+                answers[str(question)] = choice
+            write_atomic(self.path, json.dumps({"version": 1, "answers": self.data}, indent=1))
+
+    def snapshot(self) -> dict:
+        with self.lock:
+            return json.loads(json.dumps(self.data))
+
+
+def _plain(md: str, limit: int = 160) -> str:
+    text = re.sub(r"[*`_>#]+", "", " ".join(md.split()))
+    return text if len(text) <= limit else text[: limit - 1] + "…"
+
+
+def quiz_report(deck: Deck, answers: dict) -> str:
+    """What the reader got right and missed on the check slides, for the session."""
+    checks = deck.checks()
+    if not checks:
+        return ""
+    total = right = 0
+    missed = []
+    for s in checks:
+        got = answers.get(s["id"], {})
+        for i, q in enumerate(s["quiz"]):
+            total += 1
+            c = got.get(str(i))
+            if not isinstance(c, int) or not 0 <= c < len(q["choices"]):
+                continue
+            if q["choices"][c]["correct"]:
+                right += 1
+                continue
+            see = deck.slide(q["choices"][c]["see"] or q["see"])
+            correct = next(x for x in q["choices"] if x["correct"])
+            missed.append(
+                f"  {s['title']}, question {i + 1}: {_plain(q['q'])}\n"
+                f"    chose: {_plain(q['choices'][c]['text'])}\n"
+                f"    correct: {_plain(correct['text'])}\n"
+                + (f"    covered on {deck.position(see)}: {see['title']}" if see else "")
+            )
+    left = total - right - len(missed)
+    head = f"Checks: {right} of {total} answered correctly" + (f", {left} unanswered" if left else "") + "."
+    return "\n".join([head, *missed])
+
+
 class Threads:
     """Per-slide chat history, persisted to threads.json. Only the server writes it."""
 
@@ -815,6 +941,7 @@ class State:
         self.queue = Queue(deck_dir)
         self.queue.dir.mkdir(exist_ok=True)
         self.threads = Threads(deck_dir / "threads.json")
+        self.quiz = QuizAnswers(deck_dir / "quiz.json")
         self.deck = load_deck(deck_dir)
         self.version = 1
         self.deck_errors: list[str] = []
@@ -1001,6 +1128,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(st.payload())
         if route == "/api/threads":
             return self._json(st.threads.snapshot())
+        if route == "/api/quiz":
+            return self._json(st.quiz.snapshot())
         if route == "/api/events":
             return self._events()
         name = route.lstrip("/")
@@ -1056,6 +1185,7 @@ class Handler(BaseHTTPRequestHandler):
             "/api/ask": self._ask,
             "/api/withdraw": self._withdraw,
             "/api/clear": self._clear,
+            "/api/answer": self._answer,
             "/api/finish": self._finish,
         }.get(route)
         if handler is None:
@@ -1137,6 +1267,17 @@ class Handler(BaseHTTPRequestHandler):
         st.broadcast("thread", {"slide": slide})
         self._json({"ok": True})
 
+    def _answer(self, body: dict):
+        st = self.state
+        slide = st.deck.slide(str(body.get("slide")))
+        question, choice = body.get("question"), body.get("choice")
+        q = slide["quiz"][question] if slide and isinstance(question, int) and 0 <= question < len(slide["quiz"]) else None
+        if q is None or not (choice is None or isinstance(choice, int) and 0 <= choice < len(q["choices"])):
+            return self._error(400, "expected a check slide, a question index and a choice index")
+        st.quiz.set(slide["id"], question, choice)
+        st.broadcast("quiz", {"slide": slide["id"]})
+        self._json({"ok": True})
+
     def _finish(self, body: dict):
         st = self.state
         qid = f"q-{int(time.time() * 1000):x}-{secrets.token_hex(2)}"
@@ -1155,6 +1296,13 @@ def print_report(deck: Deck):
         f"{authored} slides and {c['appendixSlides']} appendix slides; all {c['changed']} non-blank "
         f"changed lines in {c['files']} files are shown ({c['appendix']} only in the appendix)"
     )
+    checks = deck.checks()
+    if not checks:
+        print("no check slides; add a final check unless the change is trivial")
+    elif checks[-1] is not deck.slides[len(deck.slides) - c["appendixSlides"] - 1]:
+        print(f"{len(checks)} check slide(s); the last authored slide is not a check")
+    else:
+        print(f"{len(checks)} check slide(s), ending with a final check")
 
 
 def cmd_hunks(args):
@@ -1365,6 +1513,12 @@ def cmd_listen(args):
     if item.get("kind") == "finished":
         q.remove(item["id"])
         print("The reader marked the walkthrough finished.")
+        try:
+            report = quiz_report(load_deck(deck_dir), QuizAnswers(deck_dir / "quiz.json").snapshot())
+        except DeckInvalid:
+            report = ""
+        if report:
+            print(report + "\nRevisit what was missed in the wrap-up.")
         if rest:
             print(f"{rest} question(s) still wait for answers; keep listening with:\n  {again}")
         return

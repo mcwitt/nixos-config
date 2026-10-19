@@ -36,7 +36,7 @@ A deck directory holds `deck.json` and the diff files it names. `review_deck.py 
 - `id`: letters, digits and `. _ ~ -`, starting with a letter. It appears in the page URL, and the question box's history is stored under it, so keep it stable when you revise the deck. Ids starting with `appendix-` are reserved.
 - `section` (optional): a label such as "Why" or "Key ideas". Consecutive slides with the same label are grouped in the progress bar and the contents list.
 - `prompts` (optional): suggested questions, shown while the slide's question box is empty.
-- `blocks`: the slide's content, rendered in order. Each block is one of:
+- `blocks`: the slide's content, rendered in order (a check slide has `quiz` instead; see below). Each block is one of:
 
 | Block | Renders |
 | --- | --- |
@@ -46,6 +46,37 @@ A deck directory holds `deck.json` and the diff files it names. `review_deck.py 
 | `{"diagram": {…}}` | A diagram (see below) |
 
 Markdown headings inside a slide start at `###`; the slide title is the larger heading.
+
+## Checks
+
+A check slide asks the reader a few multiple-choice questions about the slides before it. It has `quiz` in place of `blocks`:
+
+```json
+{
+  "id": "check-retries",
+  "title": "Check: retries",
+  "section": "Key ideas",
+  "quiz": [
+    {
+      "q": "A request has failed three times. What happens on the fourth failure?",
+      "see": "retry-loop",
+      "choices": [
+        {"text": "It retries after 30 s", "why": "The cap applies to the delay, not the count; the fourth failure is past `max_attempts`.", "see": "retry-budget"},
+        {"text": "It raises `RetryExhausted` to the caller", "correct": true, "why": "`attempts` reaches `max_attempts` (3) and the loop re-raises."},
+        {"text": "It is queued for the next poll", "why": "Nothing re-enqueues failed requests; compare the loop's exit path."}
+      ]
+    }
+  ]
+}
+```
+
+- `q`: the question, in Markdown. One to six per slide, usually two or three.
+- `see`: the id of the content slide that settles the question. A wrong answer links there; a choice's own `see` overrides it. It must name a slide with `blocks`, not another check.
+- `choices`: two to five, each with `text` (a phrase, Markdown), `why` (a sentence of feedback shown after choosing it) and, on exactly one, `"correct": true`.
+
+The page records the reader's answers in `DECK/quiz.json`, the last slide shows a tally with links back to what was missed, and `listen` reports the results when the reader finishes. The reader can retake a check and can quote a question they disagree with into the question box.
+
+Write questions that are answered by the code, not by the slide's wording: predict an output for an input, name the line that enforces an invariant, say what the error path does. Make each wrong choice a plausible misreading and let its `why` say what was misread. Avoid "all of the above", trick questions and questions answerable by matching the slide's own phrases.
 
 ## Diff excerpts
 

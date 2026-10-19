@@ -46,6 +46,8 @@ Coverage is the one firm rule: every changed line must appear on some slide. Put
 
 If you notice a concrete correctness concern, raise it on the relevant slide as a `risk` callout and say how sure you are. Keep the deck about understanding; fixing the code is separate work.
 
+Check slides guard against skimming. End every deck but a trivial one with a final check of two to four questions that span the whole change: how the pieces fit, and what the review decision hinges on. Add a check after a run of slides only when their content is key, conceptual or easy to misread, such as a non-obvious invariant, an algorithm with a tempting misreading, or a tradeoff the decision rests on; most slides need none. Ask what the code does, not what the slide said: predict an output, name the line that enforces an invariant, say what the error path does. Give each wrong choice a plausible misreading and a sentence saying what was misread, and point `see` at the slide that settles it. The reader answers with number keys, moves on with Enter, and can skip a check with one keystroke, so a check costs little when it is not needed; a check with weak questions costs trust.
+
 When the change is on GitHub (a commit, a pushed branch or a pull request), set `source_url` to a permalink template at the head commit, `https://github.com/OWNER/REPO/blob/HEAD_SHA/{path}#L{line}-L{end}`, so excerpts and selected lines link to the file in context. Leave it out for local changes.
 
 Write `DECK/deck.json`, then run `python3 <skill-dir>/scripts/review_deck.py check DECK` until it passes.
@@ -84,7 +86,7 @@ The page shows the reader whether you are listening, answering or away. Question
 
 ## 5. Finish
 
-When the reader finishes, connect the pieces back to the opening summary in the conversation. Name anything you could not read or resolve, and say which checks were actually run and which were only inspected. Finishing the walkthrough does not mean the reader approved the change. Stop the server with `python3 <skill-dir>/scripts/review_deck.py stop DECK` (it also exits after 12 idle hours). The questions and answers remain in `DECK/threads.json`.
+When the reader finishes, `listen` reports how they did on the check slides. Go over what they missed in the conversation, briefly and without scolding: state the point and where in the change it lives. Then connect the pieces back to the opening summary. Name anything you could not read or resolve, and say which tests or validations were actually run and which were only inspected. Finishing the walkthrough does not mean the reader approved the change. Stop the server with `python3 <skill-dir>/scripts/review_deck.py stop DECK` (it also exits after 12 idle hours). The questions and answers remain in `DECK/threads.json`, and the check answers in `DECK/quiz.json`.
 
 ## Without a browser
 

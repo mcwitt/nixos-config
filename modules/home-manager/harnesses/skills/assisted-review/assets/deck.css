@@ -226,6 +226,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
   background: var(--sel-edge);
 }
 .track button.pending::after { background: var(--accent); animation: pulse 1.2s ease-in-out infinite; }
+.track button.quiz { background-image: repeating-linear-gradient(90deg, transparent 0 3px, var(--panel) 3px 5px); }
 
 .banner {
   padding: 0.5rem var(--gutter);
@@ -322,6 +323,60 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
   font-size: var(--step--1);
 }
 .next-up strong { color: var(--ink); font-weight: 600; }
+
+/* ---- checks ---- */
+
+.check-tag { color: var(--warn); }
+.check {
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  background: var(--panel);
+}
+.check-label {
+  font: 600 var(--step--1) / 1.4 var(--font-body);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 0.3rem;
+}
+.check-q p:last-child { margin-bottom: 0.75rem; }
+.choices { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
+.choice {
+  width: 100%;
+  text-align: left;
+  display: flex; gap: 0.65rem; align-items: baseline;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  background: var(--bg);
+  line-height: 1.45;
+}
+.choice .key {
+  flex: none;
+  font: var(--step--1) / 1.4 var(--font-mono);
+  color: var(--ink-3);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 0 0.35em;
+}
+.choice:disabled { opacity: 1; cursor: default; color: var(--ink-2); }
+.choice.chosen { box-shadow: inset 0 0 0 1.5px var(--ink-3); color: var(--ink); }
+.choice.correct { background: var(--add-row); border-color: var(--add-ink); color: var(--ink); }
+.choice.chosen:not(.correct) { background: var(--del-row); border-color: var(--del-ink); box-shadow: none; }
+.choice code { font: 0.92em var(--font-mono); background: var(--sunk); padding: 0.05em 0.3em; border-radius: 4px; }
+.check-feedback { margin-top: 0.85rem; padding-top: 0.75rem; border-top: 1px solid var(--rule); outline: none; }
+.check-feedback .verdict { font-weight: 600; margin-bottom: 0.25rem; }
+.check.right .verdict { color: var(--ok); }
+.check.wrong .verdict { color: var(--del-ink); }
+.check-feedback .prose p:last-child { margin-bottom: 0.5rem; }
+.check-feedback .row { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; font-size: var(--step--1); }
+.check-foot { display: flex; justify-content: flex-end; margin-bottom: 1.5rem; }
+.tally { border-radius: 8px; padding: 0.85rem 1rem; background: var(--note-wash); }
+.tally h3 { margin: 0 0 0.5rem; font: 650 var(--step-1) / 1.3 var(--font-display); }
+.tally p { margin: 0; }
+.tally ul { margin: 0 0 0.5rem; padding-left: 1.2rem; }
+.tally li + li { margin-top: 0.3rem; }
+.tally-where { color: var(--ink-3); }
 
 /* ---- diff excerpts ---- */
 
@@ -626,6 +681,15 @@ body.resizing { cursor: col-resize; user-select: none; }
 .toc-list li.current > button { background: var(--accent-wash); }
 .toc-num { font: var(--step--1)/1.6 var(--font-mono); color: var(--ink-3); }
 .toc-q { font-size: 0.75rem; color: var(--ink-3); white-space: nowrap; }
+.toc-q.ok { color: var(--ok); }
+.toc-q.warn { color: var(--warn); }
+.toc-tag {
+  margin-left: 0.4rem;
+  font-size: 0.68rem; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--warn);
+  border: 1px solid currentColor; border-radius: 999px; padding: 0 0.4rem;
+  vertical-align: 0.1em;
+}
 
 /* ---- toasts ---- */
 
