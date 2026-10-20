@@ -124,7 +124,22 @@ in
           shellAliases.cdr = lib.mkForce "cd (${pkgs.git}/bin/git rev-parse --show-toplevel)";
         };
 
-        programs.fzf.enable = true;
+        programs.fzf =
+          let
+            fd = lib.getExe config.programs.fd.package;
+            bat = lib.getExe config.programs.bat.package;
+          in
+          {
+            enable = true;
+            # Only Ctrl-T uses this; Alt-C and Ctrl-R keep their defaults.
+            fileWidgetCommand = "${fd} --type f --hidden --exclude .git";
+            fileWidgetOptions = [
+              "--preview '${bat} --color=always --style=numbers --line-range=:200 {}'"
+              # Preview on the right; below the list in terminals under 100 columns.
+              "--preview-window 'right,60%,border-left,<100(down,50%,border-top)'"
+              "--bind 'ctrl-/:change-preview-window(down|hidden|)'"
+            ];
+          };
 
         programs.gh.enable = true;
 
