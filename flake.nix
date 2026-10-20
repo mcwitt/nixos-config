@@ -406,6 +406,21 @@
                   ${./modules/home-manager/harnesses/skills/branch-cleanup/scripts/branch_cleanup.py}
                 touch $out
               '';
+          coordinator =
+            pkgs.runCommand "coordinator-check"
+              {
+                nativeBuildInputs = [
+                  pkgs.git
+                  pkgs.python3
+                  pkgs.tmux
+                  pkgs.worktrunk
+                ];
+              }
+              ''
+                python3 ${./modules/home-manager/harnesses/tests/test_coordinator.py} \
+                  ${./modules/home-manager/harnesses/skills/coordinator}/scripts/coordinator.py
+                touch $out
+              '';
           pre-commit-check = pre-commit-hooks.lib.${system}.run {
             src = ./.;
             excludes = [ "hardware-configuration\\.nix" ];

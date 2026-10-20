@@ -31,6 +31,7 @@ in
     ./antigravity-cli
     ./claude-code
     ./codex
+    ./coordinator.nix
     ./memex.nix
     ./opencode
     ./pi
