@@ -104,6 +104,23 @@ in
       '';
     };
 
+    extensions = lib.mkOption {
+      type = lib.types.attrsOf lib.types.path;
+      default = { };
+      example = lib.literalExpression ''
+        {
+          "my-extension.ts" = ./my-extension.ts;
+          my-package = ./my-package; # a directory containing index.ts
+        }
+      '';
+      description = ''
+        Extensions installed under `~/.pi/agent/extensions`, keyed by entry
+        name. pi loads each TypeScript or JavaScript file there, and each
+        subdirectory containing an `index.ts` or `index.js`, at startup.
+        Definitions merge, so downstream flakes can add their own.
+      '';
+    };
+
     finalPackage = lib.mkOption {
       type = lib.types.package;
       readOnly = true;
@@ -135,9 +152,13 @@ in
 
         # pi has no skills option either; it discovers skills by scanning
         # ~/.pi/agent/skills for SKILL.md at startup.
-        home.file = lib.mapAttrs' (
-          name: source: lib.nameValuePair ".pi/agent/skills/${name}" { inherit source; }
-        ) cfg.skills;
+        home.file =
+          lib.mapAttrs' (
+            name: source: lib.nameValuePair ".pi/agent/skills/${name}" { inherit source; }
+          ) cfg.skills
+          // lib.mapAttrs' (
+            name: source: lib.nameValuePair ".pi/agent/extensions/${name}" { inherit source; }
+          ) piCfg.extensions;
       }
       (lib.mkIf (piCfg.modelsJson != { }) {
         home.file.".pi/agent/models.json".source = jsonFormat.generate "pi-models.json" piCfg.modelsJson;
