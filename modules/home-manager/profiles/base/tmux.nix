@@ -67,17 +67,19 @@ in
 
         # Agent state, set per window by Claude Code hooks as @agent_state:
         # "input" (blocked on a permission prompt or question), "done" (idle
-        # at the prompt) or "working".
+        # at the prompt), "background" (idle, but waiting on background
+        # subagents or shell commands) or "working".
         # Glyphs are followed by a space: terminals may draw them two cells
         # wide while tmux reserves one, which would hide the next character.
-        set -g @agent_glyph '#{?#{==:#{@agent_state},input},#[fg=red bold]! #[default],#{?#{==:#{@agent_state},done},#[fg=yellow]✓ #[default],#{?#{==:#{@agent_state},working},● ,}}}'
+        set -g @agent_glyph '#{?#{==:#{@agent_state},input},#[fg=red bold]! #[default],#{?#{==:#{@agent_state},done},#[fg=yellow]✓ #[default],#{?#{==:#{@agent_state},working},● ,#{?#{==:#{@agent_state},background},#[fg=cyan]◐ #[default],}}}}'
         # Count agents in each state; prefix A lists the waiting ones.
         set -g @agents_working '#{n:#{S:#{W:#{?#{==:#{@agent_state},working},x,}}}}'
+        set -g @agents_background '#{n:#{S:#{W:#{?#{==:#{@agent_state},background},x,}}}}'
         set -g @agents_done '#{n:#{S:#{W:#{?#{==:#{@agent_state},done},x,}}}}'
         set -g @agents_input '#{n:#{S:#{W:#{?#{==:#{@agent_state},input},x,}}}}'
 
         set -g status-left-length 30
-        set -g status-right '#{?#{!=:#{E:@agents_working},0},  ● #{E:@agents_working},}#{?#{!=:#{E:@agents_done},0},  #[fg=yellow]✓ #{E:@agents_done}#[default],}#{?#{!=:#{E:@agents_input},0},  #[fg=red bold]! #{E:@agents_input}#[default],} '
+        set -g status-right '#{?#{!=:#{E:@agents_working},0},  ● #{E:@agents_working},}#{?#{!=:#{E:@agents_background},0},  #[fg=cyan]◐ #{E:@agents_background}#[default],}#{?#{!=:#{E:@agents_done},0},  #[fg=yellow]✓ #{E:@agents_done}#[default],}#{?#{!=:#{E:@agents_input},0},  #[fg=red bold]! #{E:@agents_input}#[default],} '
         set -g window-status-format '#I:#W#{?#{E:@agent_glyph}, #{E:@agent_glyph},}#{?window_flags,#{window_flags}, }'
         set -g window-status-current-format '#I:#W#{?#{E:@agent_glyph}, #{E:@agent_glyph},}#{?window_flags,#{window_flags}, }'
 

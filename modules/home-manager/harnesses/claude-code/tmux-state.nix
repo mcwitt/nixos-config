@@ -7,19 +7,37 @@ let
   tmux = "${config.programs.tmux.package}/bin/tmux";
 
   script = pkgs.writeShellScript "claude-tmux-state" ''
-    # Hooks receive a JSON payload on stdin; drain it so Claude Code never
-    # blocks on a full pipe.
-    cat >/dev/null
+    payload=$(cat)
     [[ -n "''${TMUX_PANE:-}" ]] || exit 0
 
-    case "$1" in
+    state=$1
+    case "$state" in
+      # The turn ended: idle, unless background subagents or shell commands
+      # are still running and will wake Claude when they finish.
+      stop)
+        if ${pkgs.jq}/bin/jq -e 'any(.background_tasks[]?; .status == "running")' \
+          <<<"$payload" >/dev/null; then
+          state=background
+        else
+          state=done
+        fi
+        ;;
+      # Claude has sat at the prompt for a minute. This only corrects a
+      # session interrupted with Esc, which fires no hook and stays "working".
+      idle)
+        [[ $(${tmux} show -wv -t "$TMUX_PANE" @agent_state 2>/dev/null) == working ]] || exit 0
+        state=done
+        ;;
+    esac
+
+    case "$state" in
       off) ${tmux} set -wu -t "$TMUX_PANE" @agent_state ;;
-      *) ${tmux} set -w -t "$TMUX_PANE" @agent_state "$1" ;;
+      *) ${tmux} set -w -t "$TMUX_PANE" @agent_state "$state" ;;
     esac
 
     # Ring the pane's bell for a blocking request: tmux then raises its own
     # bell flag on the window and passes the bell to an attached terminal.
-    if [[ "$1" == input ]]; then
+    if [[ "$state" == input ]]; then
       tty=$(${tmux} display -p -t "$TMUX_PANE" '#{pane_tty}')
       [[ -w "$tty" ]] && printf '\a' >"$tty"
     fi
@@ -39,8 +57,9 @@ let
   };
 in
 {
-  # working: Claude is busy. input: blocked on a permission prompt or a
-  # question. done: the turn ended and Claude is idle at the prompt.
+  # working: Claude is busy. background: the turn ended but background
+  # subagents or shell commands are still running. input: blocked on a
+  # permission prompt or a question. done: idle at the prompt.
 
   # Not on "compact", which can happen mid-turn.
   SessionStart = [ (on "^(startup|resume|clear)$" "done") ];
@@ -51,8 +70,8 @@ in
   PostToolUse = [ (on "" "working") ];
   Notification = [
     (on "^(permission_prompt|elicitation_dialog)$" "input")
-    (on "^idle_prompt$" "done")
+    (on "^idle_prompt$" "idle")
   ];
-  Stop = [ (on "" "done") ];
+  Stop = [ (on "" "stop") ];
   SessionEnd = [ (on "" "off") ];
 }
