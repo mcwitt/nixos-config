@@ -82,6 +82,11 @@
 
   services.tailscale.enable = true;
 
+  # Local echo over high-latency links. mosh-server authenticates each session
+  # with a key exchanged over SSH, so the UDP ports it listens on (60000-61000,
+  # opened by default) accept only that session.
+  programs.mosh.enable = true;
+
   nix.settings.trusted-users = [
     "root"
     "@wheel"
