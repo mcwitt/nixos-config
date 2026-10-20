@@ -49,8 +49,9 @@ in
       extraConfig = ''
         set -g renumber-windows on
 
-        # Ghostty supports truecolor and OSC 52, including over SSH.
-        set -as terminal-features ',xterm-ghostty:RGB:clipboard'
+        set -as terminal-features ',xterm-ghostty:RGB:clipboard:extkeys'
+        set -g extended-keys on
+        set -g extended-keys-format csi-u
         # Preserve clipboard writes from terminal Emacs and nested tmux.
         # Applications inside tmux can therefore also write the clipboard.
         set -s set-clipboard on
