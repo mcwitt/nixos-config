@@ -70,6 +70,8 @@
 
     programs.fish.enable = true;
 
+    programs.mosh.enable = true;
+
     programs.mtr.enable = true;
 
     programs.nix-ld.enable = true;
