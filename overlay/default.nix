@@ -64,6 +64,26 @@ in
 
   pi-acp = callPackage ../packages/development/misc/pi-acp { };
 
+  # Unreleased upstream master for OSC 8 hyperlink support (PR #1360), so
+  # clickable links survive mosh sessions. Both ends need it: the server's
+  # terminal emulator must keep the hyperlink state and the client must draw it.
+  # Drop once nixpkgs ships a release containing mobile-shell/mosh#1360.
+  mosh =
+    assert lib.assertMsg (prev.mosh.version == "1.4.0")
+      "nixpkgs mosh is now ${prev.mosh.version}; check whether it includes OSC 8 support (mobile-shell/mosh#1360) and drop this override.";
+    prev.mosh.overrideAttrs (old: {
+      version = "1.4.0-unstable-2026-03-22";
+      src = final.fetchFromGitHub {
+        owner = "mobile-shell";
+        repo = "mosh";
+        rev = "decd9b705eb81626f694335b8d5940538beb06da";
+        hash = "sha256-SsIj2JCDw7qkJ0NiX0FEQVYM0ATFpC9O/m7jycri0nU=";
+      };
+      # Keep nixpkgs' local patches; drop the fetched protobuf 23 fix, which
+      # master already contains.
+      patches = builtins.filter (p: !lib.isDerivation p) old.patches;
+    });
+
   home-assistant = prev.home-assistant.override (old: {
     packageOverrides = lib.composeExtensions (old.packageOverrides or (_: _: { })) (
       pyFinal: pyPrev:
