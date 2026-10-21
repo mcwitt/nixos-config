@@ -41,7 +41,7 @@ ASSETS = Path(__file__).resolve().parent.parent / "assets"
 SCRIPT = Path(__file__).resolve()
 SLIDE_ID = re.compile(r"^[A-Za-z][A-Za-z0-9._~-]{0,63}$")
 QUESTION_ID = re.compile(r"^q-[0-9a-z-]+$")
-QUOTE_SOURCES = {"diagram": "a diagram", "callout": "a callout", "text": "the slide's text", "quiz": "a check"}
+QUOTE_SOURCES = {"diagram": "a diagram", "callout": "a callout", "text": "the slide's text", "quiz": "a check", "math": "a formula"}
 HUNK_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@ ?(.*)$")
 RANGE_RE = re.compile(r"^(new|old|rows):(\d+)(?:-(\d+))?$")
 LINES_RE = re.compile(r"^(\d+)(?:-(\d+))?$")
@@ -788,6 +788,42 @@ def load_deck(deck_dir: Path) -> Deck:
     return Deck(deck_dir, spec, files + list(plain.values()), hunks, slides + generated, coverage, sources)
 
 
+# Math delimiters, matched as the page matches them (pandoc's dollar rule).
+# What is left after removing code and well-formed math is unbalanced.
+CODE_RE = re.compile(r"^ {0,3}(`{3,}|~{3,}).*?(?:^ {0,3}\1 *$|\Z)|(`+).+?\2", re.M | re.S)
+MATH_RE = re.compile(
+    r"\$\$[^`]+?\$\$|\\\[[^`]+?\\\]|\\\([^`]+?\\\)|\$(?![\s$])(?:\\[^`]|[^\\$`])+?(?<!\s)\$(?!\d)|\\[\\$]"
+)
+STRAY_RE = re.compile(r"\$\$|\\[()\[\]]|\$(?=[A-Za-z\\{(])")
+
+
+def markdown_fields(s: dict):
+    """(where, text) for each Markdown field of a slide."""
+    for b, blk in enumerate(s["blocks"]):
+        if blk.get("md"):
+            yield f"blocks[{b}]", blk["md"]
+        if blk.get("caption"):
+            yield f"blocks[{b}].caption", blk["caption"]
+    for i, q in enumerate(s["quiz"]):
+        yield f"quiz[{i}].q", q["q"]
+        for j, c in enumerate(q["choices"]):
+            yield f"quiz[{i}].choices[{j}].text", c["text"]
+            yield f"quiz[{i}].choices[{j}].why", c["why"]
+    for i, p in enumerate(s["prompts"]):
+        yield f"prompts[{i}]", p
+
+
+def math_warnings(deck: Deck) -> list[str]:
+    out = []
+    for s in deck.slides:
+        for where, text in markdown_fields(s):
+            rest = MATH_RE.sub(" ", CODE_RE.sub(" ", text))
+            stray = sorted({m[0] for m in STRAY_RE.finditer(rest)})
+            if stray:
+                out.append(f"slide {s['id']!r}.{where}: unbalanced math delimiter {', '.join(stray)}")
+    return out
+
+
 def deck_payload(deck: Deck, version: int) -> dict:
     """The JSON the page renders."""
     files = []
@@ -1290,7 +1326,8 @@ class Handler(BaseHTTPRequestHandler):
             elif r.get("kind") in ("quote", "diagram") and isinstance(r.get("text"), str) and r["text"].strip():
                 text = r["text"].strip()[:2000]
                 source = r.get("source") if r.get("source") in QUOTE_SOURCES else "diagram"
-                label = re.sub(r"[*`_]+", "", " ".join(text.split()))[:60]
+                label = " ".join(text.split())
+                label = (label if source == "math" else re.sub(r"[*`_]+", "", label))[:60]
                 out.append({"kind": "quote", "source": source, "text": text, "label": label})
         return out[:8]
 
@@ -1410,6 +1447,11 @@ def print_report(deck: Deck):
             f"the appendix: {', '.join(unchecked)}. Point a question at each one the "
             "goal depends on, move the rest to the appendix, or leave a slide that needs no check."
         )
+    math = math_warnings(deck)
+    if math:
+        print("\nwarning: math delimiters without a match; close the formula, or write a literal dollar as \\$:")
+        for w in math:
+            print(f"  {w}")
 
 
 def cmd_hunks(args):

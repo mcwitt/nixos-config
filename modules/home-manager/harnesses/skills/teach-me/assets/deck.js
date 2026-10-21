@@ -103,9 +103,81 @@
 
   if (window.hljs) hljs.configure({ ignoreUnescapedHTML: true });
 
+  // Math leaves the text before marked parses it, as placeholders holding
+  // the TeX; KaTeX fills them after sanitizing. Without KaTeX the TeX shows
+  // as code.
+  const mathHtml = (tex, display, tag = "span") => {
+    const t = tex.trim();
+    return `<${tag} class="math${display ? " display" : ""}" data-tex="${esc(t)}"><code>${esc(display ? `$$${t}$$` : `$${t}$`)}</code></${tag}>`;
+  };
+  const texOf = (el) => (el.classList.contains("display") ? `$$${el.dataset.tex}$$` : `$${el.dataset.tex}$`);
+
+  const MATH_BLOCK = /^ {0,3}(?:\$\$((?:(?!\$\$)[\s\S])+?)\$\$|\\\[((?:(?!\\\])[\s\S])+?)\\\]) *(?:\n+|$)/;
+  // Inline math stops short of backticks, so it never closes inside a code span.
+  const MATH_INLINE = [
+    [/^\$\$([^`]+?)\$\$/, true],
+    [/^\\\[([^`]+?)\\\]/, true],
+    [/^\\\(([^`]+?)\\\)/, false],
+    // Pandoc's rule: no space inside either dollar, no digit after the closing one.
+    [/^\$(?![\s$])((?:\\[^`]|[^\\$`])+?)(?<!\s)\$(?!\d)/, false],
+  ];
+
+  if (window.marked) {
+    marked.use({
+      extensions: [
+        {
+          name: "mathBlock",
+          level: "block",
+          start(src) {
+            for (const m of src.matchAll(/^ {0,3}(?:\$\$|\\\[)/gm)) if (MATH_BLOCK.test(src.slice(m.index))) return m.index;
+          },
+          tokenizer(src) {
+            const m = MATH_BLOCK.exec(src);
+            if (m) return { type: "mathBlock", raw: m[0], tex: m[1] ?? m[2] };
+          },
+          renderer: (t) => mathHtml(t.tex, true, "div"),
+        },
+        {
+          name: "mathInline",
+          level: "inline",
+          start: (src) => src.search(/\$|\\[[(]/),
+          tokenizer(src) {
+            for (const [re, display] of MATH_INLINE) {
+              const m = re.exec(src);
+              if (m) return { type: "mathInline", raw: m[0], tex: m[1], display };
+            }
+          },
+          renderer: (t) => mathHtml(t.tex, t.display),
+        },
+      ],
+      renderer: {
+        code(t) {
+          return t.lang === "math" ? mathHtml(t.text, true, "div") : false;
+        },
+      },
+    });
+  }
+
+  function typeset(html) {
+    if (!window.katex || !html.includes('class="math')) return html;
+    const t = document.createElement("template");
+    t.innerHTML = html;
+    for (const el of t.content.querySelectorAll(".math[data-tex]")) {
+      try {
+        katex.render(el.dataset.tex, el, {
+          throwOnError: false,
+          trust: false,
+          output: "htmlAndMathml",
+          displayMode: el.classList.contains("display"),
+        });
+      } catch {}
+    }
+    return t.innerHTML;
+  }
+
   function md(src) {
     const s = String(src || "");
-    if (window.marked && window.DOMPurify) return DOMPurify.sanitize(marked.parse(s, { gfm: true }));
+    if (window.marked && window.DOMPurify) return typeset(DOMPurify.sanitize(marked.parse(s, { gfm: true })));
     return s
       .split(/\n{2,}/)
       .map((p) => `<p>${esc(p).replace(/\n/g, "<br>")}</p>`)
@@ -986,9 +1058,9 @@
     kind: "quote",
     source,
     text,
-    label: text.replace(/[*`_]+/g, "").replace(/\s+/g, " ").trim().slice(0, 60),
+    label: (source === "math" ? text : text.replace(/[*`_]+/g, "")).replace(/\s+/g, " ").trim().slice(0, 60),
   });
-  const askOf = (a) => quote(a.dataset.ask, a.dataset.askSource || "diagram");
+  const askOf = (a) => (a.matches(".math[data-tex]") ? quote(texOf(a), "math") : quote(a.dataset.ask, a.dataset.askSource || "diagram"));
 
   function markAskable(el) {
     for (const a of el.querySelectorAll("[data-ask]")) {
@@ -1015,7 +1087,7 @@
   }
 
   document.addEventListener("click", (e) => {
-    const a = e.target.closest("#slide [data-ask]");
+    const a = e.target.closest("#slide .math[data-tex], #slide [data-ask]");
     if (!a || e.target.closest("a, button, input, label") || !getSelection().isCollapsed) return;
     addRef(askOf(a));
   });
@@ -1039,8 +1111,22 @@
     const node = range.commonAncestorContainer;
     const el = node.nodeType === 1 ? node : node.parentElement;
     if (!el || !el.closest("#slide") || el.closest("table.diff")) return null;
-    const text = sel.toString().trim();
-    return text.length > 1 ? { text, rect: range.getBoundingClientRect() } : null;
+    const inside = el.closest(".math[data-tex]");
+    const text = (inside ? texOf(inside) : selectionText(range)).trim();
+    return text.length > 1 ? { text, source: inside ? "math" : "text", rect: range.getBoundingClientRect() } : null;
+  }
+
+  // Rendered math in a selection quotes as its TeX source, not its glyphs.
+  function selectionText(range) {
+    const frag = range.cloneContents();
+    const maths = frag.querySelectorAll(".math[data-tex]");
+    if (!maths.length) return getSelection().toString();
+    for (const m of maths) m.replaceWith(texOf(m));
+    const box = h("div", { class: "selection-copy", "aria-hidden": "true" }, frag);
+    document.body.append(box);
+    const text = box.innerText;
+    box.remove();
+    return text;
   }
 
   document.addEventListener(
@@ -1060,7 +1146,7 @@
     quoteBtn.hidden = true;
     if (!s) return;
     getSelection().removeAllRanges();
-    addRef(quote(s.text.slice(0, 2000), "text"));
+    addRef(quote(s.text.slice(0, 2000), s.source));
   });
 
   // ---- questions ----
@@ -1089,7 +1175,7 @@
             "div",
             { class: "prompt-list" },
             s.prompts.map((p) =>
-              h("button", { type: "button", onclick: () => ((($("#question").value = p), updateSend(), saveDraft()), $("#question").focus()) }, p),
+              h("button", { type: "button", html: mdInline(p), onclick: () => ((($("#question").value = p), updateSend(), saveDraft()), $("#question").focus()) }),
             ),
           ),
         );

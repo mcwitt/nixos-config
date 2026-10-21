@@ -293,6 +293,15 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 .prose blockquote { margin: 0 0 1rem; padding-left: 1rem; border-left: 3px solid var(--rule); color: var(--ink-2); }
 .block { margin-bottom: 1.5rem; }
 
+.katex { color: inherit; }
+.math.display { display: block; max-width: 100%; overflow-x: auto; overflow-y: hidden; margin: 0 0 0.9rem; padding: 0.1em 0; }
+.math.display .katex-display { margin: 0; }
+.math.display > code { display: block; white-space: pre-wrap; padding: 0.5em 0.75em; }
+#slide .math { cursor: help; border-radius: 4px; }
+#slide .math:hover { background: var(--sel-row); }
+#slide :is(a, button) .math, #slide :is(a, button) .math:hover { cursor: inherit; background: none; }
+.selection-copy { position: fixed; left: -10000px; top: 0; width: 40rem; }
+
 .callout {
   border-radius: 8px;
   padding: 0.85rem 1rem 0.1rem;

@@ -458,6 +458,27 @@ class TopicDeckTest(unittest.TestCase):
         self.assertEqual([s["id"] for s in self.rd.load_deck(self.dir).unchecked()], [])
         self.assertNotIn("warning", run("check", self.dir).stdout)
 
+    def test_unbalanced_math_warns(self):
+        spec = topic_spec()
+        chk = topic_check()
+        chk["quiz"][0]["choices"][1]["see"] = "intro"
+        chk["quiz"][0]["choices"][1]["why"] = "Line 1, so $x_1 is wrong."
+        spec["slides"].append(chk)
+        spec["slides"][0]["blocks"] = [
+            {"md": "Fine: $x_1$, \\(a_{ij}\\), $$a \\\\ b$$, $5 and $6, `$HOME`, \\$x and\n\n```math\nx\n```"},
+            {"callout": "Open \\[ x and $$y"},
+            {"md": "Unclosed $\\alpha here"},
+        ]
+        spec["slides"][0]["prompts"] = ["Why \\(y?"]
+        self.write(spec)
+        out = run("check", self.dir).stdout
+        self.assertIn("warning: math delimiters without a match", out)
+        self.assertIn("slide 'intro'.blocks[1]: unbalanced math delimiter $$, \\[", out)
+        self.assertIn("slide 'intro'.blocks[2]: unbalanced math delimiter $", out)
+        self.assertIn("slide 'intro'.prompts[0]: unbalanced math delimiter \\(", out)
+        self.assertIn("slide 'final'.quiz[0].choices[1].why: unbalanced math delimiter $", out)
+        self.assertNotIn("blocks[0]", out)
+
 
 class ServerTest(unittest.TestCase):
     def setUp(self):
@@ -515,12 +536,13 @@ class ServerTest(unittest.TestCase):
                     {"kind": "lines", "hunk": "src/app.py#1", "lo": 1, "hi": 2},
                     {"kind": "quote", "source": "callout", "text": "**Risky:** the `json` import"},
                     {"kind": "quote", "source": "elsewhere", "text": "a box"},
+                    {"kind": "quote", "source": "math", "text": "$x_1 + a_{ij}$"},
                     {"kind": "lines", "hunk": "nope#1", "lo": 0, "hi": 0},
                 ],
             },
         )["message"]
         self.assertEqual(
-            [r["label"] for r in msg["refs"]], ["app.py new 2", "Risky: the json import", "a box"]
+            [r["label"] for r in msg["refs"]], ["app.py new 2", "Risky: the json import", "a box", "$x_1 + a_{ij}$"]
         )
         self.assertEqual(msg["refs"][2]["source"], "diagram")
         out = run("listen", self.dir, "--timeout", 5).stdout
@@ -528,6 +550,7 @@ class ServerTest(unittest.TestCase):
         self.assertIn("+import sys, json", out)
         self.assertIn("Quoted from a callout:\n> **Risky:** the `json` import", out)
         self.assertIn("Quoted from a diagram:\n> a box", out)
+        self.assertIn("Quoted from a formula:\n> $x_1 + a_{ij}$", out)
         self.assertIn("Why json?", out)
         self.wait_for(lambda: self.get("api/threads")["what"]["messages"][0]["state"] == "claimed")
 

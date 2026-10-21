@@ -42,12 +42,25 @@ A deck directory holds `deck.json` and any files it quotes from there. `deck.py 
 
 | Block | Renders |
 | --- | --- |
-| `{"md": "…"}` | GitHub-flavored Markdown: prose, lists, tables, and fenced code (give pseudocode a language) |
+| `{"md": "…"}` | GitHub-flavored Markdown: prose, lists, tables, math, and fenced code (give pseudocode a language) |
 | `{"callout": "…", "tone": "note"}` | A highlighted aside the reader can click to quote whole. Use `"tone": "risk"` for risks, tradeoffs and concerns, one per callout |
 | `{"excerpt": "PATH", "range": "40-58", "caption": "…"}` | Lines of a file with line numbers that the reader can select |
 | `{"diagram": {…}}` | A diagram (see below) |
 
 Markdown headings inside a slide start at `###`; the slide title is the larger heading.
+
+## Math
+
+Markdown fields render TeX with KaTeX: blocks, callouts, captions, check questions, choices and feedback, prompts and answers.
+
+- Inline: `$x_1$` or `\(x_1\)`.
+- Display: `$$…$$` or `\[…\]`, or a fenced block with the language `math`.
+- A `$` opens math only when the next character is not a space, and closes it only when the previous character is not a space and the next is not a digit, so `$5 and $6` stays text. Write a literal dollar elsewhere as `\$`.
+- `\(` and `\[` always start math. Code spans and code blocks are never math.
+
+`check` warns about delimiters without a match. It does not validate the TeX; a formula KaTeX cannot parse shows its source in red. A reader who clicks or selects a formula quotes its TeX.
+
+In a table cell, write `|` inside math as `\vert`; a bare `|` ends the cell.
 
 ## Checks
 

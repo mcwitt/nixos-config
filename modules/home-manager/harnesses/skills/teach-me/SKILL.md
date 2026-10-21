@@ -31,6 +31,8 @@ Readers ask better questions when they can point at things. They can click line 
 
 Quote code or text where it teaches the idea, in small excerpts selected by line range from a file on disk or a file you saved into the deck directory.
 
+Write formulas as TeX math (`$…$`, `$$…$$`; see Math in `references/deck.md`), not in code blocks or plain text.
+
 Check slides guard against skimming. End every deck but a trivial one with a final check of two to four questions that span the goal; `check` fails for a deck of more than three content slides without one. Add a check after a run of slides only when their content is key, conceptual or easy to misread; most slides need none. Ask what the material implies, not what the slide said: predict an output, name the line or step that enforces an invariant, say what happens on an edge case. Give each wrong choice a plausible misreading and a sentence saying what was misread, and point `see` at the slide that settles it. The reader answers with number keys, moves on with Enter, and can skip a check with one keystroke, so a check costs little when it is not needed; a check with weak questions costs trust.
 
 Write `DECK/deck.json`, then run `python3 <skill-dir>/scripts/deck.py check DECK` until it passes. `check` prints the slide list and warns about content slides outside the appendix that no check question points at. Decide for each whether the goal depends on it: if it does, point a question at it; if it does not, consider moving it to the appendix. A warning is not an error.
