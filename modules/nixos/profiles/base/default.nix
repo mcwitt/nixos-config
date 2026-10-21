@@ -70,7 +70,16 @@
 
     programs.fish.enable = true;
 
-    programs.mosh.enable = true;
+    programs.mosh = {
+      enable = true;
+      # mosh passes 24-bit color through but doesn't set COLORTERM, so tmux
+      # clients attached under mosh-server would fall back to 256 colors.
+      package = pkgs.mosh.overrideAttrs (old: {
+        postInstall = (old.postInstall or "") + ''
+          wrapProgram $out/bin/mosh-server --set-default COLORTERM truecolor
+        '';
+      });
+    };
 
     programs.mtr.enable = true;
 
