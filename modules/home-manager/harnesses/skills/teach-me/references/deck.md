@@ -1,25 +1,27 @@
 # Deck format
 
-A deck directory holds `deck.json` and the diff files it names. `review_deck.py check DECK` validates the deck and its coverage. A running server reloads the deck whenever these files change. If an edit fails validation, the page keeps showing the previous version and lists the errors.
+A deck directory holds `deck.json` and any files it quotes from there. `deck.py check DECK` validates the deck. A running server reloads the deck whenever `deck.json` or a quoted file changes. If an edit fails validation, the page keeps showing the previous version and lists the errors.
 
 ## deck.json
 
 ```json
 {
-  "title": "Incremental hunk parser",
-  "subtitle": "Parse diffs as they stream instead of after the download",
-  "scope": "Branch stream-parse against main, merge base 1a2b3c4",
-  "source_url": "https://github.com/OWNER/REPO/blob/HEAD_SHA/{path}#L{line}-L{end}",
-  "diffs": ["change.diff"],
-  "slides": [],
-  "appendix": []
+  "title": "How the scheduler picks a task",
+  "subtitle": "Run queues, virtual runtime and preemption",
+  "scope": "kernel/sched/fair.c at v6.18",
+  "goal": "Predict which task runs next from the run queue's state, and say when a waking task preempts the current one",
+  "root": "/home/me/src/linux",
+  "source_url": "https://github.com/torvalds/linux/blob/v6.18/{path}#L{line}-L{end}",
+  "slides": []
 }
 ```
 
-- `title` (required): a short name for the change. It is also the browser tab's title.
-- `subtitle`, `scope`: one line each, shown under the title. State the comparison base in `scope`.
-- `source_url` (optional): a link template to the new version of a file, with `{path}`, `{line}` and `{end}` placeholders. Each excerpt links to its first line, and selected lines get a "View in context" link to their range; `{end}` is the range's last line and equals `{line}` for a single line. Set it when the change is on GitHub (a commit, a pushed branch or a pull request), pointing at the head commit as in the example; leave it out for local changes.
-- `diffs`: the diff files, relative to the deck directory; defaults to `["change.diff"]`. Give each separate local diff a label, as in `[{"file": "staged.diff", "label": "staged"}, {"file": "unstaged.diff", "label": "unstaged"}]`. Paths from a labeled diff are written `LABEL:PATH`.
+- `title` (required): a short name for the topic. It is also the browser tab's title.
+- `subtitle`, `scope`: one line each, shown under the title. Name the sources and their versions in `scope`.
+- `goal` (required unless the deck has `diffs`): what the reader should be able to do afterwards. The contents panel shows it, and `check` prints it.
+- `root` (optional): the directory that relative excerpt paths resolve against, absolute or relative to the deck directory; defaults to the deck directory. With `root` set, quote files saved in the deck directory by absolute path.
+- `source_url` (optional): a link template to a file, with `{path}`, `{line}` and `{end}` placeholders, where `{path}` is the excerpt's path as written. Each excerpt links to its first line, and selected lines get a "View in context" link to their range; `{end}` is the range's last line and equals `{line}` for a single line. Set it when the quoted files are on GitHub at a fixed commit or tag.
+- `diffs`, `appendix` (optional): diff files and appendix groups for walking through a change. A deck that declares `diffs` must show every changed line; the assisted-review skill describes them in its `references/diffs.md`.
 
 ## Slides
 
@@ -42,7 +44,7 @@ A deck directory holds `deck.json` and the diff files it names. `review_deck.py 
 | --- | --- |
 | `{"md": "…"}` | GitHub-flavored Markdown: prose, lists, tables, and fenced code (give pseudocode a language) |
 | `{"callout": "…", "tone": "note"}` | A highlighted aside the reader can click to quote whole. Use `"tone": "risk"` for risks, tradeoffs and concerns, one per callout |
-| `{"diff": "PATH", "range": "new:40-58", "caption": "…"}` | A diff excerpt with line numbers that the reader can select |
+| `{"excerpt": "PATH", "range": "40-58", "caption": "…"}` | Lines of a file with line numbers that the reader can select |
 | `{"diagram": {…}}` | A diagram (see below) |
 
 Markdown headings inside a slide start at `###`; the slide title is the larger heading.
@@ -78,30 +80,19 @@ The page records the reader's answers in `DECK/quiz.json`, the last slide shows 
 
 Write questions that are answered by the code, not by the slide's wording: predict an output for an input, name the line that enforces an invariant, say what the error path does. Make each wrong choice a plausible misreading and let its `why` say what was misread. Avoid "all of the above", trick questions and questions answerable by matching the slide's own phrases.
 
-## Diff excerpts
+## Excerpts
 
-- `diff`: a file path as `hunks` prints it, or a hunk id (`PATH#N`).
-- `range` (optional): `new:A-B` or `old:A-B` line numbers in the new or old version of the file, or `rows:A-B` (hunk ids only), using the row numbers from `hunks --show`. Without a range the excerpt shows the whole file or hunk. A file range covers every hunk that overlaps it. A `new:` range that starts at a replacement also includes the removed lines just before it; an `old:` range likewise includes the added lines just after it.
-- `caption` (optional): Markdown shown above the code.
-- For a file with no changed lines (a binary file, a pure rename or a mode change), `{"diff": "PATH"}` shows a summary card.
+- `excerpt`: a file path, relative to `root`, or absolute. Save fetched text (a paper, a page, documentation) into the deck directory as a plain text file and quote it from there.
+- `range` (optional): `A-B` or `A`, line numbers in the file. Without a range the excerpt shows the whole file, so give one for anything longer than a screen.
+- `caption` (optional): Markdown shown above the lines.
 
-## Appendix
+Code is highlighted by its file extension. Keep excerpts short: the lines that carry the idea, not the whole function.
 
-```json
-"appendix": [
-  {
-    "title": "Formatter churn",
-    "note": "The formatter rewrapped these files after the rename. Nothing else changed.",
-    "diffs": [{"diff": "src/a.py"}, {"diff": "src/b.py", "range": "new:10-30"}]
-  }
-]
-```
+## Appendix and the final check
 
-The page lays the groups out as slides after the authored ones, keeping each group together. Write the note for a reader deciding whether to look closely: say what kind of change the group is, why it was needed, and anything that makes it less routine than it looks.
+A slide with `"section": "Appendix"` belongs to the appendix: material the goal does not need, for readers who want more. Put appendix slides last. A deck with more than three content slides outside the appendix must have a check as its last slide before the appendix.
 
-## Coverage
-
-Every changed line must appear in at least one excerpt, on a slide or in the appendix. `check` lists each missing span with a block you can paste into a slide or appendix group, for example `{"diff": "src/a.py#2", "range": "rows:5-17"}`.
+`check` prints every slide with the checks that point at it, and warns about content slides outside the appendix that no check question or choice names in `see`. The warning is advice: point a question at a slide the goal depends on, move a slide it does not depend on to the appendix, or leave a slide that needs no check.
 
 ## Diagrams
 
@@ -156,7 +147,7 @@ Use the page's CSS variables for colors: `--ink`, `--ink-2`, `--ink-3`, `--panel
 
 Readers can quote parts of a slide into a question, and the quote reaches you with the question:
 
-- **Diff lines:** clicking line numbers in an excerpt (shift-click or drag to extend). With `source_url` set, the selection also offers "View in context", which opens those lines in the file.
+- **Lines:** clicking line numbers in an excerpt (shift-click or drag to extend). With `source_url` set, the selection also offers "View in context", which opens those lines in the file.
 - **Callouts:** clicking a callout quotes its whole text.
 - **Text:** selecting any text on a slide shows an "Ask about this text" button.
 - **Mermaid diagrams:** every node, participant, message and edge label is clickable automatically.

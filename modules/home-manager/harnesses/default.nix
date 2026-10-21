@@ -64,12 +64,15 @@ in
 
     harnesses.skills = gwsSkills // {
       asd-ste100 = "${inputs.asd-ste100}";
-      assisted-review = ./skills/assisted-review;
+      # One store copy for both, so review_deck.py's relative symlink into
+      # teach-me resolves wherever a harness links the skill.
+      assisted-review = "${./skills}/assisted-review";
       branch-cleanup = ./skills/branch-cleanup;
       explanatory = ./skills/explanatory;
       learning = ./skills/learning;
       nixify = ./skills/nixify;
       prose-review = ./skills/prose-review;
+      teach-me = "${./skills}/teach-me";
       worktrunk = "${pkgs.worktrunk.src}/skills/worktrunk";
     };
 

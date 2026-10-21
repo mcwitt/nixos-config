@@ -383,14 +383,15 @@
                   ${./modules/home-manager/profiles/agent-identity/guard.sh}
                 touch $out
               '';
+          # The review skill's engine is a symlink into teach-me; check it
+          # resolves in the store copy the harnesses deploy.
           assisted-review =
             pkgs.runCommand "assisted-review-check"
               {
                 nativeBuildInputs = [ pkgs.python3 ];
               }
               ''
-                python3 ${./modules/home-manager/harnesses/tests/test_assisted_review.py} \
-                  ${./modules/home-manager/harnesses/skills/assisted-review}/scripts/review_deck.py
+                python3 ${./modules/home-manager/harnesses/skills}/assisted-review/scripts/review_deck.py --help > /dev/null
                 touch $out
               '';
           branch-cleanup =
@@ -438,6 +439,16 @@
               ''
                 python3 ${./modules/home-manager/harnesses/tests/test_prose_review.py} \
                   ${./modules/home-manager/harnesses/skills/prose-review}/scripts/prose_review.py
+                touch $out
+              '';
+          teach-me =
+            pkgs.runCommand "teach-me-check"
+              {
+                nativeBuildInputs = [ pkgs.python3 ];
+              }
+              ''
+                python3 ${./modules/home-manager/harnesses/tests/test_deck.py} \
+                  ${./modules/home-manager/harnesses/skills/teach-me}/scripts/deck.py
                 touch $out
               '';
         };

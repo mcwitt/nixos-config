@@ -1,12 +1,13 @@
 "use strict";
-// Assisted-review slideshow. The server (scripts/review_deck.py) serves the
-// deck as JSON, relays questions to the review session and pushes updates
-// over server-sent events.
+// Teaching slideshow. The server (scripts/deck.py) serves the deck as JSON,
+// relays questions to the session and pushes updates over server-sent events.
+// Review-only parts (diff stats, coverage) render only for a deck with diffs.
 (() => {
   const MERMAID = {
     src: "https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.15.0/mermaid.min.js",
     integrity: "sha384-yQ4mmBBT+vhTAwjFH0toJXNYJ6O4usWnt6EPIdWwrRvx2V/n5lXuDZQwQFeSFydF",
   };
+  // Kept from the assisted-review page so open decks keep their drafts.
   const KEY = "assisted-review:" + location.pathname;
 
   const S = {
@@ -199,6 +200,12 @@
   }
 
   const base = (p) => p.split("/").pop();
+  const lineLabel = (hk, lo, hi) => {
+    const s = rowSpan(hk.rows, lo, hi);
+    return `${base(hk.file.path)} ${hk.file.plain ? s.replace(/^new /, "") : s}`;
+  };
+  // Who answers: the deck's author, a review session when the deck has diffs.
+  const who = () => (S.deck?.coverage ? "review session" : "session");
 
   // ---- deck state ----
 
@@ -221,7 +228,7 @@
     $("#deck-title").title = deck.title;
     $("#deck-scope").textContent = about.join(" · ");
     $("#deck-scope").title = about.join("\n");
-    $("#toc-about").replaceChildren(...about.map((t) => h("p", {}, t)));
+    $("#toc-about").replaceChildren(...about.map((t) => h("p", {}, t)), deck.goal ? h("p", {}, h("strong", {}, "Goal: "), deck.goal) : "");
   }
 
   async function loadThreads({ notify = false } = {}) {
@@ -239,7 +246,7 @@
   }
 
   // The reader's answers on check slides come from the server so that the
-  // review session sees them too; the local copy covers an unreachable server.
+  // session sees them too; the local copy covers an unreachable server.
   async function loadQuiz() {
     try {
       S.quiz = await getJSON("api/quiz");
@@ -418,7 +425,7 @@
             e.currentTarget.disabled = true;
             try {
               await post("api/finish");
-              toast("Told the review session you have finished.");
+              toast(`Told the ${who()} you have finished.`);
             } catch (err) {
               toast(`Could not reach the server: ${err.message}`);
               e.currentTarget.disabled = false;
@@ -623,8 +630,8 @@
       { class: "ex-head" },
       h("span", { class: "ex-path" }, f.oldPath && f.oldPath !== f.path ? `${f.oldPath} → ${f.path}` : f.path),
       f.label ? h("span", { class: "ex-tag" }, f.label) : null,
-      f.status !== "modified" ? h("span", { class: "ex-tag" }, f.status) : null,
-      f.hunks.length
+      f.status !== "modified" && !f.plain ? h("span", { class: "ex-tag" }, f.status) : null,
+      f.hunks.length && !f.plain
         ? h("span", { class: "ex-stat" }, h("span", { class: "a" }, `+${f.adds}`), " ", h("span", { class: "d" }, `−${f.dels}`))
         : null,
       sourceLink(f, b),
@@ -636,12 +643,12 @@
       return fig;
     }
     const tbody = h("tbody");
-    const table = h("table", { class: "diff", tabindex: "0", "aria-label": `Diff of ${f.path}` }, tbody);
+    const table = h("table", { class: f.plain ? "diff plain" : "diff", tabindex: "0", "aria-label": `${f.plain ? "Lines" : "Diff"} of ${f.path}` }, tbody);
     for (const p of b.pieces) {
       const hk = S.hunks.get(p.hunk);
       const html = rowHtml(hk);
       if (p.note) tbody.append(h("tr", { class: "piece-note" }, h("td", { colspan: 3 }, mdEl(p.note))));
-      tbody.append(h("tr", { class: "hunk" }, h("td", { colspan: 3 }, hk.header)));
+      if (!f.plain) tbody.append(h("tr", { class: "hunk" }, h("td", { colspan: 3 }, hk.header)));
       if (p.lo > 0) tbody.append(omitRow(p.lo));
       for (let i = p.lo; i <= p.hi; i++) {
         const r = hk.rows[i];
@@ -650,9 +657,9 @@
           h(
             "tr",
             { class: `r ${kind}${r[4] ? " noeol" : ""}`, "data-hunk": hk.id, "data-row": i },
-            h("td", { class: "ln", title: "Select to quote; Shift-click extends" }, r[1] ?? ""),
+            f.plain ? null : h("td", { class: "ln", title: "Select to quote; Shift-click extends" }, r[1] ?? ""),
             h("td", { class: "ln", title: "Select to quote; Shift-click extends" }, r[2] ?? ""),
-            h("td", { class: "code", html: `<span class="sign">${r[0] === " " ? " " : r[0] === "-" ? "−" : "+"}</span>${html[i]}` }),
+            h("td", { class: "code", html: f.plain ? html[i] : `<span class="sign">${r[0] === " " ? " " : r[0] === "-" ? "−" : "+"}</span>${html[i]}` }),
           ),
         );
       }
@@ -694,7 +701,7 @@
     if (!sel) return;
     sel.table.querySelector("tr.sel-actions")?.remove();
     const hk = S.hunks.get(sel.hunk);
-    const label = `${base(hk.file.path)} ${rowSpan(hk.rows, sel.lo, sel.hi)}`;
+    const label = lineLabel(hk, sel.lo, sel.hi);
     const last = rowsOf(sel.table, sel.hunk).find((tr) => +tr.dataset.row === sel.hi);
     const row = h(
       "tr",
@@ -718,7 +725,7 @@
     const sel = S.sel;
     if (!sel) return;
     const hk = S.hunks.get(sel.hunk);
-    const ref = { kind: "lines", hunk: sel.hunk, lo: sel.lo, hi: sel.hi, label: `${base(hk.file.path)} ${rowSpan(hk.rows, sel.lo, sel.hi)}` };
+    const ref = { kind: "lines", hunk: sel.hunk, lo: sel.lo, hi: sel.hi, label: lineLabel(hk, sel.lo, sel.hi) };
     clearSel();
     addRef(ref);
   }
@@ -1069,12 +1076,12 @@
         h(
           "p",
           { class: "offline-note" },
-          "The review session is not listening right now. Questions wait until it is; to resume, ask it in the terminal to keep listening.",
+          `The ${who()} is not listening right now. Questions wait until it is; to resume, ask it in the terminal to keep listening.`,
         ),
       );
     }
     if (!msgs.length) {
-      const empty = h("div", { class: "thread-empty" }, h("p", {}, "No questions on this slide yet. The review session that wrote the deck answers here."));
+      const empty = h("div", { class: "thread-empty" }, h("p", {}, `No questions on this slide yet. The ${who()} that wrote the deck answers here.`));
       if (s.prompts.length) {
         empty.append(
           h(
@@ -1097,8 +1104,8 @@
 
   function questionEl(m) {
     const state = {
-      queued: [h("span", {}, "Waiting for the review session · ", h("span", { "data-since": m.at })), h("button", { type: "button", class: "ghost small", onclick: () => withdraw(m) }, "Withdraw")],
-      claimed: [h("span", { class: "dots" }, "The review session is answering"), h("span", { "data-since": m.at })],
+      queued: [h("span", {}, `Waiting for the ${who()} · `, h("span", { "data-since": m.at })), h("button", { type: "button", class: "ghost small", onclick: () => withdraw(m) }, "Withdraw")],
+      claimed: [h("span", { class: "dots" }, `The ${who()} is answering`), h("span", { "data-since": m.at })],
       withdrawn: [h("span", {}, "Withdrawn")],
     }[m.state];
     return h(
@@ -1114,7 +1121,7 @@
   }
 
   function answerEl(m) {
-    return h("div", { class: "msg msg-a" }, h("div", { class: "who" }, `Review session · ${clock(m.at)}`), mdEl(m.text, "body prose"));
+    return h("div", { class: "msg msg-a" }, h("div", { class: "who" }, `${who()[0].toUpperCase()}${who().slice(1)} · ${clock(m.at)}`), mdEl(m.text, "body prose"));
   }
 
   function tickElapsed() {
@@ -1224,9 +1231,11 @@
   function renderToc() {
     const d = S.deck;
     const c = d.coverage;
-    $("#toc-cover").textContent =
-      `${d.stats.files} file${d.stats.files === 1 ? "" : "s"} · +${d.stats.adds} −${d.stats.dels} · ` +
-      (c.appendix ? `${c.appendix} of ${c.changed} changed lines are only in the appendix` : `all ${c.changed} changed lines are shown in the walkthrough`);
+    $("#toc-cover").hidden = !c;
+    $("#toc-cover").textContent = !c
+      ? ""
+      : `${d.stats.files} file${d.stats.files === 1 ? "" : "s"} · +${d.stats.adds} −${d.stats.dels} · ` +
+        (c.appendix ? `${c.appendix} of ${c.changed} changed lines are only in the appendix` : `all ${c.changed} changed lines are shown in the walkthrough`);
     const list = $("#toc-list");
     list.replaceChildren();
     let label = null;
@@ -1329,9 +1338,9 @@
   }
 
   const PRESENCE = {
-    listening: ["Listening", "The review session is waiting for questions."],
-    answering: ["Answering", "The review session is answering a question; new ones wait their turn."],
-    away: ["Not listening", "The review session is not waiting for questions; they are queued until it is."],
+    listening: ["Listening", () => `The ${who()} is waiting for questions.`],
+    answering: ["Answering", () => `The ${who()} is answering a question; new ones wait their turn.`],
+    away: ["Not listening", () => `The ${who()} is not waiting for questions; they are queued until it is.`],
   };
 
   function setStatus(st) {
@@ -1340,7 +1349,8 @@
     S.status = st;
     const pill = $("#listen-pill");
     pill.dataset.on = String(st.session !== "away");
-    [pill.textContent, pill.title] = PRESENCE[st.session];
+    pill.textContent = PRESENCE[st.session][0];
+    pill.title = PRESENCE[st.session][1]();
     if (changed && S.deck) renderThread();
   }
 
@@ -1377,7 +1387,7 @@
     S.idx = i >= 0 ? i : Math.min(S.idx, S.deck.slides.length - 1);
     loadDraft();
     render();
-    toast("The review session updated the deck.");
+    toast(`The ${who()} updated the deck.`);
   }
 
   function connect() {
@@ -1412,7 +1422,7 @@
     });
     es.addEventListener("deck", () => refreshDeck());
     es.addEventListener("deck-error", (e) =>
-      banner("deck", "The review session's latest edit to the deck has errors, so this page still shows the previous version.", JSON.parse(e.data).errors),
+      banner("deck", `The ${who()}'s latest edit to the deck has errors, so this page still shows the previous version.`, JSON.parse(e.data).errors),
     );
     es.addEventListener("thread", threadsChanged);
     es.addEventListener("quiz", quizChanged);
@@ -1420,7 +1430,7 @@
     es.onerror = () => {
       failures += 1;
       setStatus({ session: "away" });
-      if (failures > 1) banner("conn", "Lost the connection to the review server. Reconnecting…");
+      if (failures > 1) banner("conn", "Lost the connection to the deck server. Reconnecting…");
     };
   }
 
@@ -1531,8 +1541,8 @@
       await loadThreads();
       await loadQuiz();
     } catch (e) {
-      $("#deck-title").textContent = "The review server is not reachable";
-      banner("deck", `Could not load the deck: ${e.message}. Ask the review session to start the server again.`);
+      $("#deck-title").textContent = "The deck server is not reachable";
+      banner("deck", `Could not load the deck: ${e.message}. Ask the session to start the server again.`);
       return;
     }
     const fromHash = slideIndex(decodeURIComponent(location.hash.slice(1)));

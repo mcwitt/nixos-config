@@ -1,6 +1,7 @@
-"""Tests for the assisted-review deck script: diff parsing, coverage and the server.
+"""Tests for the teach-me deck engine: diff parsing, coverage, plain excerpts,
+checks and the server.
 
-Usage: python3 test_assisted_review.py <path/to/review_deck.py>
+Usage: python3 test_deck.py <path/to/deck.py>
 """
 
 import copy
@@ -20,9 +21,9 @@ SCRIPT = Path(sys.argv.pop(1)).resolve() if len(sys.argv) > 1 else None
 
 
 def load_module():
-    spec = importlib.util.spec_from_file_location("review_deck", SCRIPT)
+    spec = importlib.util.spec_from_file_location("deck", SCRIPT)
     mod = importlib.util.module_from_spec(spec)
-    sys.modules["review_deck"] = mod
+    sys.modules["deck"] = mod
     spec.loader.exec_module(mod)
     return mod
 
@@ -128,6 +129,39 @@ def deck_spec(**extra):
     }
     spec.update(extra)
     return spec
+
+
+NOTES = "first line\nsecond line\nthird line\nfourth line\n"
+
+
+def topic_spec(**extra):
+    spec = {
+        "title": "Sample topic",
+        "goal": "Explain what the notes say.",
+        "slides": [
+            {"id": "intro", "title": "Intro", "blocks": [{"md": "Hello."}]},
+            {"id": "lines", "title": "Lines", "blocks": [{"excerpt": "notes.txt", "range": "2-3"}]},
+        ],
+    }
+    spec.update(extra)
+    return spec
+
+
+def topic_check(see="lines"):
+    return {
+        "id": "final",
+        "title": "Check",
+        "quiz": [
+            {
+                "q": "What is on line 2?",
+                "see": see,
+                "choices": [
+                    {"text": "second line", "why": "Line 2.", "correct": True},
+                    {"text": "first line", "why": "That is line 1."},
+                ],
+            }
+        ],
+    }
 
 
 def run(*args, check=True, timeout=30):
@@ -313,6 +347,118 @@ class DeckTest(unittest.TestCase):
         self.assertEqual(len(self.rd.load_deck(self.dir).slides), 3)
 
 
+class TopicDeckTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.rd = load_module()
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.dir = Path(self.tmp.name)
+        (self.dir / "notes.txt").write_text(NOTES)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def write(self, spec):
+        (self.dir / "deck.json").write_text(json.dumps(spec))
+
+    def test_plain_excerpts_without_coverage(self):
+        repo = self.dir / "repo"
+        (repo / "src").mkdir(parents=True)
+        (repo / "src" / "lib.py").write_text("a = 1\nb = 2\n")
+        # With root set, relative paths resolve there and deck files need absolute paths.
+        spec = topic_spec(root="repo")
+        spec["slides"][1]["blocks"] = [
+            {"md": "Two sources."},
+            {"excerpt": str(self.dir / "notes.txt"), "range": "1"},
+            {"excerpt": "src/lib.py"},
+        ]
+        self.write(spec)
+        deck = self.rd.load_deck(self.dir)
+        self.assertIsNone(deck.coverage)
+        ex = deck.slides[1]["blocks"]
+        self.assertEqual([b["pieces"][0]["hunk"] for b in ex[1:]], [f"{self.dir / 'notes.txt'}#L1-1", "src/lib.py#L1-2"])
+        self.assertIn(repo / "src" / "lib.py", deck.sources)
+        payload = self.rd.deck_payload(deck, 1)
+        self.assertIsNone(payload["coverage"])
+        self.assertEqual(payload["stats"]["files"], 0)
+        lib = next(f for f in payload["files"] if f["path"] == "src/lib.py")
+        self.assertEqual((lib["plain"], lib["lang"], lib["hunks"][0]["rows"][1]), (True, "python", [" ", None, 2, "b = 2"]))
+        out = run("check", self.dir).stdout
+        self.assertIn("2 slides and 0 appendix slides\n", out)
+        self.assertIn("goal: Explain what the notes say.", out)
+
+    def test_relative_excerpts_resolve_in_the_deck(self):
+        self.write(topic_spec())
+        h = self.rd.load_deck(self.dir).hunks["notes.txt#L2-3"]
+        self.assertEqual([r.text for r in h.rows], ["second line", "third line"])
+        self.assertEqual(self.rd.span(h, 0, 1), "2–3")
+        self.assertEqual(self.rd.numbered(h, 1, 1), "    3  third line")
+
+    def test_excerpt_errors(self):
+        spec = topic_spec()
+        spec["slides"][1]["blocks"] = [
+            {"excerpt": "notes.txt", "range": "3-9"},
+            {"excerpt": "notes.txt", "range": "new:1-2"},
+            {"excerpt": "missing.txt"},
+        ]
+        self.write(spec)
+        with self.assertRaises(self.rd.DeckInvalid) as cm:
+            self.rd.load_deck(self.dir)
+        text = "\n".join(cm.exception.errors)
+        self.assertEqual(text.count("expected A-B within lines 1-4 of notes.txt"), 2)
+        self.assertIn("cannot read", text)
+
+    def test_goal_required_without_diffs(self):
+        spec = topic_spec()
+        del spec["goal"]
+        self.write(spec)
+        r = run("check", self.dir, check=False)
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("error: goal: expected a non-empty string", r.stdout)
+        # A review deck may leave it out; its change bounds it.
+        (self.dir / "change.diff").write_text(DIFF)
+        self.write(deck_spec())
+        run("check", self.dir)
+
+    def test_declared_empty_diffs_skip_coverage(self):
+        (self.dir / "change.diff").write_text(DIFF)
+        self.write(topic_spec(diffs=[]))
+        self.assertIsNone(self.rd.load_deck(self.dir).coverage)
+        self.write(topic_spec())
+        with self.assertRaises(self.rd.DeckInvalid) as cm:
+            self.rd.load_deck(self.dir)
+        self.assertTrue(any("is not shown" in e for e in cm.exception.errors))
+
+    def test_final_check_required_past_trivial(self):
+        spec = topic_spec()
+        spec["slides"] += [{"id": f"more{i}", "title": f"More {i}", "blocks": [{"md": "x"}]} for i in range(2)]
+        self.write(spec)
+        r = run("check", self.dir, check=False)
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("must be a final check", r.stdout)
+        spec["slides"].append(topic_check())
+        spec["slides"].append({"id": "extra", "title": "Extra", "section": "Appendix", "blocks": [{"md": "y"}]})
+        self.write(spec)
+        out = run("check", self.dir).stdout
+        self.assertIn("ending with a final check", out)
+        self.assertIn("2. lines: Lines  [checked by final]", out)
+        self.assertIn("6. extra: Extra  [appendix]", out)
+        self.assertIn("1. intro: Intro  [NOT CHECKED]", out)
+        self.assertIn("warning: 3 content slide(s) are not the `see` of any check question", out)
+        self.assertIn("intro, more0, more1", out)
+
+    def test_checks_on_every_slide_silence_the_warning(self):
+        spec = topic_spec()
+        chk = topic_check()
+        chk["quiz"][0]["choices"][1]["see"] = "intro"
+        spec["slides"].append(chk)
+        self.write(spec)
+        self.assertEqual([s["id"] for s in self.rd.load_deck(self.dir).unchecked()], [])
+        self.assertNotIn("warning", run("check", self.dir).stdout)
+
+
 class ServerTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -458,6 +604,37 @@ class ServerTest(unittest.TestCase):
         out = run("listen", self.dir, "--timeout", 1).stdout
         self.assertIn("No questions in the last 1 s", out)
         self.assertIn("listen", out.splitlines()[-1])
+
+
+class TopicServerTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.dir = Path(self.tmp.name)
+        (self.dir / "notes.txt").write_text(NOTES)
+        spec = topic_spec()
+        spec["slides"].append(topic_check())
+        (self.dir / "deck.json").write_text(json.dumps(spec))
+        self.url = run("serve", self.dir, "--detach").stdout.strip()
+
+    def tearDown(self):
+        run("stop", self.dir, check=False)
+        self.tmp.cleanup()
+
+    def test_quoted_plain_lines_reach_listen(self):
+        req = urllib.request.Request(
+            self.url + "api/ask",
+            data=json.dumps({"slide": "lines", "text": "Why?", "refs": [{"kind": "lines", "hunk": "notes.txt#L2-3", "lo": 1, "hi": 1}]}).encode(),
+            headers={"Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=10) as r:
+            msg = json.load(r)["message"]
+        self.assertEqual(msg["refs"][0]["label"], "notes.txt 3")
+        out = run("listen", self.dir, "--timeout", 5).stdout
+        self.assertIn("Selected lines, notes.txt 3:\n```text\n    3  third line\n```", out)
+        (self.dir / "a.md").write_text("Because.")
+        run("listen", self.dir, "--answer", msg["id"], "--file", self.dir / "a.md", "--timeout", 1)
+        with urllib.request.urlopen(self.url + "api/deck", timeout=10) as r:
+            self.assertIsNone(json.load(r)["coverage"])
 
 
 if __name__ == "__main__":
