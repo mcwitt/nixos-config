@@ -16,19 +16,40 @@ let
   doneColor = stateColor "base0B" "green";
   backgroundColor = stateColor "base0D" "blue";
 
-  # Switch the client in $1 to the next window, cycling in list order, whose
+  # Agent harnesses set the pane option @agent_state; see
+  # harnesses/tmux-state.nix. States, most urgent first.
+  agentStates = [
+    "input"
+    "working"
+    "background"
+    "done"
+  ];
+  # The most urgent state in a space-separated list of states, such as one
+  # rendered by a pane loop, or empty.
+  mostUrgent =
+    states: lib.foldr (state: rest: "#{?#{m:*${state}*,${states}},${state},${rest}}") "" agentStates;
+  windowStates = "#{P:#{@agent_state} }";
+  sessionStates = "#{W:${windowStates}}";
+  # The glyph for a state, followed by a space: terminals may draw glyphs two
+  # cells wide while tmux reserves one, which would hide the next character.
+  glyph =
+    state:
+    "#{?#{==:${state},input},#[fg=${inputColor} bold]! #[default],#{?#{==:${state},done},#[fg=${doneColor}]✓ #[default],#{?#{==:${state},working},● ,#{?#{==:${state},background},#[fg=${backgroundColor}]◐ #[default],}}}}";
+  # Count the agent panes in each state across all sessions.
+  count = state: "#{n:#{S:#{W:#{P:#{?#{==:#{@agent_state},${state}},x,}}}}}";
+
+  # Switch the client in $1 to the next pane, cycling in list order, whose
   # agent is blocked on input, else to the next one idle at its prompt.
-  # Agent harnesses set @agent_state; see harnesses/tmux-state.nix.
   nextAgent = pkgs.writeShellScript "tmux-next-agent" ''
     client=$1
-    current=$(${tmux} display -p -c "$client" '#{window_id}')
-    windows=$(${tmux} list-windows -a -F '#{window_id} #{@agent_state}')
+    current=$(${tmux} display -p -c "$client" '#{pane_id}')
+    panes=$(${tmux} list-panes -a -F '#{pane_id} #{@agent_state}')
     for state in input done; do
       target=$(${pkgs.gawk}/bin/awk -v s="$state" -v c="$current" '
         $1 == c { past = 1; next }
         $2 == s { if (past) { print $1; exit } else if (!first) first = $1 }
         END { if (first) print first }
-      ' <<<"$windows" | head -n1)
+      ' <<<"$panes" | head -n1)
       if [[ -n "$target" ]]; then
         exec ${tmux} switch-client -c "$client" -t "$target"
       fi
@@ -75,30 +96,30 @@ in
         bind -T copy-mode-vi v send-keys -X begin-selection
         bind -T copy-mode-vi y send-keys -X copy-selection-and-cancel
 
-        # Agent state, set per window by agent harness hooks as @agent_state:
+        # Agent state, set per pane by agent harness hooks as @agent_state:
         # "input" (blocked on a permission prompt or question), "done" (idle
         # at the prompt), "background" (idle, but waiting on background
-        # subagents or shell commands) or "working".
-        # Glyphs are followed by a space: terminals may draw them two cells
-        # wide while tmux reserves one, which would hide the next character.
-        set -g @agent_glyph '#{?#{==:#{@agent_state},input},#[fg=${inputColor} bold]! #[default],#{?#{==:#{@agent_state},done},#[fg=${doneColor}]✓ #[default],#{?#{==:#{@agent_state},working},● ,#{?#{==:#{@agent_state},background},#[fg=${backgroundColor}]◐ #[default],}}}}'
-        # Count agents in each state; prefix A lists the waiting ones.
-        set -g @agents_working '#{n:#{S:#{W:#{?#{==:#{@agent_state},working},x,}}}}'
-        set -g @agents_background '#{n:#{S:#{W:#{?#{==:#{@agent_state},background},x,}}}}'
-        set -g @agents_done '#{n:#{S:#{W:#{?#{==:#{@agent_state},done},x,}}}}'
-        set -g @agents_input '#{n:#{S:#{W:#{?#{==:#{@agent_state},input},x,}}}}'
+        # subagents or shell commands) or "working". Windows and sessions
+        # show the most urgent state among their panes.
+        set -g @window_agent_state '${mostUrgent windowStates}'
+        set -g @session_agent_state '${mostUrgent sessionStates}'
+        set -g @window_agent_glyph '${glyph "#{E:@window_agent_state}"}'
+        set -g @agents_working '${count "working"}'
+        set -g @agents_background '${count "background"}'
+        set -g @agents_done '${count "done"}'
+        set -g @agents_input '${count "input"}'
 
         set -g status-left-length 30
         set -g status-right '#{?#{!=:#{E:@agents_working},0},  ● #{E:@agents_working},}#{?#{!=:#{E:@agents_background},0},  #[fg=${backgroundColor}]◐ #{E:@agents_background}#[default],}#{?#{!=:#{E:@agents_done},0},  #[fg=${doneColor}]✓ #{E:@agents_done}#[default],}#{?#{!=:#{E:@agents_input},0},  #[fg=${inputColor} bold]! #{E:@agents_input}#[default],} '
-        set -g window-status-format '#I:#W#{?#{E:@agent_glyph}, #{E:@agent_glyph},}#{?window_flags,#{window_flags}, }'
-        set -g window-status-current-format '#I:#W#{?#{E:@agent_glyph}, #{E:@agent_glyph},}#{?window_flags,#{window_flags}, }'
+        set -g window-status-format '#I:#W#{?#{E:@window_agent_glyph}, #{E:@window_agent_glyph},}#{?window_flags,#{window_flags}, }'
+        set -g window-status-current-format '#I:#W#{?#{E:@window_agent_glyph}, #{E:@window_agent_glyph},}#{?window_flags,#{window_flags}, }'
 
-        set -g @tree_format '#{?pane_format,#{pane_current_command},#{?window_format,#{window_name}#{window_flags},#{session_windows}w#{?session_attached, (attached),}}}#{?pane_format,, #{E:@agent_glyph}}'
+        set -g @tree_format '#{?pane_format,#{pane_current_command} ${glyph "#{@agent_state}"},#{?window_format,#{window_name}#{window_flags} #{E:@window_agent_glyph},#{session_windows}w#{?session_attached, (attached),} ${glyph "#{E:@session_agent_state}"}}}'
         bind s choose-tree -Zs -F '#{E:@tree_format}'
         bind w choose-tree -Zw -F '#{E:@tree_format}'
         # Jump to the next agent waiting for input, or list all waiting agents.
         bind a run-shell -b '${nextAgent} #{q:client_name}'
-        bind A choose-tree -Zw -F '#{E:@tree_format}' -f '#{||:#{==:#{@agent_state},input},#{==:#{@agent_state},done}}'
+        bind A choose-tree -Zw -F '#{E:@tree_format}' -f '#{||:#{m:*input*,${windowStates}},#{m:*done*,${windowStates}}}'
       '';
     };
   };

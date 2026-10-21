@@ -1,4 +1,4 @@
-// Publish this pi session's state to tmux as the window option @agent_state,
+// Publish this pi session's state to tmux as the pane option @agent_state,
 // through the shared agent-tmux-state script (see ../tmux-state.nix):
 // working from the start of a run until pi settles, else done. pi asks for no
 // approvals itself, so it never reports input.

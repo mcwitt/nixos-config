@@ -40,7 +40,7 @@ if "DIALOG" in prompt:
             f.write(line)
 time.sleep(0.3)
 if os.path.basename(sys.argv[0]) == "claude":
-    subprocess.run(["tmux", "set", "-w", "-t", os.environ["TMUX_PANE"], "@agent_state", "done"])
+    subprocess.run(["tmux", "set", "-p", "-t", os.environ["TMUX_PANE"], "@agent_state", "done"])
 sys.stdout.write("\\x1b[?2004h> ")
 sys.stdout.flush()
 for line in sys.stdin:
@@ -242,13 +242,13 @@ class CoordinatorTest(unittest.TestCase):
         self.assertIn("second 'line' $(x)", text)
         self.assertIn("\x1b[200~", text)  # sent as a bracketed paste
 
-        self.tmux("set", "-w", "-t", "=chat:", "@agent_state", "input")
+        self.tmux("set", "-p", "-t", "=chat:", "@agent_state", "input")
         r = self.run_script("send", "chat", "yes", ok=False)
         self.assertIn("waiting on a dialog", r.stderr)
         self.run_script("send", "chat", "forced", "--force", "--delay", "0.2")
         self.assertTrue(self.wait_for(lambda: "forced" in typed.read_text()))
 
-        self.tmux("set", "-w", "-t", "=chat:", "@agent_state", "working")
+        self.tmux("set", "-p", "-t", "=chat:", "@agent_state", "working")
         self.assertIn("mid-turn", self.run_script("send", "chat", "later", "--delay", "0.2").stdout)
         self.assertIn("state working", self.run_script("peek", "chat", "-n", "5").stdout)
         self.close("chat")

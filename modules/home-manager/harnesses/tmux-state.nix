@@ -1,5 +1,5 @@
 # `agent-tmux-state <state>`: publish an agent session's state as the tmux
-# window option @agent_state on $TMUX_PANE, so the tmux status line can count
+# pane option @agent_state on $TMUX_PANE, so the tmux status line can count
 # agents by state and the jump binding can find the ones that need attention.
 # The tmux side (status-right, window-status-format, the jump binding) lives
 # in modules/home-manager/profiles/base/tmux.nix.
@@ -26,8 +26,8 @@ pkgs.writeShellScript "agent-tmux-state" ''
 
   state=$1
   case "$state" in
-    off) ${tmux} set -wu -t "$TMUX_PANE" @agent_state ;;
-    *) ${tmux} set -w -t "$TMUX_PANE" @agent_state "$state" ;;
+    off) ${tmux} set -pu -t "$TMUX_PANE" @agent_state ;;
+    *) ${tmux} set -p -t "$TMUX_PANE" @agent_state "$state" ;;
   esac
 
   # Ring the pane's bell for a blocking request: tmux then raises its own

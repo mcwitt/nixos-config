@@ -1,4 +1,4 @@
-// Publish this OpenCode instance's state to tmux as the window option
+// Publish this OpenCode instance's state to tmux as the pane option
 // @agent_state, through the shared agent-tmux-state script (see
 // ../tmux-state.nix): input while a permission or question waits on the
 // user, working while any session (subagents included) is busy, else done.

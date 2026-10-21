@@ -1,4 +1,4 @@
-# Codex hooks that publish each session's state as the tmux window option
+# Codex hooks that publish each session's state as the tmux pane option
 # @agent_state; see ../tmux-state.nix for the states and the script. The
 # hooks find the pane through $TMUX_PANE, which is why ./default.nix keeps
 # sessions off the shared background server.

@@ -1,4 +1,4 @@
-# Claude Code hooks that publish each session's state as the tmux window
+# Claude Code hooks that publish each session's state as the tmux pane
 # option @agent_state; see ../tmux-state.nix for the states and the script.
 { config, pkgs }:
 let
@@ -28,7 +28,7 @@ let
         fi
         ;;
       idle)
-        [[ $(${tmux} show -wv -t "$TMUX_PANE" @agent_state 2>/dev/null) == working ]] || exit 0
+        [[ $(${tmux} show -pv -t "$TMUX_PANE" @agent_state 2>/dev/null) == working ]] || exit 0
         state=done
         ;;
     esac
