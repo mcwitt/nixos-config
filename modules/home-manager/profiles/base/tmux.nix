@@ -18,7 +18,7 @@ let
 
   # Switch the client in $1 to the next window, cycling in list order, whose
   # agent is blocked on input, else to the next one idle at its prompt.
-  # Claude Code hooks set @agent_state; see harnesses/claude-code/tmux-state.nix.
+  # Agent harnesses set @agent_state; see harnesses/tmux-state.nix.
   nextAgent = pkgs.writeShellScript "tmux-next-agent" ''
     client=$1
     current=$(${tmux} display -p -c "$client" '#{window_id}')
@@ -75,7 +75,7 @@ in
         bind -T copy-mode-vi v send-keys -X begin-selection
         bind -T copy-mode-vi y send-keys -X copy-selection-and-cancel
 
-        # Agent state, set per window by Claude Code hooks as @agent_state:
+        # Agent state, set per window by agent harness hooks as @agent_state:
         # "input" (blocked on a permission prompt or question), "done" (idle
         # at the prompt), "background" (idle, but waiting on background
         # subagents or shell commands) or "working".

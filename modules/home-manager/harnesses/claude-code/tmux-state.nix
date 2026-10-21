@@ -1,47 +1,38 @@
-# Publish each Claude Code session's state as the tmux window option
-# @agent_state, so the tmux status line can show which agents need input.
-# The tmux side (status-right, window-status-format, the jump binding) lives
-# in modules/home-manager/profiles/base/tmux.nix.
+# Claude Code hooks that publish each session's state as the tmux window
+# option @agent_state; see ../tmux-state.nix for the states and the script.
 { config, pkgs }:
 let
   tmux = "${config.programs.tmux.package}/bin/tmux";
+  shared = import ../tmux-state.nix { inherit config pkgs; };
 
+  # The shared states, plus two for Claude Code's hooks:
+  #   stop  the turn ended: background if the payload on stdin lists running
+  #         background subagents or shell commands, which will wake Claude
+  #         when they finish, else done.
+  #   idle  Claude has sat at the prompt for a while: done, but only if the
+  #         state is still working. This corrects a session interrupted
+  #         without a hook, which would otherwise stay working.
   script = pkgs.writeShellScript "claude-tmux-state" ''
-    payload=$(cat)
+    payload=
+    [[ -t 0 ]] || payload=$(cat)
     [[ -n "''${TMUX_PANE:-}" ]] || exit 0
 
     state=$1
     case "$state" in
-      # The turn ended: idle, unless background subagents or shell commands
-      # are still running and will wake Claude when they finish.
       stop)
         if ${pkgs.jq}/bin/jq -e 'any(.background_tasks[]?; .status == "running")' \
-          <<<"$payload" >/dev/null; then
+          <<<"$payload" >/dev/null 2>&1; then
           state=background
         else
           state=done
         fi
         ;;
-      # Claude has sat at the prompt for a minute. This only corrects a
-      # session interrupted with Esc, which fires no hook and stays "working".
       idle)
         [[ $(${tmux} show -wv -t "$TMUX_PANE" @agent_state 2>/dev/null) == working ]] || exit 0
         state=done
         ;;
     esac
-
-    case "$state" in
-      off) ${tmux} set -wu -t "$TMUX_PANE" @agent_state ;;
-      *) ${tmux} set -w -t "$TMUX_PANE" @agent_state "$state" ;;
-    esac
-
-    # Ring the pane's bell for a blocking request: tmux then raises its own
-    # bell flag on the window and passes the bell to an attached terminal.
-    if [[ "$state" == input ]]; then
-      tty=$(${tmux} display -p -t "$TMUX_PANE" '#{pane_tty}')
-      [[ -w "$tty" ]] && printf '\a' >"$tty"
-    fi
-    exit 0
+    exec ${shared} "$state" </dev/null
   '';
 
   hook = state: [
@@ -57,10 +48,6 @@ let
   };
 in
 {
-  # working: Claude is busy. background: the turn ended but background
-  # subagents or shell commands are still running. input: blocked on a
-  # permission prompt or a question. done: idle at the prompt.
-
   # Not on "compact", which can happen mid-turn.
   SessionStart = [ (on "^(startup|resume|clear)$" "done") ];
   UserPromptSubmit = [ (on "" "working") ];

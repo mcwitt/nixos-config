@@ -6,6 +6,9 @@
 }:
 let
   cfg = config.harnesses;
+  tmuxStatePlugin = pkgs.replaceVars ./tmux-state.ts {
+    agentTmuxState = import ../tmux-state.nix { inherit config pkgs; };
+  };
 in
 {
   config = lib.mkIf cfg.enable {
@@ -21,6 +24,7 @@ in
       settings = {
         plugin = [
           "${pkgs.worktrunk.src}/dev/opencode-plugin.ts"
+          "${tmuxStatePlugin}"
         ];
 
       };

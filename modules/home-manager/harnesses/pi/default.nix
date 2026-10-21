@@ -150,6 +150,11 @@ in
         harnesses.pi.finalPackage = package;
         harnesses.pi.acpPackage = acpPackage;
 
+        # Publish each session's state to tmux; see ./tmux-state.ts.
+        harnesses.pi.extensions."tmux-state.ts" = pkgs.replaceVars ./tmux-state.ts {
+          agentTmuxState = import ../tmux-state.nix { inherit config pkgs; };
+        };
+
         # pi has no skills option either; it discovers skills by scanning
         # ~/.pi/agent/skills for SKILL.md at startup.
         home.file =

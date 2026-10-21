@@ -33,10 +33,10 @@ The user can set defaults for launched sessions, such as a harness, a model or a
 Notes:
 
 - **Model and effort.** Add the harness's own flags: `--model` and `--effort` (Claude Code, Antigravity), `-m` and `-c model_reasoning_effort=<level>` (Codex), `--model` and `--thinking` (pi), `-m provider/model` (OpenCode).
-- **Codex** needs `--no-daemon`. Without it, Codex runs tools in a shared background server whose environment lacks the session's tmux pane.
+- **Codex** needs `--no-daemon`. Without it, Codex joins a shared background server if one is running, and that server's environment lacks the session's tmux pane.
 - **Resuming.** Where the table resumes by ID, take it from `coord show <name> --field session_id`. Codex, OpenCode and Antigravity have no launch-time ID; their resume continues the newest conversation in the directory, which is the right one when each session has its own worktree. If several sessions shared a directory, use the harness's own session list or picker to choose.
 - **OpenCode** does not run a `/command` given as `--prompt`, and ignores `--prompt` on resume. Launch without it, then `coord send` the text.
-- **Startup screens.** New directories and changed configuration can show a dialog first: folder trust, hook review (Codex shows one on every start after its configuration is rewritten), or an update notice. `launch` reports it, and `send` refuses while it is open. Ask the user to attach and answer it.
+- **Startup screens.** New directories and changed configuration can show a dialog first: folder trust, hook review, or an update notice. `launch` reports it, and `send` refuses while it is open. Ask the user to attach and answer it.
 
 ## Launching a session
 
@@ -57,7 +57,7 @@ Notes:
      claude --name {name} --session-id {session_id} --effort high -- {prompt}
    ```
 
-   The helper waits for the agent to start (until Claude Code reports a state, otherwise up to `--wait` seconds, default 15), then prints the state, the last lines of the screen, any dialog, the session ID and the attach command. If the agent exits with an error, its pane stays open so that the error stays visible.
+   The helper waits for the agent to start (until the agent reports a state, otherwise up to `--wait` seconds, default 15), then prints the state, the last lines of the screen, any dialog, the session ID and the attach command. If the agent exits with an error, its pane stays open so that the error stays visible.
 5. **Report.** See *Reporting* below.
 
 ## Isolation
@@ -86,13 +86,13 @@ Liveness and state always come from tmux. Run `coord list` before every report a
 `list` shows every tmux session with:
 
 - **AGENT**: the launched command, such as `claude` or `codex`.
-- **STATE**: the `@agent_state` that the Claude Code tmux hooks publish. `working` means busy. `input` means blocked on a permission prompt or a question, so the user must look at it. `done` means idle at the prompt. `exited(N)` means the agent failed and the pane is kept open. `-` means nothing is reported, which is always the case for agents without the hooks; use `peek` for those.
+- **STATE**: the `@agent_state` that the tmux hooks of Claude Code, Codex, OpenCode and pi publish. `working` means busy. `input` means blocked on a permission prompt or a question, so the user must look at it. `done` means idle at the prompt. `exited(N)` means the agent failed and the pane is kept open. `-` means nothing is reported, which is always the case for agents without the hooks, such as Antigravity; use `peek` for those.
 - **ATT**, **AGE** and **IDLE**: whether a terminal is attached, the time since the session was created, and the time since the last activity.
 - **DIR** and **BRIEF**: the working directory and the first line of the brief. Sessions that the helper did not start show `(not launched by this helper)`.
 
 `*` marks this session. Use `list --json` when you need the fields programmatically, and `coord show <name>` for a session's launch record: its command, brief, directory, worktree and session ID. The records (`$XDG_STATE_HOME/agent-coordinator/sessions/<name>.json`) are history, not liveness.
 
-The user sees the Claude Code states in the tmux status line. There, `prefix a` jumps to the next session waiting for them and `prefix A` lists those sessions.
+The user sees these states in the tmux status line. There, `prefix a` jumps to the next session waiting for them and `prefix A` lists those sessions.
 
 ## Reporting
 

@@ -321,8 +321,8 @@ def start(rec: dict, wait: float) -> int:
         "new-session", "-d", "-s", name, "-c", rec["dir"],
         sys.executable, str(Path(__file__).resolve()), "_exec", str(record_path(name)),
     )  # fmt: skip
-    # Claude Code's tmux-state hooks set @agent_state once it is up; other
-    # agents just get the wait.
+    # The harnesses' tmux-state hooks set @agent_state once the agent is up
+    # (see harnesses/tmux-state.nix); other agents just get the wait.
     deadline = time.monotonic() + wait
     while time.monotonic() < deadline:
         time.sleep(0.25)
