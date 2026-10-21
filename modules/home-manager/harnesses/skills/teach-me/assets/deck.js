@@ -603,7 +603,8 @@
   // the last line of a range and equals {line} for a single line.
   function sourceHref(path, line, end = line) {
     const tpl = S.deck.sourceUrl;
-    if (!tpl) return null;
+    // An absolute path (a file saved in the deck directory) has no place in the template.
+    if (!tpl || path.startsWith("/")) return null;
     return tpl.replaceAll("{path}", encodeURI(path)).replaceAll("{line}", line).replaceAll("{end}", end);
   }
 

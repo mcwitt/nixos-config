@@ -531,7 +531,10 @@ def _plain_excerpt(blk: dict, where: str, root: Path, files: dict[str, FileDiff]
     if path not in sources:
         sources.append(path)
     try:
-        lines = path.read_text(errors="replace").splitlines()
+        # Split on newlines only: splitlines() also breaks at form feeds and
+        # other separators, which would shift line numbers off the file's.
+        lines = path.read_text(errors="replace").removesuffix("\n").split("\n")
+        lines = [s.removesuffix("\r") for s in lines] if lines != [""] else []
     except OSError as e:
         errors.append(f"{where}: cannot read {path}: {e.strerror}")
         return None
@@ -1381,12 +1384,11 @@ def print_report(deck: Deck):
     checks = deck.checks()
     if not checks:
         print("no check slides; add a final check unless the deck is trivial")
-        return
-    if not main or not main[-1]["quiz"]:
+    elif not main or not main[-1]["quiz"]:
         print(f"{len(checks)} check slide(s); the last authored slide is not a check")
     else:
         print(f"{len(checks)} check slide(s), ending with a final check")
-    unchecked = {s["id"] for s in deck.unchecked()}
+    unchecked = [s["id"] for s in deck.unchecked()]
     seen_by = defaultdict(list)
     for chk in checks:
         for q in chk["quiz"]:
@@ -1401,10 +1403,11 @@ def print_report(deck: Deck):
         else:
             note = f"checked by {', '.join(dict.fromkeys(seen_by[s['id']]))}" if s["id"] not in unchecked else "NOT CHECKED"
         print(f"  {n:>2}. {s['id']}: {s['title']}  [{note}]")
-    if unchecked:
+    # Without checks every slide is unchecked; the line above already says so.
+    if checks and unchecked:
         print(
             f"\nwarning: {len(unchecked)} content slide(s) are not the `see` of any check question and not in "
-            f"the appendix: {', '.join(s['id'] for s in deck.unchecked())}. Point a question at each one the "
+            f"the appendix: {', '.join(unchecked)}. Point a question at each one the "
             "goal depends on, move the rest to the appendix, or leave a slide that needs no check."
         )
 
@@ -1415,7 +1418,8 @@ def cmd_hunks(args):
     if not diffs:
         try:
             spec = json.loads((deck_dir / "deck.json").read_text())
-            for d in spec.get("diffs") or ["change.diff"]:
+            # As in load_deck: a declared empty list means no diffs.
+            for d in spec.get("diffs", ["change.diff"]) or []:
                 d = {"file": d} if isinstance(d, str) else d
                 diffs.append(d.get("file", "") + (f"={d['label']}" if d.get("label") else ""))
         except (OSError, ValueError):

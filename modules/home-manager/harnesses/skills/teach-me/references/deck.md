@@ -20,7 +20,7 @@ A deck directory holds `deck.json` and any files it quotes from there. `deck.py 
 - `subtitle`, `scope`: one line each, shown under the title. Name the sources and their versions in `scope`.
 - `goal` (required unless the deck has `diffs`): what the reader should be able to do afterwards. The contents panel shows it, and `check` prints it.
 - `root` (optional): the directory that relative excerpt paths resolve against, absolute or relative to the deck directory; defaults to the deck directory. With `root` set, quote files saved in the deck directory by absolute path.
-- `source_url` (optional): a link template to a file, with `{path}`, `{line}` and `{end}` placeholders, where `{path}` is the excerpt's path as written. Each excerpt links to its first line, and selected lines get a "View in context" link to their range; `{end}` is the range's last line and equals `{line}` for a single line. Set it when the quoted files are on GitHub at a fixed commit or tag.
+- `source_url` (optional): a link template to a file, with `{path}`, `{line}` and `{end}` placeholders, where `{path}` is the excerpt's path as written; excerpts quoted by absolute path get no link. Each excerpt links to its first line, and selected lines get a "View in context" link to their range; `{end}` is the range's last line and equals `{line}` for a single line. Set it when the quoted files are on GitHub at a fixed commit or tag.
 - `diffs`, `appendix` (optional): diff files and appendix groups for walking through a change. A deck that declares `diffs` must show every changed line; the assisted-review skill describes them in its `references/diffs.md`.
 
 ## Slides
