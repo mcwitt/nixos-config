@@ -33,12 +33,18 @@ Budget by the change, counting checks but not the appendix: two to four slides f
 
 - **Why**: the problem or motivation, and what was wrong or missing before. For a small change, one slide with what.
 - **What**: the resulting behavior and the overall approach, at a high level.
-- **Key ideas**: the concepts, data structures and algorithms the reader must grasp to judge the change, one slide each, in order of conceptual dependency and execution flow. Explain each with one diagram or concrete example and the diff excerpt that implements it. Ideas the decision does not hinge on go to the appendix.
+- **Key ideas**: the concepts, data structures and algorithms the reader must grasp to judge the change, one slide each, in order of conceptual dependency and execution flow. Explain each with a concrete example, or a diagram where the idea has a shape, and the diff excerpt that implements it. Ideas the decision does not hinge on go to the appendix.
 - **Risks and tradeoffs**: what the approach costs, what it rules out, the alternatives, and what could break. One `risk` callout per risk.
 - **Validation**: how the change was tested or measured. One slide unless a result is surprising. Separate checks you ran from ones you only read.
 - **Appendix**: the remaining changes, in curated groups with short explanations.
 
 Show changed code where it teaches the idea, in small diff excerpts selected by line range. A hunk can be split across slides, and lines can appear more than once.
+
+Write for a reader who scans before reading:
+
+- Enumerate in lists, not in sentences: a numbered list for steps or ordered changes, a bulleted list for parallel items such as the changes a pull request makes or the files it touches.
+- Compare in tables: before and after, alternatives, or options with their costs.
+- Lead each list item with the key term or claim in bold when the items are longer than a line.
 
 Keep the reader oriented in time and in the diff:
 
