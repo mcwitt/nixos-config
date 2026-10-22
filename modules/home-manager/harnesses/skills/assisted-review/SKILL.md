@@ -40,6 +40,13 @@ Budget by the change, counting checks but not the appendix: two to four slides f
 
 Show changed code where it teaches the idea, in small diff excerpts selected by line range. A hunk can be split across slides, and lines can appear more than once.
 
+Keep the reader oriented in time and in the diff:
+
+- Say in words what changed, not only in a diagram or an excerpt. For a fix, say whether it fixes a crash, a wrong result or a slowdown.
+- Label every diagram or example of behavior as before or after the change, or show both side by side with the same layout.
+- Open a slide that explains unchanged code for context by saying so; otherwise the reader looks for its diff.
+- Give each slide an idea that no other slide covers. When two slides would make the same point, merge them.
+
 Coverage is the one firm rule: every changed line must appear on some slide. Put lines that teach nothing new in appendix groups, such as renames, formatting, generated files, test fixtures or plumbing. Give each group a title and a one- or two-sentence note saying what the changes are and why they are safe to skim. `check` fails while any changed line is missing and prints a block you can paste for each gap.
 
 If you notice a concrete correctness concern, raise it on the relevant slide as a `risk` callout and say how sure you are. Keep the deck about understanding; fixing the code is separate work.

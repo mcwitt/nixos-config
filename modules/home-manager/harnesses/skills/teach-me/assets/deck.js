@@ -26,7 +26,9 @@
     visited: new Set(),
     cleanups: [],
     banners: new Map(),
-    askW: null,
+    groupsOpen: new Map(),
+    answerDrafts: {},
+    revising: new Set(),
   };
 
   // ---- small helpers ----
@@ -173,6 +175,36 @@
       } catch {}
     }
     return t.innerHTML;
+  }
+
+  // Math spans in plain text, found by the same rules as in Markdown.
+  function mathSpans(text) {
+    const out = [];
+    for (let i = 0; i < text.length; i++) {
+      if (text[i] === "\\" && text[i + 1] === "$") i++;
+      else if (text[i] === "$" || text[i] === "\\") {
+        const rest = text.slice(i);
+        for (const [re] of MATH_INLINE) {
+          const m = re.exec(rest);
+          if (!m) continue;
+          out.push({ at: i, end: i + m[0].length, tex: m[1] });
+          i += m[0].length - 1;
+          break;
+        }
+      }
+    }
+    return out;
+  }
+
+  // Plain text, such as the reader's question or a quote, with its math typeset inline.
+  function mathText(text) {
+    let html = "";
+    let at = 0;
+    for (const m of mathSpans(text)) {
+      html += esc(text.slice(at, m.at)) + mathHtml(m.tex, false);
+      at = m.end;
+    }
+    return typeset(html + esc(text.slice(at)));
   }
 
   function md(src) {
@@ -381,6 +413,9 @@
     const s = slide();
     const el = $("#slide");
     const top = el.scrollTop;
+    // An answer being written keeps its focus and cursor when the slide redraws.
+    const typing = document.activeElement?.closest("#slide") && document.activeElement.dataset.draft;
+    const { selectionStart, selectionEnd } = document.activeElement || {};
     const inner = h(
       "div",
       { class: "slide-inner" },
@@ -394,17 +429,40 @@
       ),
       h("h2", { class: "slide-title" }, s.title),
     );
-    for (const b of s.blocks) inner.append(renderBlock(b));
-    if (s.quiz.length) inner.append(quizEl(s));
+    inner.append(...slideBody(s));
     if (S.idx === S.deck.slides.length - 1) inner.append(tallyEl());
     inner.append(nextUp());
     el.replaceChildren(inner);
     markAskable(el);
     paintQuoted();
     el.scrollTop = keepScroll ? top : 0;
+    const field = typing && el.querySelector(`[data-draft="${CSS.escape(typing)}"]`);
+    if (field) {
+      field.focus({ preventScroll: true });
+      field.setSelectionRange(selectionStart, selectionEnd);
+    }
   }
 
-  function renderBlock(b) {
+  // A slide's content. `where` names each block as deck.json does, so that
+  // problems drawing it can be reported against the right place; `audit` is
+  // set while drawing offscreen (see audit below).
+  function slideBody(s, { audit = null } = {}) {
+    const out = s.blocks.map((b, k) => renderBlock(b, { where: `blocks[${k}]`, audit }));
+    if (s.quiz.length) {
+      const quiz = quizEl(s);
+      quiz.dataset.where = "quiz";
+      out.push(quiz);
+    }
+    return out;
+  }
+
+  function renderBlock(b, { where, audit }) {
+    const el = blockEl(b, { where, audit });
+    el.dataset.where = where;
+    return el;
+  }
+
+  function blockEl(b, opts) {
     if (b.type === "md") return h("div", { class: "block" }, mdEl(b.md));
     if (b.type === "callout") {
       return h(
@@ -415,8 +473,36 @@
       );
     }
     if (b.type === "excerpt") return excerptEl(b);
-    if (b.type === "diagram") return diagramEl(b.diagram);
+    if (b.type === "diagram") return diagramEl(b.diagram, opts);
+    if (b.type === "group") return groupEl(b, opts);
     return h("div");
+  }
+
+  // An appendix group: a note saying whether the changes deserve a close
+  // look, with a long diff folded away until the reader opens it. A group
+  // alone on its slide shares the slide's title, so the stylesheet hides its own.
+  const FOLD_LINES = 30;
+  function groupEl(b, { where, audit }) {
+    const key = `${slide().id}:${where}`;
+    let adds = 0;
+    let dels = 0;
+    for (const ex of b.blocks) {
+      for (const p of ex.pieces) {
+        for (const r of S.hunks.get(p.hunk).rows.slice(p.lo, p.hi + 1)) {
+          if (r[0] === "+") adds++;
+          else if (r[0] === "-") dels++;
+        }
+      }
+    }
+    const files = new Set(b.blocks.map((ex) => ex.file)).size;
+    const diffs = h(
+      "details",
+      { class: "group-diffs", open: audit || (S.groupsOpen.get(key) ?? adds + dels <= FOLD_LINES) },
+      h("summary", {}, `Changes in ${files} file${files === 1 ? "" : "s"}`, adds || dels ? h("span", { class: "ex-stat" }, h("span", { class: "a" }, ` +${adds}`), " ", h("span", { class: "d" }, `−${dels}`)) : null),
+      b.blocks.map((ex, k) => renderBlock(ex, { where: `${where}.blocks[${k}]`, audit })),
+    );
+    if (!audit) diffs.addEventListener("toggle", () => S.groupsOpen.set(key, diffs.open));
+    return h("section", { class: "block group wide" }, h("h3", {}, b.title), mdEl(b.md), diffs);
   }
 
   // The first slide of the next section, or -1. Slides without a section
@@ -511,26 +597,45 @@
 
   // ---- checks ----
 
+  // A check question is multiple choice, or a written answer (prose or
+  // code) that the session judges against the deck's rubric.
+  const VERDICT = { correct: "Correct.", partial: "Partly right.", incorrect: "Not yet." };
+
   // The reader's choice on question i of check slide s, or null.
   function choiceOf(s, i) {
     const c = S.quiz[s.id]?.[i];
-    return Number.isInteger(c) && c >= 0 && c < s.quiz[i].choices.length ? c : null;
+    return s.quiz[i].kind === "choice" && Number.isInteger(c) && c >= 0 && c < s.quiz[i].choices.length ? c : null;
+  }
+
+  // The reader's written answer to question i, {text, state, verdict, feedback}, or null.
+  function writtenOf(s, i) {
+    const a = S.quiz[s.id]?.[i];
+    return s.quiz[i].kind !== "choice" && a && typeof a === "object" ? a : null;
+  }
+
+  // Where question i stands: null (open), "waiting" (not judged yet), true or false.
+  function outcome(s, i) {
+    const c = choiceOf(s, i);
+    if (c != null) return s.quiz[i].choices[c].correct;
+    const a = writtenOf(s, i);
+    if (!a) return null;
+    return a.state === "judged" ? a.verdict === "correct" : "waiting";
   }
 
   function score(s) {
-    const picks = s.quiz.map((q, i) => choiceOf(s, i));
-    const done = picks.filter((c) => c != null).length;
-    const right = picks.filter((c, i) => c != null && s.quiz[i].choices[c].correct).length;
-    return { total: s.quiz.length, done, right };
+    const o = s.quiz.map((q, i) => outcome(s, i));
+    const count = (f) => o.filter(f).length;
+    return { total: o.length, done: count((x) => typeof x === "boolean"), right: count((x) => x === true), waiting: count((x) => x === "waiting") };
   }
 
   function scoreText(s) {
-    const { total, done, right } = score(s);
-    return done ? `${right} of ${total} correct` : `${total} question${total === 1 ? "" : "s"}`;
+    const { total, done, right, waiting } = score(s);
+    const parts = [done ? `${right} of ${total} correct` : "", waiting ? `${waiting} waiting` : ""].filter(Boolean);
+    return parts.join(", ") || `${total} question${total === 1 ? "" : "s"}`;
   }
 
   function seeLink(s, q, ch) {
-    const i = slideIndex(ch.see || q.see);
+    const i = slideIndex(ch?.see || q.see);
     if (i < 0) return null;
     const target = S.deck.slides[i];
     return h("a", { href: `#${target.id}` }, `See slide ${i + 1}: ${target.title}`);
@@ -539,59 +644,171 @@
   function quizEl(s) {
     const root = h("div", { class: "quiz" });
     s.quiz.forEach((q, i) => {
-      const c = choiceOf(s, i);
-      const ch = c == null ? null : q.choices[c];
-      const card = h(
-        "section",
-        { class: `block check ${ch ? (ch.correct ? "right" : "wrong") : "open"}`, "aria-label": `Question ${i + 1}` },
-        h("div", { class: "check-label" }, `Question ${i + 1} of ${s.quiz.length}`),
-        mdEl(q.q, "prose check-q"),
+      const o = outcome(s, i);
+      const verdict = writtenOf(s, i)?.verdict;
+      const state = o === true ? "right" : o === false ? (verdict === "partial" ? "partial" : "wrong") : "open";
+      const kind = { prose: " · in your own words", code: " · code" }[q.kind] || "";
+      root.append(
         h(
-          "ol",
-          { class: "choices" },
-          q.choices.map((x, j) =>
-            h(
-              "li",
-              {},
-              h(
-                "button",
-                {
-                  type: "button",
-                  class: ["choice", j === c && "chosen", ch && x.correct && "correct"].filter(Boolean).join(" "),
-                  disabled: !!ch,
-                  "aria-pressed": ch ? String(j === c) : null,
-                  onclick: () => answer(s, i, j),
-                },
-                h("span", { class: "key", "aria-hidden": "true" }, String(j + 1)),
-                h("span", { class: "choice-text", html: mdInline(x.text) }),
-              ),
-            ),
-          ),
+          "section",
+          { class: `block check ${state}`, "aria-label": `Question ${i + 1}`, "data-question": i },
+          h("div", { class: "check-label" }, `Question ${i + 1} of ${s.quiz.length}${kind}`),
+          mdEl(q.q, "prose check-q"),
+          q.kind === "choice" ? choiceParts(s, i) : writtenParts(s, i),
         ),
       );
-      if (ch) {
-        card.append(
-          h(
-            "div",
-            { class: "check-feedback", tabindex: "-1" },
-            h("div", { class: "verdict" }, ch.correct ? "Correct." : "Not quite."),
-            mdEl(ch.why),
-            h(
-              "div",
-              { class: "row" },
-              ch.correct ? null : seeLink(s, q, ch),
-              h("button", { type: "button", class: "ghost small", onclick: () => disagree(s, i) }, "Disagree? Ask"),
-            ),
-          ),
-        );
-      }
-      root.append(card);
     });
-    const { done, total } = score(s);
-    if (done === total) {
+    const { done, waiting, total } = score(s);
+    if (done + waiting === total) {
       root.append(h("div", { class: "check-foot" }, h("button", { type: "button", class: "ghost small", onclick: () => retake(s) }, "Retake this check")));
     }
     return root;
+  }
+
+  function choiceParts(s, i) {
+    const q = s.quiz[i];
+    const c = choiceOf(s, i);
+    const ch = c == null ? null : q.choices[c];
+    const list = h(
+      "ol",
+      { class: "choices" },
+      q.choices.map((x, j) =>
+        h(
+          "li",
+          {},
+          h(
+            "button",
+            {
+              type: "button",
+              class: ["choice", j === c && "chosen", ch && x.correct && "correct"].filter(Boolean).join(" "),
+              disabled: !!ch,
+              "aria-pressed": ch ? String(j === c) : null,
+              onclick: () => answer(s, i, j),
+            },
+            h("span", { class: "key", "aria-hidden": "true" }, String(j + 1)),
+            h("span", { class: "choice-text", html: mdInline(x.text) }),
+          ),
+        ),
+      ),
+    );
+    return [list, ch && feedbackEl(s, i, ch.correct ? "Correct." : "Not quite.", mdEl(ch.why), { see: ch.correct ? null : seeLink(s, q, ch) })];
+  }
+
+  function feedbackEl(s, i, verdict, body, { see = null, model = null, revise = null } = {}) {
+    return h(
+      "div",
+      { class: "check-feedback", tabindex: "-1" },
+      h("div", { class: "verdict" }, verdict),
+      body,
+      model,
+      h("div", { class: "row" }, see, revise, h("button", { type: "button", class: "ghost small", onclick: () => disagree(s, i) }, "Disagree? Ask")),
+    );
+  }
+
+  // A written answer: an editor until it is submitted, then the answer with
+  // its status, and once judged the verdict, feedback and a model answer.
+  function writtenParts(s, i) {
+    const q = s.quiz[i];
+    const a = writtenOf(s, i);
+    const key = `${s.id}:${i}`;
+    if (!a || S.revising.has(key)) {
+      const value = S.answerDrafts[key] ?? a?.text ?? q.starter ?? "";
+      const input = q.kind === "code" ? codeInput(value, q.language) : h("textarea", { class: "answer-input", rows: 4, placeholder: "Answer in your own words" });
+      const field = input.matches("textarea") ? input : input.querySelector("textarea");
+      field.value = value;
+      field.dataset.draft = key;
+      const submit = () => submitWritten(s, i, field.value);
+      field.addEventListener("input", () => {
+        S.answerDrafts[key] = field.value;
+        store.set("answer-drafts", S.answerDrafts);
+      });
+      field.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+          e.preventDefault();
+          submit();
+        }
+      });
+      return [
+        input,
+        h(
+          "div",
+          { class: "answer-row" },
+          h("button", { type: "button", class: "primary small", onclick: submit }, "Submit"),
+          a ? h("button", { type: "button", class: "ghost small", onclick: () => (S.revising.delete(key), renderSlide({ keepScroll: true })) }, "Cancel") : null,
+          h("span", { class: "hint" }, `Ctrl+Enter submits; the ${who()} judges the answer${q.test ? " and runs its tests" : ""}`),
+        ),
+      ];
+    }
+    const given = h("div", { class: "answer-given" }, q.kind === "code" ? codeBlock(a.text, q.language) : h("div", { class: "answer-text", html: mathText(a.text) }));
+    if (a.state !== "judged") {
+      const status = a.state === "judging" ? h("span", { class: "dots" }, `The ${who()} is judging`) : `Waiting for the ${who()} · `;
+      return [given, h("div", { class: "msg-state" }, status, h("span", { "data-since": a.at }))];
+    }
+    const model = q.model
+      ? h("details", { class: "model-answer" }, h("summary", {}, "Show a model answer"), q.kind === "code" ? codeBlock(q.model, q.language) : mdEl(q.model))
+      : null;
+    const revise = h(
+      "button",
+      { type: "button", class: "ghost small", onclick: () => (S.revising.add(key), renderSlide({ keepScroll: true }), $(`#slide [data-draft="${key}"]`)?.focus()) },
+      "Revise and resubmit",
+    );
+    const see = a.verdict === "correct" ? null : seeLink(s, q);
+    return [given, feedbackEl(s, i, VERDICT[a.verdict] || "Judged.", mdEl(a.feedback || ""), { see, model, revise })];
+  }
+
+  async function submitWritten(s, i, text) {
+    const key = `${s.id}:${i}`;
+    if (!text.trim()) return toast("Write an answer first.");
+    try {
+      await post("api/answer", { slide: s.id, question: i, text });
+    } catch (e) {
+      return toast(`Could not submit the answer: ${e.message}`);
+    }
+    delete S.answerDrafts[key];
+    store.set("answer-drafts", S.answerDrafts);
+    S.revising.delete(key);
+    await loadQuiz();
+    renderSlide({ keepScroll: true });
+    renderTrack();
+    renderToc();
+  }
+
+  const highlight = (text, lang) => {
+    if (window.hljs && lang && hljs.getLanguage(lang)) {
+      try {
+        return hljs.highlight(text, { language: lang, ignoreIllegals: true }).value;
+      } catch {}
+    }
+    return esc(text);
+  };
+  const codeBlock = (text, lang) => h("pre", { class: "code-answer" }, h("code", { html: highlight(text, lang) }));
+
+  // A code editor: a transparent textarea over a highlighted copy of its
+  // text. Tab indents and Enter keeps the line's indentation; Escape then
+  // Tab leaves the editor.
+  function codeInput(value, lang) {
+    const code = h("code");
+    const ta = h("textarea", { class: "code-edit", spellcheck: "false", autocapitalize: "off", autocomplete: "off", "aria-label": "Your code" });
+    const paint = () => (code.innerHTML = highlight(ta.value, lang) + "\n");
+    let leaving = false;
+    ta.addEventListener("input", paint);
+    ta.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") leaving = true;
+      else if (e.key === "Tab" && !leaving && !e.shiftKey) {
+        e.preventDefault();
+        document.execCommand("insertText", false, "    ");
+      } else if (e.key === "Enter" && !e.ctrlKey && !e.metaKey && !e.isComposing) {
+        const line = ta.value.slice(ta.value.lastIndexOf("\n", ta.selectionStart - 1) + 1, ta.selectionStart);
+        const indent = line.match(/^[ \t]*/)[0];
+        if (indent) {
+          e.preventDefault();
+          document.execCommand("insertText", false, "\n" + indent);
+        }
+      }
+      if (e.key !== "Escape" && e.key !== "Tab") leaving = false;
+    });
+    queueMicrotask(paint);
+    return h("div", { class: "code-input" }, h("pre", { "aria-hidden": "true" }, code), ta);
   }
 
   async function record(s, i, choice) {
@@ -612,24 +829,31 @@
     renderSlide({ keepScroll: true });
     renderTrack();
     renderToc();
-    const fb = $("#slide").querySelectorAll(".check-feedback")[s.quiz.slice(0, i + 1).filter((q, k) => choiceOf(s, k) != null).length - 1];
+    const fb = $(`#slide [data-question="${i}"] .check-feedback`);
     if (fb) {
       fb.focus({ preventScroll: true });
       fb.scrollIntoView({ block: "nearest" });
     }
   }
 
-  function retake(s) {
-    for (let i = 0; i < s.quiz.length; i++) if (choiceOf(s, i) != null) record(s, i, null);
+  // The server keeps an answer the session is judging, so re-read what it kept.
+  async function retake(s) {
+    const clearing = [];
+    for (let i = 0; i < s.quiz.length; i++) if (outcome(s, i) != null) clearing.push(record(s, i, null));
+    render();
+    await Promise.all(clearing);
+    await loadQuiz();
     render();
   }
 
-  // Quote the question, the reader's answer and the key into the question box.
+  // Quote the question, the reader's answer and the key or feedback into the question box.
   function disagree(s, i) {
     const q = s.quiz[i];
-    const mine = q.choices[choiceOf(s, i)];
-    const key = q.choices.find((x) => x.correct);
-    addRef(quote(`Question: ${q.q}\nMy answer: ${mine.text}\nMarked correct: ${key.text}`, "quiz"));
+    const a = writtenOf(s, i);
+    const text = a
+      ? `Question: ${q.q}\nMy answer: ${a.text}\nFeedback: ${a.feedback}`
+      : `Question: ${q.q}\nMy answer: ${q.choices[choiceOf(s, i)].text}\nMarked correct: ${q.choices.find((x) => x.correct).text}`;
+    addRef(quote(text, "quiz"));
     if (narrow()) $("#ask").classList.add("open");
     $("#question").focus();
   }
@@ -648,8 +872,7 @@
       right += sc.right;
       if (sc.done < sc.total) open.push([s, i]);
       s.quiz.forEach((q, k) => {
-        const c = choiceOf(s, k);
-        if (c != null && !q.choices[c].correct) missed.push([s, i, q, q.choices[c]]);
+        if (outcome(s, k) === false) missed.push([s, i, q, q.choices[choiceOf(s, k)]]);
       });
     }
     const item = (s, i) => h("a", { href: `#${s.id}` }, `${i + 1}. ${s.title}`);
@@ -664,7 +887,7 @@
             missed.map(([s, i, q, ch]) => h("li", {}, h("span", { html: mdInline(q.q) }), " ", h("span", { class: "tally-where" }, "(", item(s, i), ") · "), seeLink(s, q, ch))),
           )
         : null,
-      open.length ? h("p", {}, "Not finished: ", ...open.flatMap(([s, i], k) => [k ? ", " : "", item(s, i)])) : null,
+      open.length ? h("p", {}, "Not finished or not judged yet: ", ...open.flatMap(([s, i], k) => [k ? ", " : "", item(s, i)])) : null,
       !missed.length && !open.length ? h("p", {}, "Nothing missed.") : null,
     );
   }
@@ -830,6 +1053,7 @@
       (tr) => +tr.dataset.row >= r.lo && +tr.dataset.row <= r.hi,
     );
     if (!trs.length) return;
+    trs[0].closest("details")?.setAttribute("open", "");
     trs[0].scrollIntoView({ block: "center", behavior: "smooth" });
     for (const tr of trs) tr.classList.add("quoted");
     setTimeout(paintQuoted, 1600);
@@ -897,19 +1121,21 @@
 
   let mermaidReady = null;
   let mermaidN = 0;
+  const LOAD_FAILED = "could not load the diagram library";
 
   function loadMermaid() {
     mermaidReady ||= new Promise((resolve, reject) => {
       const s = document.createElement("script");
       Object.assign(s, { src: MERMAID.src, integrity: MERMAID.integrity, crossOrigin: "anonymous" });
       s.onload = () => resolve(window.mermaid);
-      s.onerror = () => reject(new Error("could not load the diagram library"));
+      s.onerror = () => reject(new Error(LOAD_FAILED));
       document.head.append(s);
     });
     return mermaidReady;
   }
 
   async function mermaidInto(el, src) {
+    let id = null;
     el.replaceChildren(h("span", { class: "thread-empty" }, "Drawing the diagram…"));
     try {
       const m = await loadMermaid();
@@ -947,12 +1173,17 @@
           fontSize: "15px",
         },
       });
-      const { svg } = await m.render(`mmd-${++mermaidN}`, src);
+      id = `mmd-${++mermaidN}`;
+      const { svg } = await m.render(id, src);
       el.innerHTML = svg;
       fitDiagram(el.querySelector("svg"), el);
       markMermaid(el);
     } catch (e) {
-      el.replaceChildren(h("pre", { class: "diagram-error" }, `The diagram failed to draw: ${e.message || e}\n\n${src}`));
+      // Only a diagram the library rejects is the author's to fix, not a library that failed to load.
+      // A failed render leaves Mermaid's error graphic at the end of the page.
+      if (id) for (const junk of [document.getElementById(id), document.getElementById(`d${id}`)]) junk?.remove();
+      const issue = e.message === LOAD_FAILED ? null : `Mermaid: ${e.message || e}`;
+      el.replaceChildren(h("pre", { class: "diagram-error", "data-issue": issue }, `The diagram failed to draw: ${e.message || e}\n\n${src}`));
     }
   }
 
@@ -970,15 +1201,39 @@
     if (natural * scale > box.clientWidth) box.style.justifyItems = "start";
   }
 
-  function diagramEl(d) {
+  // A hand-drawn SVG shows at a fixed scale of its viewBox, shrinking to
+  // fit the column but never growing past that, so its text stays near the
+  // size of the prose.
+  const SVG_SCALE = 1.25;
+  function drawSvg(el, svg) {
+    el.innerHTML = svg;
+    const s = el.querySelector("svg");
+    const w = s?.viewBox?.baseVal?.width;
+    if (w && !s.hasAttribute("width")) s.setAttribute("width", Math.round(w * SVG_SCALE));
+  }
+
+  function diagramEl(d, { where, audit }) {
     const body = h("div", { class: "diagram-body" });
     const fig = h("figure", { class: "diagram wide" }, body);
-    if (d.type === "svg") body.innerHTML = d.svg;
-    else if (d.type === "mermaid") mermaidInto(body, d.source);
-    else if (d.type === "steps") stepper(fig, body, d);
+    if (d.type === "svg") drawSvg(body, d.svg);
+    else if (d.type === "mermaid") {
+      const drawn = mermaidInto(body, d.source);
+      audit?.push(drawn);
+    }
+    else if (d.type === "steps" && audit) {
+      // Every frame at once, each named as deck.json names it.
+      body.remove();
+      d.frames.forEach((fr, k) => {
+        const frame = h("div", { class: "diagram-body", "data-where": `${where}.frames[${k}]` });
+        fig.append(frame);
+        if (fr.svg) drawSvg(frame, fr.svg);
+        else audit.push(mermaidInto(frame, fr.mermaid));
+      });
+    } else if (d.type === "steps") stepper(fig, body, d);
     else if (d.type === "html") {
       body.innerHTML = d.html;
-      if (d.script) runWidget(body, d.script);
+      // A widget's script runs only on the slide the reader sees.
+      if (d.script && !audit) runWidget(body, d.script, where);
     }
     if (d.caption) fig.append(h("figcaption", {}, d.caption));
     return fig;
@@ -999,7 +1254,7 @@
     const show = async (k) => {
       i = (k + n) % n;
       const fr = d.frames[i];
-      if (fr.svg) body.innerHTML = fr.svg;
+      if (fr.svg) drawSvg(body, fr.svg);
       else await mermaidInto(body, fr.mermaid);
       caption.textContent = fr.caption || "";
       count.textContent = `${i + 1} / ${n}`;
@@ -1040,7 +1295,7 @@
     if (play && !matchMedia("(prefers-reduced-motion: reduce)").matches) play.click();
   }
 
-  function runWidget(root, script) {
+  function runWidget(root, script, where) {
     const api = {
       dark: isDark,
       ask: (text) => addRef(quote(String(text), "diagram")),
@@ -1050,16 +1305,32 @@
       new Function("root", "api", script)(root, api);
     } catch (e) {
       root.append(h("pre", { class: "diagram-error" }, `The interactive diagram failed: ${e.message}`));
+      reportIssues(S.deck.version, [{ slide: slide().id, where, message: `script: ${e.message}` }]);
       console.error(e);
     }
   }
 
-  const quote = (text, source) => ({
-    kind: "quote",
-    source,
-    text,
-    label: (source === "math" ? text : text.replace(/[*`_]+/g, "")).replace(/\s+/g, " ").trim().slice(0, 60),
-  });
+  const quote = (text, source) => ({ kind: "quote", source, text });
+
+  // A chip's label. Quotes are labeled by their start and cut before a formula
+  // that would not fit, or, when one opens the quote, inside it as raw TeX.
+  const LABEL_MAX = 60;
+  function refLabel(r) {
+    if (r.kind === "lines") return r.label;
+    const text = r.text.replace(/\s+/g, " ").trim();
+    const plain = (t) => (r.source === "math" ? t : t.replace(/[*`_]+/g, ""));
+    let out = "";
+    let at = 0;
+    for (const m of [...mathSpans(text), { at: text.length, end: text.length }]) {
+      const before = plain(text.slice(at, m.at));
+      if (out.length + before.length > LABEL_MAX) return out + before.slice(0, LABEL_MAX - out.length) + "…";
+      out += before;
+      if (out.length + m.end - m.at > LABEL_MAX) return (out || text.slice(m.at, m.at + LABEL_MAX)) + "…";
+      out += text.slice(m.at, m.end);
+      at = m.end;
+    }
+    return out;
+  }
   const askOf = (a) => (a.matches(".math[data-tex]") ? quote(texOf(a), "math") : quote(a.dataset.ask, a.dataset.askSource || "diagram"));
 
   function markAskable(el) {
@@ -1149,6 +1420,76 @@
     addRef(quote(s.text.slice(0, 2000), s.source));
   });
 
+  // ---- problems drawing the deck ----
+
+  // The session hears about formulas KaTeX rejects, diagrams that fail and
+  // SVG text that spills out of its box before the reader reaches them: one
+  // page per deck version draws every slide offscreen and reports what it
+  // finds. A widget script that throws is reported when its slide is shown.
+
+  function reportIssues(version, issues, { audit = false } = {}) {
+    post("api/issues", { version, issues, audit }).catch(() => {});
+  }
+
+  async function audit() {
+    const { version } = S.deck;
+    const box = h("div", { class: "audit", "aria-hidden": "true" });
+    document.body.append(box);
+    const found = [];
+    try {
+      for (const s of S.deck.slides) {
+        if (S.deck.version !== version) return;
+        const drawing = [];
+        const extra = s.quiz.flatMap((q) => [...q.choices.map((c) => c.why), q.kind === "prose" ? q.model : ""]).filter(Boolean);
+        const quiz = s.quiz.length ? [h("div", { "data-where": "quiz" }, extra.map((t) => mdEl(t)))] : [];
+        box.replaceChildren(...slideBody(s, { audit: drawing }), ...quiz, h("div", { "data-where": "prompts" }, s.prompts.map((t) => mdEl(t))));
+        await Promise.all(drawing);
+        await document.fonts.ready;
+        for (const [where, message] of drawingIssues(box)) found.push({ slide: s.id, where, message });
+      }
+    } finally {
+      box.remove();
+    }
+    S.deck.audited = true;
+    reportIssues(version, found, { audit: true });
+  }
+
+  function drawingIssues(root) {
+    const out = [];
+    const whereOf = (el) => el.closest("[data-where]").dataset.where;
+    for (const el of root.querySelectorAll(".katex-error")) out.push([whereOf(el), `KaTeX: ${el.title.replace(/^ParseError: KaTeX parse error: /, "")}`]);
+    for (const el of root.querySelectorAll("[data-issue]")) out.push([whereOf(el), el.dataset.issue]);
+    for (const svg of root.querySelectorAll('.diagram-body svg:not([id^="mmd-"])')) {
+      for (const message of svgOverflows(svg)) out.push([whereOf(svg), message]);
+    }
+    return out;
+  }
+
+  // Text in a hand-drawn SVG that is wider than the shape around it, or
+  // that runs past the viewBox.
+  function svgOverflows(svg) {
+    const frame = svg.getBoundingClientRect();
+    if (!frame.width) return [];
+    const shapes = [...svg.querySelectorAll("rect, circle, ellipse, polygon")]
+      .map((el) => el.getBoundingClientRect())
+      .filter((r) => r.width > 4 && r.height > 4);
+    const out = [];
+    for (const t of svg.querySelectorAll("text")) {
+      const r = t.getBoundingClientRect();
+      const text = t.textContent.replace(/\s+/g, " ").trim();
+      if (!r.width || !text) continue;
+      const [cx, cy] = [(r.left + r.right) / 2, (r.top + r.bottom) / 2];
+      const box = shapes
+        .filter((b) => b.left < cx && cx < b.right && b.top < cy && cy < b.bottom)
+        .sort((a, b) => a.width * a.height - b.width * b.height)[0];
+      if (box && (r.left < box.left - 1 || r.right > box.right + 1)) out.push(`text "${text.slice(0, 40)}" is wider than its box`);
+      else if (r.left < frame.left - 1 || r.right > frame.right + 1 || r.top < frame.top - 1 || r.bottom > frame.bottom + 1) {
+        out.push(`text "${text.slice(0, 40)}" runs past the edge of the viewBox`);
+      }
+    }
+    return out;
+  }
+
   // ---- questions ----
 
   function renderThread() {
@@ -1200,9 +1541,9 @@
       { class: `msg msg-q ${m.state || ""}` },
       h("div", { class: "who" }, `You · ${clock(m.at)}`),
       m.refs?.length
-        ? h("div", { class: "chips" }, m.refs.map((r) => h("span", { class: "chip static", title: r.text || r.label, onclick: () => flashRef(r) }, h("span", {}, r.label))))
+        ? h("div", { class: "chips" }, m.refs.map((r) => h("span", { class: "chip static", title: r.text || r.label, onclick: () => flashRef(r) }, chipLabel(r))))
         : null,
-      m.text ? h("div", { class: "text" }, m.text) : null,
+      m.text ? h("div", { class: "text", html: mathText(m.text) }) : null,
       state ? h("div", { class: "msg-state" }, state) : null,
     );
   }
@@ -1233,10 +1574,10 @@
         h(
           "span",
           { class: "chip", title: r.text || r.label },
-          h("span", {}, r.label),
+          chipLabel(r),
           h("button", {
             type: "button",
-            "aria-label": `Remove ${r.label}`,
+            "aria-label": `Remove ${refLabel(r)}`,
             onclick: () => {
               S.refs.splice(i, 1);
               saveDraft();
@@ -1249,6 +1590,8 @@
     );
     updateSend();
   }
+
+  const chipLabel = (r) => h("span", { class: "chip-label", html: mathText(refLabel(r)) });
 
   function updateSend() {
     $("#send").disabled = !$("#question").value.trim() && !S.refs.length;
@@ -1369,59 +1712,75 @@
     store.set("theme", t);
   }
 
-  // ---- question panel width ----
+  // ---- resizing ----
 
-  // The docked panel's width lives in --ask-w; the stylesheet's default
-  // applies until the reader drags the handle. Null means "use the default".
-  const ASK_MIN = 280;
-  const askMax = () => Math.max(ASK_MIN, Math.min(innerWidth - 480, 900));
-  const askWidth = () => $("#ask").getBoundingClientRect().width;
-
-  function setAskWidth(w, { save = true } = {}) {
-    S.askW = w == null ? null : Math.round(Math.max(ASK_MIN, Math.min(askMax(), w)));
-    const root = document.documentElement.style;
-    if (S.askW == null) root.removeProperty("--ask-w");
-    else root.setProperty("--ask-w", `${S.askW}px`);
-    const grip = $("#ask-grip");
-    grip.setAttribute("aria-valuemin", ASK_MIN);
-    grip.setAttribute("aria-valuemax", askMax());
-    grip.setAttribute("aria-valuenow", Math.round(askWidth()));
-    if (save) store.set("ask-width", S.askW);
-  }
-
-  function bindAskGrip() {
-    const grip = $("#ask-grip");
-    let resize = null;
+  // A drag handle for the question panel's width or the question box's
+  // height. Both grow away from the edge they sit on, leftward or upward;
+  // arrow keys step, Home and End jump, Enter or a double click restores
+  // the stylesheet's size. The size is remembered per deck.
+  function resizable({ grip, key, axis, min, max, current, apply }) {
+    let value = null;
+    const set = (v, save = true) => {
+      value = v == null ? null : Math.round(Math.max(min(), Math.min(max(), v)));
+      apply(value);
+      grip.setAttribute("aria-valuemin", min());
+      grip.setAttribute("aria-valuemax", max());
+      grip.setAttribute("aria-valuenow", Math.round(current()));
+      if (save) store.set(key, value);
+    };
+    const away = (e) => -(axis === "x" ? e.clientX : e.clientY);
+    let drag = null;
     const end = () => {
-      if (!resize) return;
-      resize = null;
-      document.body.classList.remove("resizing");
-      store.set("ask-width", S.askW);
+      if (!drag) return;
+      drag = null;
+      delete document.body.dataset.resizing;
+      store.set(key, value);
     };
     grip.addEventListener("pointerdown", (e) => {
       if (e.button !== 0) return;
       e.preventDefault();
-      resize = { x: e.clientX, w: askWidth() };
+      drag = { from: away(e), size: current() };
       grip.setPointerCapture(e.pointerId);
-      document.body.classList.add("resizing");
+      document.body.dataset.resizing = axis;
     });
-    grip.addEventListener("pointermove", (e) => resize && setAskWidth(resize.w + resize.x - e.clientX, { save: false }));
+    grip.addEventListener("pointermove", (e) => drag && set(drag.size + away(e) - drag.from, false));
     grip.addEventListener("pointerup", end);
     grip.addEventListener("pointercancel", end);
-    grip.addEventListener("dblclick", () => setAskWidth(null));
+    grip.addEventListener("dblclick", () => set(null));
+    const [grow, shrink] = axis === "x" ? ["ArrowLeft", "ArrowRight"] : ["ArrowUp", "ArrowDown"];
     grip.addEventListener("keydown", (e) => {
       if (e.altKey || e.ctrlKey || e.metaKey) return;
       const step = e.shiftKey ? 64 : 16;
-      const cur = askWidth();
-      const next = { ArrowLeft: cur + step, ArrowRight: cur - step, Home: askMax(), End: ASK_MIN, Enter: null }[e.key];
+      const next = { [grow]: current() + step, [shrink]: current() - step, Home: max(), End: min(), Enter: null }[e.key];
       if (next === undefined) return;
       e.preventDefault();
-      setAskWidth(next);
+      set(next);
     });
-    window.addEventListener(
-      "resize",
-      debounce(() => S.askW != null && setAskWidth(S.askW, { save: false }), 100),
-    );
+    window.addEventListener("resize", debounce(() => value != null && set(value, false), 100));
+    set(store.get(key, null), false);
+  }
+
+  function bindResizers() {
+    const root = document.documentElement.style;
+    resizable({
+      grip: $("#ask-grip"),
+      key: "ask-width",
+      axis: "x",
+      min: () => 280,
+      max: () => Math.max(280, Math.min(innerWidth - 480, 900)),
+      current: () => $("#ask").getBoundingClientRect().width,
+      apply: (w) => (w == null ? root.removeProperty("--ask-w") : root.setProperty("--ask-w", `${w}px`)),
+    });
+    const q = $("#question");
+    resizable({
+      grip: $("#question-grip"),
+      key: "question-height",
+      axis: "y",
+      min: () => 64,
+      max: () => Math.round(innerHeight * 0.6),
+      current: () => q.getBoundingClientRect().height,
+      apply: (px) => (q.style.height = px == null ? "" : `${px}px`),
+    });
   }
 
   const PRESENCE = {
@@ -1475,7 +1834,10 @@
     loadDraft();
     render();
     toast(`The ${who()} updated the deck.`);
+    scheduleAudit();
   }
+
+  const scheduleAudit = debounce(() => S.deck.audited || audit().catch((e) => console.error(e)), 1500);
 
   function connect() {
     const es = new EventSource("api/events");
@@ -1505,6 +1867,8 @@
       }
       failures = 0;
       setStatus(d.status);
+      // A server restarted from another deck.py serves other page assets.
+      if (S.deck && d.engine !== S.deck.engine) return location.reload();
       if (S.deck && d.version !== S.deck.version) refreshDeck();
     });
     es.addEventListener("deck", () => refreshDeck());
@@ -1535,7 +1899,7 @@
     };
     $("#ask-open").onclick = () => $("#ask").classList.add("open");
     $("#ask-close").onclick = () => $("#ask").classList.remove("open");
-    bindAskGrip();
+    bindResizers();
     $("#clear-btn").onclick = async (e) => {
       const btn = e.currentTarget;
       if (btn.dataset.confirm !== "1") {
@@ -1581,7 +1945,7 @@
       if (e.target.closest?.("textarea, input, [contenteditable], table.diff, .stepper, .diagram-body")) return;
       const s = slide();
       if (s.quiz.length && /^[1-9]$/.test(e.key) && !e.shiftKey) {
-        const i = s.quiz.findIndex((q, k) => choiceOf(s, k) == null);
+        const i = s.quiz.findIndex((q, k) => q.kind === "choice" && choiceOf(s, k) == null);
         if (i >= 0 && +e.key <= s.quiz[i].choices.length) {
           e.preventDefault();
           answer(s, i, +e.key - 1);
@@ -1589,8 +1953,8 @@
         return;
       }
       if (s.quiz.length && e.key === "Enter" && !e.target.closest?.("button, a")) {
-        const { done, total } = score(s);
-        if (done === total && S.idx < S.deck.slides.length - 1) {
+        const { done, waiting, total } = score(s);
+        if (done + waiting === total && S.idx < S.deck.slides.length - 1) {
           e.preventDefault();
           go(S.idx + 1);
         }
@@ -1619,8 +1983,8 @@
 
   async function boot() {
     applyTheme(store.get("theme", "system"));
-    setAskWidth(store.get("ask-width", null), { save: false });
     S.drafts = store.get("drafts", {});
+    S.answerDrafts = store.get("answer-drafts", {});
     S.visited = new Set(store.get("visited", []));
     bindUI();
     try {
@@ -1636,6 +2000,7 @@
     go(fromHash >= 0 ? fromHash : Math.max(0, slideIndex(store.get("slide", ""))), { replace: true });
     setStatus(S.status);
     connect();
+    scheduleAudit();
     setInterval(tickElapsed, 1000);
   }
 

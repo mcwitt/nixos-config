@@ -164,6 +164,23 @@ def topic_check(see="lines"):
     }
 
 
+def written_check():
+    return {
+        "id": "final",
+        "title": "Check",
+        "quiz": [
+            {"q": "Why is line 2 second?", "see": "lines", "kind": "prose",
+             "rubric": "Says it follows line 1.", "model": "Because it comes after $L_1$."},
+            {"q": "Write `second()` returning line 2.", "see": "lines", "kind": "code", "language": "python",
+             "starter": "def second():\n    ...\n", "rubric": "Returns the string.",
+             "test": {"dir": "tests", "file": "answer.py", "command": "python3 check.py", "timeout": 5}},
+        ],
+    }
+
+
+CHECK_PY = "from answer import second\nassert second() == 'second line', second()\nprint('ok')\n"
+
+
 def run(*args, check=True, timeout=30):
     r = subprocess.run(
         [sys.executable, str(SCRIPT), *map(str, args)], capture_output=True, text=True, timeout=timeout
@@ -253,6 +270,9 @@ class DeckTest(unittest.TestCase):
         deck = self.rd.load_deck(self.dir)
         self.assertEqual([s["id"] for s in deck.slides], ["why", "what", "appendix-1"])
         self.assertEqual((deck.slides[-1]["title"], deck.slides[-1]["section"]), ("Everything else", "Appendix"))
+        (group,) = deck.slides[-1]["blocks"]
+        self.assertEqual((group["type"], group["title"], group["md"]), ("group", "Everything else", "The rest of the change."))
+        self.assertEqual([b["file"] for b in group["blocks"]][:2], ["src/app.py", "new name.txt"])
         self.assertEqual(deck.coverage["changed"], 10)
         self.assertEqual(deck.coverage["appendix"], 5)
         r = run("check", self.dir)
@@ -541,9 +561,7 @@ class ServerTest(unittest.TestCase):
                 ],
             },
         )["message"]
-        self.assertEqual(
-            [r["label"] for r in msg["refs"]], ["app.py new 2", "Risky: the json import", "a box", "$x_1 + a_{ij}$"]
-        )
+        self.assertEqual([r.get("label") for r in msg["refs"]], ["app.py new 2", None, None, None])
         self.assertEqual(msg["refs"][2]["source"], "diagram")
         out = run("listen", self.dir, "--timeout", 5).stdout
         self.assertIn(f"Question {msg['id']} on slide what", out)
@@ -617,16 +635,100 @@ class ServerTest(unittest.TestCase):
         self.assertEqual((deck["title"], deck["version"]), ("Renamed", version))
 
     def test_restart_keeps_url(self):
+        self.assertEqual(run("serve", self.dir, "--detach").stdout, f"already serving:\n{self.url}\n")
         run("stop", self.dir)
+        self.assertIn("received SIGTERM; shutting down", (self.dir / "server.log").read_text())
         self.assertEqual(run("serve", self.dir, "--detach").stdout.strip(), self.url)
         self.assertEqual(self.get("api/deck")["title"], "Sample change")
         for name in ("server.json", ".server-address"):
             self.assertEqual((self.dir / name).stat().st_mode & 0o777, 0o600)
 
+    def test_other_engine_restarts_in_place(self):
+        info = json.loads((self.dir / "server.json").read_text())
+        (self.dir / "server.json").write_text(json.dumps({**info, "engine": "old", "script": "/old/deck.py"}))
+        out = run("listen", self.dir, "--timeout", 1).stdout
+        self.assertIn("The server is out of date: it runs /old/deck.py.", out)
+        out = run("serve", self.dir, "--detach").stdout
+        self.assertEqual(out, f"restarted the server: it runs /old/deck.py\n{self.url}\n")
+        restarted = json.loads((self.dir / "server.json").read_text())
+        self.assertNotEqual(restarted["pid"], info["pid"])
+        self.assertEqual(restarted["engine"], self.get("api/deck")["engine"])
+        self.assertNotIn("out of date", run("listen", self.dir, "--timeout", 1).stdout)
+
+    def test_tunnel_hint_persists(self):
+        out = run("serve", self.dir, "--detach", "--tunnel", "me@box").stdout
+        port = self.url.split(":")[2].split("/")[0]
+        hint = f"From another machine, forward the port first: ssh -N -L {port}:127.0.0.1:{port} me@box"
+        self.assertEqual(out, f"restarted the server: new options\n{self.url}\n{hint}\n")
+        run("stop", self.dir)
+        self.assertEqual(run("serve", self.dir, "--detach").stdout, f"{self.url}\n{hint}\n")
+        self.assertEqual(run("serve", self.dir, "--detach", "--tunnel", "off").stdout.splitlines()[1:], [self.url])
+        self.assertIn("leave out --host", run("serve", self.dir, "--tunnel", "--host", "0.0.0.0", check=False).stderr)
+
+    def test_page_issues_reach_listen_once_per_version(self):
+        deck = self.get("api/deck")
+        self.assertFalse(deck["audited"])
+        issue = {"slide": "what", "where": "diagram 1", "message": "Mermaid: Parse error on line 3"}
+        self.post("api/issues", {"version": deck["version"] + 1, "audit": True, "issues": [issue]})
+        self.assertFalse(self.get("api/deck")["audited"])
+        # One slide's widget error is not a full audit.
+        self.post("api/issues", {"version": deck["version"], "issues": []})
+        self.assertFalse(self.get("api/deck")["audited"])
+        for _ in range(2):
+            self.post("api/issues", {"version": deck["version"], "audit": True, "issues": [issue, {**issue, "slide": "nope"}]})
+        self.assertTrue(self.get("api/deck")["audited"])
+        out = run("listen", self.dir, "--timeout", 5).stdout
+        self.assertIn("The page found problems drawing the deck.", out)
+        self.assertIn("  slide 2 of 3 (what), diagram 1: Mermaid: Parse error on line 3\n", out)
+        self.assertNotIn("nope", out)
+        self.assertIn("No questions", run("listen", self.dir, "--timeout", 1).stdout)
+
     def test_listen_times_out_and_reports_presence(self):
         out = run("listen", self.dir, "--timeout", 1).stdout
         self.assertIn("No questions in the last 1 s", out)
         self.assertIn("listen", out.splitlines()[-1])
+
+
+class WrittenCheckTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.rd = load_module()
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.dir = Path(self.tmp.name)
+        (self.dir / "notes.txt").write_text(NOTES)
+        (self.dir / "tests").mkdir()
+        (self.dir / "tests" / "check.py").write_text(CHECK_PY)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def write(self, quiz):
+        spec = topic_spec()
+        spec["slides"].append({"id": "final", "title": "Check", "quiz": quiz})
+        (self.dir / "deck.json").write_text(json.dumps(spec))
+
+    def test_valid_written_questions(self):
+        self.write(written_check()["quiz"])
+        prose, code = self.rd.load_deck(self.dir).slide("final")["quiz"]
+        self.assertEqual((prose["kind"], prose["choices"], prose["model"]), ("prose", [], "Because it comes after $L_1$."))
+        self.assertEqual((code["language"], code["test"]["file"], code["test"]["timeout"]), ("python", "answer.py", 5))
+
+    def test_invalid_written_questions(self):
+        quiz = written_check()["quiz"]
+        del quiz[0]["rubric"]
+        quiz[0]["choices"] = []
+        quiz[1]["test"].update(dir="missing", file="../x.py", timeout=0)
+        quiz.append({"q": "?", "see": "lines", "kind": "essay"})
+        self.write(quiz)
+        with self.assertRaises(self.rd.DeckInvalid) as cm:
+            self.rd.load_deck(self.dir)
+        errors = "\n".join(cm.exception.errors)
+        for expected in ("quiz[0]: a prose question has a rubric, not choices", "quiz[0].rubric: expected",
+                         "quiz[1].test.dir:", "quiz[1].test.file: expected a file name",
+                         "quiz[1].test.timeout:", "quiz[2].kind: expected choice, prose or code"):
+            self.assertIn(expected, errors)
 
 
 class TopicServerTest(unittest.TestCase):
@@ -658,6 +760,81 @@ class TopicServerTest(unittest.TestCase):
         run("listen", self.dir, "--answer", msg["id"], "--file", self.dir / "a.md", "--timeout", 1)
         with urllib.request.urlopen(self.url + "api/deck", timeout=10) as r:
             self.assertIsNone(json.load(r)["coverage"])
+
+    def post(self, path, body):
+        req = urllib.request.Request(self.url + path, data=json.dumps(body).encode(),
+                                     headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=10) as r:
+            return json.load(r)
+
+    def quiz(self):
+        with urllib.request.urlopen(self.url + "api/quiz", timeout=10) as r:
+            return json.load(r).get("final", {})
+
+    def wait_for(self, fn, timeout=10):
+        end = time.time() + timeout
+        while time.time() < end:
+            if v := fn():
+                return v
+            time.sleep(0.2)
+        self.fail("timed out")
+
+    def test_written_answers_are_judged_by_the_session(self):
+        (self.dir / "tests").mkdir()
+        (self.dir / "tests" / "check.py").write_text(CHECK_PY)
+        spec = topic_spec()
+        spec["slides"].append(written_check())
+        (self.dir / "deck.json").write_text(json.dumps(spec))
+        self.wait_for(lambda: '"prose"' in urllib.request.urlopen(self.url + "api/deck", timeout=10).read().decode())
+
+        # A resubmission before the session claims the answer replaces it.
+        self.post("api/answer", {"slide": "final", "question": 0, "text": "draft"})
+        first = self.quiz()["0"]["id"]
+        self.post("api/answer", {"slide": "final", "question": 0, "text": "It follows $L_1$."})
+        self.assertFalse((self.dir / "queue" / f"{first}.json").exists())
+        prose = self.quiz()["0"]
+        self.assertEqual((prose["state"], prose["text"]), ("queued", "It follows $L_1$."))
+
+        out = run("listen", self.dir, "--timeout", 5).stdout
+        self.assertIn(f"Answer {prose['id']} to check question 1 on slide final", out)
+        self.assertIn("Rubric:\nSays it follows line 1.", out)
+        self.assertIn("The reader's answer:\n```\nIt follows $L_1$.\n```", out)
+        self.assertIn("--verdict correct|partial|incorrect", out)
+        self.wait_for(lambda: self.quiz()["0"]["state"] == "judging")
+        with self.assertRaises(urllib.error.HTTPError) as cm:
+            self.post("api/answer", {"slide": "final", "question": 0, "text": "again"})
+        self.assertEqual(cm.exception.code, 409)
+
+        fb = self.dir / "fb.md"
+        fb.write_text("Right.")
+        r = run("listen", self.dir, "--answer", prose["id"], "--file", fb, "--timeout", 1, check=False)
+        self.assertIn("pass --verdict", r.stderr)
+        run("listen", self.dir, "--answer", prose["id"], "--verdict", "correct", "--file", fb, "--timeout", 1)
+        judged = self.wait_for(lambda: self.quiz()["0"].get("state") == "judged" and self.quiz()["0"])
+        self.assertEqual((judged["verdict"], judged["feedback"]), ("correct", "Right."))
+
+        self.post("api/answer", {"slide": "final", "question": 1, "text": "def second():\n    return 'first line'\n"})
+        out = run("listen", self.dir, "--timeout", 5).stdout
+        self.assertIn("The reader's answer:\n```python\ndef second():", out)
+        self.assertIn("Tests (python3 check.py, in ", out)
+        self.assertIn("failed with exit status 1", out)
+        self.assertIn("AssertionError: first line", out)
+        code = self.quiz()["1"]
+        self.assertTrue((self.dir / "runs" / code["id"] / "answer.py").exists())
+        # A session that lost track of the answer gets it again without rerunning the tests.
+        self.assertIn("failed with exit status 1", run("listen", self.dir, "--timeout", 5).stdout)
+        fb.write_text("It returns line 1.")
+        run("listen", self.dir, "--answer", code["id"], "--verdict", "incorrect", "--file", fb, "--timeout", 1)
+        self.wait_for(lambda: self.quiz()["1"].get("verdict") == "incorrect")
+
+        self.post("api/finish", {})
+        out = run("listen", self.dir, "--timeout", 5).stdout
+        self.assertIn("Checks: 1 of 2 answered correctly.", out)
+        self.assertIn("answered (not yet): def second(): return 'first line'", out)
+
+        self.post("api/answer", {"slide": "final", "question": 1, "text": "def second():\n    return 'second line'\n"})
+        self.assertIn("Tests (python3 check.py", run("listen", self.dir, "--timeout", 5).stdout)
+        self.assertIn(" passed:\n```\nok\n```", (self.dir / "runs" / f"{self.quiz()['1']['id']}.txt").read_text())
 
 
 if __name__ == "__main__":

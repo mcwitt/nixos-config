@@ -58,13 +58,13 @@ Markdown fields render TeX with KaTeX: blocks, callouts, captions, check questio
 - A `$` opens math only when the next character is not a space, and closes it only when the previous character is not a space and the next is not a digit, so `$5 and $6` stays text. Write a literal dollar elsewhere as `\$`.
 - `\(` and `\[` always start math. Code spans and code blocks are never math.
 
-`check` warns about delimiters without a match. It does not validate the TeX; a formula KaTeX cannot parse shows its source in red. A reader who clicks or selects a formula quotes its TeX.
+`check` warns about delimiters without a match. It does not validate the TeX; a formula KaTeX cannot parse shows its source in red, and `listen` reports it once a page has drawn the deck. A reader who clicks or selects a formula quotes its TeX. The question panel typesets math in quotes and in the reader's questions.
 
 In a table cell, write `|` inside math as `\vert`; a bare `|` ends the cell.
 
 ## Checks
 
-A check slide asks the reader a few multiple-choice questions about the slides before it. It has `quiz` in place of `blocks`:
+A check slide asks the reader a few questions about the slides before it: multiple choice, or written answers in prose or code that the session judges. It has `quiz` in place of `blocks`:
 
 ```json
 {
@@ -88,6 +88,31 @@ A check slide asks the reader a few multiple-choice questions about the slides b
 - `q`: the question, in Markdown. One to six per slide, usually two or three.
 - `see`: the id of the content slide that settles the question. A wrong answer links there; a choice's own `see` overrides it. It must name a slide with `blocks`, not another check.
 - `choices`: two to five, each with `text` (a phrase, Markdown), `why` (a sentence of feedback shown after choosing it) and, on exactly one, `"correct": true`.
+
+### Written answers
+
+```json
+{"q": "Why does the loop re-raise instead of returning `None`?", "see": "retry-loop", "kind": "prose",
+ "rubric": "Callers must see the last error; `None` would look like a successful empty result.",
+ "model": "So the caller sees the final error rather than a `None` it would take for an empty result."}
+```
+
+```json
+{"q": "Write `backoff(n)`: the delay before retry `n`, doubling from 1 s and capped at 30 s.", "see": "retry-loop",
+ "kind": "code", "language": "python", "starter": "def backoff(n):\n    ...\n",
+ "rubric": "Returns 2**(n-1) seconds, at most 30; n starts at 1.",
+ "test": {"dir": "tests/backoff", "file": "answer.py", "command": "python3 -m pytest -q", "timeout": 60}}
+```
+
+- `kind`: `prose` for an answer in the reader's own words, `code` for code; `choice` (the default) for multiple choice. A written question has no `choices`.
+- `rubric` (required): what a correct answer must contain. The session judges against it.
+- `model` (optional): a model answer, Markdown for prose and code for code. The page offers it after judging.
+- `language`, `starter` (code, optional): the highlighting language, and code the editor starts with.
+- `test` (code, optional): `listen` copies `dir` (relative to the deck directory; default empty) to `DECK/runs/ID/`, writes the answer there as `file`, runs `command` in it with a time limit of `timeout` seconds (default 60), and shows the result with the answer. The web server never runs code. Write the tests before serving, and check that they pass on the model answer and fail on a plausible wrong one.
+
+A submitted answer queues for the session like a question. `listen` hands it over with the rubric, the model answer and any test results, and the session posts feedback with a verdict: `correct`, `partial` or `incorrect`. Only `correct` counts as right in the tally. The reader can revise and resubmit.
+
+Ask for a written answer where choosing among options would let the reader guess: explain why a design holds, predict a behavior and justify it, or write the few lines that implement an idea. A written answer costs the reader minutes, not seconds, so use one or two per deck, usually in the final check.
 
 The page records the reader's answers in `DECK/quiz.json`, the last slide shows a tally with links back to what was missed, and `listen` reports the results when the reader finishes. The reader can retake a check and can quote a question they disagree with into the question box.
 
@@ -117,7 +142,7 @@ Every diagram takes an optional `caption`. `alt` is a short text description; gi
 {"type": "svg", "svg": "<svg viewBox='0 0 420 120'>…</svg>", "caption": "…", "alt": "…"}
 ```
 
-Use this for clean, precise figures. Give the SVG a `viewBox`, and color it with these classes rather than literal colors. The page styles them for light and dark themes:
+Use this for clean, precise figures. Give the SVG a `viewBox` that fits the drawing: the page shows it at 1.25 times the viewBox width, shrinking it to fit the column, so a 400-wide viewBox shows 500 pixels wide and 13-pixel text shows near the size of the prose. Size boxes for their text; the page reports text wider than its box, or outside the viewBox, to `listen`. Color the SVG with these classes rather than literal colors. The page styles them for light and dark themes:
 
 - Boxes: `d-box`, `d-box-soft`, `d-box-accent`, `d-box-add` (new), `d-box-del` (removed), `d-box-hl` (highlighted)
 - Lines: `d-edge`, `d-edge-accent`, `d-edge-dashed`; for arrowheads, a `<marker>` whose path has `d-fill-ink` or `d-fill-accent`

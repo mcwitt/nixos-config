@@ -301,6 +301,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 #slide .math:hover { background: var(--sel-row); }
 #slide :is(a, button) .math, #slide :is(a, button) .math:hover { cursor: inherit; background: none; }
 .selection-copy { position: fixed; left: -10000px; top: 0; width: 40rem; }
+.audit { position: fixed; left: -10000px; top: 0; width: 56rem; visibility: hidden; }
 
 .callout {
   border-radius: 8px;
@@ -322,6 +323,22 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 .ask-hint { margin-left: 0.75rem; text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--ink-3); opacity: 0; transition: opacity 120ms ease; }
 .callout[data-ask]:hover .ask-hint, .callout[data-ask]:focus-visible .ask-hint { opacity: 1; }
 .quote-btn { position: fixed; z-index: 25; box-shadow: var(--shadow); }
+
+/* An appendix group; one alone on its slide shares the slide's title. */
+.group > h3 { font: 650 var(--step-1) / 1.3 var(--font-display); margin: 0 0 0.4rem; }
+.group:only-of-type > h3 { display: none; }
+.group + .group { border-top: 1px solid var(--rule); padding-top: 1.25rem; }
+.group > .prose { max-width: var(--measure); }
+.group-diffs > summary {
+  cursor: pointer;
+  width: fit-content;
+  color: var(--ink-2);
+  font-size: var(--step--1);
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+}
+.group-diffs > summary:hover { background: var(--sunk); }
+.group-diffs[open] > summary { margin-bottom: 0.75rem; }
 
 .next-up {
   margin-top: 3rem;
@@ -379,7 +396,40 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 .check.wrong .verdict { color: var(--del-ink); }
 .check-feedback .prose p:last-child { margin-bottom: 0.5rem; }
 .check-feedback .row { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; font-size: var(--step--1); }
+.check.partial .verdict { color: var(--warn); }
 .check-foot { display: flex; justify-content: flex-end; margin-bottom: 1.5rem; }
+
+/* written answers */
+.answer-input, .code-input {
+  width: 100%;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--bg);
+}
+.answer-input { display: block; resize: vertical; min-height: 6.5em; field-sizing: content; padding: 0.5rem 0.65rem; line-height: 1.5; }
+.answer-input:focus, .code-input:focus-within { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+/* The textarea and its highlighted copy share one grid cell, font and wrapping, so the text lines up. */
+.code-input { display: grid; }
+.code-input > * {
+  grid-area: 1 / 1;
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  font: var(--step--1) / 1.55 var(--font-mono);
+  tab-size: 4;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  border: 0;
+}
+.code-edit { min-height: 9em; resize: none; overflow: hidden; background: transparent; color: transparent; caret-color: var(--ink); outline: none; }
+.code-edit::selection { background: var(--sel-row); color: transparent; }
+.answer-row { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem; }
+.answer-row .hint { flex: 1; }
+.answer-given { border-left: 3px solid var(--accent); padding-left: 0.75rem; }
+.answer-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.code-answer { margin: 0; padding: 0.6rem 0.75rem; overflow-x: auto; background: var(--sunk); border-radius: 8px; font: var(--step--1) / 1.55 var(--font-mono); }
+.model-answer { margin: 0.25rem 0 0.5rem; }
+.model-answer > summary { cursor: pointer; color: var(--ink-2); font-size: var(--step--1); width: fit-content; }
+.model-answer[open] > summary { margin-bottom: 0.5rem; }
 .tally { border-radius: 8px; padding: 0.85rem 1rem; background: var(--note-wash); }
 .tally h3 { margin: 0 0 0.5rem; font: 650 var(--step-1) / 1.3 var(--font-display); }
 .tally p { margin: 0; }
@@ -536,26 +586,21 @@ tr.sel-actions .row a { font-size: var(--step--1); margin-inline: 0.25rem; }
   background: var(--panel);
   border-left: 1px solid var(--rule);
 }
-.ask-grip {
-  position: absolute;
-  top: 0; bottom: 0; left: -4px;
-  width: 9px;
-  cursor: col-resize;
-  touch-action: none;
-  z-index: 1;
-}
-.ask-grip::after {
-  content: "";
-  position: absolute;
-  top: 0; bottom: 0; left: 3px;
-  width: 3px;
-  border-radius: 2px;
-  background: transparent;
-  transition: background 120ms ease;
-}
-.ask-grip:hover::after, .ask-grip:focus-visible::after, body.resizing .ask-grip::after { background: var(--accent); }
-.ask-grip:focus-visible { outline: none; }
-body.resizing { cursor: col-resize; user-select: none; }
+/* Drag handles: a 9px hit area straddling the edge, lit while in use. */
+.grip { position: absolute; touch-action: none; z-index: 1; }
+.grip::after { content: ""; position: absolute; border-radius: 2px; transition: background 120ms ease; }
+.grip:hover::after, .grip:focus-visible::after { background: var(--accent); }
+.grip:focus-visible { outline: none; }
+.ask-grip { top: 0; bottom: 0; left: -4px; width: 9px; cursor: col-resize; }
+.ask-grip::after { top: 0; bottom: 0; left: 3px; width: 3px; }
+body[data-resizing="x"] .ask-grip::after { background: var(--accent); }
+/* The question box's handle shows a short bar, since nothing else hints at it. */
+.question-grip { left: 0; right: 0; top: -5px; height: 9px; cursor: row-resize; }
+.question-grip::after { left: calc(50% - 18px); width: 36px; top: 3px; height: 3px; background: var(--rule); }
+body[data-resizing="y"] .question-grip::after { background: var(--accent); }
+body[data-resizing] { user-select: none; }
+body[data-resizing="x"] { cursor: col-resize; }
+body[data-resizing="y"] { cursor: row-resize; }
 .ask-head {
   display: flex; align-items: center; gap: 0.5rem;
   padding: 0.85rem 1rem 0.6rem;
@@ -612,21 +657,21 @@ body.resizing { cursor: col-resize; user-select: none; }
   padding: 0 0.15rem 0 0.45rem;
   max-width: 100%;
 }
-.chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chip button { border: 0; background: none; padding: 0 0.3rem; color: var(--ink-2); }
 .chip.static { padding-right: 0.45rem; cursor: pointer; }
 .msg .chips { margin: 0.25rem 0; }
 
 .composer {
+  position: relative;
   border-top: 1px solid var(--rule);
   padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
   display: grid; gap: 0.5rem;
 }
 .composer textarea {
   width: 100%;
-  resize: vertical;
+  resize: none;
   min-height: 4.2em;
-  max-height: 40vh;
   border: 1px solid var(--rule);
   border-radius: 8px;
   padding: 0.5rem 0.65rem;
@@ -637,6 +682,7 @@ body.resizing { cursor: col-resize; user-select: none; }
 .composer-row { display: flex; align-items: center; gap: 0.75rem; }
 .hint { flex: 1; font-size: 0.75rem; color: var(--ink-3); }
 #send { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; padding-inline: 1.1rem; }
+#send:disabled { background: var(--sunk); border-color: var(--rule); color: var(--ink-3); opacity: 1; }
 
 /* ---- footer nav ---- */
 

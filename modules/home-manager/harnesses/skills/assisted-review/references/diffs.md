@@ -43,7 +43,7 @@ Unchanged code the reader needs for context can be quoted with the base `excerpt
 ]
 ```
 
-The page lays the groups out as slides after the authored ones, keeping each group together. Write the note for a reader deciding whether to look closely: say what kind of change the group is, why it was needed, and anything that makes it less routine than it looks.
+The page lays the groups out as slides after the authored ones, keeping each group together. A group with more than 30 changed lines starts folded: the reader sees its title and note and opens the diff if it is worth reading. Write the note for that decision: say what kind of change the group is, why it was needed, and anything that makes it less routine than it looks.
 
 ## Coverage
 

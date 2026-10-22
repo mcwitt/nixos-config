@@ -9,22 +9,28 @@ questions to the session and posts its answers back; `stop` ends a detached
 server.
 
 A deck directory holds `deck.json`, any unified diffs it names and any text it
-saved for excerpts. The server
-writes `threads.json` (the chat history), `server.json`, `server.log` and a
-`queue/` directory next to them. Questions and answers cross between the
-server and `listen` only as files in `queue/`, so `listen` needs no network
-access. Requires Python >= 3.11; uses only the standard library.
+saved for excerpts. The server writes `threads.json` (the chat history),
+`server.json` (the running server), `.server-address` (the token, port and
+options a restart reuses), `server.log` and a `queue/` directory next to them.
+Questions, answers and the page's reports cross between the server and
+`listen` only as files in `queue/`, so `listen` needs no network access.
+Requires Python >= 3.11; uses only the standard library.
 """
 
 from __future__ import annotations
 
 import argparse
 import codecs
+import contextlib
+import functools
+import getpass
+import hashlib
 import json
 import os
 import queue
 import re
 import secrets
+import shutil
 import signal
 import socket
 import subprocess
@@ -50,6 +56,15 @@ HEARTBEAT = 15.0
 # this long after the last run so the page does not flicker between runs.
 LISTEN_GRACE = 90.0
 CLAIM_STALE = 20 * 60
+
+
+@functools.cache
+def engine() -> str:
+    """A digest of this script and the page assets: a deploy changes it."""
+    h = hashlib.sha256()
+    for p in [SCRIPT, *sorted(ASSETS.iterdir())]:
+        h.update(p.name.encode() + b"\0" + p.read_bytes())
+    return h.hexdigest()[:12]
 
 LANGUAGES = {
     ".nix": "nix", ".py": "python", ".pyi": "python", ".js": "javascript",
@@ -346,6 +361,8 @@ APPENDIX_ROWS = 160  # rows per appendix slide before groups spill onto the next
 UNCOVERED_GAP = 6  # uncovered runs closer than this are reported together
 QUIZ_QUESTIONS = (1, 6)  # questions per check slide
 QUIZ_CHOICES = (2, 5)  # choices per question
+WRITTEN = ("prose", "code")  # question kinds the session judges
+VERDICTS = {"correct": "Correct", "partial": "Partly right", "incorrect": "Not yet"}
 TRIVIAL = 3  # content slides a deck may have without a final check
 
 
@@ -403,7 +420,7 @@ def _see(v, where: str, sid: str, targets: set[str], errors: list[str], required
     return v
 
 
-def _quiz(quiz, where: str, sid: str, targets: set[str], errors: list[str]) -> list[dict]:
+def _quiz(quiz, where: str, sid: str, targets: set[str], deck_dir: Path, errors: list[str]) -> list[dict]:
     """Normalize a check slide's questions; `targets` are the content slide ids."""
     lo, hi = QUIZ_QUESTIONS
     if not isinstance(quiz, list) or not lo <= len(quiz) <= hi:
@@ -413,35 +430,74 @@ def _quiz(quiz, where: str, sid: str, targets: set[str], errors: list[str]) -> l
     for i, q in enumerate(quiz):
         qw = f"{where}.quiz[{i}]"
         if not isinstance(q, dict):
-            errors.append(f"{qw}: expected {{q, see, choices}}")
+            errors.append(f"{qw}: expected {{q, see, choices}} or {{q, see, kind, rubric}}")
             continue
+        kind = q.get("kind", "choice")
         item = {
             "q": _str(q.get("q"), f"{qw}.q", errors, True),
             "see": _see(q.get("see"), f"{qw}.see", sid, targets, errors, True),
+            "kind": kind,
             "choices": [],
         }
-        choices = q.get("choices")
-        lo, hi = QUIZ_CHOICES
-        if not isinstance(choices, list) or not lo <= len(choices) <= hi:
-            errors.append(f"{qw}.choices: expected {lo} to {hi} choices")
-            choices = []
-        for j, c in enumerate(choices):
-            cw = f"{qw}.choices[{j}]"
-            if not isinstance(c, dict):
-                errors.append(f"{cw}: expected {{text, why, correct, see}}")
-                continue
-            item["choices"].append(
-                {
-                    "text": _str(c.get("text"), f"{cw}.text", errors, True),
-                    "why": _str(c.get("why"), f"{cw}.why", errors, True),
-                    "correct": c.get("correct", False) is True,
-                    "see": _see(c.get("see"), f"{cw}.see", sid, targets, errors),
-                }
-            )
-        n = sum(c["correct"] for c in item["choices"])
-        if choices and n != 1:
-            errors.append(f'{qw}.choices: expected exactly one choice with "correct": true, found {n}')
+        if kind == "choice":
+            _choices(q.get("choices"), item, qw, sid, targets, errors)
+        elif kind in WRITTEN:
+            if "choices" in q:
+                errors.append(f"{qw}: a {kind} question has a rubric, not choices")
+            item["rubric"] = _str(q.get("rubric"), f"{qw}.rubric", errors, True)
+            item["model"] = _str(q.get("model"), f"{qw}.model", errors)
+            if kind == "code":
+                item["language"] = _str(q.get("language"), f"{qw}.language", errors)
+                item["starter"] = _str(q.get("starter"), f"{qw}.starter", errors)
+                item["test"] = _test(q.get("test"), f"{qw}.test", deck_dir, errors)
+        else:
+            errors.append(f"{qw}.kind: expected choice, prose or code")
         out.append(item)
+    return out
+
+
+def _choices(choices, item: dict, qw: str, sid: str, targets: set[str], errors: list[str]):
+    lo, hi = QUIZ_CHOICES
+    if not isinstance(choices, list) or not lo <= len(choices) <= hi:
+        errors.append(f"{qw}.choices: expected {lo} to {hi} choices")
+        choices = []
+    for j, c in enumerate(choices):
+        cw = f"{qw}.choices[{j}]"
+        if not isinstance(c, dict):
+            errors.append(f"{cw}: expected {{text, why, correct, see}}")
+            continue
+        item["choices"].append(
+            {
+                "text": _str(c.get("text"), f"{cw}.text", errors, True),
+                "why": _str(c.get("why"), f"{cw}.why", errors, True),
+                "correct": c.get("correct", False) is True,
+                "see": _see(c.get("see"), f"{cw}.see", sid, targets, errors),
+            }
+        )
+    n = sum(c["correct"] for c in item["choices"])
+    if choices and n != 1:
+        errors.append(f'{qw}.choices: expected exactly one choice with "correct": true, found {n}')
+
+
+def _test(t, where: str, deck_dir: Path, errors: list[str]) -> dict | None:
+    """A code question's test harness: `command` runs in a copy of `dir` holding the answer as `file`."""
+    if t is None:
+        return None
+    if not isinstance(t, dict):
+        errors.append(f"{where}: expected {{file, command, dir, timeout}}")
+        return None
+    out = {
+        "file": _str(t.get("file"), f"{where}.file", errors, True),
+        "command": _str(t.get("command"), f"{where}.command", errors, True),
+        "dir": _str(t.get("dir"), f"{where}.dir", errors),
+        "timeout": t.get("timeout", 60),
+    }
+    if out["file"] and (Path(out["file"]).name != out["file"] or out["file"] in (".", "..")):
+        errors.append(f"{where}.file: expected a file name without a directory")
+    if out["dir"] and not (deck_dir / out["dir"]).is_dir():
+        errors.append(f"{where}.dir: {deck_dir / out['dir']} is not a directory")
+    if not isinstance(out["timeout"], (int, float)) or not 0 < out["timeout"] <= 600:
+        errors.append(f"{where}.timeout: expected seconds, at most 600")
     return out
 
 
@@ -582,11 +638,7 @@ def _appendix_slides(groups: list[dict]) -> list[dict]:
         titles = [g["title"] for g in page]
         joined = ", ".join(titles)
         title = joined if len(joined) <= 70 else f"{titles[0]} and {len(titles) - 1} more"
-        blocks = []
-        for g in page:
-            heading = "" if len(page) == 1 else f"### {g['title']}\n\n"
-            blocks.append({"type": "md", "md": heading + g["note"]})
-            blocks += g["blocks"]
+        blocks = [{"type": "group", "title": g["title"], "md": g["note"], "blocks": g["blocks"]} for g in page]
         out.append({"id": f"appendix-{n}", "title": title, "section": "Appendix",
                     "prompts": [], "blocks": blocks, "quiz": []})
     return out
@@ -645,6 +697,17 @@ def load_deck(deck_dir: Path) -> Deck:
 
     shown: dict[str, set[int]] = defaultdict(set)
     shown_files: set[str] = set()
+
+    def diff_excerpt(blk: dict, where: str, blocks: list[dict]):
+        """Add a diff excerpt to `blocks` and record the lines it shows."""
+        ex = _excerpt(blk, where, by_key, hunks, errors)
+        if not ex:
+            return
+        for p in ex["pieces"]:
+            shown[p["hunk"]].update(range(p["lo"], p["hi"] + 1))
+        if not ex["pieces"]:
+            shown_files.add(ex["file"])
+        blocks.append({"type": "excerpt", **ex, "caption": _str(blk.get("caption"), f"{where}.caption", errors)})
     seen_ids: set[str] = set()
     slides: list[dict] = []
     # Checks point at the content slides that settle their questions.
@@ -680,7 +743,7 @@ def load_deck(deck_dir: Path) -> Deck:
         if "quiz" in s:
             if "blocks" in s:
                 errors.append(f"{where}: a check slide has quiz, not blocks")
-            out["quiz"] = _quiz(s["quiz"], where, sid, content_ids, errors)
+            out["quiz"] = _quiz(s["quiz"], where, sid, content_ids, deck_dir, errors)
             slides.append(out)
             continue
         blocks = s.get("blocks")
@@ -711,14 +774,7 @@ def load_deck(deck_dir: Path) -> Deck:
                 if ex:
                     out["blocks"].append({"type": "excerpt", **ex, "caption": _str(blk.get("caption"), f"{bw}.caption", errors)})
             else:
-                ex = _excerpt(blk, bw, by_key, hunks, errors)
-                if ex:
-                    ex = {"type": "excerpt", **ex, "caption": _str(blk.get("caption"), f"{bw}.caption", errors)}
-                    for p in ex["pieces"]:
-                        shown[p["hunk"]].update(range(p["lo"], p["hi"] + 1))
-                    if not ex["pieces"]:
-                        shown_files.add(ex["file"])
-                    out["blocks"].append(ex)
+                diff_excerpt(blk, bw, out["blocks"])
         slides.append(out)
 
     groups = []
@@ -741,14 +797,7 @@ def load_deck(deck_dir: Path) -> Deck:
             if not isinstance(blk, dict) or "diff" not in blk:
                 errors.append(f"{bw}: expected {{diff, range, caption}}")
                 continue
-            ex = _excerpt(blk, bw, by_key, hunks, errors)
-            if ex:
-                ex = {"type": "excerpt", **ex, "caption": _str(blk.get("caption"), f"{bw}.caption", errors)}
-                for p in ex["pieces"]:
-                    shown[p["hunk"]].update(range(p["lo"], p["hi"] + 1))
-                if not ex["pieces"]:
-                    shown_files.add(ex["file"])
-                out["blocks"].append(ex)
+            diff_excerpt(blk, bw, out["blocks"])
         groups.append(out)
 
     for f in files:
@@ -799,13 +848,19 @@ STRAY_RE = re.compile(r"\$\$|\\[()\[\]]|\$(?=[A-Za-z\\{(])")
 
 def markdown_fields(s: dict):
     """(where, text) for each Markdown field of a slide."""
-    for b, blk in enumerate(s["blocks"]):
-        if blk.get("md"):
-            yield f"blocks[{b}]", blk["md"]
-        if blk.get("caption"):
-            yield f"blocks[{b}].caption", blk["caption"]
+    def blocks(bs: list[dict], where: str):
+        for b, blk in enumerate(bs):
+            if blk.get("md"):
+                yield f"{where}[{b}]", blk["md"]
+            if blk.get("caption"):
+                yield f"{where}[{b}].caption", blk["caption"]
+            yield from blocks(blk.get("blocks", []), f"{where}[{b}].blocks")
+
+    yield from blocks(s["blocks"], "blocks")
     for i, q in enumerate(s["quiz"]):
         yield f"quiz[{i}].q", q["q"]
+        if q["kind"] == "prose" and q["model"]:
+            yield f"quiz[{i}].model", q["model"]
         for j, c in enumerate(q["choices"]):
             yield f"quiz[{i}].choices[{j}].text", c["text"]
             yield f"quiz[{i}].choices[{j}].why", c["why"]
@@ -913,6 +968,19 @@ def pid_alive(pid) -> bool:
         return False
 
 
+def read_json(path: Path) -> dict:
+    """A JSON object from a file, or {} when it is missing or unreadable."""
+    try:
+        data = json.loads(path.read_text())
+    except (OSError, ValueError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def new_id() -> str:
+    return f"q-{int(time.time() * 1000):x}-{secrets.token_hex(2)}"
+
+
 class Queue:
     def __init__(self, deck_dir: Path):
         self.dir = deck_dir / "queue"
@@ -940,21 +1008,15 @@ class Queue:
         return self.file(qid, ".answer.md").exists()
 
     def remove(self, qid: str):
-        for suffix in (".json", ".claimed", ".answer.md"):
+        for suffix in (".json", ".claimed", ".answer.md", ".verdict"):
             self.file(qid, suffix).unlink(missing_ok=True)
 
     def listener(self) -> dict | None:
-        try:
-            info = json.loads((self.dir / "listening.json").read_text())
-        except (OSError, ValueError):
-            return None
+        info = read_json(self.dir / "listening.json")
         return info if pid_alive(info.get("pid")) and info.get("until", 0) > time.time() else None
 
     def pages(self) -> dict:
-        try:
-            return json.loads((self.dir / "pages.json").read_text())
-        except (OSError, ValueError):
-            return {}
+        return read_json(self.dir / "pages.json")
 
 
 # --------------------------------------------------------------------------
@@ -963,24 +1025,40 @@ class Queue:
 
 class QuizAnswers:
     """The reader's answers on check slides, persisted to quiz.json as
-    {slide id: {question index: choice index}}. Only the server writes it."""
+    {slide id: {question index: answer}}. An answer is a choice index or, for
+    a written question, {id, text, at, state, verdict, feedback}, where state
+    is queued, judging or judged. Only the server writes it."""
 
     def __init__(self, path: Path):
         self.path = path
         self.lock = threading.Lock()
-        try:
-            self.data = json.loads(path.read_text()).get("answers", {})
-        except (OSError, ValueError):
-            self.data = {}
+        self.data = read_json(path).get("answers", {})
 
-    def set(self, slide: str, question: int, choice: int | None):
+    def _save(self):
+        write_atomic(self.path, json.dumps({"version": 1, "answers": self.data}, indent=1))
+
+    def set(self, slide: str, question: int, answer):
         with self.lock:
             answers = self.data.setdefault(slide, {})
-            if choice is None:
+            if answer is None:
                 answers.pop(str(question), None)
             else:
-                answers[str(question)] = choice
-            write_atomic(self.path, json.dumps({"version": 1, "answers": self.data}, indent=1))
+                answers[str(question)] = answer
+            self._save()
+
+    def get(self, slide: str, question: int):
+        with self.lock:
+            return json.loads(json.dumps(self.data.get(slide, {}).get(str(question))))
+
+    def update(self, slide: str, question: int, qid: str, **fields) -> bool:
+        """Update the written answer `qid`, unless the reader has replaced it."""
+        with self.lock:
+            a = self.data.get(slide, {}).get(str(question))
+            if not isinstance(a, dict) or a.get("id") != qid:
+                return False
+            a.update(fields)
+            self._save()
+            return True
 
     def snapshot(self) -> dict:
         with self.lock:
@@ -997,29 +1075,39 @@ def quiz_report(deck: Deck, answers: dict) -> str:
     checks = deck.checks()
     if not checks:
         return ""
-    total = right = 0
+    total = right = waiting = 0
     missed = []
     for s in checks:
         got = answers.get(s["id"], {})
         for i, q in enumerate(s["quiz"]):
             total += 1
-            c = got.get(str(i))
-            if not isinstance(c, int) or not 0 <= c < len(q["choices"]):
-                continue
-            if q["choices"][c]["correct"]:
-                right += 1
-                continue
-            see = deck.slide(q["choices"][c]["see"] or q["see"])
-            correct = next(x for x in q["choices"] if x["correct"])
-            missed.append(
-                f"  {s['title']}, question {i + 1}: {_plain(q['q'])}\n"
-                f"    chose: {_plain(q['choices'][c]['text'])}\n"
-                f"    correct: {_plain(correct['text'])}\n"
-                + (f"    covered on {deck.position(see)}: {see['title']}" if see else "")
-            )
-    left = total - right - len(missed)
-    head = f"Checks: {right} of {total} answered correctly" + (f", {left} unanswered" if left else "") + "."
-    return "\n".join([head, *missed])
+            a = got.get(str(i))
+            head = f"  {s['title']}, question {i + 1}: {_plain(q['q'])}\n"
+            if q["kind"] == "choice":
+                if not isinstance(a, int) or not 0 <= a < len(q["choices"]):
+                    continue
+                if q["choices"][a]["correct"]:
+                    right += 1
+                    continue
+                correct = next(x for x in q["choices"] if x["correct"])
+                detail = f"    chose: {_plain(q['choices'][a]['text'])}\n    correct: {_plain(correct['text'])}\n"
+                see = deck.slide(q["choices"][a]["see"] or q["see"])
+            else:
+                if not isinstance(a, dict):
+                    continue
+                if a.get("state") != "judged":
+                    waiting += 1
+                    continue
+                if a.get("verdict") == "correct":
+                    right += 1
+                    continue
+                detail = f"    answered ({VERDICTS.get(a.get('verdict'), 'judged').lower()}): {_plain(a['text'])}\n"
+                see = deck.slide(q["see"])
+            missed.append(head + detail + (f"    covered on {deck.position(see)}: {see['title']}" if see else ""))
+    left = total - right - len(missed) - waiting
+    head = f"Checks: {right} of {total} answered correctly"
+    head += "".join(f", {n} {what}" for n, what in ((waiting, "waiting to be judged"), (left, "unanswered")) if n)
+    return "\n".join([head + ".", *missed])
 
 
 class Threads:
@@ -1052,14 +1140,14 @@ class Threads:
 
 
 class State:
-    def __init__(self, deck_dir: Path, token: str):
-        self.deck_dir = deck_dir
+    def __init__(self, deck: Deck, token: str):
+        deck_dir = self.deck_dir = deck.dir
         self.token = token
         self.queue = Queue(deck_dir)
         self.queue.dir.mkdir(exist_ok=True)
         self.threads = Threads(deck_dir / "threads.json")
         self.quiz = QuizAnswers(deck_dir / "quiz.json")
-        self.deck = load_deck(deck_dir)
+        self.deck = deck
         self.version = 1
         self.deck_errors: list[str] = []
         self.mtimes = self._mtimes()
@@ -1070,12 +1158,36 @@ class State:
         self.busy = False
         self.last_activity = time.monotonic()
         self.last_page = time.time()
+        # Problems a page found drawing this deck version, as (slide, where, message).
+        self.audited = 0
+        self.issues: set[tuple[str, str, str]] = set()
+        self.issues_lock = threading.Lock()
 
     def status(self) -> dict:
         return {"session": self.presence}
 
     def payload(self) -> dict:
-        return {**deck_payload(self.deck, self.version), "status": self.status()}
+        return {**deck_payload(self.deck, self.version), "status": self.status(),
+                "engine": engine(), "audited": self.audited == self.version}
+
+    def report_issues(self, version: int, issues: list[tuple[str, str, str]], audit: bool):
+        """Queue the problems no page has reported yet for `listen` to pass on;
+        `audit` says a page drew every slide, so later pages need not."""
+        with self.issues_lock:
+            if version != self.version:
+                return
+            if audit:
+                self.audited = version
+            new = [i for i in dict.fromkeys(issues) if i not in self.issues and self.deck.slide(i[0])]
+            self.issues.update(new)
+            lines = [
+                {"where": f"{self.deck.position(self.deck.slide(sid))} ({sid}), {where}", "message": message}
+                for sid, where, message in new
+            ]
+        if not new:
+            return
+        self.queue.add({"id": new_id(), "kind": "issues", "at": time.time(), "issues": lines})
+        log(f"page reported {len(new)} problem(s) drawing the deck")
 
     def _mtimes(self) -> dict[Path, int]:
         out = {}
@@ -1135,8 +1247,10 @@ class State:
             self.broadcast("deck-error", {"errors": e.errors})
             log(f"deck edit rejected: {len(e.errors)} error(s)")
             return
-        self.deck, self.deck_errors = deck, []
-        self.version += 1
+        with self.issues_lock:
+            self.deck, self.deck_errors = deck, []
+            self.version += 1
+            self.issues.clear()
         self.mtimes = self._mtimes()
         self.broadcast("deck", {"version": self.version})
         log(f"deck reloaded (version {self.version})")
@@ -1146,13 +1260,16 @@ class State:
         busy = False
         for item in self.queue.items():
             qid = item["id"]
-            if item.get("kind") != "question":
+            if item.get("kind") not in ("question", "answer"):
                 continue
             claim = self.queue.file(qid, ".claimed")
             try:
                 busy |= time.time() - claim.stat().st_mtime < CLAIM_STALE
             except OSError:
                 pass
+            if item["kind"] == "answer":
+                self._sync_answer(item)
+                continue
             with self.threads.lock:
                 slide, msg = self.threads.find(qid)
                 if msg is None:
@@ -1173,6 +1290,23 @@ class State:
         self.busy = busy
         for slide in changed:
             self.broadcast("thread", {"slide": slide})
+
+    def _sync_answer(self, item: dict):
+        """Mark a written answer as being judged, or record the session's verdict."""
+        qid, slide, question = item["id"], item["slide"], item["question"]
+        if self.queue.answered(qid):
+            verdict = self.queue.file(qid, ".verdict").read_text().strip()
+            feedback = self.queue.file(qid, ".answer.md").read_text()
+            self.queue.remove(qid)
+            changed = self.quiz.update(slide, question, qid, state="judged", verdict=verdict, feedback=feedback)
+        elif self.queue.claimed(qid):
+            # A deck edit can leave a choice index where the written answer was.
+            a = self.quiz.get(slide, question)
+            changed = isinstance(a, dict) and a.get("state") == "queued" and self.quiz.update(slide, question, qid, state="judging")
+        else:
+            changed = False
+        if changed:
+            self.broadcast("quiz", {"slide": slide})
 
 
 def log(msg: str):
@@ -1270,7 +1404,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Type", "text/event-stream")
             self.send_header("Cache-Control", "no-store")
             self.end_headers()
-            self._sse("hello", {"version": st.version, "status": st.status()})
+            self._sse("hello", {"version": st.version, "status": st.status(), "engine": engine()})
             if st.deck_errors:
                 self._sse("deck-error", {"errors": st.deck_errors})
             while True:
@@ -1304,6 +1438,7 @@ class Handler(BaseHTTPRequestHandler):
             "/api/clear": self._clear,
             "/api/answer": self._answer,
             "/api/finish": self._finish,
+            "/api/issues": self._issues,
         }.get(route)
         if handler is None:
             return self._error(404, "not found")
@@ -1326,9 +1461,7 @@ class Handler(BaseHTTPRequestHandler):
             elif r.get("kind") in ("quote", "diagram") and isinstance(r.get("text"), str) and r["text"].strip():
                 text = r["text"].strip()[:2000]
                 source = r.get("source") if r.get("source") in QUOTE_SOURCES else "diagram"
-                label = " ".join(text.split())
-                label = (label if source == "math" else re.sub(r"[*`_]+", "", label))[:60]
-                out.append({"kind": "quote", "source": source, "text": text, "label": label})
+                out.append({"kind": "quote", "source": source, "text": text})
         return out[:8]
 
     def _ask(self, body: dict):
@@ -1339,7 +1472,7 @@ class Handler(BaseHTTPRequestHandler):
         refs = self._refs(deck, body.get("refs"))
         if slide is None or not isinstance(text, str) or not (text.strip() or refs):
             return self._error(400, "expected a slide id and a question")
-        qid = f"q-{int(time.time() * 1000):x}-{secrets.token_hex(2)}"
+        qid = new_id()
         msg = {"id": qid, "role": "user", "text": text.strip()[:20_000], "refs": refs,
                "at": time.time(), "state": "queued"}
         item = {
@@ -1386,20 +1519,49 @@ class Handler(BaseHTTPRequestHandler):
         self._json({"ok": True})
 
     def _answer(self, body: dict):
+        """Record a choice, submit a written answer for judging, or (with neither) clear an answer."""
         st = self.state
         slide = st.deck.slide(str(body.get("slide")))
-        question, choice = body.get("question"), body.get("choice")
+        question, choice, text = body.get("question"), body.get("choice"), body.get("text")
         q = slide["quiz"][question] if slide and isinstance(question, int) and 0 <= question < len(slide["quiz"]) else None
-        if q is None or not (choice is None or isinstance(choice, int) and 0 <= choice < len(q["choices"])):
-            return self._error(400, "expected a check slide, a question index and a choice index")
-        st.quiz.set(slide["id"], question, choice)
-        st.broadcast("quiz", {"slide": slide["id"]})
+        if q is None:
+            return self._error(400, "expected a check slide and a question index")
+        sid = slide["id"]
+        if q["kind"] == "choice":
+            if not (choice is None or isinstance(choice, int) and 0 <= choice < len(q["choices"])):
+                return self._error(400, "expected a choice index")
+            st.quiz.set(sid, question, choice)
+        else:
+            prev = st.quiz.get(sid, question)
+            if isinstance(prev, dict) and prev.get("state") in ("queued", "judging"):
+                if prev["state"] == "judging" or st.queue.claimed(prev["id"]):
+                    return self._error(409, "the session is judging this answer")
+                st.queue.remove(prev["id"])
+            if text is None:
+                st.quiz.set(sid, question, None)
+            elif not isinstance(text, str) or not text.strip():
+                return self._error(400, "expected the answer's text")
+            else:
+                qid, now = new_id(), time.time()
+                st.quiz.set(sid, question, {"id": qid, "text": text[:50_000], "state": "queued", "at": now})
+                st.queue.add({"id": qid, "kind": "answer", "slide": sid, "question": question, "at": now,
+                              "where": f"{st.deck.position(slide)}: {slide['title']}", "text": text[:50_000], "spec": q})
+        st.broadcast("quiz", {"slide": sid})
+        self._json({"ok": True})
+
+    def _issues(self, body: dict):
+        st = self.state
+        issues = []
+        for i in body.get("issues") if isinstance(body.get("issues"), list) else []:
+            if isinstance(i, dict) and isinstance(i.get("message"), str):
+                issues.append((str(i.get("slide")), str(i.get("where", ""))[:80], i["message"][:500]))
+        version = body.get("version")
+        st.report_issues(version if isinstance(version, int) else -1, issues[:50], body.get("audit") is True)
         self._json({"ok": True})
 
     def _finish(self, body: dict):
         st = self.state
-        qid = f"q-{int(time.time() * 1000):x}-{secrets.token_hex(2)}"
-        st.queue.add({"id": qid, "kind": "finished", "at": time.time()})
+        st.queue.add({"id": new_id(), "kind": "finished", "at": time.time()})
         self._json({"ok": True})
 
 
@@ -1490,106 +1652,55 @@ def cmd_hunks(args):
                     print(f"    {i:>4} {o:>5} {n:>5} {r.kind}{r.text}")
 
 
-def cmd_check(args):
+def load_or_exit(deck_dir: Path) -> Deck:
     try:
-        deck = load_deck(Path(args.deck))
+        return load_deck(deck_dir)
     except DeckInvalid as e:
         for err in e.errors:
             print(f"error: {err}")
         sys.exit(1)
-    print_report(deck)
+
+
+def cmd_check(args):
+    print_report(load_or_exit(Path(args.deck)))
 
 
 def server_info(deck_dir: Path) -> dict | None:
-    try:
-        info = json.loads((deck_dir / "server.json").read_text())
-    except (OSError, ValueError):
-        return None
+    info = read_json(deck_dir / "server.json")
     return info if pid_alive(info.get("pid")) else None
 
 
-def cmd_serve(args):
-    deck_dir = Path(args.deck).resolve()
-    running = server_info(deck_dir)
-    if running:
-        print(f"already serving: {running['url']}")
-        return
-    if args.detach:
-        argv = [a for a in sys.argv[1:] if a != "--detach"]
-        with open(deck_dir / "server.log", "ab") as logf:
-            proc = subprocess.Popen(
-                [sys.executable, str(SCRIPT), *argv],
-                stdin=subprocess.DEVNULL,
-                stdout=logf,
-                stderr=logf,
-                start_new_session=True,
-            )
-        for _ in range(150):
-            time.sleep(0.1)
-            info = server_info(deck_dir)
-            if info and info["pid"] == proc.pid:
-                print(info["url"])
-                return
-            if proc.poll() is not None:
-                break
-        sys.exit(f"the server did not start; see {deck_dir / 'server.log'}")
-
-    # Reuse the previous token and port, so a restarted server keeps the URL
-    # and open pages reconnect on their own.
-    saved = deck_dir / ".server-address"
-    try:
-        token, port = json.loads(saved.read_text()).values()
-    except (OSError, ValueError):
-        token, port = secrets.token_urlsafe(18), 0
-    try:
-        state = State(deck_dir, token)
-    except DeckInvalid as e:
-        for err in e.errors:
-            print(f"error: {err}", file=sys.stderr)
-        sys.exit(1)
-    Handler.state = state
-    try:
-        httpd = ThreadingHTTPServer((args.host, args.port or port), Handler)
-    except OSError:
-        httpd = ThreadingHTTPServer((args.host, args.port), Handler)
-    httpd.daemon_threads = True
-    host, port = httpd.server_address[:2]
-    shown = args.public_host or (socket.gethostname() if host in ("0.0.0.0", "::") else host)
-    url = f"http://{shown}:{port}/{state.token}/"
-    write_atomic(deck_dir / "server.json", json.dumps({"pid": os.getpid(), "url": url, "port": port}), 0o600)
-    write_atomic(saved, json.dumps({"token": state.token, "port": port}), 0o600)
-    state.pages_changed()
-    print_report(state.deck)
-    log(f"serving {url}")
-    threading.Thread(target=state.watch, daemon=True).start()
-
-    def idle():
-        while True:
-            time.sleep(60)
-            with state.listeners_lock:
-                open_pages = len(state.listeners)
-            if not open_pages and time.monotonic() - state.last_activity > args.idle_hours * 3600:
-                log("idle; shutting down")
-                httpd.shutdown()
-                return
-
-    threading.Thread(target=idle, daemon=True).start()
-    signal.signal(signal.SIGTERM, lambda *_: threading.Thread(target=httpd.shutdown).start())
-    try:
-        httpd.serve_forever()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        (deck_dir / "server.json").unlink(missing_ok=True)
+# Options a deck directory keeps between servers, with their defaults.
+SERVE_OPTIONS = {"host": "127.0.0.1", "port": 0, "public_host": None, "idle_hours": 12.0, "tunnel": None}
 
 
-def cmd_stop(args):
-    deck_dir = Path(args.deck).resolve()
-    info = server_info(deck_dir)
-    if not info:
-        (deck_dir / "server.json").unlink(missing_ok=True)
-        print("not running")
-        return
+def serve_options(args, saved: dict) -> dict:
+    """The saved options, overridden by the flags given on this command line."""
+    given = {k: getattr(args, k) for k in SERVE_OPTIONS if getattr(args, k) is not None}
+    opts = {**SERVE_OPTIONS, **saved, **given}
+    if opts["tunnel"] == "":
+        opts["tunnel"] = f"{getpass.getuser()}@{socket.gethostname()}"
+    elif opts["tunnel"] == "off":
+        opts["tunnel"] = None
+    return opts
+
+
+def stale_reason(info: dict) -> str | None:
+    """Why a running server is not this deck.py with these page assets, if it is not."""
+    if info.get("engine") == engine():
+        return None
+    if info.get("script") == str(SCRIPT):
+        return "deck.py or its page changed since it started"
+    return f"it runs {info.get('script', 'an older deck.py')}"
+
+
+def print_address(info: dict):
+    print(info["url"])
+    if info.get("tunnel"):
+        print(f"From another machine, forward the port first: {info['tunnel']}")
+
+
+def stop_server(deck_dir: Path, info: dict):
     try:
         # Servers started as review_deck.py also match.
         if b"deck.py" not in Path(f"/proc/{info['pid']}/cmdline").read_bytes():
@@ -1600,9 +1711,113 @@ def cmd_stop(args):
     for _ in range(50):
         time.sleep(0.1)
         if not server_info(deck_dir):
-            print("stopped")
             return
     sys.exit("the server did not stop")
+
+
+def cmd_serve(args):
+    deck_dir = Path(args.deck).resolve()
+    saved = deck_dir / ".server-address"
+    address = read_json(saved)
+    opts = serve_options(args, address.get("options", {}))
+    if opts["tunnel"] and opts["host"] not in ("127.0.0.1", "localhost", "::1"):
+        sys.exit("--tunnel forwards a loopback port; leave out --host, or pass --tunnel off")
+    running = server_info(deck_dir)
+    # A current server keeps serving the last valid deck while deck.json has errors.
+    if running and not stale_reason(running) and running.get("options") == opts:
+        print("already serving:")
+        print_address(running)
+        return
+    deck = load_or_exit(deck_dir)
+    if running:
+        # Restart in place: the token and port carry over, so open pages reconnect and reload.
+        stop_server(deck_dir, running)
+        print(f"restarted the server: {stale_reason(running) or 'new options'}")
+    if args.detach:
+        argv = [a for a in sys.argv[1:] if a != "--detach"]
+        with open(deck_dir / "server.log", "ab") as logf:
+            proc = subprocess.Popen(
+                [sys.executable, str(SCRIPT), *argv],
+                stdin=subprocess.DEVNULL,
+                stdout=logf,
+                stderr=logf,
+                # Its own session: no terminal, so closing the terminal or tmux session sends it no SIGHUP.
+                start_new_session=True,
+            )
+        for _ in range(150):
+            time.sleep(0.1)
+            info = server_info(deck_dir)
+            if info and info["pid"] == proc.pid:
+                print_address(info)
+                return
+            if proc.poll() is not None:
+                break
+        sys.exit(f"the server did not start; see {deck_dir / 'server.log'}")
+
+    sys.stdout.reconfigure(line_buffering=True)  # keep server.log in order
+    token = address.get("token") or secrets.token_urlsafe(18)
+    state = State(deck, token)
+    Handler.state = state
+    # Reuse the previous port so the URL survives a restart, unless --port names one.
+    try:
+        httpd = ThreadingHTTPServer((opts["host"], opts["port"] or address.get("port", 0)), Handler)
+    except OSError:
+        httpd = ThreadingHTTPServer((opts["host"], opts["port"]), Handler)
+    httpd.daemon_threads = True
+    host, port = httpd.server_address[:2]
+    shown = opts["public_host"] or (socket.gethostname() if host in ("0.0.0.0", "::") else host)
+    info = {
+        "pid": os.getpid(),
+        "url": f"http://{shown}:{port}/{token}/",
+        "port": port,
+        "tunnel": f"ssh -N -L {port}:127.0.0.1:{port} {opts['tunnel']}" if opts["tunnel"] else None,
+        "engine": engine(),
+        "script": str(SCRIPT),
+        "options": opts,
+    }
+    write_atomic(deck_dir / "server.json", json.dumps(info), 0o600)
+    write_atomic(saved, json.dumps({"token": token, "port": port, "options": opts}), 0o600)
+    state.pages_changed()
+    print_report(state.deck)
+    print_address(info)
+    log(f"serving {info['url']} (pid {os.getpid()}, engine {engine()} at {SCRIPT})")
+    threading.Thread(target=state.watch, daemon=True).start()
+
+    def shutdown(why: str):
+        log(f"{why}; shutting down")
+        threading.Thread(target=httpd.shutdown).start()
+
+    def idle():
+        while True:
+            time.sleep(60)
+            with state.listeners_lock:
+                open_pages = len(state.listeners)
+            if not open_pages and time.monotonic() - state.last_activity > opts["idle_hours"] * 3600:
+                return shutdown("idle")
+
+    threading.Thread(target=idle, daemon=True).start()
+    signal.signal(signal.SIGTERM, lambda *_: shutdown("received SIGTERM"))
+    signal.signal(signal.SIGHUP, lambda *_: log("ignored SIGHUP"))
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        log("interrupted")
+    finally:
+        # Free the port before a restart can see server.json gone and bind it.
+        httpd.server_close()
+        (deck_dir / "server.json").unlink(missing_ok=True)
+        log("stopped")
+
+
+def cmd_stop(args):
+    deck_dir = Path(args.deck).resolve()
+    info = server_info(deck_dir)
+    if not info:
+        (deck_dir / "server.json").unlink(missing_ok=True)
+        print("not running")
+        return
+    stop_server(deck_dir, info)
+    print("stopped")
 
 
 def _ago(ts: float) -> str:
@@ -1616,15 +1831,28 @@ def cmd_listen(args):
     me = shlex_path(SCRIPT)
     deck_arg = shlex_path(deck_dir)
     if args.answer:
-        if not QUESTION_ID.match(args.answer) or not q.file(args.answer).exists():
-            sys.exit(f"no open question {args.answer} (answered or withdrawn already?)")
+        posted = read_json(q.file(args.answer)) if QUESTION_ID.match(args.answer) else {}
+        if not posted:
+            sys.exit(f"nothing open with id {args.answer} (answered, withdrawn or replaced already?)")
+        judging = posted.get("kind") == "answer"
+        if judging and args.verdict not in VERDICTS:
+            sys.exit(f"{args.answer} is a check answer; pass --verdict {'|'.join(VERDICTS)}")
+        if not judging and args.verdict:
+            sys.exit(f"{args.answer} is a question; leave out --verdict")
         text = Path(args.file).read_text() if args.file else sys.stdin.read()
         if not text.strip():
             sys.exit("the answer is empty")
+        if judging:
+            write_atomic(q.file(args.answer, ".verdict"), args.verdict)
         write_atomic(q.file(args.answer, ".answer.md"), text)
-        print(f"Posted the answer to {args.answer}.")
-    if not server_info(deck_dir):
-        sys.exit(f"No server is running for this deck. Start it with:\n  python3 {me} serve {deck_arg} --detach")
+        print(f"Posted the {'feedback' if judging else 'answer'} to {args.answer}.")
+    info = server_info(deck_dir)
+    serve = f"python3 {me} serve {deck_arg} --detach"
+    if not info:
+        sys.exit(f"No server is running for this deck. Start it with:\n  {serve}")
+    if stale_reason(info):
+        print(f"The server is out of date: {stale_reason(info)}. "
+              f"Restart it in place; the URL stays the same and open pages reload:\n  {serve}\n")
 
     q.dir.mkdir(exist_ok=True)
     marker = q.dir / "listening.json"
@@ -1661,6 +1889,15 @@ def cmd_listen(args):
         print(f"No questions in the last {args.timeout:g} s. {seen}\nKeep listening with:\n  {again}")
         return
     rest = len(pending) - 1
+    if item.get("kind") == "issues":
+        q.remove(item["id"])
+        print("The page found problems drawing the deck. Fix them in deck.json; the page reloads it:")
+        for i in item["issues"]:
+            print(f"  {i['where']}: " + i["message"].replace("\n", "\n    "))
+        print(f"\nThen keep listening with:\n  {again}")
+        if rest:
+            print(f"({rest} more waiting.)")
+        return
     if item.get("kind") == "finished":
         q.remove(item["id"])
         print("The reader marked the walkthrough finished.")
@@ -1671,9 +1908,16 @@ def cmd_listen(args):
         if report:
             print(report + "\nRevisit what was missed in the wrap-up.")
         if rest:
-            print(f"{rest} question(s) still wait for answers; keep listening with:\n  {again}")
+            print(f"{rest} more still wait for you; keep listening with:\n  {again}")
         return
     write_atomic(q.file(item["id"], ".claimed"), json.dumps({"pid": os.getpid(), "at": time.time()}))
+    if item.get("kind") == "answer":
+        print(judging_brief(item, deck_dir))
+        print(f"  python3 {me} listen {deck_arg} --answer {item['id']} --verdict {'|'.join(VERDICTS)} "
+              f"--file FEEDBACK.md{wait}")
+        if rest:
+            print(f"({rest} more waiting.)")
+        return
     print(f"Question {item['id']} on slide {item['slide']} ({item['where']}):\n")
     if item.get("refs"):
         print(item["refs"] + "\n")
@@ -1685,7 +1929,67 @@ def cmd_listen(args):
         f"  python3 {me} listen {deck_arg} --answer {item['id']} --file ANSWER.md{wait}"
     )
     if rest:
-        print(f"({rest} more question(s) waiting.)")
+        print(f"({rest} more waiting.)")
+
+
+def fenced(text: str, lang: str = "") -> str:
+    ticks = "`" * max([3, *(len(m) + 1 for m in re.findall(r"`{3,}", text))])
+    return f"{ticks}{lang}\n{text.rstrip()}\n{ticks}"
+
+
+def judging_brief(item: dict, deck_dir: Path) -> str:
+    """What the session needs to judge a written check answer."""
+    q = item["spec"]
+    lang = q.get("language", "") if q["kind"] == "code" else ""
+    out = [
+        f"Answer {item['id']} to check question {item['question'] + 1} on slide {item['slide']} "
+        f"({item['where']}), a {q['kind']} answer to judge.\n",
+        f"Question:\n{q['q']}\n",
+        f"Rubric:\n{q['rubric']}\n",
+    ]
+    if q.get("model"):
+        out.append(f"Model answer (the page offers it after judging):\n{fenced(q['model'], lang) if lang else q['model']}\n")
+    out.append(f"The reader's answer:\n{fenced(item['text'], lang)}\n")
+    if q.get("test"):
+        out.append(run_test(item, deck_dir) + "\n")
+    out.append(
+        "Judge the answer against the rubric, not its wording: correct when it has every point, partial when it"
+        " has some, incorrect otherwise. Write feedback for the reader in Markdown: what is right, what is missing"
+        " or wrong and where the deck covers it, without quoting the model answer. Then post it with the verdict"
+        " and keep listening:"
+    )
+    return "\n".join(out)
+
+
+def run_test(item: dict, deck_dir: Path) -> str:
+    """Run a code answer's tests once, in a copy of the test directory, and describe the result."""
+    t = item["spec"]["test"]
+    run = deck_dir / "runs" / item["id"]
+    report = run.with_suffix(".txt")
+    if report.exists():
+        return report.read_text()
+    shutil.rmtree(run, ignore_errors=True)
+    if t["dir"]:
+        shutil.copytree(deck_dir / t["dir"], run)
+    else:
+        run.mkdir(parents=True)
+    (run / t["file"]).write_text(item["text"])
+    proc = subprocess.Popen(t["command"], shell=True, cwd=run, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT, start_new_session=True)
+    try:
+        output, _ = proc.communicate(timeout=t["timeout"])
+        status = "passed" if proc.returncode == 0 else f"failed with exit status {proc.returncode}"
+    except subprocess.TimeoutExpired:
+        with contextlib.suppress(ProcessLookupError):
+            os.killpg(proc.pid, signal.SIGKILL)
+        output, _ = proc.communicate()
+        status = f"timed out after {t['timeout']:g} s"
+    text = output.decode(errors="replace")
+    if len(text) > 6000:
+        text = "…\n" + text[-6000:]
+    result = f"Tests ({t['command']}, in {run}) {status}:\n{fenced(text or '(no output)')}"
+    write_atomic(report, result)
+    return result
 
 
 def shlex_path(p: Path) -> str:
@@ -1714,19 +2018,33 @@ def main(argv=None):
     c.add_argument("deck")
     c.set_defaults(func=cmd_check)
 
-    s = sub.add_parser("serve", help="serve the deck as a local web page")
+    s = sub.add_parser(
+        "serve",
+        help="serve the deck as a local web page",
+        description="Serve the deck. The deck directory keeps its token, port and these options for later "
+        "servers; a server running another deck.py or other options is restarted in place.",
+    )
     s.add_argument("deck")
-    s.add_argument("--host", default="127.0.0.1", help="address to listen on (default 127.0.0.1)")
-    s.add_argument("--port", type=int, default=0, help="port (default: any free port)")
+    s.add_argument("--host", help="address to listen on (default 127.0.0.1)")
+    s.add_argument("--port", type=int, help="port (default: the previous one, or any free port)")
     s.add_argument("--public-host", help="host name to print in the URL")
-    s.add_argument("--idle-hours", type=float, default=12, help="exit after this long unused")
+    s.add_argument("--idle-hours", type=float, help="exit after this long unused (default 12)")
+    s.add_argument(
+        "--tunnel",
+        nargs="?",
+        const="",
+        metavar="DEST",
+        help="print the ssh command that forwards the port from the reader's machine, which reaches this "
+        "one as ssh DEST (default USER@HOSTNAME); 'off' stops printing it",
+    )
     s.add_argument("--detach", action="store_true", help="run in the background; print the URL")
     s.set_defaults(func=cmd_serve)
 
     l = sub.add_parser("listen", help="wait for the reader's next question")
     l.add_argument("deck")
-    l.add_argument("--answer", metavar="ID", help="first post the answer to this question")
+    l.add_argument("--answer", metavar="ID", help="first post the answer to this question, or feedback on this check answer")
     l.add_argument("--file", help="answer file (default: read the answer from stdin)")
+    l.add_argument("--verdict", choices=list(VERDICTS), help="with --answer for a check answer: the verdict")
     l.add_argument("--timeout", type=float, default=100, help="seconds to wait (default 100)")
     l.set_defaults(func=cmd_listen)
 

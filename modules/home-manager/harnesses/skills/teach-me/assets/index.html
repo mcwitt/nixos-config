@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
 <title>Deck</title>
+<link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,600;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&display=swap">
@@ -43,7 +44,7 @@
     <article class="slide" id="slide" tabindex="-1" aria-live="polite"></article>
 
     <aside class="ask" id="ask" aria-labelledby="ask-title">
-      <div class="ask-grip" id="ask-grip" role="separator" aria-orientation="vertical" aria-controls="ask" aria-label="Question panel width" tabindex="0" title="Drag to resize · arrow keys adjust · double-click or Enter resets"></div>
+      <div class="grip ask-grip" id="ask-grip" role="separator" aria-orientation="vertical" aria-controls="ask" aria-label="Question panel width" tabindex="0" title="Drag to resize · arrow keys adjust · double-click or Enter resets"></div>
       <div class="ask-head">
         <div class="ask-names">
           <h2 id="ask-title">Questions</h2>
@@ -55,6 +56,7 @@
       </div>
       <div class="thread" id="thread"></div>
       <form class="composer" id="composer">
+        <div class="grip question-grip" id="question-grip" role="separator" aria-orientation="horizontal" aria-controls="question" aria-label="Question box height" tabindex="0" title="Drag to resize · arrow keys adjust · double-click or Enter resets"></div>
         <div class="chips" id="chips"></div>
         <label class="visually-hidden" for="question">Your question</label>
         <textarea id="question" rows="3" placeholder="Ask about this slide"></textarea>

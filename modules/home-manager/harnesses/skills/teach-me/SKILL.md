@@ -33,7 +33,7 @@ Quote code or text where it teaches the idea, in small excerpts selected by line
 
 Write formulas as TeX math (`$…$`, `$$…$$`; see Math in `references/deck.md`), not in code blocks or plain text.
 
-Check slides guard against skimming. End every deck but a trivial one with a final check of two to four questions that span the goal; `check` fails for a deck of more than three content slides without one. Add a check after a run of slides only when their content is key, conceptual or easy to misread; most slides need none. Ask what the material implies, not what the slide said: predict an output, name the line or step that enforces an invariant, say what happens on an edge case. Give each wrong choice a plausible misreading and a sentence saying what was misread, and point `see` at the slide that settles it. The reader answers with number keys, moves on with Enter, and can skip a check with one keystroke, so a check costs little when it is not needed; a check with weak questions costs trust.
+Check slides guard against skimming. End every deck but a trivial one with a final check of two to four questions that span the goal; `check` fails for a deck of more than three content slides without one. Add a check after a run of slides only when their content is key, conceptual or easy to misread; most slides need none. Ask what the material implies, not what the slide said: predict an output, name the line or step that enforces an invariant, say what happens on an edge case. Give each wrong choice a plausible misreading and a sentence saying what was misread, and point `see` at the slide that settles it. The reader answers with number keys, moves on with Enter, and can skip a check with one keystroke, so a check costs little when it is not needed; a check with weak questions costs trust. Where choices would let the reader guess, ask for a written answer instead, in prose or code, which you judge against a rubric (see Written answers in `references/deck.md`); one or two per deck is enough.
 
 Write `DECK/deck.json`, then run `python3 <skill-dir>/scripts/deck.py check DECK` until it passes. `check` prints the slide list and warns about content slides outside the appendix that no check question points at. Decide for each whether the goal depends on it: if it does, point a question at it; if it does not, consider moving it to the appendix. A warning is not an error.
 
@@ -43,7 +43,9 @@ Write `DECK/deck.json`, then run `python3 <skill-dir>/scripts/deck.py check DECK
 python3 <skill-dir>/scripts/deck.py serve DECK --detach
 ```
 
-This prints a URL with a secret token. The server listens on 127.0.0.1. If the reader's browser runs on another machine, either pass `--host` with an address that machine can reach, or have them forward the port (`ssh -L PORT:127.0.0.1:PORT HOST`). If your harness sandboxes commands, the server needs permission to listen on a port.
+This prints a URL with a secret token. The server listens on 127.0.0.1. If the reader's browser runs on another machine, add `--tunnel` (`--tunnel USER@HOST` when the reader reaches this machine under another name): `serve` then also prints the ssh command that forwards the port, and the reader needs both. Alternatively, pass `--host` with an address that machine can reach. If your harness sandboxes commands, the server needs permission to listen on a port.
+
+A deck directory keeps its URL: later servers reuse its token, port and `serve` options. Running `serve` again prints the URL of the running server. If that server runs another copy of `deck.py`, for example one from before an update, or other options, `serve` restarts it in place, and open pages reconnect and reload.
 
 Give the reader the URL, the goal and the number of slides. Tell them they can ask on any slide, quote lines by clicking line numbers (shift-click or drag to extend), and click diagram parts or callouts, or select text, to quote those. Then start listening.
 
@@ -66,6 +68,9 @@ Every `listen` run prints the exact command to run next. Questions and answers p
 - Answer the question asked. Distinguish what the sources show from what you infer, and do not change the sources.
 - If the reader asks for more depth, a diagram, a correction or a new slide, edit `deck.json` and run `check`. The open page reloads in place and keeps the reader's slide. Say in the answer what changed.
 - If `listen` hands you a question you already claimed, you lost track of it; answer it now.
+- `listen` also reports what the page could not draw: formulas KaTeX rejects, diagrams that fail, text in hand-drawn SVG that is wider than its box, and widget scripts that throw. Fix these in `deck.json` before the reader reaches the slide; mention a fix in your next answer only if the reader saw the slide.
+- If `listen` says the server is out of date, run `serve` again to restart it.
+- `listen` also hands you written check answers, with the rubric and any test results. Judge the answer against the rubric, not its wording or the tests alone, and post feedback with `--verdict correct`, `partial` or `incorrect`; `listen` prints the command. Say what is right, what is missing and where the deck covers it, and do not give away the model answer.
 
 The page shows the reader whether you are listening, answering or away. Questions asked while you are away wait in the queue.
 
