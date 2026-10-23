@@ -1821,7 +1821,9 @@
     const el = $("#banner");
     el.hidden = !S.banners.size;
     el.replaceChildren(
-      ...[...S.banners.values()].map((b) => h("div", {}, b.text, b.details?.length ? h("pre", {}, b.details.join("\n")) : null)),
+      ...[...S.banners.values()].map((b) =>
+        h("div", {}, b.text, b.details?.length ? h("details", {}, h("summary", {}, "Details"), h("pre", {}, b.details.join("\n"))) : null),
+      ),
     );
   }
 
@@ -1889,7 +1891,7 @@
     });
     es.addEventListener("deck", () => refreshDeck());
     es.addEventListener("deck-error", (e) =>
-      banner("deck", `The ${who()}'s latest edit to the deck has errors, so this page still shows the previous version.`, JSON.parse(e.data).errors),
+      banner("deck", `The ${who()}'s latest edit to the slides does not check yet, so this page shows them as they were.`, JSON.parse(e.data).errors),
     );
     es.addEventListener("thread", threadsChanged);
     es.addEventListener("quiz", quizChanged);

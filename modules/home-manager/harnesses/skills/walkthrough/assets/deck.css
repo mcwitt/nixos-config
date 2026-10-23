@@ -236,6 +236,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
   font-size: var(--step--1);
 }
 .banner pre { margin: 0.4rem 0 0; white-space: pre-wrap; font: var(--step--1)/1.5 var(--font-mono); }
+.banner details > summary { cursor: pointer; width: fit-content; margin-top: 0.3rem; font-size: var(--step--1); }
 
 .stage {
   display: grid;

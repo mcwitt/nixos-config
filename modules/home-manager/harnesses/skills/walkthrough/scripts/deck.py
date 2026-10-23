@@ -141,6 +141,13 @@ class Extension:
         """Whether the session is working on something the page asked of it, away from `listen`."""
         return False
 
+    def reloaded(self, state: State, old: Deck):
+        """After the server takes an edited deck; `old` is the deck it replaced."""
+
+    def question(self, ctx: Listening) -> str:
+        """What `listen` adds to every question it hands over."""
+        return ""
+
     def hunks(self, state: State) -> dict[str, Hunk]:
         """Hunks beyond the deck's that the reader can quote."""
         return {}
@@ -1096,10 +1103,15 @@ class State:
             log(f"deck edit rejected: {len(e.errors)} error(s)")
             return
         with self.issues_lock:
-            self.deck, self.deck_errors = deck, []
+            old, self.deck, self.deck_errors = self.deck, deck, []
             self.version += 1
             self.issues.clear()
         self.mtimes = self._mtimes()
+        for ext in EXTENSIONS:
+            try:
+                ext.reloaded(self, old)
+            except Exception as e:  # the new deck stands; the log says what failed
+                log(f"{ext.name}: {e!r}")
         self.broadcast("deck", {"version": self.version})
         log(f"deck reloaded (version {self.version})")
 
@@ -1746,9 +1758,12 @@ def cmd_listen(args):
     if item.get("refs"):
         print(item["refs"] + "\n")
     print(item["text"] or "(No text; the reader wants the selection explained.)")
+    extras = [x for ext in EXTENSIONS if (x := ext.question(ctx))]
+    for extra in extras:
+        print("\n" + extra)
     print(
         "\nAnswer for the slide's chat panel: concise Markdown, citing path:line. Read what you"
-        " need; change the deck only if the reader asks for that. Write the answer to a file,"
+        f" need; change the deck only if the reader asks for that{', or as above' if extras else ''}. Write the answer to a file,"
         " then post it and keep listening:\n"
         f"  python3 {me} listen {deck_arg} --answer {item['id']} --file ANSWER.md{wait}"
     )
