@@ -31,11 +31,12 @@ in
         # sniffing misfires inside a multiplexer attached over SSH
         env.VISUAL = "emacsclient -t";
 
-        # omit the claude.ai session link from commits and PR bodies, and
-        # the Co-Authored-By trailer from commits
+        # omit every attribution Claude Code adds: the claude.ai session link,
+        # the Co-Authored-By commit trailer and the "Generated with" PR line
         attribution = {
           sessionUrl = false;
           commit = "";
+          pr = "";
         };
 
         permissions.defaultMode = "auto";
