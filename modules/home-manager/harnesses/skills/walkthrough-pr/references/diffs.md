@@ -19,7 +19,9 @@ A review deck is a `walkthrough` deck (see `<skill-dir>/../walkthrough/reference
 - `title`: a short name for the change. State the comparison base in `scope`. `goal` is optional; the change bounds the deck.
 - `source_url`: set it when the change is on GitHub (a commit, a pushed branch or a pull request), pointing at the head commit as in the example, so links open the new version of the file; leave it out for local changes.
 - `pr` (optional): the pull request's URL, `https://github.com/OWNER/REPO/pull/N`. With it, the reader can mark findings for review comments.
-- `diffs`: the diff files, relative to the deck directory; defaults to `["change.diff"]` when that file exists. Give each separate local diff a label, as in `[{"file": "staged.diff", "label": "staged"}, {"file": "unstaged.diff", "label": "unstaged"}]`. Paths from a labeled diff are written `LABEL:PATH`.
+- `diffs`: the diff files, relative to the deck directory; defaults to `["change.diff"]` when that file exists. Give each separate local diff a label, as in `[{"file": "staged.diff", "label": "staged"}, {"file": "unstaged.diff", "label": "unstaged"}]`. Paths from a labeled diff are written `LABEL:PATH`. A diff taken from the working tree also gives the shell `command` that writes it, as in `{"file": "unstaged.diff", "label": "unstaged", "command": "git diff --no-ext-diff --no-color --src-prefix=a/ --dst-prefix=b/"}`; `refresh DECK` reruns it, and the server reruns it every few seconds to notice when the code moves on. A command fails when it exits non-zero with output on stderr.
+- `repo`: the repository's absolute path, where the diffs' commands run. Required when a diff has a command.
+- `edits`: what the session does when the reader asks for a change, `apply` (edit the working tree) or `propose` (record a finding with Fix on); `propose` by default. The reader can switch it on the page.
 
 ## Diff excerpts
 

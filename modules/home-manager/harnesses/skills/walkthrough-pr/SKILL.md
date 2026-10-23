@@ -23,6 +23,17 @@ git diff --no-ext-diff --no-color --src-prefix=a/ --dst-prefix=b/ BASE...HEAD > 
 
 For a single commit, diff it against its parent (`REV^ REV`, or `git show --format= --no-ext-diff --no-color --src-prefix=a/ --dst-prefix=b/ REV` for a root commit). For a pull request, diff its head against the merge base with its base branch. For local changes, write staged changes (`git diff --cached …`), unstaged changes (`git diff …`) and untracked files (`git diff --no-index … /dev/null FILE` for each, run from the repository root; it exits with status 1 when the file has content) to separate files and list them with labels in the deck.
 
+Decide what happens when the reader asks for a change, and set `edits` in the deck:
+
+| The change | `edits` |
+|---|---|
+| Local changes, the user's own unpushed branch, or the user's own draft pull request with no reviews or comments yet | `apply`: make small, clear fixes in the working tree as the reader asks |
+| A pull request out of draft or with reviews or comments, or anyone else's change | `propose`: record a finding with Fix on; nothing changes until the reader presses Carry out |
+
+Read a pull request's state with `gh pr view NUMBER --json author,isDraft,reviews,comments`. The page shows the choice under the question box, and the reader can switch it. With `apply` on a branch or pull request, work in the user's checkout of its head and diff the merge base against the working tree (`git diff … $(git merge-base BASE HEAD)`) rather than `BASE...HEAD`, so your edits join the change.
+
+When a diff comes from the working tree (local changes, or any change in `apply` mode), give it the command that writes it and set `repo` to the repository's absolute path, so the deck can follow the code: `{"file": "unstaged.diff", "label": "unstaged", "command": "git diff --no-ext-diff --no-color --src-prefix=a/ --dst-prefix=b/"}`, and write the diff with exactly that command. One command writes all untracked files: `git ls-files -z --others --exclude-standard | xargs -0 -r -n1 git diff --no-index --no-ext-diff --no-color --src-prefix=a/ --dst-prefix=b/ /dev/null`. The server reruns the commands every few seconds and tells you when the code has moved on.
+
 Run `python3 <skill-dir>/scripts/walkthrough_pr.py hunks DECK` to list the files, hunks and changed line ranges.
 
 Then start an independent defect review of the same change in the background, so that it runs while you write the deck and does not share its framing. Use the review the user names; otherwise your harness's own code-review command; otherwise a subagent briefed to find correctness, security and performance defects in the diff and report each with a severity, a place (`path:line`) and a one-paragraph explanation. Never let it change the code. Its findings stay hidden from the reader until the end (see step 3).
@@ -57,7 +68,7 @@ Keep the reader oriented in time and in the diff:
 
 Coverage is the one firm rule: every changed line must appear on some slide. Put lines that teach nothing new in appendix groups, such as renames, formatting, generated files, test fixtures or plumbing. Give each group a title and a one- or two-sentence note saying what the changes are and why they are safe to skim. `check` fails while any changed line is missing and prints a block you can paste for each gap.
 
-Keep specific defects out of the slides, including ones you notice yourself: record them as review findings (step 3), so the reader judges the change before seeing them. Use `risk` callouts for the approach's tradeoffs and limits. Keep the deck about understanding; fixing the code is separate work.
+Keep specific defects out of the slides, including ones you notice yourself: record them as review findings (step 3), so the reader judges the change before seeing them. Use `risk` callouts for the approach's tradeoffs and limits. Keep the deck about understanding; step 3 says what to do when the reader asks for a change.
 
 The final check spans the whole change: how the pieces fit, and what the review decision hinges on. Ask what the code does, not what the slide said.
 
@@ -69,7 +80,11 @@ Write `DECK/deck.json`, then run `python3 <skill-dir>/scripts/walkthrough_pr.py 
 
 ## 3. Serve, answer and finish
 
-Serve the deck, answer questions and finish as `walkthrough` describes, running `walkthrough_pr.py` in place of `deck.py`. Give the reader a one-sentence summary of the change in place of the goal. In answers, cite `path:line` and do not change the code. At the finish, say which tests or validations were actually run and which were only inspected; finishing the walkthrough does not mean the reader approved the change. Without a browser, give the summary (why and what) and the slide list, and invite questions before showing any diff.
+Serve the deck, answer questions and finish as `walkthrough` describes, running `walkthrough_pr.py` in place of `deck.py`. Give the reader a one-sentence summary of the change in place of the goal. In answers, cite `path:line`. At the finish, say which tests or validations were actually run and which were only inspected; finishing the walkthrough does not mean the reader approved the change. Without a browser, give the summary (why and what) and the slide list, and invite questions before showing any diff.
+
+Change the code only as `edits` says; `listen` repeats it with each question, since the reader can switch it. With `apply`, make a change the reader asks for when the right fix is small and clear, without committing or pushing unless they ask; mark an existing finding it fixes with `finding DECK set ID --fixed`, bring the deck up to date as below, and only then record a new finding for the fix, at its new place, with `finding DECK add TEXT --at PATH:LINE --fixed`. When the fix is unclear or a design choice, record a finding and ask. With `propose`, leave the code alone and record a finding with `--choose fix`.
+
+Keep the deck true to the code. After you change the code, and whenever `listen` says the code has moved on (the reader's own edits, or a fix from Carry out), run `walkthrough_pr.py refresh DECK`: it writes the diffs again from their commands, runs `check`, names the slides whose code changed, and waits for the server to show the new deck. Fix what `check` reports and run `refresh` again until it passes: show the new lines (edits made during the walkthrough fit an appendix group of their own), drop excerpts of lines that are gone, and reword any slide the change makes wrong. Meanwhile the page tells the reader the deck is catching up, and keeps the old deck until the new one passes. Findings follow their lines into the new deck; `listen` lists the ones whose lines are gone, to mark fixed or place again with `finding DECK set ID --at PATH:LINE`.
 
 The reader collects findings as they go, in a drawer the top bar opens, and turns on Comment (with `pr` set) or Fix for the ones to act on, there or on the Findings slide near the end of the deck. Record a finding when the reader asks you to, with `walkthrough_pr.py finding DECK add TEXT --at PATH:LINE[-END]` (new-side lines; repeat `--at` for several places); when they also ask for a comment or a fix, add `--choose comment` or `--choose fix` (`finding DECK set ID --choose ...` for an existing one) rather than asking them to click. Give every finding a severity, using the reader's when they name one:
 

@@ -17,11 +17,13 @@ The other commands are deck.py's. The server keeps findings and actions in
 
 from __future__ import annotations
 
+import argparse
 import codecs
 import contextlib
 import functools
 import json
 import re
+import subprocess
 import sys
 import threading
 import time
@@ -45,6 +47,9 @@ ACTION_ID = re.compile(r"^a-[0-9a-z-]+$")
 ACTION_KINDS = ("comment", "fix", "check")
 LOG_MAX = 200  # Carry out log entries kept
 LOG_NOTE = 300  # characters of a note the log keeps; the action's result keeps it all
+EDITS = ("apply", "propose")  # what the session does when the reader asks for a change
+CODE_POLL = 5.0  # seconds between checks that the code still matches the deck's diffs
+NEAR_LINES = 10  # how far a finding's single line may move and still be found by its text
 PR_URL = re.compile(r"^https://github\.com/[\w.-]+/[\w.-]+/pull/\d+$")
 HUNK_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@ ?(.*)$")
 RANGE_RE = re.compile(r"^(new|old|rows):(\d+)(?:-(\d+))?$")
@@ -314,6 +319,8 @@ def locate(deck: Deck, spec: str) -> dict:
         rows = [i for i, r in enumerate(h.rows) if r.new is not None and line <= r.new <= end]
         if rows:
             return parse_refs(deck.hunks, [{"kind": "lines", "hunk": h.id, "lo": rows[0], "hi": rows[-1]}])[0]
+    # Outside the diff, a labeled file's place keeps its own path.
+    path = next((f.path for f in deck.files if not f.plain and path == f.key), path)
     return parse_refs(deck.hunks, [{"kind": "place", "path": path, "line": line, "end": end}])[0]
 
 
@@ -328,10 +335,11 @@ class Review:
     """A review deck's findings and proposed actions, persisted to findings.json.
 
     A finding is {id, text, author, severity, sources, refs, slide, at,
-    choices, hidden, merged}: author wrote its current text, "session" or
+    choices, hidden, merged, fixed}: author wrote its current text, "session" or
     "reader"; severity is P0 to P3 or null, sources lists "reader" and
     "review", choices lists what the reader wants drafted for it ("comment",
-    "fix"), and merged holds the findings folded into it. The background review's findings stay
+    "fix"), merged holds the findings folded into it, and fixed is when the
+    session changed the code to fix it. The background review's findings stay
     hidden from the page until the reader asks to see them: `reveal` goes
     from hidden to requested (the session merges duplicates) to shown.
     `review` is the background review's status: none, running or done.
@@ -345,6 +353,10 @@ class Review:
     asks the session to draft it; `proposal` is none, requested (drafting) or
     ready.
 
+    `edits` is the reader's choice of what a change request does, apply or
+    propose (None: the deck's); `stale` lists the diffs the code has moved on
+    from, and is not saved.
+
     `log` records Carry out as it goes, oldest first: {at, event} with event
     "sent" (actions, and started once the session takes them; each action
     records started too),
@@ -354,7 +366,7 @@ class Review:
     "reader") and from the `finding` and `action` commands (by "session")."""
 
     OPS = {
-        "reader": {"add", "set", "remove", "request-reveal", "request-proposal", "action-set", "carry-out"},
+        "reader": {"add", "set", "remove", "request-reveal", "request-proposal", "action-set", "carry-out", "set-edits"},
         "session": {"add", "set", "remove", "merge", "review", "reveal",
                     "action-add", "action-set", "action-remove", "action-ready", "action-progress", "action-result"},
     }
@@ -370,16 +382,19 @@ class Review:
             f.setdefault("merged", [])
             f.setdefault("author", "session")  # older files did not record it; the agent's account is the safe guess
             f.setdefault("choices", ["comment"] if f.pop("action", None) == "comment" else [])
+            f.setdefault("fixed", None)
         self.actions: list[dict] = data.get("actions", [])
         self.review: str = data.get("review", "none")
         self.reveal: str = data.get("reveal", "hidden")
         self.proposal: str = data.get("proposal", "none")
         self.note: str = data.get("note", "")
         self.log: list[dict] = data.get("log", [])
+        self.edits: str | None = data.get("edits")
+        self.stale: list[str] = []
 
     def save(self):
         data = {"version": 1, "review": self.review, "reveal": self.reveal, "proposal": self.proposal, "note": self.note,
-                "findings": self.items, "actions": self.actions, "log": self.log}
+                "edits": self.edits, "findings": self.items, "actions": self.actions, "log": self.log}
         write_atomic(self.path, json.dumps(data, indent=1))
 
     def get(self, fid: str) -> dict | None:
@@ -392,7 +407,7 @@ class Review:
             actions = [{**a, **({"diff": fix_payload(a)} if a["kind"] == "fix" else {}), "resend_in": resend_in(a)}
                        for a in self.actions]
             return json.loads(json.dumps({"findings": shown, "hidden": len(self.items) - len(shown), "review": self.review,
-                                          "reveal": self.reveal, "proposal": self.proposal, "note": self.note, "actions": actions, "log": self.log,
+                                          "reveal": self.reveal, "proposal": self.proposal, "note": self.note, "actions": actions, "log": self.log, "stale": self.stale,
                                           # A drafting request the session has not taken yet, unlike one it is working on.
                                           "waiting": any(x.get("kind") == "propose" for x in self.queue.items())}))
 
@@ -479,7 +494,10 @@ class Review:
         choices = self._choices(op, ctx, [], hidden)
         item = {"id": new_id("f"), "text": text[:20_000], "author": by, "severity": op.get("severity"),
                 "sources": ["review" if review else "reader"], "refs": refs[:8], "slide": slide["id"] if slide else "",
-                "at": time.time(), "choices": [], "hidden": hidden, "merged": []}
+                "at": time.time(), "choices": [], "hidden": hidden, "merged": [],
+                "fixed": time.time() if by == "session" and op.get("fixed") is True else None}
+        if item["fixed"] and choices:
+            choices = [c for c in choices if c != "fix"]
         self.items.append(item)
         if choices:
             self._choose(item, choices)
@@ -489,6 +507,10 @@ class Review:
 
     def _op_set(self, op: dict, by: str, ctx: OpContext) -> dict:
         item = self._finding(op.get("id"))
+        if "at" in op and not (isinstance(op["at"], list) and all(isinstance(a, str) for a in op["at"])):
+            raise ValueError("at: expected a list of PATH:LINE[-END]")
+        if "at" in op and by == "reader" and "reader" not in item["sources"]:
+            raise ValueError("only your own findings can be moved")
         if "text" in op:
             if by == "reader" and "reader" not in item["sources"]:
                 raise ValueError("only your own findings can be reworded")
@@ -511,9 +533,67 @@ class Review:
                     self._ask("propose")
         if "severity" in op:
             item["severity"] = op["severity"]
+        if "at" in op:
+            item["refs"] = [locate(ctx.deck, str(a)) for a in op["at"] or []][:8]
+        if by == "session" and isinstance(op.get("fixed"), bool):
+            item["fixed"] = (item["fixed"] or time.time()) if op["fixed"] else None
+        if item["fixed"] and "fix" in (item["choices"] if choices is None else choices):
+            choices = [c for c in (item["choices"] if choices is None else choices) if c != "fix"]  # nothing left to draft
         if choices is not None:
             self._choose(item, choices)
         return {"finding": item}
+
+    def _op_set_edits(self, op: dict, by: str, ctx: OpContext) -> dict:
+        if op.get("edits") not in EDITS:
+            raise ValueError(f"edits: expected one of {', '.join(EDITS)}")
+        if op["edits"] == "apply" and not commanded(ctx.deck.spec):
+            raise ValueError("this deck cannot follow the code, so changes can only be proposed")
+        self.edits = op["edits"]
+        return {"edits": self.edits}
+
+    # Following the code
+
+    def set_stale(self, stale: list[str]) -> bool:
+        """Record which diffs the code has moved on from; True when that changed. Going stale asks
+        the session to bring the deck up to date, and catching up withdraws a request it has not taken."""
+        with self.lock:
+            if stale == self.stale:
+                return False
+            was, self.stale = self.stale, stale
+            if stale and not was:
+                self._ask("code-changed")
+            elif not stale:
+                for x in self.queue.items():
+                    if x.get("kind") == "code-changed":
+                        self.queue.remove(x["id"])
+            return True
+
+    def follow(self, old: Deck, new: Deck) -> list[dict]:
+        """Move the findings' places to the same lines in a reloaded deck; return the findings
+        whose lines are gone, which keep only their file and line, marked moved."""
+        moved, changed = [], False
+        with self.lock:
+            for f in self.items:
+                refs = []
+                for r in f["refs"]:
+                    if r["kind"] != "lines":
+                        refs.append(r)
+                        continue
+                    nr = same_lines(old, new, r)
+                    if nr is None:
+                        nr = {"kind": "place", **{k: r[k] for k in ("path", "side", "line", "end", "label")}, "moved": True}
+                        if f not in moved:
+                            moved.append(f)
+                    for a in self._drafts(f["id"], ("comment",)):
+                        # A comment drafted at these lines goes where they went.
+                        if a.get("place") and nr["kind"] == "lines" and place_of(r) == a["place"]:
+                            a["place"] = place_of(nr)
+                    changed |= nr != r
+                    refs.append(nr)
+                f["refs"] = refs
+            if changed:
+                self.save()
+        return moved
 
     def _choices(self, op: dict, ctx: OpContext, current: list[str], hidden: bool) -> list[str] | None:
         """The choices `op` sets: a whole list (`choices`), or one kind turned on or off (`choose`, `on`),
@@ -785,6 +865,25 @@ def _required(v, name: str) -> str:
     return v.strip()
 
 
+def same_lines(old: Deck, new: Deck, r: dict) -> dict | None:
+    """A lines reference to the rows of the new deck's diff that read as the old ones did, nearest first."""
+    oh = old.hunks.get(r["hunk"])
+    if oh is None:
+        return None
+    want = [(x.kind, x.text) for x in oh.rows[r["lo"] : r["hi"] + 1]]
+    found = []
+    for h in (h for h in new.hunks.values() if h.file.key == oh.file.key):
+        rows = [(x.kind, x.text) for x in h.rows]
+        for i in range(len(rows) - len(want) + 1):
+            if rows[i : i + len(want)] == want:
+                found.append(parse_refs(new.hunks, [{"kind": "lines", "hunk": h.id, "lo": i, "hi": i + len(want) - 1}])[0])
+    found.sort(key=lambda ref: abs(ref["line"] - r["line"]))
+    # One line, such as a closing brace, may recur: it moves only to a near copy, or a sole one.
+    if found and len(want) == 1 and len(found) > 1 and abs(found[0]["line"] - r["line"]) > NEAR_LINES:
+        return None
+    return found[0] if found else None
+
+
 def place_of(ref: dict) -> dict:
     """Where a review comment goes: a reference's file, side and lines."""
     return {k: ref[k] for k in ("path", "side", "line", "end", "label")}
@@ -814,7 +913,8 @@ def finding_text(f: dict) -> str:
     sev = f["severity"] or "no severity"
     where = ", ".join(r["label"] for r in f["refs"] if r.get("label"))
     hidden = ", hidden" if f.get("hidden") else ""
-    return f"{f['id']} ({sev}, from {' and '.join(f['sources'])}{hidden}{', at ' + where if where else ''}): {f['text']}"
+    fixed = ", fixed" if f.get("fixed") else ""
+    return f"{f['id']} ({sev}, from {' and '.join(f['sources'])}{hidden}{fixed}{', at ' + where if where else ''}): {f['text']}"
 
 
 def default_diffs(deck_dir: Path) -> list:
@@ -822,8 +922,42 @@ def default_diffs(deck_dir: Path) -> list:
     return ["change.diff"] if (deck_dir / "change.diff").exists() else []
 
 
+def commanded(spec: dict) -> list[tuple[dict, str]]:
+    """The diffs deck.json can write again from the code, with their names."""
+    diffs = spec.get("diffs") if isinstance(spec.get("diffs"), list) else []
+    return [(d, d.get("label") or d["file"]) for d in diffs if isinstance(d, dict) and isinstance(d.get("command"), str) and d.get("file")]
+
+
+def diff_output(repo: str, command: str) -> str:
+    """What a diff's command prints in the repository. A failure is an exit status of 124 or more, or any
+    other with no output: `git diff --no-index` exits 1 when the files differ, and xargs then exits 123."""
+    r = subprocess.run(["sh", "-c", command], cwd=repo, capture_output=True, text=True, errors="replace", timeout=60)
+    if r.returncode < 0 or r.returncode >= 124 or (r.returncode and not r.stdout):
+        raise ValueError((r.stderr.strip().splitlines() or [f"exit status {r.returncode}"])[-1])
+    return r.stdout
+
+
+def repo_of(spec: dict) -> str | None:
+    """Where the diffs' commands run: deck.json's `repo`, when it is an absolute path to a directory."""
+    repo = spec.get("repo")
+    return repo if isinstance(repo, str) and Path(repo).is_absolute() and Path(repo).is_dir() else None
+
+
+def edits_of(chosen: str | None, spec: dict) -> str:
+    """What a change request does: the reader's choice, else the deck's; only a deck that follows the code applies changes."""
+    return (chosen or spec.get("edits") or "propose") if commanded(spec) and repo_of(spec) else "propose"
+
+
+def _read(path: Path) -> str | None:
+    try:
+        return path.read_text(errors="replace")
+    except OSError:
+        return None
+
+
 def read_diffs(load: Loading, diffs) -> list:
-    """Parse deck.json's `diffs` (file names or {file, label}) into load.files and load.hunks; return the list."""
+    """Parse deck.json's `diffs` (file names or {file, label, command}) into load.files and load.hunks; return the list.
+    The text read is kept in load.extra["diff_text"], to tell when the code has moved on."""
     errors = load.errors
     if not isinstance(diffs, list):
         errors.append("diffs: expected a list of file names or {file, label}")
@@ -835,8 +969,12 @@ def read_diffs(load: Loading, diffs) -> list:
             continue
         path = load.dir / str(d.get("file", ""))
         load.sources.append(path)
+        if "command" in d and not (isinstance(d["command"], str) and d["command"].strip()):
+            errors.append(f"diffs[{j}].command: expected the shell command that writes the diff")
         try:
-            load.files += parse_diff(path.read_text(errors="replace"), str(d.get("label") or ""))
+            text = path.read_text(errors="replace")
+            load.extra.setdefault("diff_text", {})[str(d.get("file"))] = text
+            load.files += parse_diff(text, str(d.get("label") or ""))
         except OSError as e:
             errors.append(f"diffs[{j}]: cannot read {path}: {e.strerror}")
         except DiffError as e:
@@ -890,6 +1028,20 @@ def action_text(a: dict) -> str:
 
 def choices_text(f: dict) -> str:
     return f"[{', '.join(f['choices']) or 'no choice'}]"
+
+
+def edits_brief(edits: str, chosen: bool, fcmd: str, rcmd: str) -> str:
+    """What the session does when a question asks for a change to the code."""
+    who = "The reader chose" if chosen else "The deck is set"
+    if edits == "apply":
+        return f"""If the question asks for a change to the code and the right fix is small and clear, make it in the working tree; do not commit or push unless the reader asks. Mark an existing finding it fixes, then bring the deck up to date, fixing what `check` reports until it passes; a new finding for the fix goes in after, at its new place:
+  {fcmd} set ID --fixed
+  {rcmd}
+  {fcmd} add TEXT --at PATH:LINE --fixed   (leave out --at when the fix took the lines out of the change)
+If the fix is unclear or a design choice, record a finding instead and ask in your answer. ({who} to apply changes; the reader can switch this on the page.)"""
+    return f"""Do not change the code. If the question asks for a change, record a finding with Fix on; its patch waits for the reader's Carry out:
+  {fcmd} add TEXT --at PATH:LINE --choose fix   (or: {fcmd} set ID --choose fix)
+({who} to propose changes; the reader can switch this on the page.)"""
 
 
 def proposal_brief(review: Review, cmd: str) -> str:
@@ -1018,6 +1170,10 @@ def cmd_finding(args):
         op["severity"] = None if args.severity == "none" else args.severity
     if args.action == "set" and args.text:
         op["text"] = args.text
+    if args.action == "set" and args.at:
+        op["at"] = args.at
+    if getattr(args, "fixed", None) is not None and (args.action == "set" or args.fixed):
+        op["fixed"] = args.fixed
     if getattr(args, "choose", None) is not None:
         op["choices"] = [c.strip() for c in args.choose.split(",") if c.strip()]
     result = send_op(deck_dir, op)
@@ -1025,6 +1181,92 @@ def cmd_finding(args):
         print(f"{'Removed' if args.action == 'remove' else 'Saved'} {finding_text(result['finding'])}")
     else:
         print(f"Saved: {json.dumps(result)}")
+
+
+def synced(deck: Deck) -> bool:
+    """Whether a deck shows its diff files as they are on disk."""
+    text = deck.extra.get("diff_text", {})
+    return all(_read(deck.dir / d["file"]) == text.get(d["file"]) for d, _ in commanded(deck.spec))
+
+
+def caught_up(deck_dir: Path) -> bool:
+    """Whether the diff files already say what their commands print."""
+    spec = read_json(deck_dir / "deck.json")
+    repo = repo_of(spec)
+    try:
+        return bool(repo) and all(diff_output(repo, d["command"]) == _read(deck_dir / d["file"]) for d, _ in commanded(spec))
+    except (ValueError, OSError, subprocess.SubprocessError):
+        return False
+
+
+REFRESH_TODO = """Then fix what `check` reports and run `refresh` again until it passes; the page keeps the old deck until then.
+Show the new lines (changes made during the walkthrough fit an appendix group of their own), drop excerpts of lines
+that are gone, and reword any slide the change makes wrong. Say in your next answer what changed."""
+
+
+def shown_rows(deck: Deck) -> dict[str, list]:
+    """Each slide's excerpted rows, to tell which slides show code that changed."""
+    def rows(blocks):
+        for b in blocks:
+            if b.get("type") == "group":
+                yield from rows(b["blocks"])
+            elif b.get("type") == "excerpt":
+                for p in b["pieces"]:
+                    h = deck.hunks.get(p["hunk"])
+                    yield [(x.kind, x.text) for x in h.rows[p["lo"] : p["hi"] + 1]] if h else None
+    return {sl["id"]: list(rows(sl["blocks"])) for sl in deck.slides}
+
+
+def cmd_refresh(args):
+    deck_dir = Path(args.deck).resolve()
+    spec = read_json(deck_dir / "deck.json")
+    diffs, repo = commanded(spec), repo_of(spec)
+    if not diffs:
+        sys.exit("No diff in deck.json has a command to write it again. Give each diff taken from the working tree"
+                 " its `command`, and set `repo` to the repository's path.")
+    if not repo:
+        sys.exit("repo: set it to the repository's absolute path, where the diffs' commands run.")
+    # What the slides showed before the first of several runs, until one passes.
+    saved = deck_dir / "refresh-before.json"
+    before = read_json(saved)
+    if not before:
+        try:
+            before = json.loads(json.dumps(shown_rows(core.load_deck(deck_dir))))
+        except core.DeckInvalid:
+            before = {}
+    written = []
+    for d, name in diffs:
+        try:
+            out = diff_output(repo, d["command"])
+        except (ValueError, OSError, subprocess.SubprocessError) as e:
+            sys.exit(f"{name}: `{d['command']}` failed: {e}")
+        if _read(deck_dir / d["file"]) != out:
+            write_atomic(deck_dir / d["file"], out)
+            written.append(name)
+    print(f"Wrote {', '.join(written)} from the code." if written else "The diffs already match the code.")
+    try:
+        deck = core.load_deck(deck_dir)
+    except core.DeckInvalid as e:
+        if before:
+            write_atomic(saved, json.dumps(before))
+        print("\n".join(f"error: {err}" for err in e.errors))
+        print(REFRESH_TODO)
+        sys.exit(1)
+    saved.unlink(missing_ok=True)
+    core.print_report(deck)
+    after = json.loads(json.dumps(shown_rows(deck)))
+    changed = [sl for sl in deck.slides if sl["id"] in before and before[sl["id"]] != after[sl["id"]]]
+    if changed:
+        print("\nThe code on these slides changed; reread their text and reword what no longer holds:\n"
+              + "\n".join(f"  {deck.position(sl)}: {sl['title']} ({sl['id']})" for sl in changed))
+    # Places given with --at resolve against the deck the server has, so wait for it to take this one.
+    if server_info(deck_dir) and not stale_reason(server_info(deck_dir)):
+        for _ in range(30):
+            if send_op(deck_dir, {"op": "synced"})["synced"]:
+                break
+            time.sleep(0.5)
+        else:
+            print("The server has not shown the new deck yet; run `refresh` again before giving a finding a place.")
 
 
 def cmd_action(args):
@@ -1071,7 +1313,7 @@ class ReviewExtension(Extension):
     name = "review"
     assets = Path(__file__).resolve().parent.parent / "assets"
     blocks = ("diff",)
-    spec_keys = ("diffs", "appendix", "pr")
+    spec_keys = ("diffs", "appendix", "pr", "edits", "repo")
     quote_sources = {"finding": "a finding", "action": "a proposed action"}
 
     def __init__(self):
@@ -1086,6 +1328,11 @@ class ReviewExtension(Extension):
             errors.append("the diffs contain no changes")
         if _str(spec.get("pr"), "pr", errors) and not PR_URL.match(spec["pr"]):
             errors.append("pr: expected a pull request URL, https://github.com/OWNER/REPO/pull/N")
+        if spec.get("edits") not in (None, *EDITS):
+            errors.append(f"edits: expected one of {', '.join(EDITS)}")
+        _str(spec.get("repo"), "repo", errors)
+        if commanded(spec) and not repo_of(spec):
+            errors.append("repo: diffs with a command need the repository's absolute path, where the commands run")
         load.goal_optional = bool(diffs)
         load.extra["review"] = Shown(bool(diffs))
 
@@ -1165,6 +1412,45 @@ class ReviewExtension(Extension):
 
     def attach(self, state):
         state.review = Review(state.deck_dir / "findings.json", state.queue)
+        threading.Thread(target=self._follow_code, args=(state,), daemon=True).start()
+
+    def _follow_code(self, state):
+        """Notice when the code moves on from the deck's diffs, and ask the session to catch the deck up."""
+        failing: dict[str, str] = {}  # what each failing command last said, logged once
+        while True:
+            time.sleep(CODE_POLL)
+            if not state.listeners and time.time() - state.last_listener > core.LISTEN_GRACE:
+                continue  # nobody is reading the slides or listening for them
+            try:
+                deck = state.deck
+                text, repo, stale = deck.extra.get("diff_text", {}), repo_of(deck.spec), []
+                for d, name in commanded(deck.spec) if repo else []:
+                    try:
+                        if diff_output(repo, d["command"]) != text.get(d["file"]):
+                            stale.append(name)
+                        failing.pop(name, None)
+                    except (ValueError, OSError, subprocess.SubprocessError) as e:
+                        if failing.get(name) != str(e):
+                            log(f"{name}: `{d['command']}` failed: {e}")  # which says nothing about the code
+                        failing[name] = str(e)
+                # A deck reloaded meanwhile was compared with code it may already show.
+                if state.deck is deck and state.review.set_stale(stale):
+                    state.broadcast("review", {})
+            except Exception as e:  # keep following; the log says what failed
+                log(f"following the code: {e!r}")
+
+    def reloaded(self, state, old: Deck):
+        moved = [f for f in state.review.follow(old, state.deck) if not f["fixed"]]
+        if moved:
+            state.review.queue.add({"id": new_id(), "kind": "places-moved", "at": time.time(), "findings": [f["id"] for f in moved]})
+        state.broadcast("review", {})
+
+    def question(self, ctx: Listening) -> str:
+        spec = read_json(ctx.deck_dir / "deck.json")
+        if not spec.get("diffs", default_diffs(ctx.deck_dir)):
+            return ""
+        chosen = load_review(ctx.deck_dir).edits
+        return edits_brief(edits_of(chosen, spec), bool(chosen), f"python3 {ctx.me} finding {ctx.deck_arg}", f"python3 {ctx.me} refresh {ctx.deck_arg}")
 
     def tick(self, state):
         """Apply the session's edits, which `finding` and `action` leave in queue/op-*.json."""
@@ -1179,7 +1465,8 @@ class ReviewExtension(Extension):
         for path in sorted(state.queue.dir.glob("op-*.json")):
             op = read_json(path)
             try:
-                result = review_op(state, op, "session")
+                # Asking whether the server shows the diffs on disk changes nothing, so it is answered here.
+                result = {"synced": synced(state.deck)} if op.get("op") == "synced" else review_op(state, op, "session")
             except ValueError as e:
                 result = {"error": str(e)}
             except Exception as e:  # a bug here must not stop the watcher
@@ -1201,6 +1488,8 @@ class ReviewExtension(Extension):
         if route != "/api/review":
             return None
         snap = state.review.snapshot()
+        snap["edits"] = edits_of(state.review.edits, state.deck.spec)
+        snap["follows_code"] = bool(commanded(state.deck.spec) and repo_of(state.deck.spec))
         self._told_waiting = self._told_waiting or snap["waiting"]
         return snap
 
@@ -1208,6 +1497,9 @@ class ReviewExtension(Extension):
         return review_op(state, body, "reader") if route == "/api/review" else None
 
     def skip(self, q: Queue, item: dict) -> bool:
+        if item.get("kind") == "code-changed" and caught_up(q.dir.parent):
+            q.remove(item["id"])  # the session ran `refresh` already
+            return True
         return item.get("kind") == "finding" and settled(q, item, self._review_now(q.dir.parent))
 
     def _review_now(self, deck_dir: Path) -> Review:
@@ -1224,6 +1516,19 @@ class ReviewExtension(Extension):
             f = item["finding"]
             print(f"The reader added a finding without a severity:\n  {finding_text(f)}\n\n"
                   f"Give it one ({SEVERITY_HELP}):\n  python3 {me} finding {deck_arg} set {f['id']} --severity P2")
+        elif kind == "code-changed":
+            print(f"The code has moved on from the deck's diffs. Bring the deck up to date:\n  python3 {me} refresh {deck_arg}\n"
+                  + REFRESH_TODO)
+        elif kind == "places-moved":
+            review = load_review(ctx.deck_dir)
+            gone = [f for f in review.items if f["id"] in item["findings"]]
+            drafts = [a for f in gone for a in review._drafts(f["id"])]
+            print("The deck now shows the new code, and these findings' lines are gone from it; each keeps only its file and line:\n"
+                  + "\n".join(f"  {finding_text(f)}" for f in gone)
+                  + ("\nTheir drafts were written for the old lines; revise or remove them (`action` set or remove):\n"
+                     + "\n".join(f"  {action_text(a)}" for a in drafts) if drafts else "")
+                  + f"\nFor each, mark it fixed if the change fixed it (`python3 {me} finding {deck_arg} set ID --fixed`),"
+                  f" or give it its new place (`... set ID --at PATH:LINE`).")
         elif kind in ("reveal", "propose", "carry-out"):
             review = load_review(ctx.deck_dir)
             if kind == "reveal":
@@ -1245,6 +1550,10 @@ class ReviewExtension(Extension):
         out = []
         if findings:
             out.append("\nFindings:\n" + "\n".join(f"  {finding_text(f)} {choices_text(f)}" for f in findings))
+        fixed = [f for f in findings if f["fixed"]]
+        if fixed:
+            out.append(f"\nYou changed the code for {len(fixed)} of them during the walkthrough. In the wrap-up, list the edits"
+                       " and say they are not committed, unless the reader asked you to commit them.")
         pending = [a for a in review.actions if a["include"] and a["state"] in ("proposed", "failed")]
         if pending:
             out.append(f"\n{len(pending)} drafted action{' was' if len(pending) == 1 else 's were'} not carried out:\n"
@@ -1280,11 +1589,14 @@ class ReviewExtension(Extension):
         fa.add_argument("--slide", help="the slide it came up on")
         fa.add_argument("--review", action="store_true", help="a finding of the background review, hidden until the reader reveals them")
         fa.add_argument("--choose", metavar="comment,fix", help="what the reader wants drafted for it")
+        fa.add_argument("--fixed", action="store_true", help="you changed the code to fix it")
         fs = fsub.add_parser("set", help="change a finding's severity, text or choices")
         fs.add_argument("id")
         fs.add_argument("--severity", choices=[*SEVERITIES, "none"])
         fs.add_argument("--text")
         fs.add_argument("--choose", metavar="comment,fix", help="what the reader wants drafted for it; empty for nothing")
+        fs.add_argument("--fixed", action=argparse.BooleanOptionalAction, help="whether you changed the code to fix it")
+        fs.add_argument("--at", action="append", metavar="PATH:LINE[-END]", help="its new places, replacing the old")
         fr = fsub.add_parser("remove", help="remove a finding")
         fr.add_argument("id")
         fm = fsub.add_parser("merge", help="fold duplicate findings into one")
@@ -1295,6 +1607,10 @@ class ReviewExtension(Extension):
         fsub.add_parser("reveal", help="show the review's findings to the reader")
         fsub.add_parser("list", help="print the findings, hidden ones included")
         f.set_defaults(func=cmd_finding)
+
+        r = sub.add_parser("refresh", help="write the diffs again from their commands, after the code changed")
+        r.add_argument("deck")
+        r.set_defaults(func=cmd_refresh)
 
         a = sub.add_parser("action", help="propose, revise and report the review's actions")
         a.add_argument("deck")

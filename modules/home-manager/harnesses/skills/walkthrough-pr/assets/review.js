@@ -81,12 +81,37 @@
   function renderFindings() {
     const on = findingsOn();
     $("#findings-btn").hidden = !on;
+    $("#edits-mode").hidden = !on;
+    $("#stale-pill").hidden = !on || !S.review.stale?.length;
     if (!on) return;
+    renderEdits();
     $("#findings-count").textContent = S.findings.length || "";
     $("#findings-list").replaceChildren(
       ...(S.findings.length ? S.findings.map((f) => findingEl(f)) : [h("p", { class: "thread-empty" }, "No findings yet. Write one in the question box and press Add finding.")]),
     );
     markAskable($("#findings-list"));
+  }
+
+  // Under the question box: what asking for a change does, and the switch.
+  function renderEdits() {
+    const apply = S.review.edits === "apply";
+    $("#edits-mode").replaceChildren(
+      "Changes you ask for: ",
+      ...(apply ? [h("strong", {}, "made in your working tree"), ` by the ${who()}`] : [h("strong", {}, "recorded as findings to fix"), "; nothing changes until you press Carry out"]),
+      // Only a deck that follows the code can show changes made to it.
+      ...(S.review.follows_code
+        ? [" · ", h("button", { type: "button", class: "link", onclick: () => reviewOp({ op: "set-edits", edits: apply ? "propose" : "apply" }) }, apply ? "Propose them instead" : "Make them directly")]
+        : []),
+    );
+  }
+
+  // The top bar's sign that the slides show older code, which says what happens next.
+  function staleNote() {
+    toast(
+      S.status.session === "away"
+        ? `The code changed since these slides were made. They update when the ${who()} listens again.`
+        : `The code changed since these slides were made. The ${who()} has been asked to update them.`,
+    );
   }
 
   // A finding with its severity, sources, text, places and choices, in the
@@ -114,8 +139,13 @@
     const text = S.editing.has(editKey)
       ? editorEl(editKey, (t) => reviewOp({ op: "set", id: f.id, text: t }))
       : h("div", { class: "finding-text", "data-ask": `Finding ${f.id} (${f.severity || "no severity"}): ${f.text}`, "data-ask-source": "finding" }, mdEl(f.text));
+    // A place outside the diff, from the start or since the code moved, leads nowhere without a link to the file.
     const places = f.refs.length
-      ? h("div", { class: "chips" }, f.refs.map((r) => h("button", { type: "button", class: "chip static", title: r.text || r.path || r.label, onclick: () => showRef(f, r) }, chipLabel(r))))
+      ? h("div", { class: "chips" }, f.refs.map((r) =>
+          r.kind === "place" && !sourceHref(r.path, r.line, r.end)
+            ? h("span", { class: "chip static moved", title: "These lines are not in the change" }, chipLabel(r), r.moved ? " · no longer in the change" : " · not in the change")
+            : h("button", { type: "button", class: "chip static", title: r.text || r.path || r.label, onclick: () => showRef(f, r) }, chipLabel(r)),
+        ))
       : null;
     const tools = h(
       "div",
@@ -124,7 +154,8 @@
       own ? h("button", { type: "button", class: "ghost small", onclick: () => startEditing(editKey, f.text) }, "Edit") : null,
       own ? h("button", { type: "button", class: "ghost small", onclick: () => reviewOp({ op: "remove", id: f.id }) }, "Remove") : null,
     );
-    return h("article", { class: "finding", "data-finding": f.id }, h("div", { class: "finding-head" }, severity, sources, tools), text, merged, places);
+    const fixed = f.fixed ? h("span", { class: "source fixed", title: `The ${who()} changed the code for this during the walkthrough` }, "fixed by the session") : null;
+    return h("article", { class: "finding", "data-finding": f.id }, h("div", { class: "finding-head" }, severity, sources, fixed, tools), text, merged, places);
   }
 
   const sourceName = (s) => (s === "reader" ? "you" : "the review");
@@ -161,7 +192,9 @@
     return h(
       "span",
       { class: "toggles", role: "group", "aria-label": "Draft for this finding" },
-      choiceKinds().map((k) => {
+      choiceKinds()
+        .filter((k) => k !== "fix" || !f.fixed)
+        .map((k) => {
         const on = f.choices.includes(k);
         const mine = S.actions.filter((a) => a.finding === f.id && a.kind === k);
         const draft = on && (mine.find((a) => a.state === "proposed" || a.state === "failed") || mine.at(-1));
@@ -522,6 +555,8 @@
   // The drawer, its button in the top bar and the composer's Add finding button.
   function init() {
     $(".bar-actions").prepend(
+      h("button", { type: "button", class: "stale-pill", id: "stale-pill", hidden: true, "aria-label": "Code changed since these slides", onclick: () => staleNote() },
+        h("span", { class: "long" }, "Code changed since these slides"), h("span", { class: "short" }, "Code changed")),
       h("button", { type: "button", class: "ghost", id: "findings-btn", "aria-expanded": "false", "aria-controls": "findings", hidden: true, onclick: () => ($("#findings").hidden ? openFindings() : closeFindings()) },
         "Findings ", h("span", { class: "count", id: "findings-count" })),
     );
@@ -539,6 +574,7 @@
     $("#toasts").before(drawer, h("div", { class: "visually-hidden", id: "carry-live", role: "status" }));
     const add = h("button", { type: "button", class: "ghost small", id: "add-finding", title: "Save the text and quotes as a review finding; start with P0 to P3 to set its severity", hidden: true, disabled: true, onclick: addFinding }, "Add finding");
     $("#send").before(add);
+    $("#composer").append(h("p", { class: "edits-mode", id: "edits-mode", hidden: true }));
     $("#toc-about").after(h("p", { class: "toc-cover", id: "toc-cover", hidden: true }));
   }
 

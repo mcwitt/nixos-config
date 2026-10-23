@@ -447,6 +447,14 @@ class ReviewServerTest(ServerCase):
                          {"author": "session", "choices": ["comment"], "action": None})
         self.assertEqual(self.get("api/review")["findings"][1]["choices"], [])
 
+    def test_changes_are_proposed_without_commands(self):
+        # A deck whose diffs cannot be written again cannot follow the code, so it only proposes changes.
+        review = self.get("api/review")
+        self.assertEqual((review["edits"], review["follows_code"]), ("propose", False))
+        with self.assertRaises(urllib.error.HTTPError) as cm:
+            self.post("api/review", {"op": "set-edits", "edits": "apply"})
+        self.assertIn(b"can only be proposed", cm.exception.read())
+
     def test_finishing_while_the_review_runs(self):
         run("finding", self.dir, "review", "running")
         self.post("api/finish", {})
@@ -663,6 +671,75 @@ class ReviewServerTest(ServerCase):
         A("add", "fix", "--finding", f["id"], "--title", "t", "--patch-file", self.dir / "fix.diff")
         self.post("api/finish", {})
         self.assertIn("1 drafted action was not carried out", run("listen", self.dir, "--timeout", 5).stdout)
+
+
+class FollowCodeTest(ServerCase):
+    """A deck whose diff comes from a command follows the code it describes."""
+
+    script = SCRIPT
+
+    def spec(self):
+        self.repo = self.dir / "repo"
+        self.repo.mkdir()
+        (self.repo / "cur.diff").write_text(DIFF)
+        (self.dir / "change.diff").write_text(DIFF)
+        return deck_spec(diffs=[{"file": "change.diff", "command": "cat cur.diff"}], repo=str(self.repo), edits="apply")
+
+    def test_edits_and_refresh(self):
+        F = lambda *a, **k: run("finding", self.dir, *a, **k)
+        # The server follows the code only while a page is open (or the session listens).
+        page = urllib.request.urlopen(self.url + "api/events", timeout=30)
+        self.addCleanup(page.close)
+        self.assertEqual(self.get("api/review")["edits"], "apply")
+        # Each question carries what a change request does, which the reader can switch.
+        msg = self.post("api/ask", {"slide": "what", "text": "Drop json?"})["message"]
+        self.assertIn("make it in the working tree", run("listen", self.dir, "--timeout", 5).stdout)
+        (self.dir / "a.md").write_text("Done.")
+        run("listen", self.dir, "--answer", msg["id"], "--file", self.dir / "a.md", "--timeout", 0)
+        self.post("api/review", {"op": "set-edits", "edits": "propose"})
+        with self.assertRaises(urllib.error.HTTPError):
+            self.post("api/review", {"op": "set-edits", "edits": "sometimes"})
+        self.assertTrue(self.get("api/review")["follows_code"])
+        msg = self.post("api/ask", {"slide": "what", "text": "And this?"})["message"]
+        self.assertIn("Do not change the code", run("listen", self.dir, "--timeout", 5).stdout)
+        run("listen", self.dir, "--answer", msg["id"], "--file", self.dir / "a.md", "--timeout", 0)
+
+        json_line = F("add", "json is unused", "--at", "src/app.py:2").stdout.split()[1]
+        b = F("add", "b changed", "--at", "src/app.py:22").stdout.split()[1]
+        # The code moves on: the first hunk's json import goes, and the second hunk moves down a line.
+        (self.repo / "cur.diff").write_text(DIFF.replace("+import sys, json", "+import sys").replace("@@ -20,3 +21,3 @@", "@@ -20,3 +22,3 @@"))
+        self.wait_for(lambda: self.get("api/review")["stale"] == ["change.diff"], timeout=15)
+        self.assertIn("The code has moved on", run("listen", self.dir, "--timeout", 5).stdout)
+        out = run("refresh", self.dir).stdout
+        self.assertIn("Wrote change.diff from the code.", out)
+        self.assertIn("The code on these slides changed", out)
+        self.assertIn("What (what)", out)
+        self.assertIn("The diffs already match the code.", run("refresh", self.dir).stdout)
+        self.wait_for(lambda: not self.get("api/review")["stale"], timeout=15)
+        refs = {f["id"]: f["refs"][0] for f in self.get("api/review")["findings"]}
+        self.assertEqual((refs[b]["kind"], refs[b]["line"]), ("lines", 23))
+        self.assertEqual((refs[json_line]["kind"], refs[json_line].get("moved")), ("place", True))
+        self.assertIn(json_line, run("listen", self.dir, "--timeout", 5).stdout)
+        # A finding the session fixed has no fix left to draft.
+        self.post("api/review", {"op": "set", "id": json_line, "choose": "fix", "on": True})
+        F("set", json_line, "--fixed")
+        f = next(f for f in self.get("api/review")["findings"] if f["id"] == json_line)
+        self.assertTrue(f["fixed"])
+        self.assertEqual(f["choices"], [])
+        self.assertIn("at app.py new 24", F("set", b, "--at", "src/app.py:24").stdout)
+        self.assertIn("fixed", F("list").stdout)
+
+    def test_commands_need_a_repository(self):
+        spec = json.loads((self.dir / "deck.json").read_text())
+        (self.dir / "deck.json").write_text(json.dumps({**spec, "repo": "relative", "edits": "often"}))
+        out = run("check", self.dir, check=False).stdout
+        self.assertIn("repo: diffs with a command need the repository's absolute path", out)
+        self.assertIn("edits: expected one of apply, propose", out)
+        (self.dir / "deck.json").write_text(json.dumps({**spec, "diffs": [{"file": "change.diff", "command": "echo nope >&2; exit 2"}]}))
+        self.assertIn("`echo nope >&2; exit 2` failed: nope", run("refresh", self.dir, check=False).stderr)
+        # Exiting non-zero with no output fails too, rather than reading as an empty diff.
+        (self.dir / "deck.json").write_text(json.dumps({**spec, "diffs": [{"file": "change.diff", "command": "false"}]}))
+        self.assertIn("`false` failed: exit status 1", run("refresh", self.dir, check=False).stderr)
 
 
 if __name__ == "__main__":
