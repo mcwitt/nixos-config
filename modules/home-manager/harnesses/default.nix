@@ -64,15 +64,15 @@ in
 
     harnesses.skills = gwsSkills // {
       asd-ste100 = "${inputs.asd-ste100}";
-      # One store copy for both, so review_deck.py finds teach-me's deck.py
-      # beside it wherever a harness links the skill.
-      assisted-review = "${./skills}/assisted-review";
       branch-cleanup = ./skills/branch-cleanup;
       explanatory = ./skills/explanatory;
       learning = ./skills/learning;
       nixify = ./skills/nixify;
       prose-review = ./skills/prose-review;
-      teach-me = "${./skills}/teach-me";
+      # One store copy for both, so walkthrough_pr.py finds walkthrough's deck.py
+      # beside it wherever a harness links the skill.
+      walkthrough = "${./skills}/walkthrough";
+      walkthrough-pr = "${./skills}/walkthrough-pr";
       worktrunk = "${pkgs.worktrunk.src}/skills/worktrunk";
     };
 

@@ -1156,7 +1156,7 @@ class ClientGone(Exception):
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "teach-me"
+    server_version = "walkthrough"
     state: State
 
     def log_message(self, fmt, *args):
@@ -1501,8 +1501,9 @@ def print_address(info: dict):
 
 def stop_server(deck_dir: Path, info: dict):
     try:
-        # Servers started as review_deck.py also match.
-        if b"deck.py" not in Path(f"/proc/{info['pid']}/cmdline").read_bytes():
+        # A server runs the script that started it, this one or an extension's.
+        script = Path(info.get("script") or "deck.py").name
+        if not script.endswith(".py") or script.encode() not in Path(f"/proc/{info['pid']}/cmdline").read_bytes():
             sys.exit(f"pid {info['pid']} is not a deck server; remove {deck_dir / 'server.json'}")
     except OSError:
         pass  # no /proc (macOS); trust server.json
@@ -1574,6 +1575,7 @@ def cmd_serve(args):
         "tunnel": f"ssh -N -L {port}:127.0.0.1:{port} {opts['tunnel']}" if opts["tunnel"] else None,
         "engine": engine(),
         "script": str(ENTRY),
+        "extensions": [e.name for e in EXTENSIONS],
         "options": opts,
     }
     write_atomic(deck_dir / "server.json", json.dumps(info), 0o600)
@@ -1651,7 +1653,8 @@ def cmd_listen(args):
     serve = f"python3 {me} serve {deck_arg} --detach"
     if not info:
         sys.exit(f"No server is running for this deck. Start it with:\n  {serve}")
-    if Path(info.get("script", ENTRY)).name != ENTRY.name:
+    # A server from before this field was recorded is out of date anyway, which the check below reports.
+    if info.get("extensions", [e.name for e in EXTENSIONS]) != [e.name for e in EXTENSIONS]:
         sys.exit(f"This deck is served by {info['script']}, which handles its requests; listen with that script.")
     if stale_reason(info):
         print(f"The server is out of date: {stale_reason(info)}. "

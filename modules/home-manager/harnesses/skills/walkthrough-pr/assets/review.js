@@ -1,5 +1,5 @@
 "use strict";
-// The review layer's page, over teach-me's deck.js: appendix groups, the
+// The review layer's page, over walkthrough's deck.js: appendix groups, the
 // findings drawer and Findings slide, and the Proposed actions slide. It
 // works only on a deck with diffs; on any other deck it stays out of the way.
 (() => {

@@ -77,7 +77,7 @@ The new session knows nothing of this conversation. The brief must be self-conta
 - **Constraints and what not to do**. Default to read-only, no commit, no post: "leave changes in the working tree", "show me the draft before filing", "do not push, rebase, un-draft or comment". Remove a default only when the user asks.
 - **Fan-out**: allow subagents explicitly when wanted ("you may fan out up to 5 subagents").
 
-To invoke a skill in the new session, start the brief with the harness's skill syntax from the table, for example `/assisted-review PR #1028 in OWNER/REPO (...)` for Claude Code.
+To invoke a skill in the new session, start the brief with the harness's skill syntax from the table, for example `/walkthrough-pr PR #1028 in OWNER/REPO (...)` for Claude Code.
 
 ## Roster
 
@@ -116,7 +116,7 @@ The user sees these states in the tmux status line. There, `prefix a` jumps to t
 
 ## Questions across sessions
 
-The coordinator answers questions that need knowledge of several sessions, such as which sessions serve a browser page and on which port. For assisted-review and prose-review pages, each deck directory's `server.json` holds the PID, port and URL. `pgrep -af review_deck.py`, `pgrep -af prose_review.py` and `ss -ltnp` confirm the processes and ports that are still serving.
+The coordinator answers questions that need knowledge of several sessions, such as which sessions serve a browser page and on which port. For walkthrough, walkthrough-pr and prose-review pages, each deck directory's `server.json` holds the PID, port and URL. `pgrep -af deck.py`, `pgrep -af walkthrough_pr.py`, `pgrep -af prose_review.py` and `ss -ltnp` confirm the processes and ports that are still serving.
 
 Check for leftovers when you list sessions after a close, and at least once a day: `coord strays` lists processes whose tmux pane no longer exists. Tell the user about them; do not kill them yourself.
 

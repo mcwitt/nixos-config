@@ -1,7 +1,7 @@
 /* Layout: a header, then the rendered document (a reading column) beside a
    docked question panel whose width (--ask-w) the reader can drag; under
    960px the panel becomes a bottom sheet of fixed size. The tokens and the
-   panel match the assisted-review deck, so the two look like one tool. */
+   panel match the walkthrough-pr deck, so the two look like one tool. */
 :root {
   --bg: #f3f4f7;
   --panel: #ffffff;

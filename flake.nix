@@ -375,12 +375,12 @@
         deckTests =
           test:
           deckFiles (harnesses + /tests) [
-            (harnesses + /tests/deck_testing.py)
+            (harnesses + /tests/walkthrough_testing.py)
             (harnesses + "/tests/${test}")
           ];
         deckSkills = deckFiles (harnesses + /skills) [
-          (harnesses + /skills/teach-me)
-          (harnesses + /skills/assisted-review)
+          (harnesses + /skills/walkthrough)
+          (harnesses + /skills/walkthrough-pr)
         ];
       in
       {
@@ -399,18 +399,6 @@
               ''
                 python3 ${./modules/home-manager/profiles/agent-identity/test_guard.py} \
                   ${./modules/home-manager/profiles/agent-identity/guard.sh}
-                touch $out
-              '';
-          # The review skill's script imports teach-me's deck.py from beside
-          # it, so it runs from the store copy of both that the harnesses deploy.
-          assisted-review =
-            pkgs.runCommand "assisted-review-check"
-              {
-                nativeBuildInputs = [ pkgs.python3 ];
-              }
-              ''
-                python3 ${deckTests "test_review_deck.py"}/test_review_deck.py \
-                  ${deckSkills}/assisted-review/scripts/review_deck.py
                 touch $out
               '';
           branch-cleanup =
@@ -460,14 +448,26 @@
                   ${./modules/home-manager/harnesses/skills/prose-review}/scripts/prose_review.py
                 touch $out
               '';
-          teach-me =
-            pkgs.runCommand "teach-me-check"
+          walkthrough =
+            pkgs.runCommand "walkthrough-check"
               {
                 nativeBuildInputs = [ pkgs.python3 ];
               }
               ''
-                python3 ${deckTests "test_deck.py"}/test_deck.py \
-                  ${./modules/home-manager/harnesses/skills/teach-me}/scripts/deck.py
+                python3 ${deckTests "test_walkthrough.py"}/test_walkthrough.py \
+                  ${./modules/home-manager/harnesses/skills/walkthrough}/scripts/deck.py
+                touch $out
+              '';
+          # walkthrough-pr's script imports walkthrough's deck.py from beside
+          # it, so it runs from the store copy of both that the harnesses deploy.
+          walkthrough-pr =
+            pkgs.runCommand "walkthrough-pr-check"
+              {
+                nativeBuildInputs = [ pkgs.python3 ];
+              }
+              ''
+                python3 ${deckTests "test_walkthrough_pr.py"}/test_walkthrough_pr.py \
+                  ${deckSkills}/walkthrough-pr/scripts/walkthrough_pr.py
                 touch $out
               '';
         };

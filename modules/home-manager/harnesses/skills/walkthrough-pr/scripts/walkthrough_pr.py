@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check and serve a slideshow that walks a reader through a code change.
 
-This is the teaching slideshow engine (teach-me's deck.py, which it imports
+This is the teaching slideshow engine (walkthrough's deck.py, which it imports
 from the skill installed beside it) with a review layer. A deck names unified
 diffs of the change, shows changed lines in `diff` blocks, and must show
 every changed line on some slide or appendix group. The engine ends the deck
@@ -28,7 +28,7 @@ import time
 from collections import defaultdict
 from pathlib import Path
 
-CORE = str(Path(__file__).resolve().parent.parent.parent / "teach-me" / "scripts")
+CORE = str(Path(__file__).resolve().parent.parent.parent / "walkthrough" / "scripts")
 if CORE not in sys.path:
     sys.path.insert(0, CORE)
 import deck as core  # noqa: E402

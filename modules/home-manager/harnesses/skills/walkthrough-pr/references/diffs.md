@@ -1,6 +1,6 @@
 # Diffs in a deck
 
-A review deck is a `teach-me` deck (see `<skill-dir>/../teach-me/references/deck.md`) that also declares the change's diffs. `review_deck.py check DECK` then also checks coverage.
+A review deck is a `walkthrough` deck (see `<skill-dir>/../walkthrough/references/deck.md`) that also declares the change's diffs. `walkthrough_pr.py check DECK` then also checks coverage.
 
 ## deck.json
 

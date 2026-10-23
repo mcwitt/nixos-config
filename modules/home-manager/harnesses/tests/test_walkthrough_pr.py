@@ -1,7 +1,7 @@
-"""Tests for assisted-review's review_deck.py: diff parsing, coverage, the
-appendix, findings and proposed actions, over teach-me's deck.py.
+"""Tests for walkthrough-pr's walkthrough_pr.py: diff parsing, coverage, the
+appendix, findings and proposed actions, over walkthrough's deck.py.
 
-Usage: python3 test_review_deck.py <path/to/review_deck.py>
+Usage: python3 test_walkthrough_pr.py <path/to/walkthrough_pr.py>
 """
 
 import json
@@ -11,7 +11,7 @@ import unittest
 import urllib.error
 from pathlib import Path
 
-from deck_testing import (
+from walkthrough_testing import (
     CHECK, DIFF, FULL_APPENDIX, DeckDirCase, Script, ServerCase, deck_spec, topic_spec,
 )
 
@@ -236,9 +236,9 @@ class ReviewServerTest(ServerCase):
 
     def test_other_script_and_engine(self):
         info = json.loads((self.dir / "server.json").read_text())
-        (self.dir / "server.json").write_text(json.dumps({**info, "engine": "old", "script": "/old/review_deck.py"}))
+        (self.dir / "server.json").write_text(json.dumps({**info, "engine": "old", "script": "/old/walkthrough_pr.py"}))
         r = run("finding", self.dir, "add", "x", check=False)
-        self.assertIn("The server is out of date (it runs /old/review_deck.py)", r.stderr)
+        self.assertIn("The server is out of date (it runs /old/walkthrough_pr.py)", r.stderr)
         # A restart in place keeps the review layer, and the reloaded deck keeps its coverage.
         self.assertIn("restarted the server", run("serve", self.dir, "--detach").stdout)
         self.assertIn(b"review.js", self.page())
@@ -249,6 +249,11 @@ class ReviewServerTest(ServerCase):
         core = Script(str(Path(SCRIPT.module().CORE) / "deck.py"))
         r = core.run("listen", self.dir, "--timeout", 1, check=False)
         self.assertIn(f"This deck is served by {SCRIPT.path}", r.stderr)
+        # A server from before the rename, by its old name, is out of date rather than another script's.
+        info = json.loads((self.dir / "server.json").read_text())
+        del info["extensions"]
+        (self.dir / "server.json").write_text(json.dumps({**info, "engine": "old", "script": "/old/review_deck.py"}))
+        self.assertIn("The server is out of date", run("listen", self.dir, "--timeout", 1).stdout)
 
     def test_check_report_counts_generated_slides(self):
         self.write(deck_spec(slides=[*deck_spec()["slides"], CHECK]))

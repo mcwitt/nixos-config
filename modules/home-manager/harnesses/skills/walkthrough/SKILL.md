@@ -1,9 +1,9 @@
 ---
-name: teach-me
-description: Teach a human a topic, concept, paper, subsystem or codebase as a slideshow in their browser, one idea per slide, with diagrams, quoted code or text, comprehension checks and a question box on every slide that you answer from the session. Use when the user asks to learn, understand or be taught something, or to be walked through how something works; for walking through a code change, use assisted-review.
+name: walkthrough
+description: Teach a human a topic, concept, paper, subsystem or codebase as a slideshow in their browser, one idea per slide, with diagrams, quoted code or text, comprehension checks and a question box on every slide that you answer from the session. Use when the user asks to learn, understand or be taught something, or to be walked through how something works; for walking through a code change, use walkthrough-pr.
 ---
 
-# Teach me
+# Walkthrough
 
 Build the reader's understanding of a topic. Present it as a slideshow served from this machine: each slide teaches one idea with prose, excerpts and diagrams, and has its own question box. You stay in the session and answer the questions. Keep the sources and any repository state unchanged throughout.
 

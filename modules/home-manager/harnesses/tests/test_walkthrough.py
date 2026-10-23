@@ -1,7 +1,7 @@
-"""Tests for teach-me's deck.py on its own: plain excerpts, checks, written
+"""Tests for walkthrough's deck.py on its own: plain excerpts, checks, written
 answers and the server.
 
-Usage: python3 test_deck.py <path/to/deck.py>
+Usage: python3 test_walkthrough.py <path/to/deck.py>
 """
 
 import json
@@ -12,7 +12,7 @@ import unittest
 import urllib.error
 import urllib.request
 
-from deck_testing import (
+from walkthrough_testing import (
     CHECK_PY, DeckDirCase, Script, ServerCase, topic_check, topic_spec, written_check,
 )
 

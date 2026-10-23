@@ -8,8 +8,7 @@
     src: "https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.15.0/mermaid.min.js",
     integrity: "sha384-yQ4mmBBT+vhTAwjFH0toJXNYJ6O4usWnt6EPIdWwrRvx2V/n5lXuDZQwQFeSFydF",
   };
-  // Kept from the assisted-review page so open decks keep their drafts.
-  const KEY = "assisted-review:" + location.pathname;
+  const KEY = "walkthrough:" + location.pathname;
 
   const S = {
     deck: null,

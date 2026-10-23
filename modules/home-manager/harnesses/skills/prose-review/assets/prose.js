@@ -2,7 +2,7 @@
 // Prose review. The server (scripts/prose_review.py) serves the Markdown
 // document as JSON, relays questions to the review session and pushes
 // updates over server-sent events. The panel, chips and chrome are shared
-// with the assisted-review deck; the document view replaces its slides.
+// with the walkthrough-pr deck; the document view replaces its slides.
 (() => {
   const MERMAID = {
     src: "https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.15.0/mermaid.min.js",

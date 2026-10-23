@@ -1,6 +1,6 @@
 ---
 name: prose-review
-description: Go over a Markdown document with a human in their browser, rendered beside a chat panel where they select passages to ask about or to have changed, and make the edits in the file from the session. Use when the user asks to review, polish, edit or work through prose (docs, READMEs, posts, notes, papers) with them; code changes belong to assisted-review.
+description: Go over a Markdown document with a human in their browser, rendered beside a chat panel where they select passages to ask about or to have changed, and make the edits in the file from the session. Use when the user asks to review, polish, edit or work through prose (docs, READMEs, posts, notes, papers) with them; code changes belong to walkthrough-pr.
 ---
 
 # Prose review

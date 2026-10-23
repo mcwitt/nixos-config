@@ -1,5 +1,5 @@
-"""Fixtures and helpers shared by the tests of teach-me's deck.py and
-assisted-review's review_deck.py."""
+"""Fixtures and helpers shared by the tests of walkthrough's deck.py and
+walkthrough-pr's walkthrough_pr.py."""
 
 import copy
 import importlib.util

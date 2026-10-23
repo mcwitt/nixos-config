@@ -1,11 +1,11 @@
 ---
-name: assisted-review
-description: Walk a human through a code change (commit, branch, pull request or local edits) as a slideshow in their browser, with diagrams, diff excerpts and a question box on every slide that you answer from the session. Use when the user asks to be walked through a change or helped to understand it; ordinary automated bug reviews do not need this skill, and learning a topic or codebase without a change belongs to teach-me.
+name: walkthrough-pr
+description: Walk a human through a code change (commit, branch, pull request or local edits) as a slideshow in their browser, with diagrams, diff excerpts and a question box on every slide that you answer from the session. Use when the user asks to be walked through a change or helped to understand it; ordinary automated bug reviews do not need this skill, and learning a topic or codebase without a change belongs to walkthrough.
 ---
 
-# Assisted review
+# Walkthrough of a code change
 
-Build the reader's understanding of the change. This skill extends `teach-me`, installed beside it: read `<skill-dir>/../teach-me/SKILL.md` and `<skill-dir>/../teach-me/references/deck.md`, then `references/diffs.md` here for the diff blocks, the appendix and coverage. Run its engine as `<skill-dir>/scripts/review_deck.py`: teach-me's `deck.py`, which it loads from beside it, with the review layer this skill adds. It takes every `deck.py` command. Keep the source and Git state unchanged throughout, except for fixes the reader approves on the Proposed actions slide (see step 3).
+Build the reader's understanding of the change. This skill extends `walkthrough`, installed beside it: read `<skill-dir>/../walkthrough/SKILL.md` and `<skill-dir>/../walkthrough/references/deck.md`, then `references/diffs.md` here for the diff blocks, the appendix and coverage. Run its engine as `<skill-dir>/scripts/walkthrough_pr.py`: walkthrough's `deck.py`, which it loads from beside it, with the review layer this skill adds. It takes every `deck.py` command. Keep the source and Git state unchanged throughout, except for fixes the reader approves on the Proposed actions slide (see step 3).
 
 ## 1. Establish the change
 
@@ -23,7 +23,7 @@ git diff --no-ext-diff --no-color --src-prefix=a/ --dst-prefix=b/ BASE...HEAD > 
 
 For a single commit, diff it against its parent (`REV^ REV`, or `git show --format= --no-ext-diff --no-color --src-prefix=a/ --dst-prefix=b/ REV` for a root commit). For a pull request, diff its head against the merge base with its base branch. For local changes, write staged changes (`git diff --cached …`), unstaged changes (`git diff …`) and untracked files (`git diff --no-index … /dev/null FILE` for each, run from the repository root; it exits with status 1 when the file has content) to separate files and list them with labels in the deck.
 
-Run `python3 <skill-dir>/scripts/review_deck.py hunks DECK` to list the files, hunks and changed line ranges.
+Run `python3 <skill-dir>/scripts/walkthrough_pr.py hunks DECK` to list the files, hunks and changed line ranges.
 
 Then start an independent defect review of the same change in the background, so that it runs while you write the deck and does not share its framing. Use the review the user names; otherwise your harness's own code-review command; otherwise a subagent briefed to find correctness, security and performance defects in the diff and report each with a severity, a place (`path:line`) and a one-paragraph explanation. Never let it change the code. Its findings stay hidden from the reader until the end (see step 3).
 
@@ -65,13 +65,13 @@ For a pull request, set `pr` to its URL; the reader can then mark findings for r
 
 When the change is on GitHub (a commit, a pushed branch or a pull request), set `source_url` to a permalink template at the head commit, `https://github.com/OWNER/REPO/blob/HEAD_SHA/{path}#L{line}-L{end}`, so excerpts and selected lines link to the file in context. Leave it out for local changes.
 
-Write `DECK/deck.json`, then run `python3 <skill-dir>/scripts/review_deck.py check DECK` until it passes.
+Write `DECK/deck.json`, then run `python3 <skill-dir>/scripts/walkthrough_pr.py check DECK` until it passes.
 
 ## 3. Serve, answer and finish
 
-Serve the deck, answer questions and finish as `teach-me` describes, running `review_deck.py` in place of `deck.py`. Give the reader a one-sentence summary of the change in place of the goal. In answers, cite `path:line` and do not change the code. At the finish, say which tests or validations were actually run and which were only inspected; finishing the walkthrough does not mean the reader approved the change. Without a browser, give the summary (why and what) and the slide list, and invite questions before showing any diff.
+Serve the deck, answer questions and finish as `walkthrough` describes, running `walkthrough_pr.py` in place of `deck.py`. Give the reader a one-sentence summary of the change in place of the goal. In answers, cite `path:line` and do not change the code. At the finish, say which tests or validations were actually run and which were only inspected; finishing the walkthrough does not mean the reader approved the change. Without a browser, give the summary (why and what) and the slide list, and invite questions before showing any diff.
 
-The reader collects findings as they go, in a drawer the top bar opens, and decides what to do with each on the Findings slide that ends the deck. Record a finding when the reader asks you to, with `review_deck.py finding DECK add TEXT --at PATH:LINE[-END]` (new-side lines; repeat `--at` for several places). Give every finding a severity, using the reader's when they name one:
+The reader collects findings as they go, in a drawer the top bar opens, and decides what to do with each on the Findings slide that ends the deck. Record a finding when the reader asks you to, with `walkthrough_pr.py finding DECK add TEXT --at PATH:LINE[-END]` (new-side lines; repeat `--at` for several places). Give every finding a severity, using the reader's when they name one:
 
 - **P0**: blocks the release or major use, such as a security hole, an auth bypass or data loss.
 - **P1**: urgent; fix it in the next cycle, such as a concurrency bug, a performance regression or sensitive data in logs.
@@ -82,7 +82,7 @@ When the reader adds a finding without one, `listen` hands it to you; set it wit
 
 Record the background review's findings, and the defects you noticed, as hidden review findings once the server runs: `finding DECK add TEXT --review --severity P1 --at PATH:LINE`, translating the review's own severities to P0 to P3. Mark the review with `finding DECK review running` while it runs and `finding DECK review done` when everything is recorded. When the reader presses Reveal on the Findings slide, `listen` hands you both lists: merge the findings that report the same problem with `finding DECK merge KEEP OTHER...`, reword a merged finding if neither text covers both, and run `finding DECK reveal`.
 
-The Proposed actions slide follows the Findings slide. When the reader presses Propose actions, `listen` hands you the findings with the reader's choices. Propose with `review_deck.py action DECK add`:
+The Proposed actions slide follows the Findings slide. When the reader presses Propose actions, `listen` hands you the findings with the reader's choices. Propose with `walkthrough_pr.py action DECK add`:
 
 - **comment**: one review comment for each finding marked Comment, written as it will be posted. It goes at the finding's first place in a file unless you pass `--at` or `--summary`.
 - **fix**: only where the reader asked for one, or where the change is the reader's own and the fix is small and certain; a patch from the repository root.
