@@ -564,13 +564,14 @@
           type: "button",
           class: "primary",
           onclick: async (e) => {
-            e.currentTarget.disabled = true;
+            const btn = e.currentTarget;
+            btn.disabled = true;
             try {
               await post("api/finish");
               toast(`Told the ${who()} you have finished.`);
             } catch (err) {
               toast(`Could not reach the server: ${err.message}`);
-              e.currentTarget.disabled = false;
+              btn.disabled = false;
             }
           },
         },

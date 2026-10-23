@@ -1,7 +1,6 @@
 """Fixtures and helpers shared by the tests of walkthrough's deck.py and
-walkthrough-pr's walkthrough_pr.py."""
+walkthrough-pr's walkthrough_pr.py; the diff fixtures are walkthrough-pr's own."""
 
-import copy
 import importlib.util
 import json
 import subprocess
@@ -91,109 +90,6 @@ class ServerCase(DeckDirCase):
                 return v
             time.sleep(0.2)
         self.fail("timed out")
-
-
-# Built line by line so that context lines keep their leading space.
-DIFF = "\n".join(
-    [
-        "diff --git a/src/app.py b/src/app.py",
-        "index 1111111..2222222 100644",
-        "--- a/src/app.py",
-        "+++ b/src/app.py",
-        "@@ -1,6 +1,7 @@",
-        " import os",
-        "-import sys",
-        "+import sys, json",
-        " ",
-        " def main():",
-        '-    print("hi")',
-        '+    print("hello")',
-        "+    return 0",
-        " ",
-        "@@ -20,3 +21,3 @@ def other():",
-        "     a = 1",
-        "-    b = 2",
-        "+    b = 3",
-        "     c = 4",
-        "diff --git a/old name.txt b/new name.txt",
-        "similarity index 100%",
-        "rename from old name.txt",
-        "rename to new name.txt",
-        "diff --git a/img.png b/img.png",
-        "index 3333333..4444444 100644",
-        "Binary files a/img.png and b/img.png differ",
-        "diff --git a/run.sh b/run.sh",
-        "old mode 100644",
-        "new mode 100755",
-        "diff --git a/notes.md b/notes.md",
-        "new file mode 100644",
-        "index 0000000..5555555",
-        "--- /dev/null",
-        "+++ b/notes.md",
-        "@@ -0,0 +1,3 @@",
-        "+first",
-        "+",
-        "+second",
-        "\\ No newline at end of file",
-        "diff --git a/gone.txt b/gone.txt",
-        "deleted file mode 100644",
-        "index 6666666..0000000",
-        "--- a/gone.txt",
-        "+++ /dev/null",
-        "@@ -1 +0,0 @@",
-        "-bye",
-        "",
-    ]
-)
-
-FULL_APPENDIX = [
-    {
-        "title": "Everything else",
-        "note": "The rest of the change.",
-        "diffs": [
-            {"diff": "src/app.py#2"},
-            {"diff": "new name.txt"},
-            {"diff": "img.png"},
-            {"diff": "run.sh"},
-            {"diff": "notes.md"},
-            {"diff": "gone.txt"},
-        ],
-    }
-]
-
-
-CHECK = {
-    "id": "check",
-    "title": "Check: the return value",
-    "section": "What",
-    "quiz": [
-        {
-            "q": "What does `main` return now?",
-            "see": "what",
-            "choices": [
-                {"text": "Nothing", "why": "It gained `return 0`.", "see": "what"},
-                {"text": "`0`", "why": "Right: `return 0` was added.", "correct": True},
-            ],
-        }
-    ],
-}
-
-
-def deck_spec(**extra):
-    spec = {
-        "title": "Sample change",
-        "slides": [
-            {"id": "why", "title": "Why", "section": "Why", "blocks": [{"md": "Because."}]},
-            {
-                "id": "what",
-                "title": "What",
-                "blocks": [{"diff": "src/app.py", "range": "new:1-8"}],
-            },
-        ],
-        "appendix": copy.deepcopy(FULL_APPENDIX),
-    }
-    spec.update(extra)
-    return spec
 
 
 NOTES = "first line\nsecond line\nthird line\nfourth line\n"

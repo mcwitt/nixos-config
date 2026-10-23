@@ -64,15 +64,16 @@
     const { findings, actions, ...review } = await getJSON("api/review");
     S.findings = findings;
     S.actions = actions;
+    S.reviewAt = Date.now() / 1000; // resend_in counts from here, by this page's clock
     S.review = review;
     registerFiles(actions.flatMap((a) => a.diff?.files || []));
   }
 
-  async function findingOp(op) {
+  async function reviewOp(op) {
     try {
       return await post("api/review", op);
     } catch (e) {
-      toast(`Could not update the finding: ${e.message}`);
+      toast(`Could not do that: ${e.message}`);
     }
   }
 
@@ -97,7 +98,7 @@
       h("option", { value: "" }, "P?"),
       SEVERITIES.map((p) => h("option", { value: p, title: SEVERITY_HELP[p], selected: p === f.severity }, p)),
     );
-    severity.addEventListener("change", () => findingOp({ op: "set", id: f.id, severity: severity.value || null }));
+    severity.addEventListener("change", () => reviewOp({ op: "set", id: f.id, severity: severity.value || null }));
     const sources = sourceTags(f.sources);
     const merged = f.merged?.length
       ? h(
@@ -110,7 +111,7 @@
     // The drawer and the slide show the same finding; each has its own editor.
     const editKey = `${actions ? "slide" : "drawer"}:${f.id}`;
     const text = S.editing.has(editKey)
-      ? editorEl(editKey, (t) => findingOp({ op: "set", id: f.id, text: t }))
+      ? editorEl(editKey, (t) => reviewOp({ op: "set", id: f.id, text: t }))
       : h("div", { class: "finding-text", "data-ask": `Finding ${f.id} (${f.severity || "no severity"}): ${f.text}`, "data-ask-source": "finding" }, mdEl(f.text));
     const places = f.refs.length
       ? h("div", { class: "chips" }, f.refs.map((r) => h("button", { type: "button", class: "chip static", title: r.text || r.path || r.label, onclick: () => showRef(f, r) }, chipLabel(r))))
@@ -120,7 +121,7 @@
       { class: "finding-tools" },
       actions ? actionButtons(f) : null,
       own ? h("button", { type: "button", class: "ghost small", onclick: () => startEditing(editKey, f.text) }, "Edit") : null,
-      own ? h("button", { type: "button", class: "ghost small", onclick: () => findingOp({ op: "remove", id: f.id }) }, "Remove") : null,
+      own ? h("button", { type: "button", class: "ghost small", onclick: () => reviewOp({ op: "remove", id: f.id }) }, "Remove") : null,
     );
     return h("article", { class: `finding ${f.action || ""}`, "data-finding": f.id }, h("div", { class: "finding-head" }, severity, sources, tools), text, merged, places);
   }
@@ -137,7 +138,7 @@
         "div",
         { class: "reveal" },
         h("p", {}, h("span", { class: "ellipsis" }, `The ${who()} is merging the review's findings with yours`)),
-        h("button", { type: "button", class: "ghost small", title: `Send the request to the ${who()} again`, onclick: () => findingOp({ op: "request-reveal" }) }, "Ask again"),
+        h("button", { type: "button", class: "ghost small", title: `Send the request to the ${who()} again`, onclick: () => reviewOp({ op: "request-reveal" }) }, "Ask again"),
       );
     }
     if (review !== "running" && !hidden) return null;
@@ -146,7 +147,7 @@
       "div",
       { class: "reveal" },
       h("p", {}, `${status} Its findings stay hidden until you have added yours, so they do not steer you.`),
-      h("button", { type: "button", class: "primary small", onclick: () => findingOp({ op: "request-reveal" }) }, "Reveal the review's findings"),
+      h("button", { type: "button", class: "primary small", onclick: () => reviewOp({ op: "request-reveal" }) }, "Reveal the review's findings"),
     );
   }
 
@@ -156,7 +157,7 @@
       "span",
       { class: "segmented", role: "group", "aria-label": "What to do" },
       choices.map(([value, label]) =>
-        h("button", { type: "button", class: "small", "aria-pressed": String(f.action === value), onclick: () => findingOp({ op: "set", id: f.id, action: f.action === value ? null : value }) }, label),
+        h("button", { type: "button", class: "small", "aria-pressed": String(f.action === value), onclick: () => reviewOp({ op: "set", id: f.id, action: f.action === value ? null : value }) }, label),
       ),
     );
   }
@@ -176,7 +177,10 @@
     const submit = async () => (await save(box.value)) && close();
     box.addEventListener("keydown", (e) => {
       if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) submit();
-      else if (e.key === "Escape") close();
+      else if (e.key === "Escape") {
+        e.preventDefault(); // the page's own Escape would also close the drawer
+        close();
+      }
     });
     return h(
       "div",
@@ -197,7 +201,9 @@
   function showRef(f, r) {
     closeFindings();
     if (r.kind === "lines") {
-      const i = S.deck.slides.findIndex((s) => showsLines(s.blocks, r));
+      // Lines of a proposed fix are on the Proposed actions slide.
+      const inFix = S.actions.some((a) => a.diff && showsLines(a.diff.blocks, r));
+      const i = inFix ? slideIndex("proposed-actions") : S.deck.slides.findIndex((s) => showsLines(s.blocks, r));
       if (i >= 0) {
         go(i);
         return setTimeout(() => flashRef(r), 50);
@@ -232,7 +238,7 @@
     const m = raw.match(/^(P[0-3])\b[:\s-]*/i);
     const text = m ? raw.slice(m[0].length) : raw;
     if (!text) return toast("Write the finding first.");
-    const done = await findingOp({ op: "add", text, refs: S.refs, slide: slide().id, ...(m ? { severity: m[1].toUpperCase() } : {}) });
+    const done = await reviewOp({ op: "add", text, refs: S.refs, slide: slide().id, ...(m ? { severity: m[1].toUpperCase() } : {}) });
     if (!done) return;
     $("#question").value = "";
     S.refs = [];
@@ -258,7 +264,6 @@
   // what to include, and presses Carry out. A comment posts from the account
   // of whoever wrote its current text.
   const ACTION_KINDS = { comment: "Comment", fix: "Fix", check: "Check" };
-  const CLAIM_STALE = 20 * 60; // as in deck.py: how long the session has to report an action it was sent
   const postsAs = (a) => (a.author === "reader" ? "posts as you" : "posts as the agent's account");
 
   // A fix's patch draws like the deck's diffs, so its files join the deck's.
@@ -274,7 +279,7 @@
 
   function actionsSlideEl() {
     const { proposal } = S.review;
-    const ask = (label, cls = "primary small") => h("button", { type: "button", class: cls, onclick: () => findingOp({ op: "request-proposal" }) }, label);
+    const ask = (label, cls = "primary small") => h("button", { type: "button", class: cls, onclick: () => reviewOp({ op: "request-proposal" }) }, label);
     const intro = mdEl(
       `The ${who()} drafts the review comments for findings you marked **Comment**, and any fix or check you ask for. ` +
         "Reword a comment yourself, or click a draft to ask for changes. Nothing runs until you press **Carry out**.",
@@ -285,7 +290,12 @@
     if (drafting && !S.actions.length) return h("div", { class: "block actions-slide wide" }, intro, status);
     // Actions already sent go again only once the session has had time to report them: it may have lost the request.
     const fresh = S.actions.filter((a) => a.include && (a.state === "proposed" || a.state === "failed"));
-    const lost = S.actions.filter((a) => a.include && a.state === "running" && Date.now() / 1000 - (a.sent || 0) > CLAIM_STALE);
+    const waited = Date.now() / 1000 - S.reviewAt;
+    const lost = S.actions.filter((a) => a.include && a.state === "running" && waited >= a.resend_in);
+    // Redraw when the next running action may go again.
+    const next = Math.min(...S.actions.filter((a) => a.state === "running" && waited < a.resend_in).map((a) => a.resend_in - waited));
+    clearTimeout(S.resendTimer);
+    if (Number.isFinite(next)) S.resendTimer = setTimeout(renderFindingViews, next * 1000 + 500);
     const runnable = fresh.length ? fresh : lost;
     const label = drafting ? "Carry out (once the drafts are ready)" : fresh.length ? carryLabel(fresh) : lost.length ? "Send again" : "Carry out";
     return h(
@@ -318,13 +328,13 @@
   }
 
   async function carryOut(actions) {
-    if (await findingOp({ op: "carry-out", ids: actions.map((a) => a.id) })) toast(`Sent ${actions.length} action${actions.length === 1 ? "" : "s"} to the ${who()}.`);
+    if (await reviewOp({ op: "carry-out", ids: actions.map((a) => a.id) })) toast(`Sent ${actions.length} action${actions.length === 1 ? "" : "s"} to the ${who()}.`);
   }
 
   function actionEl(a) {
     const locked = a.state === "running" || a.state === "done";
     const include = h("input", { type: "checkbox", checked: a.include, disabled: locked, "aria-label": "Include this action" });
-    include.addEventListener("change", () => findingOp({ op: "action-set", id: a.id, include: include.checked }));
+    include.addEventListener("change", () => reviewOp({ op: "action-set", id: a.id, include: include.checked }));
     const finding = S.findings.find((f) => f.id === a.finding);
     const head = h(
       "div",
@@ -342,7 +352,7 @@
       const key = `action:${a.id}`;
       if (S.editing.has(key)) {
         const hint = a.author === "reader" ? null : "Once you change it, the comment posts as you.";
-        body = [h("div", { class: "chips" }, place), editorEl(key, (t) => findingOp({ op: "action-set", id: a.id, body: t }), hint)];
+        body = [h("div", { class: "chips" }, place), editorEl(key, (t) => reviewOp({ op: "action-set", id: a.id, body: t }), hint)];
       } else {
         const edit = locked ? null : h("div", { class: "finding-tools" }, h("button", { type: "button", class: "ghost small", onclick: () => startEditing(key, a.body) }, "Edit"));
         body = [h("div", { class: "chips" }, place), h("div", { class: "finding-text", ...ask(a.body) }, mdEl(a.body)), edit];

@@ -4,6 +4,7 @@ appendix, findings and proposed actions, over walkthrough's deck.py.
 Usage: python3 test_walkthrough_pr.py <path/to/walkthrough_pr.py>
 """
 
+import copy
 import json
 import re
 import sys
@@ -11,12 +12,112 @@ import unittest
 import urllib.error
 from pathlib import Path
 
-from walkthrough_testing import (
-    CHECK, DIFF, FULL_APPENDIX, DeckDirCase, Script, ServerCase, deck_spec, topic_spec,
-)
+from walkthrough_testing import DeckDirCase, Script, ServerCase, topic_spec
 
 SCRIPT = Script(sys.argv.pop(1))
 run = SCRIPT.run
+
+# Built line by line so that context lines keep their leading space.
+DIFF = "\n".join(
+    [
+        "diff --git a/src/app.py b/src/app.py",
+        "index 1111111..2222222 100644",
+        "--- a/src/app.py",
+        "+++ b/src/app.py",
+        "@@ -1,6 +1,7 @@",
+        " import os",
+        "-import sys",
+        "+import sys, json",
+        " ",
+        " def main():",
+        '-    print("hi")',
+        '+    print("hello")',
+        "+    return 0",
+        " ",
+        "@@ -20,3 +21,3 @@ def other():",
+        "     a = 1",
+        "-    b = 2",
+        "+    b = 3",
+        "     c = 4",
+        "diff --git a/old name.txt b/new name.txt",
+        "similarity index 100%",
+        "rename from old name.txt",
+        "rename to new name.txt",
+        "diff --git a/img.png b/img.png",
+        "index 3333333..4444444 100644",
+        "Binary files a/img.png and b/img.png differ",
+        "diff --git a/run.sh b/run.sh",
+        "old mode 100644",
+        "new mode 100755",
+        "diff --git a/notes.md b/notes.md",
+        "new file mode 100644",
+        "index 0000000..5555555",
+        "--- /dev/null",
+        "+++ b/notes.md",
+        "@@ -0,0 +1,3 @@",
+        "+first",
+        "+",
+        "+second",
+        "\\ No newline at end of file",
+        "diff --git a/gone.txt b/gone.txt",
+        "deleted file mode 100644",
+        "index 6666666..0000000",
+        "--- a/gone.txt",
+        "+++ /dev/null",
+        "@@ -1 +0,0 @@",
+        "-bye",
+        "",
+    ]
+)
+
+FULL_APPENDIX = [
+    {
+        "title": "Everything else",
+        "note": "The rest of the change.",
+        "diffs": [
+            {"diff": "src/app.py#2"},
+            {"diff": "new name.txt"},
+            {"diff": "img.png"},
+            {"diff": "run.sh"},
+            {"diff": "notes.md"},
+            {"diff": "gone.txt"},
+        ],
+    }
+]
+
+
+CHECK = {
+    "id": "check",
+    "title": "Check: the return value",
+    "section": "What",
+    "quiz": [
+        {
+            "q": "What does `main` return now?",
+            "see": "what",
+            "choices": [
+                {"text": "Nothing", "why": "It gained `return 0`.", "see": "what"},
+                {"text": "`0`", "why": "Right: `return 0` was added.", "correct": True},
+            ],
+        }
+    ],
+}
+
+
+def deck_spec(**extra):
+    spec = {
+        "title": "Sample change",
+        "slides": [
+            {"id": "why", "title": "Why", "section": "Why", "blocks": [{"md": "Because."}]},
+            {
+                "id": "what",
+                "title": "What",
+                "blocks": [{"diff": "src/app.py", "range": "new:1-8"}],
+            },
+        ],
+        "appendix": copy.deepcopy(FULL_APPENDIX),
+    }
+    spec.update(extra)
+    return spec
 
 
 class ParseTest(unittest.TestCase):
@@ -48,7 +149,7 @@ class ParseTest(unittest.TestCase):
         notes = self.files["notes.md"].hunks[0]
         self.assertTrue(notes.rows[-1].noeol)
         # The blank added line is a change, but coverage does not require it.
-        self.assertEqual((notes.changed(), notes.needed()), ({0, 1, 2}, {0, 2}))
+        self.assertEqual((self.rd.changed(notes), self.rd.needed(notes)), ({0, 1, 2}, {0, 2}))
         self.assertEqual(self.files["src/app.py"].adds, 4)
         self.assertEqual(self.files["src/app.py"].dels, 3)
 
@@ -84,6 +185,16 @@ class DeckTest(DeckDirCase):
     def setUp(self):
         super().setUp()
         (self.dir / "change.diff").write_text(DIFF)
+
+    def test_hunks_reads_diffs_as_the_deck_does(self):
+        (self.dir / "change.diff").unlink()
+        self.write(topic_spec())
+        self.assertIn("0 files, 0 hunks", run("hunks", self.dir).stdout)
+        (self.dir / "empty.diff").write_text("")
+        self.assertIn("0 files, 0 hunks", run("hunks", self.dir, "--diff", "empty.diff").stdout)
+        self.write(topic_spec(diffs=[3]))
+        r = run("hunks", self.dir, check=False)
+        self.assertEqual((r.returncode, r.stderr.strip()), (1, "diffs[0]: expected a file name or {file, label}"))
 
     def test_goal_optional_with_diffs(self):
         self.write(deck_spec())
@@ -140,66 +251,24 @@ class DeckTest(DeckDirCase):
     def test_validation_errors(self):
         spec = deck_spec()
         spec["slides"] += [
-            {"id": "why", "title": "Again", "blocks": [{"md": "x"}]},
             {"id": "appendix-9", "title": "Reserved", "blocks": [{"md": "x"}]},
-            {"id": "9bad", "title": "", "blocks": []},
-            {"id": "ok", "title": "Unknown", "blocks": [{"diff": "nope.py"}, {"md": "a", "callout": "b"}]},
-            {"id": "ok2", "title": "Diagram", "blocks": [{"diagram": {"type": "steps", "frames": [{"svg": "<svg/>"}]}}]},
+            {"id": "ok", "title": "Unknown", "blocks": [{"diff": "nope.py"}]},
         ]
         self.write(spec)
         with self.assertRaises(self.rd.DeckInvalid) as cm:
             self.rd.load_deck(self.dir)
         text = "\n".join(cm.exception.errors)
-        for needle in ("duplicate id", "reserved", "starting with a letter", "non-empty string",
-                       "non-empty list", "not a file or hunk", "exactly one of", "at least two frames"):
+        for needle in ("'appendix-9' is reserved", "not a file or hunk"):
             self.assertIn(needle, text)
 
-    def test_check_slides(self):
-        self.write(deck_spec())
-        self.assertIn("no check slides", run("check", self.dir).stdout)
-        spec = deck_spec()
-        spec["slides"].append(CHECK)
-        self.write(spec)
-        deck = self.rd.load_deck(self.dir)
-        self.assertEqual([s["id"] for s in deck.checks()], ["check"])
-        q = deck.checks()[0]["quiz"][0]
-        self.assertEqual([c["correct"] for c in q["choices"]], [False, True])
-        self.assertEqual((q["see"], q["choices"][0]["see"], q["choices"][1]["see"]), ("what", "what", ""))
-        self.assertEqual(deck.checks()[0]["blocks"], [])
+    def test_check_points_at_diff_slides(self):
+        self.write(deck_spec(slides=[*deck_spec()["slides"], CHECK]))
+        q = self.rd.load_deck(self.dir).checks()[0]["quiz"][0]
+        self.assertEqual((q["see"], q["choices"][0]["see"]), ("what", "what"))
         self.assertIn("ending with a final check", run("check", self.dir).stdout)
-        spec["slides"].insert(1, spec["slides"].pop())
-        self.write(spec)
+        # The generated appendix and review slides after it do not count as authored.
+        self.write(deck_spec(slides=[deck_spec()["slides"][0], CHECK, deck_spec()["slides"][1]]))
         self.assertIn("last authored slide is not a check", run("check", self.dir).stdout)
-
-    def test_check_validation(self):
-        spec = deck_spec()
-        q = CHECK["quiz"][0]
-        spec["slides"] += [
-            {"id": "c1", "title": "Both", "blocks": [{"md": "x"}], "quiz": [q]},
-            {"id": "c2", "title": "No key", "quiz": [{**q, "choices": [dict(c, correct=False) for c in q["choices"]]}]},
-            {"id": "c3", "title": "Two keys", "quiz": [{**q, "choices": [dict(c, correct=True) for c in q["choices"]]}]},
-            {"id": "c4", "title": "Self", "quiz": [{**q, "see": "c4"}]},
-            {"id": "c5", "title": "Other check", "quiz": [{**q, "see": "check"}, {**q, "see": "nope"}]},
-            {"id": "c6", "title": "One choice", "quiz": [{**q, "choices": q["choices"][:1]}]},
-            {"id": "c7", "title": "No why", "quiz": [{**q, "choices": [{"text": "a", "correct": True}, {"text": "b"}]}]},
-            {"id": "c8", "title": "Empty", "quiz": []},
-            CHECK,
-        ]
-        self.write(spec)
-        with self.assertRaises(self.rd.DeckInvalid) as cm:
-            self.rd.load_deck(self.dir)
-        errors = cm.exception.errors
-        text = "\n".join(errors)
-        self.assertIn("slide 'c1': a check slide has quiz, not blocks", text)
-        self.assertIn("slide 'c2'.quiz[0].choices: expected exactly one choice with \"correct\": true, found 0", text)
-        self.assertIn("slide 'c3'.quiz[0].choices: expected exactly one choice with \"correct\": true, found 2", text)
-        self.assertIn("slide 'c4'.quiz[0].see: expected the id of a content slide", text)
-        self.assertIn("slide 'c5'.quiz[0].see: expected the id of a content slide", text)
-        self.assertIn("slide 'c5'.quiz[1].see: expected the id of a content slide", text)
-        self.assertIn("slide 'c6'.quiz[0].choices: expected 2 to 5 choices", text)
-        self.assertIn("slide 'c7'.quiz[0].choices[0].why: expected a non-empty string", text)
-        self.assertIn("slide 'c8'.quiz: expected a list of 1 to 6 questions", text)
-        self.assertFalse([e for e in errors if "'check'" in e], errors)
 
     def test_labeled_diffs(self):
         (self.dir / "staged.diff").write_text(DIFF)
@@ -425,7 +494,10 @@ class ReviewServerTest(ServerCase):
         self.assertEqual(self.get("api/review")["actions"][0]["author"], "reader")
 
         self.post("api/review", {"op": "carry-out", "ids": [comment["id"], fix["id"]]})
-        self.assertEqual([a["state"] for a in self.get("api/review")["actions"]], ["running", "running", "proposed"])
+        actions = self.get("api/review")["actions"]
+        self.assertEqual([a["state"] for a in actions], ["running", "running", "proposed"])
+        self.assertGreater(actions[0]["resend_in"], 1000)
+        self.assertEqual(actions[2]["resend_in"], 0)
         with self.assertRaises(urllib.error.HTTPError) as cm:
             self.post("api/review", {"op": "carry-out", "ids": [comment["id"]]})
         self.assertIn(b"sent to the session just now", cm.exception.read())

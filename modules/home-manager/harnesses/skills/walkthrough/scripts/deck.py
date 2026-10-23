@@ -42,7 +42,9 @@ import time
 from collections import defaultdict
 from dataclasses import dataclass, field
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from collections.abc import Mapping
 from pathlib import Path
+from types import MappingProxyType
 from urllib.parse import urlsplit
 
 ASSETS = Path(__file__).resolve().parent.parent / "assets"
@@ -105,6 +107,7 @@ class Extension:
     assets: Path | None = None  # page assets; the page loads NAME.css and NAME.js from here
     blocks: tuple[str, ...] = ()  # slide block keys it handles, beside md, callout, excerpt and diagram
     spec_keys: tuple[str, ...] = ()  # deck.json keys it reads, beside the core's
+    quote_sources: Mapping[str, str] = MappingProxyType({})  # what a reader can quote, beside the core's: {source: "a description"}
 
     def begin(self, load: Loading):
         """Before the slides: read its parts of deck.json."""
@@ -163,6 +166,10 @@ class Extension:
 EXTENSIONS: list[Extension] = []
 
 
+def quote_sources() -> dict[str, str]:
+    return {**QUOTE_SOURCES, **{k: v for e in EXTENSIONS for k, v in e.quote_sources.items()}}
+
+
 @dataclass
 class Listening:
     """What `listen` passes to the extensions: where the deck is and how to call this script."""
@@ -213,13 +220,6 @@ class Hunk:
     new_start: int
     new_count: int
     rows: list[Row] = field(default_factory=list)
-
-    def changed(self) -> set[int]:
-        return {i for i, r in enumerate(self.rows) if r.kind != " "}
-
-    def needed(self) -> set[int]:
-        """Changed rows that coverage requires: blank lines carry nothing to show."""
-        return {i for i in self.changed() if self.rows[i].text.strip()}
 
 
 @dataclass
@@ -731,6 +731,7 @@ def deck_payload(deck: Deck, version: int) -> dict:
 
 def refs_text(hunks: dict[str, Hunk], refs: list[dict]) -> str:
     out = []
+    sources = quote_sources()
     for r in refs:
         if r["kind"] == "lines":
             h = hunks[r["hunk"]]
@@ -740,7 +741,7 @@ def refs_text(hunks: dict[str, Hunk], refs: list[dict]) -> str:
                 f"```{fence}\n{numbered(h, r['lo'], r['hi'])}\n```"
             )
         elif r["kind"] == "quote":
-            where = QUOTE_SOURCES[r["source"]]
+            where = sources[r["source"]]
             out.append(f"Quoted from {where}:\n> " + r["text"].replace("\n", "\n> "))
         elif r["kind"] == "place":
             out.append(f"At {r['path']}:{r['line']}" + (f"-{r['end']}" if r["end"] != r["line"] else ""))
@@ -750,6 +751,7 @@ def refs_text(hunks: dict[str, Hunk], refs: list[dict]) -> str:
 def parse_refs(hunks: dict[str, Hunk], refs) -> list[dict]:
     """Validate references: selected lines and quotes from a page, and places from the session."""
     out = []
+    sources = quote_sources()
     for r in refs if isinstance(refs, list) else []:
         if not isinstance(r, dict):
             continue
@@ -765,7 +767,7 @@ def parse_refs(hunks: dict[str, Hunk], refs) -> list[dict]:
             out.append({"kind": "lines", "hunk": h.id, "lo": lo, "hi": hi, "path": h.file.path, "side": side,
                         "line": line, "end": end, "label": f"{Path(h.file.path).name} {span(h, lo, hi)}"})
         elif r.get("kind") in ("quote", "diagram") and isinstance(r.get("text"), str) and r["text"].strip():
-            source = r.get("source") if r.get("source") in QUOTE_SOURCES else "diagram"
+            source = r.get("source") if r.get("source") in sources else "diagram"
             out.append({"kind": "quote", "source": source, "text": r["text"].strip()[:2000]})
         elif r.get("kind") == "place" and isinstance(r.get("path"), str) and isinstance(r.get("line"), int):
             end = r.get("end") if isinstance(r.get("end"), int) and r["end"] >= r["line"] else r["line"]
@@ -1489,7 +1491,7 @@ def stale_reason(info: dict) -> str | None:
     if info.get("engine") == engine():
         return None
     if info.get("script") == str(ENTRY):
-        return "deck.py or its page changed since it started"
+        return f"{ENTRY.name} or its page changed since it started"
     return f"it runs {info.get('script', 'an older deck.py')}"
 
 

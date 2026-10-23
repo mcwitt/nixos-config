@@ -126,6 +126,69 @@ class TopicDeckTest(DeckDirCase):
         self.assertIn("slide 'final'.quiz[0].choices[1].why: unbalanced math delimiter $", out)
         self.assertNotIn("blocks[0]", out)
 
+    def test_slide_errors(self):
+        spec = topic_spec()
+        spec["slides"] += [
+            {"id": "intro", "title": "Again", "blocks": [{"md": "x"}]},
+            {"id": "9bad", "title": "", "blocks": []},
+            {"id": "ok", "title": "Two", "blocks": [{"md": "a", "callout": "b"}]},
+            {"id": "ok2", "title": "Diagram", "blocks": [{"diagram": {"type": "steps", "frames": [{"svg": "<svg/>"}]}}]},
+        ]
+        self.write(spec)
+        with self.assertRaises(self.rd.DeckInvalid) as cm:
+            self.rd.load_deck(self.dir)
+        text = "\n".join(cm.exception.errors)
+        for needle in ("duplicate id", "starting with a letter", "non-empty string", "non-empty list",
+                       "exactly one of", "at least two frames"):
+            self.assertIn(needle, text)
+
+    def test_check_slides(self):
+        self.write(topic_spec())
+        self.assertIn("no check slides", run("check", self.dir).stdout)
+        spec = topic_spec()
+        spec["slides"].append(topic_check())
+        self.write(spec)
+        deck = self.rd.load_deck(self.dir)
+        self.assertEqual([s["id"] for s in deck.checks()], ["final"])
+        q = deck.checks()[0]["quiz"][0]
+        self.assertEqual([c["correct"] for c in q["choices"]], [True, False])
+        self.assertEqual((q["see"], q["choices"][1]["see"]), ("lines", ""))
+        self.assertEqual(deck.checks()[0]["blocks"], [])
+        self.assertIn("ending with a final check", run("check", self.dir).stdout)
+        spec["slides"].insert(1, spec["slides"].pop())
+        self.write(spec)
+        self.assertIn("last authored slide is not a check", run("check", self.dir).stdout)
+
+    def test_check_validation(self):
+        spec = topic_spec()
+        q = topic_check()["quiz"][0]
+        spec["slides"] += [
+            {"id": "c1", "title": "Both", "blocks": [{"md": "x"}], "quiz": [q]},
+            {"id": "c2", "title": "No key", "quiz": [{**q, "choices": [dict(c, correct=False) for c in q["choices"]]}]},
+            {"id": "c3", "title": "Two keys", "quiz": [{**q, "choices": [dict(c, correct=True) for c in q["choices"]]}]},
+            {"id": "c4", "title": "Self", "quiz": [{**q, "see": "c4"}]},
+            {"id": "c5", "title": "Other check", "quiz": [{**q, "see": "final"}, {**q, "see": "nope"}]},
+            {"id": "c6", "title": "One choice", "quiz": [{**q, "choices": q["choices"][:1]}]},
+            {"id": "c7", "title": "No why", "quiz": [{**q, "choices": [{"text": "a", "correct": True}, {"text": "b"}]}]},
+            {"id": "c8", "title": "Empty", "quiz": []},
+            topic_check(),
+        ]
+        self.write(spec)
+        with self.assertRaises(self.rd.DeckInvalid) as cm:
+            self.rd.load_deck(self.dir)
+        errors = cm.exception.errors
+        text = "\n".join(errors)
+        self.assertIn("slide 'c1': a check slide has quiz, not blocks", text)
+        self.assertIn("slide 'c2'.quiz[0].choices: expected exactly one choice with \"correct\": true, found 0", text)
+        self.assertIn("slide 'c3'.quiz[0].choices: expected exactly one choice with \"correct\": true, found 2", text)
+        self.assertIn("slide 'c4'.quiz[0].see: expected the id of a content slide", text)
+        self.assertIn("slide 'c5'.quiz[0].see: expected the id of a content slide", text)
+        self.assertIn("slide 'c5'.quiz[1].see: expected the id of a content slide", text)
+        self.assertIn("slide 'c6'.quiz[0].choices: expected 2 to 5 choices", text)
+        self.assertIn("slide 'c7'.quiz[0].choices[0].why: expected a non-empty string", text)
+        self.assertIn("slide 'c8'.quiz: expected a list of 1 to 6 questions", text)
+        self.assertFalse([e for e in errors if "'final'" in e], errors)
+
     def test_keys_of_other_scripts_are_errors(self):
         self.write(topic_spec(diffs=["change.diff"], pr="https://github.com/o/r/pull/1"))
         r = run("check", self.dir, check=False)

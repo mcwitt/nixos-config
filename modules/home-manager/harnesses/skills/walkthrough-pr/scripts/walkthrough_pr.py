@@ -26,6 +26,7 @@ import sys
 import threading
 import time
 from collections import defaultdict
+from dataclasses import dataclass
 from pathlib import Path
 
 CORE = str(Path(__file__).resolve().parent.parent.parent / "walkthrough" / "scripts")
@@ -38,36 +39,20 @@ from deck import (  # noqa: E402
 )
 
 FINDING_ID = re.compile(r"^f-[0-9a-z-]+$")
-
-
 SEVERITIES = ("P0", "P1", "P2", "P3")
-
-
 FINDING_ACTIONS = ("ignore", "comment")
-
-
 ACTION_ID = re.compile(r"^a-[0-9a-z-]+$")
-
-
 ACTION_KINDS = ("comment", "fix", "check")
-
-
 PR_URL = re.compile(r"^https://github\.com/[\w.-]+/[\w.-]+/pull/\d+$")
-
-
+HUNK_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@ ?(.*)$")
+RANGE_RE = re.compile(r"^(new|old|rows):(\d+)(?:-(\d+))?$")
+APPENDIX_ROWS = 160  # rows per appendix slide before groups spill onto the next
+UNCOVERED_GAP = 6  # uncovered runs closer than this are reported together
 # Slides the engine adds to a deck with diffs, after the appendix.
 FINDINGS_SLIDE = {"id": "findings", "title": "Findings", "section": "Review", "generated": "findings",
                   "prompts": [], "blocks": [{"type": "findings"}], "quiz": []}
-
-
 ACTIONS_SLIDE = {"id": "proposed-actions", "title": "Proposed actions", "section": "Review", "generated": "actions",
                  "prompts": [], "blocks": [{"type": "actions"}], "quiz": []}
-
-
-HUNK_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@ ?(.*)$")
-
-
-RANGE_RE = re.compile(r"^(new|old|rows):(\d+)(?:-(\d+))?$")
 
 
 class DiffError(ValueError):
@@ -227,20 +212,28 @@ def resolve_range(h: Hunk, spec: str | None) -> tuple[int, int]:
     return lo, hi
 
 
-def changed_spans(h: Hunk, indices: set[int]) -> list[str]:
-    runs: list[tuple[int, int]] = []
+def changed(h: Hunk) -> set[int]:
+    return {i for i, r in enumerate(h.rows) if r.kind != " "}
+
+
+def needed(h: Hunk) -> set[int]:
+    """Changed rows that coverage requires: blank lines carry nothing to show."""
+    return {i for i in changed(h) if h.rows[i].text.strip()}
+
+
+def runs(indices: set[int], gap: int = 1) -> list[tuple[int, int]]:
+    """Group row indices into (first, last) runs, joining those at most `gap` apart."""
+    out: list[list[int]] = []
     for i in sorted(indices):
-        if runs and runs[-1][1] == i - 1:
-            runs[-1] = (runs[-1][0], i)
+        if out and i - out[-1][1] <= gap:
+            out[-1][1] = i
         else:
-            runs.append((i, i))
-    return [row_span(h.rows, lo, hi) for lo, hi in runs]
+            out.append([i, i])
+    return [(lo, hi) for lo, hi in out]
 
 
-APPENDIX_ROWS = 160  # rows per appendix slide before groups spill onto the next
-
-
-UNCOVERED_GAP = 6  # uncovered runs closer than this are reported together
+def changed_spans(h: Hunk, indices: set[int]) -> list[str]:
+    return [row_span(h.rows, lo, hi) for lo, hi in runs(indices)]
 
 
 def _excerpt(blk: dict, where: str, files: dict[str, FileDiff], hunks: dict[str, Hunk],
@@ -277,13 +270,7 @@ def _excerpt(blk: dict, where: str, files: dict[str, FileDiff], hunks: dict[str,
 
 
 def _uncovered(h: Hunk, shown: set[int]) -> list[tuple[int, int]]:
-    runs: list[list[int]] = []
-    for i in sorted(h.needed() - shown):
-        if runs and i - runs[-1][1] <= UNCOVERED_GAP:
-            runs[-1][1] = i
-        else:
-            runs.append([i, i])
-    return [(lo, hi) for lo, hi in runs]
+    return runs(needed(h) - shown, UNCOVERED_GAP)
 
 
 def _appendix_slides(groups: list[dict]) -> list[dict]:
@@ -326,6 +313,13 @@ def locate(deck: Deck, spec: str) -> dict:
         if rows:
             return parse_refs(deck.hunks, [{"kind": "lines", "hunk": h.id, "lo": rows[0], "hi": rows[-1]}])[0]
     return parse_refs(deck.hunks, [{"kind": "place", "path": path, "line": line, "end": end}])[0]
+
+
+@dataclass
+class OpContext:
+    """What an edit to the review sees: the deck and the hunks a finding may point into."""
+    deck: Deck
+    hunks: dict[str, Hunk]
 
 
 class Review:
@@ -382,7 +376,8 @@ class Review:
         """What the page shows: everything but the hidden findings, which it only counts."""
         with self.lock:
             shown = [f for f in self.items if not f.get("hidden")]
-            actions = [{**a, **({"diff": fix_payload(a)} if a["kind"] == "fix" else {})} for a in self.actions]
+            actions = [{**a, **({"diff": fix_payload(a)} if a["kind"] == "fix" else {}), "resend_in": resend_in(a)}
+                       for a in self.actions]
             return json.loads(json.dumps({"findings": shown, "hidden": len(self.items) - len(shown), "review": self.review,
                                           "reveal": self.reveal, "proposal": self.proposal, "actions": actions}))
 
@@ -394,14 +389,14 @@ class Review:
     def _fix_hunks(self) -> dict[str, Hunk]:
         return {h.id: h for a in self.actions if a["kind"] == "fix" for f in fix_files(a) for h in f.hunks}
 
-    def op(self, op: dict, by: str, deck: Deck) -> dict:
+    def op(self, op: dict, by: str, ctx: OpContext) -> dict:
         kind = op.get("op") if isinstance(op.get("op"), str) else None
         if kind not in self.OPS[by]:
             raise ValueError(f"unknown operation {kind!r}")
         if "severity" in op and op["severity"] not in (None, *SEVERITIES):
             raise ValueError(f"severity: expected one of {', '.join(SEVERITIES)}")
         with self.lock:
-            result = getattr(self, "_op_" + kind.replace("-", "_"))(op, by, deck)
+            result = getattr(self, "_op_" + kind.replace("-", "_"))(op, by, ctx)
             self.save()
         return result
 
@@ -421,12 +416,12 @@ class Review:
             raise ValueError(f"no finding {fid}")
         return item
 
-    def _op_add(self, op: dict, by: str, deck: Deck) -> dict:
+    def _op_add(self, op: dict, by: str, ctx: OpContext) -> dict:
         text = str(op.get("text") or "").strip()
         if not text:
             raise ValueError("a finding needs text")
-        refs = parse_refs({**deck.hunks, **self._fix_hunks()}, op.get("refs")) + [locate(deck, str(a)) for a in op.get("at") or []]
-        slide = deck.slide(str(op.get("slide")))
+        refs = parse_refs(ctx.hunks, op.get("refs")) + [locate(ctx.deck, str(a)) for a in op.get("at") or []]
+        slide = ctx.deck.slide(str(op.get("slide")))
         review = by == "session" and op.get("review") is True
         item = {"id": new_id("f"), "text": text[:20_000], "severity": op.get("severity"),
                 "sources": ["review" if review else "reader"], "refs": refs[:8], "slide": slide["id"] if slide else "",
@@ -436,7 +431,7 @@ class Review:
             self._ask("finding", once=False, finding=item)
         return {"finding": item}
 
-    def _op_set(self, op: dict, by: str, deck: Deck) -> dict:
+    def _op_set(self, op: dict, by: str, ctx: OpContext) -> dict:
         item = self._finding(op.get("id"))
         if "text" in op:
             if by == "reader" and "reader" not in item["sources"]:
@@ -446,7 +441,7 @@ class Review:
         if "action" in op:
             if op["action"] not in (None, *FINDING_ACTIONS):
                 raise ValueError(f"action: expected one of {', '.join(FINDING_ACTIONS)}")
-            if op["action"] == "comment" and not deck.spec.get("pr"):
+            if op["action"] == "comment" and not ctx.deck.spec.get("pr"):
                 raise ValueError("the deck has no pull request to comment on")
         if "text" in op:
             item["text"] = str(op["text"]).strip()[:20_000]
@@ -455,7 +450,7 @@ class Review:
                 item[key] = op[key]
         return {"finding": item}
 
-    def _op_remove(self, op: dict, by: str, deck: Deck) -> dict:
+    def _op_remove(self, op: dict, by: str, ctx: OpContext) -> dict:
         item = self._finding(op.get("id"))
         if by == "reader" and "reader" not in item["sources"]:
             raise ValueError("only your own findings can be removed")
@@ -469,7 +464,7 @@ class Review:
             if a["finding"] == old:
                 a["finding"] = new
 
-    def _op_merge(self, op: dict, by: str, deck: Deck) -> dict:
+    def _op_merge(self, op: dict, by: str, ctx: OpContext) -> dict:
         """Fold duplicates into one finding: sources and places join, the most severe severity wins."""
         keep = self._finding(op.get("id"))
         others = [self._finding(o) for o in dict.fromkeys(op.get("others") or [])]
@@ -488,7 +483,7 @@ class Review:
         keep["refs"] = keep["refs"][:8]
         return {"finding": keep}
 
-    def _op_review(self, op: dict, by: str, deck: Deck) -> dict:
+    def _op_review(self, op: dict, by: str, ctx: OpContext) -> dict:
         if op.get("status") not in ("running", "done"):
             raise ValueError("status: expected running or done")
         self.review = op["status"]
@@ -496,7 +491,7 @@ class Review:
             self._ask("reveal")  # the reader asked while the review ran
         return {"review": self.review}
 
-    def _op_request_reveal(self, op: dict, by: str, deck: Deck) -> dict:
+    def _op_request_reveal(self, op: dict, by: str, ctx: OpContext) -> dict:
         if self.reveal == "requested":
             self._ask("reveal")  # the reader asks again
         elif self.reveal == "hidden":
@@ -507,7 +502,7 @@ class Review:
                 self.reveal = "shown"
         return {"reveal": self.reveal}
 
-    def _op_reveal(self, op: dict, by: str, deck: Deck) -> dict:
+    def _op_reveal(self, op: dict, by: str, ctx: OpContext) -> dict:
         for x in self.items:
             x["hidden"] = False
         self.reveal = "shown"
@@ -521,7 +516,7 @@ class Review:
             raise ValueError(f"no action {aid}")
         return item
 
-    def _action_fields(self, a: dict, op: dict, by: str, deck: Deck) -> dict:
+    def _action_fields(self, a: dict, op: dict, by: str, ctx: OpContext) -> dict:
         """The validated changes `op` makes to action `a`; nothing changes until all are valid."""
         out = {}
         if "title" in op:
@@ -539,7 +534,7 @@ class Review:
         if "at" in op:
             if a["kind"] != "comment":
                 raise ValueError("only a comment has a place")
-            out["place"] = place_of(locate(deck, str(op["at"]))) if op["at"] else None
+            out["place"] = place_of(locate(ctx.deck, str(op["at"]))) if op["at"] else None
         if "patch" in op:
             if a["kind"] != "fix":
                 raise ValueError("only a fix has a patch")
@@ -556,12 +551,12 @@ class Review:
             out["command"] = _required(op["command"], "command")
         return out
 
-    def _op_action_add(self, op: dict, by: str, deck: Deck) -> dict:
+    def _op_action_add(self, op: dict, by: str, ctx: OpContext) -> dict:
         kind = op.get("kind")
         if kind not in ACTION_KINDS:
             raise ValueError(f"kind: expected one of {', '.join(ACTION_KINDS)}")
         finding = self._finding(op["finding"]) if op.get("finding") else None
-        if kind == "comment" and not deck.spec.get("pr"):
+        if kind == "comment" and not ctx.deck.spec.get("pr"):
             raise ValueError("the deck has no pull request to comment on")
         needed = {"comment": "body", "fix": "patch", "check": "command"}[kind]
         if not op.get(needed):
@@ -570,10 +565,10 @@ class Review:
              "include": True, "state": "proposed", "result": None}
         if kind == "comment":
             # By default a comment sits at its finding's first place in the diff, where GitHub can anchor it.
-            inline = lambda r: r["kind"] == "lines" and r["hunk"] in deck.hunks and not deck.hunks[r["hunk"]].file.plain
+            inline = lambda r: r["kind"] == "lines" and r["hunk"] in ctx.deck.hunks and not ctx.deck.hunks[r["hunk"]].file.plain
             at = next((place_of(r) for r in (finding or {}).get("refs", []) if inline(r)), None)
             a.update(author="session", place=at)
-        a.update(self._action_fields(a, {**op, "title": op.get("title") or "untitled"}, by, deck))
+        a.update(self._action_fields(a, {**op, "title": op.get("title") or "untitled"}, by, ctx))
         if not op.get("title"):
             # A comment's title says where it goes; its finding is shown beside it.
             where = f"at {a['place']['label']}" if a.get("place") else "in the review summary"
@@ -581,23 +576,23 @@ class Review:
         self.actions.append(a)
         return {"action": a}
 
-    def _op_action_set(self, op: dict, by: str, deck: Deck) -> dict:
+    def _op_action_set(self, op: dict, by: str, ctx: OpContext) -> dict:
         a = self._action(op.get("id"))
         if a["state"] in ("running", "done"):
             raise ValueError(f"action {a['id']} is {a['state']}")
-        a.update(self._action_fields(a, op, by, deck))
+        a.update(self._action_fields(a, op, by, ctx))
         return {"action": a}
 
-    def _op_action_remove(self, op: dict, by: str, deck: Deck) -> dict:
+    def _op_action_remove(self, op: dict, by: str, ctx: OpContext) -> dict:
         a = self._action(op.get("id"))
         self.actions.remove(a)
         return {"action": a}
 
-    def _op_action_ready(self, op: dict, by: str, deck: Deck) -> dict:
+    def _op_action_ready(self, op: dict, by: str, ctx: OpContext) -> dict:
         self.proposal = "ready"
         return {"proposal": self.proposal}
 
-    def _op_action_result(self, op: dict, by: str, deck: Deck) -> dict:
+    def _op_action_result(self, op: dict, by: str, ctx: OpContext) -> dict:
         a = self._action(op.get("id"))
         if op.get("status") not in ("done", "failed"):
             raise ValueError("status: expected done or failed")
@@ -605,12 +600,12 @@ class Review:
         a["result"] = {k: str(op[k])[:20_000] for k in ("link", "note", "output") if op.get(k)}
         return {"action": a}
 
-    def _op_request_proposal(self, op: dict, by: str, deck: Deck) -> dict:
+    def _op_request_proposal(self, op: dict, by: str, ctx: OpContext) -> dict:
         self.proposal = "requested"
         self._ask("propose")
         return {"proposal": self.proposal}
 
-    def _op_carry_out(self, op: dict, by: str, deck: Deck) -> dict:
+    def _op_carry_out(self, op: dict, by: str, ctx: OpContext) -> dict:
         if self.proposal != "ready":
             raise ValueError("the session is still drafting the actions")
         ids = op.get("ids") if isinstance(op.get("ids"), list) else []
@@ -621,13 +616,19 @@ class Review:
         for a in chosen:
             if a["state"] == "done":
                 raise ValueError(f"action {a['id']} is done already")
-            # A running action goes again only once the session has had time to report it.
-            if a["state"] == "running" and now - a.get("sent", 0) < CLAIM_STALE:
+            if resend_in(a, now):
                 raise ValueError(f"action {a['id']} was sent to the session just now")
         for a in chosen:
             a.update(state="running", include=True, result=None, sent=now)
         self._ask("carry-out", once=False, actions=[a["id"] for a in chosen])
         return {"actions": chosen}
+
+
+def resend_in(a: dict, now: float | None = None) -> float:
+    """Seconds until a running action may go again, once the session has had time to report it; 0 when it may."""
+    if a["state"] != "running":
+        return 0
+    return max(0.0, a.get("sent", 0) + CLAIM_STALE - (time.time() if now is None else now))
 
 
 def _required(v, name: str) -> str:
@@ -668,25 +669,46 @@ def finding_text(f: dict) -> str:
     return f"{f['id']} ({sev}, from {' and '.join(f['sources'])}{hidden}{', at ' + where if where else ''}): {f['text']}"
 
 
+def default_diffs(deck_dir: Path) -> list:
+    # Decks written before diffs became optional rely on the default.
+    return ["change.diff"] if (deck_dir / "change.diff").exists() else []
+
+
+def read_diffs(load: Loading, diffs) -> list:
+    """Parse deck.json's `diffs` (file names or {file, label}) into load.files and load.hunks; return the list."""
+    errors = load.errors
+    if not isinstance(diffs, list):
+        errors.append("diffs: expected a list of file names or {file, label}")
+        diffs = []
+    for j, d in enumerate(diffs):
+        d = {"file": d} if isinstance(d, str) else d
+        if not isinstance(d, dict):
+            errors.append(f"diffs[{j}]: expected a file name or {{file, label}}")
+            continue
+        path = load.dir / str(d.get("file", ""))
+        load.sources.append(path)
+        try:
+            load.files += parse_diff(path.read_text(errors="replace"), str(d.get("label") or ""))
+        except OSError as e:
+            errors.append(f"diffs[{j}]: cannot read {path}: {e.strerror}")
+        except DiffError as e:
+            errors.append(f"diffs[{j}]: {path.name}: {e}")
+    load.hunks.update((h.id, h) for f in load.files for h in f.hunks)
+    return diffs
+
+
 def cmd_hunks(args):
     deck_dir = Path(args.deck)
-    diffs = args.diff or []
-    if not diffs:
-        try:
-            spec = json.loads((deck_dir / "deck.json").read_text())
-            # As in load_deck: a declared empty list means no diffs.
-            for d in spec.get("diffs", ["change.diff"]) or []:
-                d = {"file": d} if isinstance(d, str) else d
-                diffs.append(d.get("file", "") + (f"={d['label']}" if d.get("label") else ""))
-        except (OSError, ValueError):
-            diffs = ["change.diff"]
-    files: list[FileDiff] = []
-    for d in diffs:
-        name, _, label = d.partition("=")
-        try:
-            files += parse_diff((deck_dir / name).read_text(errors="replace"), label)
-        except (OSError, DiffError) as e:
-            sys.exit(f"{name}: {e}")
+    spec = read_json(deck_dir / "deck.json")
+    load = Loading(deck_dir, spec, [], [])
+    if args.diff:
+        diffs = [{"file": name, "label": label} for name, _, label in (d.partition("=") for d in args.diff)]
+    else:
+        diffs = spec.get("diffs", default_diffs(deck_dir))
+    read_diffs(load, diffs)
+    if load.errors:
+        sys.exit("\n".join(load.errors))
+    files = load.files
     print(
         f"{len(files)} files, {sum(len(f.hunks) for f in files)} hunks, "
         f"+{sum(f.adds for f in files)} −{sum(f.dels for f in files)}\n"
@@ -696,7 +718,7 @@ def cmd_hunks(args):
         if not f.hunks:
             print(f"  {f.key}  file-level change: {' '.join(f.meta) or f.describe()}")
         for h in f.hunks:
-            print(f"  {h.id}  {h.header}  changed {', '.join(changed_spans(h, h.changed()))}")
+            print(f"  {h.id}  {h.header}  changed {', '.join(changed_spans(h, changed(h)))}")
             if args.show:
                 for i, r in enumerate(h.rows, 1):
                     o = "" if r.old is None else r.old
@@ -889,31 +911,17 @@ class ReviewExtension(Extension):
     assets = Path(__file__).resolve().parent.parent / "assets"
     blocks = ("diff",)
     spec_keys = ("diffs", "appendix", "pr")
+    quote_sources = {"finding": "a finding", "action": "a proposed action"}
+
+    def __init__(self):
+        self._seen: tuple = (None, None)  # (findings.json and its mtime, the Review read from it)
 
     def begin(self, load: Loading):
         """Parse the deck's diffs; a deck with diffs needs no goal."""
         spec, errors = load.spec, load.errors
-        # Decks written before diffs became optional rely on the default.
-        diffs = spec.get("diffs", ["change.diff"] if (load.dir / "change.diff").exists() else [])
-        if not isinstance(diffs, list):
-            errors.append("diffs: expected a list of file names or {file, label}")
-            diffs = []
-        for j, d in enumerate(diffs):
-            d = {"file": d} if isinstance(d, str) else d
-            if not isinstance(d, dict):
-                errors.append(f"diffs[{j}]: expected a file name or {{file, label}}")
-                continue
-            path = load.dir / str(d.get("file", ""))
-            load.sources.append(path)
-            try:
-                load.files += parse_diff(path.read_text(errors="replace"), str(d.get("label") or ""))
-            except OSError as e:
-                errors.append(f"diffs[{j}]: cannot read {path}: {e.strerror}")
-            except DiffError as e:
-                errors.append(f"diffs[{j}]: {path.name}: {e}")
+        diffs = read_diffs(load, spec.get("diffs", default_diffs(load.dir)))
         if diffs and not load.files and not errors:
             errors.append("the diffs contain no changes")
-        load.hunks.update((h.id, h) for f in load.files for h in f.hunks)
         if _str(spec.get("pr"), "pr", errors) and not PR_URL.match(spec["pr"]):
             errors.append("pr: expected a pull request URL, https://github.com/OWNER/REPO/pull/N")
         load.goal_optional = bool(diffs)
@@ -955,12 +963,12 @@ class ReviewExtension(Extension):
             if not f.hunks and f.key not in shown.files:
                 errors.append(f"{f.key} ({f.describe()}) is not shown; add {json.dumps({'diff': f.key})}")
             for h in f.hunks:
-                runs = _uncovered(h, shown.rows[h.id])
-                if runs and runs == [(min(h.needed()), max(h.needed()))] and not shown.rows[h.id]:
+                gaps = _uncovered(h, shown.rows[h.id])
+                if gaps and gaps == [(min(needed(h)), max(needed(h)))] and not shown.rows[h.id]:
                     errors.append(f"{h.id} ({row_span(h.rows, 0, len(h.rows) - 1)}) is not shown; "
                                   f"add {json.dumps({'diff': h.id})}")
                     continue
-                for lo, hi in runs:
+                for lo, hi in gaps:
                     ref = {"diff": h.id, "range": f"rows:{lo + 1}-{hi + 1}"}
                     errors.append(f"{h.id}: changed lines {row_span(h.rows, lo, hi)} are not shown; "
                                   f"add {json.dumps(ref)}")
@@ -971,8 +979,8 @@ class ReviewExtension(Extension):
         in_appendix = {(p["hunk"], i) for g in groups for b in g["blocks"] for p in b["pieces"]
                        for i in range(p["lo"], p["hi"] + 1)}
         load.extra["coverage"] = {
-            "changed": sum(len(h.needed()) for h in diff_hunks),
-            "appendix": sum((h.id, i) in in_appendix for h in diff_hunks for i in h.needed()),
+            "changed": sum(len(needed(h)) for h in diff_hunks),
+            "appendix": sum((h.id, i) in in_appendix for h in diff_hunks for i in needed(h)),
             "files": len(load.files),
         }
         generated = _appendix_slides(groups) if groups else []
@@ -1030,7 +1038,7 @@ class ReviewExtension(Extension):
         """The findings as saved, read again only when findings.json changes."""
         path = deck_dir / "findings.json"
         stamp = path.stat().st_mtime_ns if path.exists() else 0
-        if getattr(self, "_seen", (None,))[0] != (path, stamp):
+        if self._seen[0] != (path, stamp):
             self._seen = ((path, stamp), load_review(deck_dir))
         return self._seen[1]
 
@@ -1157,12 +1165,11 @@ def diff_excerpt(load: Loading, blk: dict, where: str, blocks: list[dict]):
 
 def review_op(state, op: dict, by: str) -> dict:
     """Apply an edit to the findings or proposed actions and tell the pages."""
-    result = state.review.op(op, by, state.deck)
+    result = state.review.op(op, by, OpContext(state.deck, state.hunks()))
     state.broadcast("review", {})
     return result
 
 
-core.QUOTE_SOURCES.update(finding="a finding", action="a proposed action")
 if not any(e.name == ReviewExtension.name for e in core.EXTENSIONS):
     core.EXTENSIONS.append(ReviewExtension())
 
