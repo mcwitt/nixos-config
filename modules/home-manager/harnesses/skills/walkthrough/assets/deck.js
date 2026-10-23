@@ -1521,6 +1521,8 @@
           `The ${who()} is not listening right now. Questions wait until it is; to resume, ask it in the terminal to keep listening.`,
         ),
       );
+    } else if (S.status.session === "working") {
+      t.append(h("p", { class: "offline-note" }, `The ${who()} is working on something you asked for here. Questions wait until it listens again.`));
     }
     if (!msgs.length) {
       const empty = h("div", { class: "thread-empty" }, h("p", {}, `No questions on this slide yet. The ${who()} that wrote the deck answers here.`));
@@ -1795,6 +1797,7 @@
   const PRESENCE = {
     listening: ["Listening", () => `The ${who()} is waiting for questions.`],
     answering: ["Answering", () => `The ${who()} is answering a question; new ones wait their turn.`],
+    working: ["Working", () => `The ${who()} is working on something you asked for here; questions are queued until it listens again.`],
     away: ["Not listening", () => `The ${who()} is not waiting for questions; they are queued until it is.`],
   };
 
@@ -2049,7 +2052,7 @@
       }
     },
     S, $, h, plural, mdEl, chipLabel, renderBlock, renderSlide, keepFocus, markAskable, mdInline, excerptEl,
-    paintQuoted, renderChips, saveDraft, flashRef, go, slide, slideIndex, sourceHref, toast, post, getJSON, who, debounce,
+    paintQuoted, renderChips, saveDraft, flashRef, go, slide, slideIndex, sourceHref, toast, post, getJSON, who, debounce, clock,
   };
 
   boot();

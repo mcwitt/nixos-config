@@ -137,6 +137,10 @@ class Extension:
     def tick(self, state: State):
         """Twice a second on the server's watcher thread."""
 
+    def busy(self, state: State) -> bool:
+        """Whether the session is working on something the page asked of it, away from `listen`."""
+        return False
+
     def hunks(self, state: State) -> dict[str, Hunk]:
         """Hunks beyond the deck's that the reader can quote."""
         return {}
@@ -1056,10 +1060,12 @@ class State:
         while True:
             time.sleep(0.5)
             tick += 1
+            working = False
             try:
                 self._sync_queue()
                 for ext in EXTENSIONS:
                     ext.tick(self)
+                working = any(ext.busy(self) for ext in EXTENSIONS)
             except Exception as e:  # keep watching; the log says what failed
                 log(f"queue: {e!r}")
             now = time.time()
@@ -1068,7 +1074,7 @@ class State:
             if now - self.last_listener < LISTEN_GRACE:
                 presence = "listening"
             else:
-                presence = "answering" if self.busy else "away"
+                presence = "answering" if self.busy else "working" if working else "away"
             if presence != self.presence:
                 self.presence = presence
                 self.broadcast("status", self.status())

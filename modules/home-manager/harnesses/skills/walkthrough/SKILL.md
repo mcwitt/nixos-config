@@ -72,7 +72,7 @@ Every `listen` run prints the exact command to run next. Questions and answers p
 - If `listen` says the server is out of date, run `serve` again to restart it.
 - `listen` also hands you written check answers, with the rubric and any test results. Judge the answer against the rubric, not its wording or the tests alone, and post feedback with `--verdict correct`, `partial` or `incorrect`; `listen` prints the command. Say what is right, what is missing and where the deck covers it, and do not give away the model answer.
 
-The page shows the reader whether you are listening, answering or away. Questions asked while you are away wait in the queue.
+The page shows the reader whether you are listening, answering, working on something it asked for, or away. Questions asked while you are away wait in the queue.
 
 ## 5. Finish
 
