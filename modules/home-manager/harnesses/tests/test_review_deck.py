@@ -295,6 +295,74 @@ class ReviewServerTest(ServerCase):
         out = run("listen", self.dir, "--timeout", 5).stdout
         self.assertIn(f"Findings:\n  {mine['id']} (P1", out)
 
+    def test_review_findings_stay_hidden_until_revealed(self):
+        F = lambda *a, **k: run("finding", self.dir, *a, **k)
+        F("review", "running")
+        mine = self.post("api/review", {"op": "add", "text": "P1 json unused", "severity": "P2",
+                                          "refs": [{"kind": "lines", "hunk": "src/app.py#1", "lo": 1, "hi": 2}]})["finding"]
+        F("add", "`json` is imported but never used", "--review", "--severity", "P1", "--at", "src/app.py:2")
+        F("add", "`b` changed from 2 to 3 without a test", "--review", "--severity", "P3", "--at", "src/app.py:22")
+        page = self.get("api/review")
+        self.assertEqual(([f["id"] for f in page["findings"]], page["hidden"], page["review"], page["reveal"]),
+                         ([mine["id"]], 2, "running", "hidden"))
+        review = [f for f in json.loads((self.dir / "findings.json").read_text())["findings"] if f["sources"] == ["review"]]
+        for bad in ({"op": "merge", "id": mine["id"], "others": [review[0]["id"]]}, {"op": "reveal"},
+                    {"op": "remove", "id": review[0]["id"]}, {"op": ["add"]},
+                    {"op": "set", "id": mine["id"], "severity": "P0", "action": "comment"}):
+            with self.assertRaises(urllib.error.HTTPError):
+                self.post("api/review", bad)
+
+        self.assertEqual(self.get("api/review")["findings"][0]["severity"], "P2")  # the rejected set changed nothing
+        self.assertEqual(self.post("api/review", {"op": "request-reveal"}), {"reveal": "requested"})
+        out = run("listen", self.dir, "--timeout", 5).stdout
+        self.assertIn("The reader asked to see the review's findings.", out)
+        self.assertIn("The background review is still running.", out)
+        self.assertIn(f"The reader's findings:\n  {mine['id']} (P2, from reader", out)
+        self.assertIn(f"  {review[0]['id']} (P1, from review, hidden, at app.py new 2): `json` is imported", out)
+        self.assertIn(f"finding {self.dir} merge KEEP_ID OTHER_ID...", out)
+
+        # The request comes again when the review is done, and when the reader asks again, but only once at a time.
+        self.assertIn("No questions", run("listen", self.dir, "--timeout", 1).stdout)
+        F("review", "done")
+        self.post("api/review", {"op": "request-reveal"})
+        self.assertIn("asked to see the review's findings", run("listen", self.dir, "--timeout", 5).stdout)
+        self.assertIn("No questions", run("listen", self.dir, "--timeout", 1).stdout)
+        merged = F("merge", mine["id"], review[0]["id"], review[0]["id"]).stdout
+        self.assertIn(f"Saved {mine['id']} (P1, from reader and review, at app.py new 2): P1 json unused", merged)
+        self.assertEqual(self.get("api/review")["hidden"], 1)
+        self.assertIn("merge needs", F("merge", mine["id"], mine["id"], check=False).stderr)
+        self.post("api/finish", {})
+        self.assertIn("The reader has not seen the review's findings.", run("listen", self.dir, "--timeout", 5).stdout)
+        F("reveal")
+        self.assertIn("No questions", run("listen", self.dir, "--timeout", 1).stdout)
+        self.post("api/review", {"op": "set", "id": mine["id"], "text": "json is unused"})
+        page = self.get("api/review")
+        self.assertEqual((len(page["findings"]), page["hidden"], page["reveal"]), (2, 0, "shown"))
+        self.assertEqual(page["findings"][0]["merged"][0]["text"], "`json` is imported but never used")
+        # Later review findings show at once, and a second request changes nothing.
+        F("add", "late", "--review")
+        self.assertEqual(self.get("api/review")["hidden"], 0)
+        self.assertEqual(self.post("api/review", {"op": "request-reveal"}), {"reveal": "shown"})
+        self.assertIn("review: done, findings shown", F("list").stdout)
+
+    def test_findings_from_before_the_review_merge(self):
+        run("stop", self.dir)
+        old = {"id": "f-1-aa", "text": "old", "severity": "P2", "sources": ["reader"], "refs": [], "slide": "", "at": 0, "action": None}
+        (self.dir / "findings.json").write_text(json.dumps({"version": 1, "findings": [old]}))
+        run("serve", self.dir, "--detach")
+        run("finding", self.dir, "add", "dup", "--review")
+        review = json.loads((self.dir / "findings.json").read_text())["findings"][1]["id"]
+        self.assertIn("from reader and review", run("finding", self.dir, "merge", "f-1-aa", review).stdout)
+
+    def test_finishing_while_the_review_runs(self):
+        run("finding", self.dir, "review", "running")
+        self.post("api/finish", {})
+        self.assertIn("The background review is still running", run("listen", self.dir, "--timeout", 5).stdout)
+
+    def test_reveal_without_review_findings_is_immediate(self):
+        self.assertEqual(self.post("api/review", {"op": "request-reveal"}), {"reveal": "shown"})
+        self.assertIn("No questions", run("listen", self.dir, "--timeout", 1).stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

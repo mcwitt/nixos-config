@@ -48,7 +48,7 @@ The page lays the groups out as slides after the authored ones (ids `appendix-1`
 
 ## Findings
 
-The engine ends a deck with diffs with a generated Findings slide (id `findings`, reserved). It lists the findings by severity, with a choice for each: ignore it, or with `pr` set, comment on it. The findings are kept in `DECK/findings.json`. A finding records its places as `path`, `side` (`new` or `old`), `line` and `end`, which also anchor a review comment; places in the diff also keep the hunk and rows, so the page can show the lines.
+The engine ends a deck with diffs with a generated Findings slide (id `findings`, reserved). It lists the findings by severity, with a choice for each: ignore it, or with `pr` set, comment on it. Findings from the background review (`finding add --review`) stay hidden, counted but not shown, until the reader presses Reveal; the session then merges duplicates, and a merged finding shows both sources and the text it absorbed. The findings are kept in `DECK/findings.json`. A finding records its places as `path`, `side` (`new` or `old`), `line` and `end`, which also anchor a review comment; places in the diff also keep the hunk and rows, so the page can show the lines.
 
 ## Coverage
 

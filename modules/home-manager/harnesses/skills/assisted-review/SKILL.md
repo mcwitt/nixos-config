@@ -25,6 +25,8 @@ For a single commit, diff it against its parent (`REV^ REV`, or `git show --form
 
 Run `python3 <skill-dir>/scripts/review_deck.py hunks DECK` to list the files, hunks and changed line ranges.
 
+Then start an independent defect review of the same change in the background, so that it runs while you write the deck and does not share its framing. Use the review the user names; otherwise your harness's own code-review command; otherwise a subagent briefed to find correctness, security and performance defects in the diff and report each with a severity, a place (`path:line`) and a one-paragraph explanation. Never let it change the code. Its findings stay hidden from the reader until the end (see step 3).
+
 ## 2. Write the deck
 
 Write the deck as the base skill describes, with these rules for a change.
@@ -55,7 +57,7 @@ Keep the reader oriented in time and in the diff:
 
 Coverage is the one firm rule: every changed line must appear on some slide. Put lines that teach nothing new in appendix groups, such as renames, formatting, generated files, test fixtures or plumbing. Give each group a title and a one- or two-sentence note saying what the changes are and why they are safe to skim. `check` fails while any changed line is missing and prints a block you can paste for each gap.
 
-If you notice a concrete correctness concern, raise it on the relevant slide as a `risk` callout and say how sure you are. Keep the deck about understanding; fixing the code is separate work.
+Keep specific defects out of the slides, including ones you notice yourself: record them as review findings (step 3), so the reader judges the change before seeing them. Use `risk` callouts for the approach's tradeoffs and limits. Keep the deck about understanding; fixing the code is separate work.
 
 The final check spans the whole change: how the pieces fit, and what the review decision hinges on. Ask what the code does, not what the slide said.
 
@@ -77,3 +79,5 @@ The reader collects findings as they go, in a drawer the top bar opens, and deci
 - **P3**: nice to have.
 
 When the reader adds a finding without one, `listen` hands it to you; set it with `finding DECK set ID --severity P2`. `finding DECK list` prints the findings with the reader's choices, and `listen` reports them when the reader finishes.
+
+Record the background review's findings, and the defects you noticed, as hidden review findings once the server runs: `finding DECK add TEXT --review --severity P1 --at PATH:LINE`, translating the review's own severities to P0 to P3. Mark the review with `finding DECK review running` while it runs and `finding DECK review done` when everything is recorded. When the reader presses Reveal on the Findings slide, `listen` hands you both lists: merge the findings that report the same problem with `finding DECK merge KEEP OTHER...`, reword a merged finding if neither text covers both, and run `finding DECK reveal`.

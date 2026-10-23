@@ -65,6 +65,19 @@
   font-size: 0.68rem; letter-spacing: 0.05em; text-transform: uppercase;
   color: var(--ink-3); border: 1px solid var(--rule); border-radius: 999px; padding: 0 0.4rem;
 }
+.source.review { color: var(--accent); border-color: var(--accent); }
+.merged { margin: 0.1rem 0 0.3rem; font-size: var(--step--1); }
+.merged > summary { cursor: pointer; color: var(--ink-2); width: fit-content; }
+.merged-item { display: flex; gap: 0.5rem; align-items: baseline; margin-top: 0.3rem; color: var(--ink-2); }
+.merged-item .prose p { margin: 0; }
+.reveal {
+  max-width: var(--measure);
+  margin-bottom: 1.25rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: var(--note-wash);
+}
+.reveal p { margin: 0 0 0.6rem; }
 .segmented { display: inline-flex; }
 .segmented button { border-radius: 0; margin-left: -1px; }
 .segmented button:first-child { border-radius: 6px 0 0 6px; margin-left: 0; }

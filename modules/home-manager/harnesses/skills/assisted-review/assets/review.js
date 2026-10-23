@@ -11,6 +11,7 @@
     groupsOpen: new Map(),
     editing: new Map(),
     findings: [],
+    review: { hidden: 0, review: "none", reveal: "hidden" },
   });
 
   // An appendix group: a note saying whether the changes deserve a close
@@ -44,7 +45,10 @@
 
   // Review findings: the reader's, kept in a drawer from the top bar, and
   // laid out on the Findings slide at the end, where the reader decides what
-  // to do with each. Clicking a finding quotes it into the question box.
+  // to do with each. A background review's findings stay hidden until the
+  // reader reveals them there, so they do not steer the reader's own; the
+  // session then merges duplicates. Clicking a finding quotes it into the
+  // question box.
   const SEVERITIES = ["P0", "P1", "P2", "P3"];
   const SEVERITY_HELP = {
     P0: "Blocks the release or major use: a security hole, data loss",
@@ -56,7 +60,9 @@
 
   async function loadReview() {
     if (!findingsOn()) return;
-    S.findings = (await getJSON("api/review")).findings;
+    const { findings, ...review } = await getJSON("api/review");
+    S.findings = findings;
+    S.review = review;
   }
 
   async function findingOp(op) {
@@ -81,6 +87,7 @@
   // A finding with its severity, sources, text and places. On the Findings
   // slide it also offers the actions.
   function findingEl(f, { actions = false } = {}) {
+    const own = f.sources.includes("reader");
     const severity = h(
       "select",
       { class: `severity ${f.severity || "none"}`, "aria-label": "Severity", title: SEVERITY_HELP[f.severity] || "No severity yet" },
@@ -89,6 +96,14 @@
     );
     severity.addEventListener("change", () => findingOp({ op: "set", id: f.id, severity: severity.value || null }));
     const sources = sourceTags(f.sources);
+    const merged = f.merged?.length
+      ? h(
+          "details",
+          { class: "merged" },
+          h("summary", {}, `Also reported by ${[...new Set(f.merged.flatMap((m) => m.sources))].map(sourceName).join(" and ")}`),
+          f.merged.map((m) => h("div", { class: "merged-item" }, sourceTags(m.sources), mdEl(m.text))),
+        )
+      : null;
     // The drawer and the slide show the same finding; each has its own editor.
     const editKey = `${actions ? "slide" : "drawer"}:${f.id}`;
     const text = S.editing.has(editKey)
@@ -101,13 +116,36 @@
       "div",
       { class: "finding-tools" },
       actions ? actionButtons(f) : null,
-      h("button", { type: "button", class: "ghost small", onclick: () => startEditing(editKey, f.text) }, "Edit"),
-      h("button", { type: "button", class: "ghost small", onclick: () => findingOp({ op: "remove", id: f.id }) }, "Remove"),
+      own ? h("button", { type: "button", class: "ghost small", onclick: () => startEditing(editKey, f.text) }, "Edit") : null,
+      own ? h("button", { type: "button", class: "ghost small", onclick: () => findingOp({ op: "remove", id: f.id }) }, "Remove") : null,
     );
-    return h("article", { class: `finding ${f.action || ""}`, "data-finding": f.id }, h("div", { class: "finding-head" }, severity, sources, tools), text, places);
+    return h("article", { class: `finding ${f.action || ""}`, "data-finding": f.id }, h("div", { class: "finding-head" }, severity, sources, tools), text, merged, places);
   }
 
+  const sourceName = (s) => (s === "reader" ? "you" : "the review");
   const sourceTags = (sources) => sources.map((s) => h("span", { class: `source ${s}` }, s === "reader" ? "you" : "review"));
+
+  // Where the background review stands, and the button that shows its findings.
+  function revealEl() {
+    const { hidden, review, reveal } = S.review;
+    if (reveal === "shown") return null;
+    if (reveal === "requested") {
+      return h(
+        "div",
+        { class: "reveal" },
+        h("p", {}, h("span", { class: "ellipsis" }, `The ${who()} is merging the review's findings with yours`)),
+        h("button", { type: "button", class: "ghost small", title: `Send the request to the ${who()} again`, onclick: () => findingOp({ op: "request-reveal" }) }, "Ask again"),
+      );
+    }
+    if (review !== "running" && !hidden) return null;
+    const status = review === "running" ? "The background review is still running." : `The background review found ${hidden} issue${hidden === 1 ? "" : "s"}.`;
+    return h(
+      "div",
+      { class: "reveal" },
+      h("p", {}, `${status} Its findings stay hidden until you have added yours, so they do not steer you.`),
+      h("button", { type: "button", class: "primary small", onclick: () => findingOp({ op: "request-reveal" }) }, "Reveal the review's findings"),
+    );
+  }
 
   function actionButtons(f) {
     const choices = [["ignore", "Ignore"], ...(S.deck.pr ? [["comment", "Comment"]] : [])];
@@ -176,9 +214,10 @@
     return h(
       "div",
       { class: "block findings-slide wide" },
+      revealEl(),
       mdEl(
         S.findings.length
-          ? `Your findings by severity. Choose what to do with each${S.deck.pr ? ": ignore it, or comment on the pull request" : ""}, and click one to discuss it. Write a general finding in the question box and press **Add finding**.`
+          ? `${S.review.reveal === "shown" ? "The findings" : "Your findings"} by severity. Choose what to do with each${S.deck.pr ? ": ignore it, or comment on the pull request" : ""}, and click one to discuss it. Write a general finding in the question box and press **Add finding**.`
           : "No findings yet. To add one, write it in the question box on any slide and press **Add finding**; quoted lines become its place.",
       ),
       groups.map(([p, fs]) => h("section", { class: "finding-group" }, h("h3", {}, p ? `${p} · ${SEVERITY_HELP[p]}` : "No severity yet"), fs.map((f) => findingEl(f, { actions: true })))),

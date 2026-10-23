@@ -296,6 +296,11 @@ def _appendix_slides(groups: list[dict]) -> list[dict]:
     return out
 
 
+def place_key(r: dict) -> tuple:
+    """What makes two references the same place: a quote is its text."""
+    return (r.get("path"), r.get("side"), r.get("line"), r.get("end")) if "path" in r else (r.get("text"),)
+
+
 def locate(deck: Deck, spec: str) -> dict:
     """A reference to PATH:LINE[-END], new-side line numbers: the diff's lines when it shows them."""
     m = re.fullmatch(r"(.+):(\d+)(?:-(\d+))?", spec)
@@ -313,16 +318,20 @@ def locate(deck: Deck, spec: str) -> dict:
 class Review:
     """A review deck's findings, persisted to findings.json.
 
-    A finding is {id, text, severity, sources, refs, slide, at, action}:
-    severity is P0 to P3 or null, sources lists who reported it ("reader"),
-    and action is the reader's choice, ignore or comment.
+    A finding is {id, text, severity, sources, refs, slide, at, action,
+    hidden, merged}: severity is P0 to P3 or null, sources lists "reader" and
+    "review", action is the reader's choice (ignore or comment), and merged
+    holds the findings folded into it. The background review's findings stay
+    hidden from the page until the reader asks to see them: `reveal` goes
+    from hidden to requested (the session merges duplicates) to shown.
+    `review` is the background review's status: none, running or done.
 
     Only the server writes it, through op(): edits come from the page (by
     "reader") and from the `finding` command (by "session")."""
 
     OPS = {
-        "reader": {"add", "set", "remove"},
-        "session": {"add", "set", "remove"},
+        "reader": {"add", "set", "remove", "request-reveal"},
+        "session": {"add", "set", "remove", "merge", "review", "reveal"},
     }
 
     def __init__(self, path: Path, queue: Queue):
@@ -331,17 +340,25 @@ class Review:
         self.lock = threading.Lock()
         data = read_json(path)
         self.items: list[dict] = data.get("findings", [])
+        for f in self.items:
+            f.setdefault("hidden", False)
+            f.setdefault("merged", [])
+        self.review: str = data.get("review", "none")
+        self.reveal: str = data.get("reveal", "hidden")
 
     def save(self):
-        data = {"version": 1, "findings": self.items}
+        data = {"version": 1, "review": self.review, "reveal": self.reveal, "findings": self.items}
         write_atomic(self.path, json.dumps(data, indent=1))
 
     def get(self, fid: str) -> dict | None:
         return next((f for f in self.items if f["id"] == fid), None)
 
     def snapshot(self) -> dict:
+        """What the page shows: everything but the hidden findings, which it only counts."""
         with self.lock:
-            return json.loads(json.dumps({"findings": self.items}))
+            shown = [f for f in self.items if not f.get("hidden")]
+            return json.loads(json.dumps({"findings": shown, "hidden": len(self.items) - len(shown), "review": self.review,
+                                          "reveal": self.reveal}))
 
     def op(self, op: dict, by: str, deck: Deck) -> dict:
         kind = op.get("op") if isinstance(op.get("op"), str) else None
@@ -350,13 +367,15 @@ class Review:
         if "severity" in op and op["severity"] not in (None, *SEVERITIES):
             raise ValueError(f"severity: expected one of {', '.join(SEVERITIES)}")
         with self.lock:
-            result = getattr(self, "_op_" + kind)(op, by, deck)
+            result = getattr(self, "_op_" + kind.replace("-", "_"))(op, by, deck)
             self.save()
         return result
 
-    def _ask(self, kind: str, **extra):
-        """Queue a request for the session. The file is saved first, since `listen` reads it when it hands
-        the request over."""
+    def _ask(self, kind: str, once: bool = True, **extra):
+        """Queue a request for the session, unless `once` and one of its kind already waits.
+        The file is saved first, since `listen` reads it when it hands the request over."""
+        if once and any(x.get("kind") == kind for x in self.queue.items()):
+            return
         self.save()
         self.queue.add({"id": new_id(), "kind": kind, "at": time.time(), **extra})
 
@@ -374,16 +393,20 @@ class Review:
             raise ValueError("a finding needs text")
         refs = parse_refs(deck.hunks, op.get("refs")) + [locate(deck, str(a)) for a in op.get("at") or []]
         slide = deck.slide(str(op.get("slide")))
-        item = {"id": new_id("f"), "text": text[:20_000], "severity": op.get("severity"), "sources": ["reader"],
-                "refs": refs[:8], "slide": slide["id"] if slide else "", "at": time.time(), "action": None}
+        review = by == "session" and op.get("review") is True
+        item = {"id": new_id("f"), "text": text[:20_000], "severity": op.get("severity"),
+                "sources": ["review" if review else "reader"], "refs": refs[:8], "slide": slide["id"] if slide else "",
+                "at": time.time(), "action": None, "hidden": review and self.reveal != "shown", "merged": []}
         self.items.append(item)
         if by == "reader" and item["severity"] is None:
-            self._ask("finding", finding=item)
+            self._ask("finding", once=False, finding=item)
         return {"finding": item}
 
     def _op_set(self, op: dict, by: str, deck: Deck) -> dict:
         item = self._finding(op.get("id"))
         if "text" in op:
+            if by == "reader" and "reader" not in item["sources"]:
+                raise ValueError("only your own findings can be reworded")
             if not str(op["text"]).strip():
                 raise ValueError("a finding needs text")
         if "action" in op:
@@ -400,14 +423,60 @@ class Review:
 
     def _op_remove(self, op: dict, by: str, deck: Deck) -> dict:
         item = self._finding(op.get("id"))
+        if by == "reader" and "reader" not in item["sources"]:
+            raise ValueError("only your own findings can be removed")
         self.items.remove(item)
         return {"finding": item}
+
+    def _op_merge(self, op: dict, by: str, deck: Deck) -> dict:
+        """Fold duplicates into one finding: sources and places join, the most severe severity wins."""
+        keep = self._finding(op.get("id"))
+        others = [self._finding(o) for o in dict.fromkeys(op.get("others") or [])]
+        if not others or keep in others:
+            raise ValueError("merge needs a finding to keep and other findings to fold into it")
+        for o in others:
+            keep["sources"] = sorted({*keep["sources"], *o["sources"]}, key=["reader", "review"].index)
+            seen = {place_key(r) for r in keep["refs"]}
+            keep["refs"] += [r for r in o["refs"] if place_key(r) not in seen]
+            keep["merged"] += [{"id": o["id"], "text": o["text"], "sources": o["sources"]}, *o["merged"]]
+            keep["severity"] = min((x for x in (keep["severity"], o["severity"]) if x), default=None)
+            keep["action"] = keep["action"] or o["action"]
+            keep["hidden"] = keep["hidden"] and o["hidden"]
+            self.items.remove(o)
+        keep["refs"] = keep["refs"][:8]
+        return {"finding": keep}
+
+    def _op_review(self, op: dict, by: str, deck: Deck) -> dict:
+        if op.get("status") not in ("running", "done"):
+            raise ValueError("status: expected running or done")
+        self.review = op["status"]
+        if self.review == "done" and self.reveal == "requested":
+            self._ask("reveal")  # the reader asked while the review ran
+        return {"review": self.review}
+
+    def _op_request_reveal(self, op: dict, by: str, deck: Deck) -> dict:
+        if self.reveal == "requested":
+            self._ask("reveal")  # the reader asks again
+        elif self.reveal == "hidden":
+            if self.review == "running" or any(x["hidden"] for x in self.items):
+                self.reveal = "requested"
+                self._ask("reveal")
+            else:
+                self.reveal = "shown"
+        return {"reveal": self.reveal}
+
+    def _op_reveal(self, op: dict, by: str, deck: Deck) -> dict:
+        for x in self.items:
+            x["hidden"] = False
+        self.reveal = "shown"
+        return {"reveal": "shown"}
 
 
 def finding_text(f: dict) -> str:
     sev = f["severity"] or "no severity"
     where = ", ".join(r["label"] for r in f["refs"] if r.get("label"))
-    return f"{f['id']} ({sev}, from {' and '.join(f['sources'])}{', at ' + where if where else ''}): {f['text']}"
+    hidden = ", hidden" if f.get("hidden") else ""
+    return f"{f['id']} ({sev}, from {' and '.join(f['sources'])}{hidden}{', at ' + where if where else ''}): {f['text']}"
 
 
 def cmd_hunks(args):
@@ -454,6 +523,26 @@ def load_review(deck_dir: Path) -> Review:
     return Review(deck_dir / "findings.json", Queue(deck_dir))
 
 
+def reveal_brief(findings: Review, cmd: str) -> str:
+    """What the session needs to merge duplicates and show the review's findings."""
+    mine = [f for f in findings.items if not f.get("hidden")]
+    hidden = [f for f in findings.items if f.get("hidden")]
+    out = ["The reader asked to see the review's findings.\n"]
+    if findings.review == "running":
+        out.append("The background review is still running. Wait for it, record its findings with"
+                   f" `{cmd} add --review`, and mark it done with `{cmd} review done` before revealing.\n")
+    out.append("The reader's findings:\n" + ("\n".join(f"  {finding_text(f)}" for f in mine) or "  (none)"))
+    out.append("\nThe review's hidden findings:\n" + ("\n".join(f"  {finding_text(f)}" for f in hidden) or "  (none)"))
+    out.append(
+        "\nMerge findings that report the same problem, keeping the clearest text; merging keeps both sources"
+        " and the most severe severity:\n"
+        f"  {cmd} merge KEEP_ID OTHER_ID...\n"
+        f"Reword a merged finding with `{cmd} set ID --text TEXT` if neither text covers both. Then show them all:\n"
+        f"  {cmd} reveal"
+    )
+    return "\n".join(out)
+
+
 def settled(q: Queue, item: dict, findings: Review) -> bool:
     """Drop a request to give a finding a severity once the finding has one, or is gone."""
     if item.get("kind") != "finding":
@@ -492,20 +581,29 @@ def send_op(deck_dir: Path, op: dict) -> dict:
 def cmd_finding(args):
     deck_dir = Path(args.deck).resolve()
     if args.action == "list":
-        for f in load_review(deck_dir).items:
+        findings = load_review(deck_dir)
+        print(f"review: {findings.review}, findings {findings.reveal}")
+        for f in findings.items:
             print(finding_text(f) + (f" [{f['action']}]" if f["action"] else ""))
         return
     op = {"op": args.action}
     if args.action == "add":
-        op.update(text=args.text, at=args.at or [], slide=args.slide)
-    else:
+        op.update(text=args.text, at=args.at or [], slide=args.slide, review=args.review)
+    elif args.action == "review":
+        op["status"] = args.status
+    elif args.action != "reveal":
         op["id"] = args.id
+    if args.action == "merge":
+        op["others"] = args.others
     if getattr(args, "severity", None):
         op["severity"] = None if args.severity == "none" else args.severity
     if args.action == "set" and args.text:
         op["text"] = args.text
-    f = send_op(deck_dir, op)["finding"]
-    print(f"{'Removed' if args.action == 'remove' else 'Saved'} {finding_text(f)}")
+    result = send_op(deck_dir, op)
+    if "finding" in result:
+        print(f"{'Removed' if args.action == 'remove' else 'Saved'} {finding_text(result['finding'])}")
+    else:
+        print(f"Saved: {json.dumps(result)}")
 
 
 # --------------------------------------------------------------------------
@@ -665,6 +763,8 @@ class ReviewExtension(Extension):
             f = item["finding"]
             print(f"The reader added a finding without a severity:\n  {finding_text(f)}\n\n"
                   f"Give it one ({SEVERITY_HELP}):\n  python3 {me} finding {deck_arg} set {f['id']} --severity P2")
+        elif kind == "reveal":
+            print(reveal_brief(load_review(ctx.deck_dir), f"python3 {me} finding {deck_arg}"))
         else:
             return False
         ctx.q.remove(item["id"])
@@ -672,10 +772,18 @@ class ReviewExtension(Extension):
         return True
 
     def finished(self, ctx: Listening) -> str:
-        findings = load_review(ctx.deck_dir).items
-        if not findings:
-            return ""
-        return "\nFindings:\n" + "\n".join(f"  {finding_text(f)} [{f['action'] or 'no action chosen'}]" for f in findings)
+        review = load_review(ctx.deck_dir)
+        findings = review.items
+        out = []
+        if findings:
+            out.append("\nFindings:\n" + "\n".join(f"  {finding_text(f)} [{f['action'] or 'no action chosen'}]" for f in findings))
+        if any(f["hidden"] for f in findings) or review.review == "running":
+            cmd = f"python3 {ctx.me} finding {ctx.deck_arg}"
+            wait = (f" The background review is still running: wait for it, record its findings and run `{cmd} review done`."
+                    if review.review == "running" else "")
+            out.append(f"\nThe reader has not seen the review's findings.{wait} Merge duplicates (`{cmd} merge`),"
+                       f" run `{cmd} reveal`, and go over them in the wrap-up.")
+        return "\n".join(out)
 
     def commands(self, sub):
         h = sub.add_parser("hunks", help="list hunk ids in the deck's diffs")
@@ -697,13 +805,20 @@ class ReviewExtension(Extension):
         fa.add_argument("--severity", choices=SEVERITIES)
         fa.add_argument("--at", action="append", metavar="PATH:LINE[-END]", help="where, by new-side line numbers")
         fa.add_argument("--slide", help="the slide it came up on")
+        fa.add_argument("--review", action="store_true", help="a finding of the background review, hidden until the reader reveals them")
         fs = fsub.add_parser("set", help="change a finding's severity or text")
         fs.add_argument("id")
         fs.add_argument("--severity", choices=[*SEVERITIES, "none"])
         fs.add_argument("--text")
         fr = fsub.add_parser("remove", help="remove a finding")
         fr.add_argument("id")
-        fsub.add_parser("list", help="print the findings")
+        fm = fsub.add_parser("merge", help="fold duplicate findings into one")
+        fm.add_argument("id", help="the finding to keep")
+        fm.add_argument("others", nargs="+", help="the findings to fold into it")
+        fv = fsub.add_parser("review", help="record the background review's status")
+        fv.add_argument("status", choices=["running", "done"])
+        fsub.add_parser("reveal", help="show the review's findings to the reader")
+        fsub.add_parser("list", help="print the findings, hidden ones included")
         f.set_defaults(func=cmd_finding)
 
 
