@@ -88,9 +88,9 @@
     markAskable($("#findings-list"));
   }
 
-  // A finding with its severity, sources, text and places. On the Findings
-  // slide it also offers the actions.
-  function findingEl(f, { actions = false } = {}) {
+  // A finding with its severity, sources, text, places and choices, in the
+  // drawer and on the Findings slide.
+  function findingEl(f, { onSlide = false } = {}) {
     const own = f.sources.includes("reader");
     const severity = h(
       "select",
@@ -109,7 +109,7 @@
         )
       : null;
     // The drawer and the slide show the same finding; each has its own editor.
-    const editKey = `${actions ? "slide" : "drawer"}:${f.id}`;
+    const editKey = `${onSlide ? "slide" : "drawer"}:${f.id}`;
     const text = S.editing.has(editKey)
       ? editorEl(editKey, (t) => reviewOp({ op: "set", id: f.id, text: t }))
       : h("div", { class: "finding-text", "data-ask": `Finding ${f.id} (${f.severity || "no severity"}): ${f.text}`, "data-ask-source": "finding" }, mdEl(f.text));
@@ -119,11 +119,11 @@
     const tools = h(
       "div",
       { class: "finding-tools" },
-      actions ? actionButtons(f) : null,
+      choiceButtons(f),
       own ? h("button", { type: "button", class: "ghost small", onclick: () => startEditing(editKey, f.text) }, "Edit") : null,
       own ? h("button", { type: "button", class: "ghost small", onclick: () => reviewOp({ op: "remove", id: f.id }) }, "Remove") : null,
     );
-    return h("article", { class: `finding ${f.action || ""}`, "data-finding": f.id }, h("div", { class: "finding-head" }, severity, sources, tools), text, merged, places);
+    return h("article", { class: "finding", "data-finding": f.id }, h("div", { class: "finding-head" }, severity, sources, tools), text, merged, places);
   }
 
   const sourceName = (s) => (s === "reader" ? "you" : "the review");
@@ -151,16 +151,31 @@
     );
   }
 
-  function actionButtons(f) {
-    const choices = [["ignore", "Ignore"], ...(S.deck.pr ? [["comment", "Comment"]] : [])];
+  // What the reader wants drafted for a finding; a choice with no draft yet sets the session drafting.
+  const CHOICES = { comment: "Comment", fix: "Fix" };
+  const choiceKinds = () => Object.keys(CHOICES).filter((k) => k !== "comment" || S.deck.pr);
+  // Beside a choice: how far its current draft has got.
+  const DRAFT_STATE = { proposed: "drafted", running: "sent", done: "done", failed: "failed" };
+  function choiceButtons(f) {
     return h(
       "span",
-      { class: "segmented", role: "group", "aria-label": "What to do" },
-      choices.map(([value, label]) =>
-        h("button", { type: "button", class: "small", "aria-pressed": String(f.action === value), onclick: () => reviewOp({ op: "set", id: f.id, action: f.action === value ? null : value }) }, label),
-      ),
+      { class: "toggles", role: "group", "aria-label": "Draft for this finding" },
+      choiceKinds().map((k) => {
+        const on = f.choices.includes(k);
+        const mine = S.actions.filter((a) => a.finding === f.id && a.kind === k);
+        const draft = on && (mine.find((a) => a.state === "proposed" || a.state === "failed") || mine.at(-1));
+        return h(
+          "button",
+          // Only this toggle's change, so it cannot undo one the page has not seen yet.
+          { type: "button", class: "small", "aria-pressed": String(on), onclick: () => reviewOp({ op: "set", id: f.id, choose: k, on: !on }) },
+          CHOICES[k],
+          draft ? h("span", { class: "draft-state" }, ` · ${DRAFT_STATE[draft.state]}`) : null,
+        );
+      }),
     );
   }
+
+  const choicesHelp = () => choiceKinds().map((k) => (k === "comment" ? "**Comment** for a pull request comment" : "**Fix** for a patch")).join(", or ");
 
   function renderFindingViews() {
     keepFocus(renderFindings);
@@ -227,13 +242,11 @@
       mdEl(
         S.findings.length
           ? `${S.review.reveal === "shown" ? "The findings" : "Your findings"} by severity. ` +
-              (S.deck.pr
-                ? `Mark each one **Comment** to have the ${who()} draft it as a pull request comment, or **Ignore** it. You review the drafts on the next slide, and nothing is posted until you press **Carry out** there. To ask for a fix or a check, say so in the question box. `
-                : "") +
+              `Turn on ${choicesHelp()}, and the ${who()} drafts it at once. You review the drafts on the next slide, and nothing runs until you press **Carry out** there. To ask for a check, say so in the question box. ` +
               "Click a finding to discuss it. To add a general one, write it in the question box and press **Add finding**."
           : "No findings yet. To add one, write it in the question box on any slide and press **Add finding**; quoted lines become its place.",
       ),
-      groups.map(([p, fs]) => h("section", { class: "finding-group" }, h("h3", {}, p ? `${p} · ${SEVERITY_HELP[p]}` : "No severity yet"), fs.map((f) => findingEl(f, { actions: true })))),
+      groups.map(([p, fs]) => h("section", { class: "finding-group" }, h("h3", {}, p ? `${p} · ${SEVERITY_HELP[p]}` : "No severity yet"), fs.map((f) => findingEl(f, { onSlide: true })))),
     );
   }
 
@@ -284,17 +297,25 @@
   function actionsSlideEl() {
     const { proposal } = S.review;
     const slideEl = (...kids) => h("div", { class: "block actions-slide wide" }, ...kids);
-    const draft = (label, cls = "primary small") => h("button", { type: "button", class: cls, onclick: () => reviewOp({ op: "request-proposal" }) }, label);
+    const again = (label) => h("button", { type: "button", class: "ghost small", title: `Send the request to the ${who()} again`, onclick: () => reviewOp({ op: "request-proposal" }) }, label);
     const intro = mdEl(
-      `The ${who()} drafts a review comment for each finding you marked **Comment**, and any fix or check you ask for in the question box. ` +
-        "Reword a comment yourself, or click a draft to ask for changes. Untick **Include** to leave an action out. Nothing runs until you press **Carry out**.",
+      `The ${who()} drafts what you choose on the Findings slide as you choose it (${choicesHelp()}), and any check you ask for in the question box. ` +
+        "Reword a comment yourself, or click a draft to ask for changes. Untick **Include** to leave an action out; for a comment or a fix, that turns its choice off too. Nothing runs until you press **Carry out**.",
     );
-    const undrafted = proposal === "ready" ? S.findings.filter((f) => f.action === "comment" && !S.actions.some((a) => a.finding === f.id)).length : 0;
-    const choices = choicesEl(undrafted, draft);
-    if (proposal === "none") return slideEl(intro, choices, draft("Draft actions"));
     const drafting = proposal === "requested";
-    const status = drafting ? h("p", { class: "note" }, h("span", { class: "ellipsis" }, `The ${who()} is drafting the actions`), " ", draft("Ask again", "ghost small")) : null;
-    if (drafting && !S.actions.length) return slideEl(intro, choices, status);
+    const chosen = S.findings.filter((f) => f.choices.length);
+    const undrafted = chosen.flatMap((f) => f.choices.filter((k) => !S.actions.some((a) => a.finding === f.id && a.kind === k))).length;
+    const note = drafting
+      ? S.review.waiting && S.status.session === "away"
+        ? h("p", { class: "note" }, `Drafting starts when the ${who()} is listening again.`)
+        : h("p", { class: "note" }, h("span", { class: "ellipsis" }, `The ${who()} is drafting`), " ", again("Ask again"))
+      : undrafted
+        ? h("p", { class: "note" }, `${plural(undrafted, "choice has", "choices have")} no draft yet. `, again(proposal === "none" ? "Draft now" : "Ask again"))
+        : !chosen.length && !S.actions.length
+          ? h("p", { class: "note" }, "Nothing is chosen yet. ", h("a", { href: "#findings" }, "Choose on the Findings slide"))
+          : null;
+    const said = S.review.note ? h("p", { class: "note" }, `${who()[0].toUpperCase()}${who().slice(1)}: ${S.review.note}`) : null;
+    if (!S.actions.length) return slideEl(intro, said, note);
     // Actions already sent go again only once the session has had time to report them: it may have lost the request.
     const fresh = S.actions.filter((a) => a.include && (a.state === "proposed" || a.state === "failed"));
     const waited = Date.now() / 1000 - S.reviewAt;
@@ -304,37 +325,13 @@
     clearTimeout(S.resendTimer);
     if (Number.isFinite(next)) S.resendTimer = setTimeout(renderFindingViews, next * 1000 + 500);
     const runnable = fresh.length ? fresh : lost;
-    const label = drafting ? "Carry out (once the drafts are ready)" : fresh.length ? carryLabel(fresh) : lost.length ? "Send again" : "Carry out";
+    const label = fresh.length ? carryLabel(fresh) : lost.length ? "Send again" : "Carry out";
     return slideEl(
       intro,
-      choices,
-      status,
-      S.actions.length ? S.actions.map(actionEl) : h("p", {}, "No actions proposed."),
-      h(
-        "div",
-        { class: "carry-out" },
-        h("button", { type: "button", class: "primary", disabled: drafting || !runnable.length, onclick: () => carryOut(runnable) }, label),
-        drafting || undrafted ? null : draft("Ask for more", "ghost small"),
-      ),
-    );
-  }
-
-  // What the drafts leave out: findings with no choice, and findings marked
-  // Comment since the last drafts, with a button to draft those.
-  function choicesEl(undrafted, draft) {
-    if (!S.deck.pr || !S.findings.length) return null;
-    const marked = S.findings.filter((f) => f.action === "comment").length;
-    const open = S.findings.filter((f) => !f.action).length;
-    const parts = [];
-    if (!marked) parts.push(`No finding is marked **Comment**${open ? `, and ${plural(open, "has", "have")} no choice yet` : ""}.`);
-    else if (open) parts.push(`${plural(open, "finding has", "findings have")} no choice yet and will get no comment.`);
-    if (undrafted) parts.push(`${plural(undrafted, "finding marked **Comment** has", "findings marked **Comment** have")} no draft yet.`);
-    if (!parts.length) return null;
-    return h(
-      "div",
-      { class: "note" },
-      h("p", {}, h("span", { html: mdInline(parts.join(" ") + " ") }), !marked || open ? h("a", { href: "#findings" }, "Choose on the Findings slide") : null),
-      undrafted ? draft(`Draft ${undrafted} more`) : null,
+      said,
+      note,
+      S.actions.map(actionEl),
+      h("div", { class: "carry-out" }, h("button", { type: "button", class: "primary", disabled: !runnable.length, onclick: () => carryOut(runnable) }, label)),
     );
   }
 

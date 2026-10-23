@@ -40,7 +40,7 @@ from deck import (  # noqa: E402
 
 FINDING_ID = re.compile(r"^f-[0-9a-z-]+$")
 SEVERITIES = ("P0", "P1", "P2", "P3")
-FINDING_ACTIONS = ("ignore", "comment")
+FINDING_CHOICES = ("comment", "fix")
 ACTION_ID = re.compile(r"^a-[0-9a-z-]+$")
 ACTION_KINDS = ("comment", "fix", "check")
 PR_URL = re.compile(r"^https://github\.com/[\w.-]+/[\w.-]+/pull/\d+$")
@@ -326,10 +326,10 @@ class Review:
     """A review deck's findings and proposed actions, persisted to findings.json.
 
     A finding is {id, text, author, severity, sources, refs, slide, at,
-    action, hidden, merged}: author wrote its current text, "session" or
+    choices, hidden, merged}: author wrote its current text, "session" or
     "reader"; severity is P0 to P3 or null, sources lists "reader" and
-    "review", action is the reader's choice (ignore or comment), and merged
-    holds the findings folded into it. The background review's findings stay
+    "review", choices lists what the reader wants drafted for it ("comment",
+    "fix"), and merged holds the findings folded into it. The background review's findings stay
     hidden from the page until the reader asks to see them: `reveal` goes
     from hidden to requested (the session merges duplicates) to shown.
     `review` is the background review's status: none, running or done.
@@ -339,7 +339,8 @@ class Review:
     diff); for a check, command. A comment's author is whoever wrote its
     current text, "session" or "reader", and decides whose account posts it;
     a comment without a place goes in the review's summary. state goes from
-    proposed to running to done or failed. `proposal` is none, requested or
+    proposed to running to done or failed. A newly chosen kind with no draft
+    asks the session to draft it; `proposal` is none, requested (drafting) or
     ready.
 
     Only the server writes it, through op(): edits come from the page (by
@@ -361,13 +362,15 @@ class Review:
             f.setdefault("hidden", False)
             f.setdefault("merged", [])
             f.setdefault("author", "session")  # older files did not record it; the agent's account is the safe guess
+            f.setdefault("choices", ["comment"] if f.pop("action", None) == "comment" else [])
         self.actions: list[dict] = data.get("actions", [])
         self.review: str = data.get("review", "none")
         self.reveal: str = data.get("reveal", "hidden")
         self.proposal: str = data.get("proposal", "none")
+        self.note: str = data.get("note", "")
 
     def save(self):
-        data = {"version": 1, "review": self.review, "reveal": self.reveal, "proposal": self.proposal,
+        data = {"version": 1, "review": self.review, "reveal": self.reveal, "proposal": self.proposal, "note": self.note,
                 "findings": self.items, "actions": self.actions}
         write_atomic(self.path, json.dumps(data, indent=1))
 
@@ -381,7 +384,9 @@ class Review:
             actions = [{**a, **({"diff": fix_payload(a)} if a["kind"] == "fix" else {}), "resend_in": resend_in(a)}
                        for a in self.actions]
             return json.loads(json.dumps({"findings": shown, "hidden": len(self.items) - len(shown), "review": self.review,
-                                          "reveal": self.reveal, "proposal": self.proposal, "actions": actions}))
+                                          "reveal": self.reveal, "proposal": self.proposal, "note": self.note, "actions": actions,
+                                          # A drafting request the session has not taken yet, unlike one it is working on.
+                                          "waiting": any(x.get("kind") == "propose" for x in self.queue.items())}))
 
     def hunks(self) -> dict[str, Hunk]:
         """The hunks of the proposed fixes, which the reader can quote like the deck's."""
@@ -412,6 +417,13 @@ class Review:
 
     # Findings
 
+    def _successor(self, fid) -> dict:
+        """A finding, or the one it was merged into."""
+        item = next((f for f in self.items if f["id"] == fid or any(m["id"] == fid for m in f["merged"])), None)
+        if item is None:
+            raise ValueError(f"no finding {fid} (it was removed, or never existed); skip it")
+        return item
+
     def _finding(self, fid) -> dict:
         item = self.get(str(fid)) if FINDING_ID.match(str(fid)) else None
         if item is None:
@@ -425,10 +437,14 @@ class Review:
         refs = parse_refs(ctx.hunks, op.get("refs")) + [locate(ctx.deck, str(a)) for a in op.get("at") or []]
         slide = ctx.deck.slide(str(op.get("slide")))
         review = by == "session" and op.get("review") is True
+        hidden = review and self.reveal != "shown"
+        choices = self._choices(op, ctx, [], hidden)
         item = {"id": new_id("f"), "text": text[:20_000], "author": by, "severity": op.get("severity"),
                 "sources": ["review" if review else "reader"], "refs": refs[:8], "slide": slide["id"] if slide else "",
-                "at": time.time(), "action": None, "hidden": review and self.reveal != "shown", "merged": []}
+                "at": time.time(), "choices": [], "hidden": hidden, "merged": []}
         self.items.append(item)
+        if choices:
+            self._choose(item, choices)
         if by == "reader" and item["severity"] is None:
             self._ask("finding", once=False, finding=item)
         return {"finding": item}
@@ -440,42 +456,85 @@ class Review:
                 raise ValueError("only your own findings can be reworded")
             if not str(op["text"]).strip():
                 raise ValueError("a finding needs text")
-        if "action" in op:
-            if op["action"] not in (None, *FINDING_ACTIONS):
-                raise ValueError(f"action: expected one of {', '.join(FINDING_ACTIONS)}")
-            if op["action"] == "comment" and not ctx.deck.spec.get("pr"):
-                raise ValueError("the deck has no pull request to comment on")
+        choices = self._choices(op, ctx, item["choices"], item["hidden"])
         if "text" in op:
             text = str(op["text"]).strip()[:20_000]
             if text != item["text"]:
                 # Drafts that still say what the finding said follow it.
-                for a in self._drafts(item["id"]):
+                for a in self._drafts(item["id"], ("comment",)):
                     if a["body"] == item["text"]:
                         a.update(body=text, author=by)
+                # A fix answers what the finding said, so it is drafted again.
+                stale = self._drafts(item["id"], ("fix",))
+                self.actions = [a for a in self.actions if a not in stale]
                 item.update(text=text, author=by)
-        if "action" in op and op["action"] != item["action"]:
-            self._include(item["id"], op["action"] == "comment")
-        for key in ("severity", "action"):
-            if key in op:
-                item[key] = op[key]
+                if stale and "fix" in item["choices"]:
+                    self.proposal = "requested"
+                    self._ask("propose")
+        if "severity" in op:
+            item["severity"] = op["severity"]
+        if choices is not None:
+            self._choose(item, choices)
         return {"finding": item}
 
-    def _drafts(self, fid: str) -> list[dict]:
-        """The comments drafted for a finding that have not gone out yet."""
-        return [a for a in self.actions if a["finding"] == fid and a["kind"] == "comment" and a["state"] in ("proposed", "failed")]
+    def _choices(self, op: dict, ctx: OpContext, current: list[str], hidden: bool) -> list[str] | None:
+        """The choices `op` sets: a whole list (`choices`), or one kind turned on or off (`choose`, `on`),
+        which a page can send without overwriting a change it has not seen yet. None when it sets none."""
+        if "choose" in op:
+            choices = [*current, op["choose"]] if op.get("on") is True else [c for c in current if c != op["choose"]]
+        elif "choices" in op:
+            choices = op["choices"] if isinstance(op["choices"], list) else [op["choices"]]
+        else:
+            return None
+        if any(c not in FINDING_CHOICES for c in choices):
+            raise ValueError(f"choices: expected some of {', '.join(FINDING_CHOICES)}")
+        if "comment" in choices and not ctx.deck.spec.get("pr"):
+            raise ValueError("the deck has no pull request to comment on")
+        if hidden and choices:
+            raise ValueError("the reader has not seen this finding yet")
+        return [c for c in FINDING_CHOICES if c in choices]
 
-    def _include(self, fid: str, on: bool):
-        """A finding's unsent comments go out only while it is marked comment."""
-        for a in self._drafts(fid):
-            a["include"] = on
+    def _choose(self, item: dict, choices: list[str]):
+        """Turning a kind off leaves the finding's unsent drafts of that kind out of Carry out;
+        turning it on puts them back or, with none yet, asks the session to draft it."""
+        added, dropped = set(choices) - set(item["choices"]), set(item["choices"]) - set(choices)
+        item["choices"] = choices
+        for a in self._drafts(item["id"], tuple(added | dropped)):
+            a["include"] = a["kind"] in added
+        if any(not self._drafted(item["id"], c) for c in added):
+            self.proposal = "requested"
+            self._ask("propose")
+        elif dropped:
+            self._withdraw()
+
+    def _drafts(self, fid: str, kinds=FINDING_CHOICES) -> list[dict]:
+        """The comments and fixes drafted for a finding that have not gone out yet."""
+        return [a for a in self.actions if a["finding"] == fid and a["kind"] in kinds and a["state"] in ("proposed", "failed")]
+
+    def _drafted(self, fid: str, kind: str) -> bool:
+        return any(a["finding"] == fid and a["kind"] == kind for a in self.actions)
+
+    def _withdraw(self):
+        """With nothing left to draft, a request the session has not picked up is withdrawn."""
+        if any(not self._drafted(f["id"], c) for f in self.items for c in f["choices"]):
+            return
+        waiting = [x for x in self.queue.items() if x.get("kind") == "propose"]
+        for x in waiting:
+            if not self.queue.claimed(x["id"]):
+                self.queue.remove(x["id"])
+        if not any(x.get("kind") == "propose" for x in self.queue.items()) and self.proposal == "requested":
+            self.proposal = "ready" if self.actions else "none"
 
     def _op_remove(self, op: dict, by: str, ctx: OpContext) -> dict:
         item = self._finding(op.get("id"))
         if by == "reader" and "reader" not in item["sources"]:
             raise ValueError("only your own findings can be removed")
         self.items.remove(item)
-        self._include(item["id"], False)
+        # Its unsent drafts go with it; what has gone out stays on record.
+        unsent = self._drafts(item["id"])
+        self.actions = [a for a in self.actions if a not in unsent]
         self._repoint(item["id"], None)
+        self._withdraw()
         return {"finding": item}
 
     def _repoint(self, old: str, new: str | None):
@@ -496,11 +555,16 @@ class Review:
             keep["refs"] += [r for r in o["refs"] if place_key(r) not in seen]
             keep["merged"] += [{"id": o["id"], "text": o["text"], "sources": o["sources"]}, *o["merged"]]
             keep["severity"] = min((x for x in (keep["severity"], o["severity"]) if x), default=None)
-            keep["action"] = keep["action"] or o["action"]
             keep["hidden"] = keep["hidden"] and o["hidden"]
             self.items.remove(o)
             self._repoint(o["id"], keep["id"])
         keep["refs"] = keep["refs"][:8]
+        # The drafts it took over follow its combined choices, one unsent draft of each kind:
+        # an included one first, then the reader's own wording.
+        self._choose(keep, [c for c in FINDING_CHOICES if any(c in f["choices"] for f in [keep, *others])])
+        for kind in FINDING_CHOICES:
+            extra = sorted(self._drafts(keep["id"], (kind,)), key=lambda a: (not a["include"], a.get("author") != "reader"))[1:]
+            self.actions = [a for a in self.actions if a not in extra]
         return {"finding": keep}
 
     def _op_review(self, op: dict, by: str, ctx: OpContext) -> dict:
@@ -575,7 +639,7 @@ class Review:
         kind = op.get("kind")
         if kind not in ACTION_KINDS:
             raise ValueError(f"kind: expected one of {', '.join(ACTION_KINDS)}")
-        finding = self._finding(op["finding"]) if op.get("finding") else None
+        finding = self._successor(op["finding"]) if op.get("finding") else None
         if kind == "comment" and not ctx.deck.spec.get("pr"):
             raise ValueError("the deck has no pull request to comment on")
         needed = {"comment": "body", "fix": "patch", "check": "command"}[kind]
@@ -591,6 +655,8 @@ class Review:
             at = next((place_of(r) for r in (finding or {}).get("refs", []) if inline(r)), None)
             a["place"] = at
         a.update(self._action_fields(a, {**op, "title": op.get("title") or "untitled"}, by, ctx))
+        if finding and kind in FINDING_CHOICES:
+            a["include"] = kind in finding["choices"]  # the reader may have turned it off while it was drafted
         if kind == "comment" and finding and a["body"] == finding["text"]:
             a["author"] = finding["author"]  # the finding's own words post as whoever wrote them
         if not op.get("title"):
@@ -605,6 +671,11 @@ class Review:
         if a["state"] in ("running", "done"):
             raise ValueError(f"action {a['id']} is {a['state']}")
         a.update(self._action_fields(a, op, by, ctx))
+        finding = self.get(a["finding"]) if a["finding"] else None
+        if "include" in op and finding and not finding["hidden"] and a["kind"] in FINDING_CHOICES:
+            # Include and the finding's choice are one decision, made on either slide.
+            kept = [c for c in finding["choices"] if c != a["kind"]]
+            self._choose(finding, [c for c in FINDING_CHOICES if c in kept or (c == a["kind"] and a["include"])])
         return {"action": a}
 
     def _op_action_remove(self, op: dict, by: str, ctx: OpContext) -> dict:
@@ -613,7 +684,10 @@ class Review:
         return {"action": a}
 
     def _op_action_ready(self, op: dict, by: str, ctx: OpContext) -> dict:
-        self.proposal = "ready"
+        # Choices made while the session drafted wait in the queue, so drafting goes on.
+        self.proposal = "requested" if any(x.get("kind") == "propose" for x in self.queue.items()) else "ready"
+        if "note" in op:
+            self.note = str(op["note"] or "")[:2000]
         return {"proposal": self.proposal}
 
     def _op_action_result(self, op: dict, by: str, ctx: OpContext) -> dict:
@@ -630,8 +704,6 @@ class Review:
         return {"proposal": self.proposal}
 
     def _op_carry_out(self, op: dict, by: str, ctx: OpContext) -> dict:
-        if self.proposal != "ready":
-            raise ValueError("the session is still drafting the actions")
         ids = op.get("ids") if isinstance(op.get("ids"), list) else []
         chosen = [self._action(i) for i in dict.fromkeys(ids)]
         if not chosen:
@@ -764,12 +836,16 @@ def action_text(a: dict) -> str:
     return f"{a['id']} {a['kind']}{on}: {a['title']} [{state}]"
 
 
+def choices_text(f: dict) -> str:
+    return f"[{', '.join(f['choices']) or 'no choice'}]"
+
+
 def proposal_brief(review: Review, cmd: str) -> str:
-    """What the session needs to propose the review's actions."""
-    words = lambda f: ", in the reader's words" if f["author"] == "reader" else ""
-    findings = "\n".join(f"  {finding_text(f)} [{f['action'] or 'no choice'}{words(f)}]" for f in review.items) or "  (none)"
+    """What the session needs to draft the actions the reader's choices call for."""
+    words = lambda f: " (in the reader's words)" if f["author"] == "reader" else ""
+    findings = "\n".join(f"  {finding_text(f)} {choices_text(f)}{words(f)}" for f in review.items) or "  (none)"
     actions = "\n".join(f"  {action_text(a)}" for a in review.actions) or "  (none)"
-    return f"""The reader asked for proposed actions.
+    return f"""Findings have choices without drafts. Draft them now, while the walkthrough goes on.
 
 Findings, with the reader's choices:
 {findings}
@@ -777,17 +853,17 @@ Findings, with the reader's choices:
 Actions proposed so far:
 {actions}
 
-Propose what the reader's choices call for, and nothing for a finding marked ignore:
+Draft what the choices call for that has no draft yet, and nothing for a finding with no choice; skip a finding the server says is gone:
 - For each finding marked comment, draft one review comment. If the finding is in the reader's words, post them as written: leave out --body-file, and the comment takes the finding's text and posts as the reader. Otherwise write its body to a file, then run
     {cmd} add comment --finding ID --body-file FILE
   It goes at the finding's first place in a file; --at PATH:LINE[-END] moves it and --summary puts it in the review's summary. Write it as it will be posted: short, specific, and saying what to change.
-- Propose a fix only where the reader asked for one, or where the change is the reader's own and the fix is small and certain. Write it as a patch against the head of the change, as `git diff` prints it from the repository root:
+- For each finding marked fix, draft a patch against the head of the change, as `git diff` prints it from the repository root:
     {cmd} add fix --finding ID --title TITLE --patch-file PATCH
 - Propose a check, a test or command that settles a doubt, where one would:
     {cmd} add check --title TITLE --command COMMAND
-Revise a draft with `{cmd} set ID` (--body-file, --title, --at, --patch-file or --command) and drop one with `{cmd} remove ID`. Then show them to the reader, who can edit comments, ask for changes and choose what to carry out:
+Revise a draft with `{cmd} set ID` (--body-file, --title, --at, --patch-file or --command) and drop one with `{cmd} remove ID`. Then show the drafts to the reader, who can edit comments, ask for changes and choose what to carry out, even if nothing needed a draft:
     {cmd} ready
-Nothing runs until the reader presses Carry out."""
+If your instructions do not let you post to GitHub or change the repository, add --note saying so; the slide shows it, so the reader knows Carry out cannot do it. Nothing runs until the reader presses Carry out."""
 
 
 def carry_brief(review: Review, ids: list[str], cmd: str, pr: str) -> str:
@@ -873,7 +949,7 @@ def cmd_finding(args):
         findings = load_review(deck_dir)
         print(f"review: {findings.review}, findings {findings.reveal}")
         for f in findings.items:
-            print(f"{finding_text(f)} [{f['action'] or 'no choice'}]")
+            print(f"{finding_text(f)} {choices_text(f)}")
         return
     op = {"op": args.action}
     if args.action == "add":
@@ -888,6 +964,8 @@ def cmd_finding(args):
         op["severity"] = None if args.severity == "none" else args.severity
     if args.action == "set" and args.text:
         op["text"] = args.text
+    if getattr(args, "choose", None) is not None:
+        op["choices"] = [c.strip() for c in args.choose.split(",") if c.strip()]
     result = send_op(deck_dir, op)
     if "finding" in result:
         print(f"{'Removed' if args.action == 'remove' else 'Saved'} {finding_text(result['finding'])}")
@@ -917,6 +995,8 @@ def cmd_action(args):
         for key, path in (("body", args.body_file), ("patch", args.patch_file)):
             if path:
                 op[key] = Path(path).read_text()
+    if args.action == "ready" and args.note is not None:
+        op["note"] = args.note
     if args.action == "result":
         op.update(status=args.status, link=args.link, note=args.note,
                   output=Path(args.output_file).read_text(errors="replace")[-20_000:] if args.output_file else None)
@@ -940,6 +1020,7 @@ class ReviewExtension(Extension):
 
     def __init__(self):
         self._seen: tuple = (None, None)  # (findings.json and its mtime, the Review read from it)
+        self._told_waiting = False  # a page was last sent a drafting request still waiting
 
     def begin(self, load: Loading):
         """Parse the deck's diffs; a deck with diffs needs no goal."""
@@ -1046,12 +1127,20 @@ class ReviewExtension(Extension):
                 result = {"error": f"the server failed: {e!r}; see server.log"}
             write_atomic(path.with_suffix(".result"), json.dumps(result))
             path.unlink(missing_ok=True)
+        # `listen` taking a drafting request changes no file the server writes, so tell the pages here.
+        if self._told_waiting and not any(x.get("kind") == "propose" for x in state.queue.items()):
+            self._told_waiting = False
+            state.broadcast("review", {})
 
     def hunks(self, state) -> dict[str, Hunk]:
         return state.review.hunks()
 
     def get(self, state, route: str):
-        return state.review.snapshot() if route == "/api/review" else None
+        if route != "/api/review":
+            return None
+        snap = state.review.snapshot()
+        self._told_waiting = self._told_waiting or snap["waiting"]
+        return snap
 
     def post(self, state, route: str, body: dict):
         return review_op(state, body, "reader") if route == "/api/review" else None
@@ -1093,7 +1182,12 @@ class ReviewExtension(Extension):
         findings = review.items
         out = []
         if findings:
-            out.append("\nFindings:\n" + "\n".join(f"  {finding_text(f)} [{f['action'] or 'no choice'}]" for f in findings))
+            out.append("\nFindings:\n" + "\n".join(f"  {finding_text(f)} {choices_text(f)}" for f in findings))
+        pending = [a for a in review.actions if a["include"] and a["state"] in ("proposed", "failed")]
+        if pending:
+            out.append(f"\n{len(pending)} drafted action{' was' if len(pending) == 1 else 's were'} not carried out:\n"
+                       + "\n".join(f"  {action_text(a)}" for a in pending)
+                       + "\nDo not carry them out unless the reader asks.")
         if any(f["hidden"] for f in findings) or review.review == "running":
             cmd = f"python3 {ctx.me} finding {ctx.deck_arg}"
             wait = (f" The background review is still running: wait for it, record its findings and run `{cmd} review done`."
@@ -1123,10 +1217,12 @@ class ReviewExtension(Extension):
         fa.add_argument("--at", action="append", metavar="PATH:LINE[-END]", help="where, by new-side line numbers")
         fa.add_argument("--slide", help="the slide it came up on")
         fa.add_argument("--review", action="store_true", help="a finding of the background review, hidden until the reader reveals them")
-        fs = fsub.add_parser("set", help="change a finding's severity or text")
+        fa.add_argument("--choose", metavar="comment,fix", help="what the reader wants drafted for it")
+        fs = fsub.add_parser("set", help="change a finding's severity, text or choices")
         fs.add_argument("id")
         fs.add_argument("--severity", choices=[*SEVERITIES, "none"])
         fs.add_argument("--text")
+        fs.add_argument("--choose", metavar="comment,fix", help="what the reader wants drafted for it; empty for nothing")
         fr = fsub.add_parser("remove", help="remove a finding")
         fr.add_argument("id")
         fm = fsub.add_parser("merge", help="fold duplicate findings into one")
@@ -1154,7 +1250,8 @@ class ReviewExtension(Extension):
             ap.add_argument("--patch-file", help="a fix, as a unified diff from the repository root")
             ap.add_argument("--command", help="a check's command")
         asub.add_parser("remove", help="drop a proposed action").add_argument("id")
-        asub.add_parser("ready", help="show the proposed actions to the reader")
+        ar = asub.add_parser("ready", help="show the proposed actions to the reader")
+        ar.add_argument("--note", help="a line for the slide, such as what Carry out cannot do here; empty to clear")
         ar = asub.add_parser("result", help="report how an action went")
         ar.add_argument("id")
         ar.add_argument("--status", choices=["done", "failed"], required=True)

@@ -354,17 +354,21 @@ class ReviewServerTest(ServerCase):
         self.assertEqual((mine["refs"][1]["line"], mine["refs"][1]["end"]), (90, 95))
         self.assertIn("No questions", run("listen", self.dir, "--timeout", 1).stdout)
 
-        for bad in ({"op": "set", "id": mine["id"], "severity": "P9"}, {"op": "set", "id": mine["id"], "action": "comment"},
-                    {"op": "set", "id": "f-nope", "action": "ignore"}, {"op": "add", "text": " "}, {"op": "frob", "id": mine["id"]}):
+        for bad in ({"op": "set", "id": mine["id"], "severity": "P9"}, {"op": "set", "id": mine["id"], "choices": ["comment"]},
+                    {"op": "set", "id": mine["id"], "choices": ["ignore"]}, {"op": "set", "id": "f-nope", "choices": ["fix"]},
+                    {"op": "add", "text": " "}, {"op": "frob", "id": mine["id"]}):
             with self.assertRaises(urllib.error.HTTPError) as cm:
                 self.post("api/review", bad)
             self.assertEqual(cm.exception.code, 400)
         r = run("finding", self.dir, "set", "f-nope", "--severity", "P1", check=False)
         self.assertEqual((r.returncode, r.stderr.strip()), (1, "no finding f-nope"))
-        self.post("api/review", {"op": "set", "id": mine["id"], "action": "ignore"})
+        # Choosing Fix asks the session to draft it straight away.
+        self.post("api/review", {"op": "set", "id": mine["id"], "choices": ["fix"]})
+        self.assertEqual(self.get("api/review")["proposal"], "requested")
+        self.assertIn(f"{mine['id']} (P1, from reader, at app.py new 22, app.py 90–95): b is now 3 [fix]", run("listen", self.dir, "--timeout", 5).stdout)
         self.post("api/review", {"op": "remove", "id": added["id"]})
         self.assertEqual([f["id"] for f in self.get("api/review")["findings"]], [mine["id"]])
-        self.assertIn("[ignore]", run("finding", self.dir, "list").stdout)
+        self.assertIn("[fix]", run("finding", self.dir, "list").stdout)
 
         self.post("api/finish", {})
         out = run("listen", self.dir, "--timeout", 5).stdout
@@ -383,7 +387,7 @@ class ReviewServerTest(ServerCase):
         review = [f for f in json.loads((self.dir / "findings.json").read_text())["findings"] if f["sources"] == ["review"]]
         for bad in ({"op": "merge", "id": mine["id"], "others": [review[0]["id"]]}, {"op": "reveal"},
                     {"op": "remove", "id": review[0]["id"]}, {"op": ["add"]},
-                    {"op": "set", "id": mine["id"], "severity": "P0", "action": "comment"}):
+                    {"op": "set", "id": mine["id"], "severity": "P0", "choices": ["comment"]}):
             with self.assertRaises(urllib.error.HTTPError):
                 self.post("api/review", bad)
 
@@ -422,14 +426,18 @@ class ReviewServerTest(ServerCase):
 
     def test_findings_from_before_the_review_merge(self):
         run("stop", self.dir)
-        old = {"id": "f-1-aa", "text": "old", "severity": "P2", "sources": ["reader"], "refs": [], "slide": "", "at": 0, "action": None}
-        (self.dir / "findings.json").write_text(json.dumps({"version": 1, "findings": [old]}))
+        old = {"id": "f-1-aa", "text": "old", "severity": "P2", "sources": ["reader"], "refs": [], "slide": "", "at": 0, "action": "comment"}
+        ignored = {**old, "id": "f-1-bb", "action": "ignore"}
+        (self.dir / "findings.json").write_text(json.dumps({"version": 1, "findings": [old, ignored]}))
         run("serve", self.dir, "--detach")
         run("finding", self.dir, "add", "dup", "--review")
-        review = json.loads((self.dir / "findings.json").read_text())["findings"][1]["id"]
+        review = json.loads((self.dir / "findings.json").read_text())["findings"][2]["id"]
         self.assertIn("from reader and review", run("finding", self.dir, "merge", "f-1-aa", review).stdout)
-        # Who wrote an old finding's text is unknown, so its comment would post from the agent's account.
-        self.assertEqual(self.get("api/review")["findings"][0]["author"], "session")
+        # Who wrote an old finding's text is unknown, so its comment would post from the agent's account;
+        # its old single choice becomes a list.
+        self.assertEqual({k: self.get("api/review")["findings"][0].get(k) for k in ("author", "choices", "action")},
+                         {"author": "session", "choices": ["comment"], "action": None})
+        self.assertEqual(self.get("api/review")["findings"][1]["choices"], [])
 
     def test_finishing_while_the_review_runs(self):
         run("finding", self.dir, "review", "running")
@@ -440,17 +448,41 @@ class ReviewServerTest(ServerCase):
         self.assertEqual(self.post("api/review", {"op": "request-reveal"}), {"reveal": "shown"})
         self.assertIn("No questions", run("listen", self.dir, "--timeout", 1).stdout)
 
+    def test_choices_ask_for_drafts(self):
+        (self.dir / "deck.json").write_text(json.dumps(deck_spec(pr="https://github.com/o/r/pull/7")))
+        self.wait_for(lambda: self.get("api/deck")["pr"])
+        A = lambda *a, **k: run("action", self.dir, *a, **k)
+        f, g = (self.post("api/review", {"op": "add", "text": t, "severity": "P3"})["finding"] for t in ("one", "two"))
+        self.post("api/review", {"op": "set", "id": f["id"], "choices": ["fix"]})
+        self.assertIn("[fix]", run("listen", self.dir, "--timeout", 5).stdout)
+        # A choice made while the session drafts keeps the drafting going.
+        self.post("api/review", {"op": "set", "id": g["id"], "choices": ["fix"]})
+        A("ready")
+        self.assertEqual(self.get("api/review")["proposal"], "requested")
+        run("listen", self.dir, "--timeout", 5)
+        A("ready")
+        self.assertEqual(self.get("api/review")["proposal"], "ready")
+        # The session records a choice the reader asks for in words.
+        run("finding", self.dir, "add", "three", "--choose", "comment")
+        self.assertEqual(self.get("api/review")["findings"][-1]["choices"], ["comment"])
+        self.assertIn("three [comment]", run("listen", self.dir, "--timeout", 5).stdout)
+        # Toggling one kind leaves the finding's other drafts alone.
+        A("add", "check", "--finding", f["id"], "--title", "t", "--command", "true")
+        self.post("api/review", {"op": "set", "id": f["id"], "choices": ["comment", "fix"]})
+        self.post("api/review", {"op": "set", "id": f["id"], "choices": []})
+        self.assertTrue(self.get("api/review")["actions"][0]["include"])
+
     def test_proposed_actions(self):
         (self.dir / "deck.json").write_text(json.dumps(deck_spec(pr="https://github.com/o/r/pull/7")))
         self.wait_for(lambda: self.get("api/deck")["pr"])
         A = lambda *a, **k: run("action", self.dir, *a, **k)
         f = self.post("api/review", {"op": "add", "text": "json is unused", "severity": "P2",
                                      "refs": [{"kind": "lines", "hunk": "src/app.py#1", "lo": 1, "hi": 2}]})["finding"]
-        self.post("api/review", {"op": "set", "id": f["id"], "action": "comment"})
-        self.assertEqual(self.post("api/review", {"op": "request-proposal"}), {"proposal": "requested"})
+        self.post("api/review", {"op": "set", "id": f["id"], "choices": ["comment"]})
+        self.assertEqual(self.get("api/review")["proposal"], "requested")
         out = run("listen", self.dir, "--timeout", 5).stdout
-        self.assertIn("The reader asked for proposed actions.", out)
-        self.assertIn(f"  {f['id']} (P2, from reader, at app.py new 2): json is unused [comment, in the reader's words]", out)
+        self.assertIn("Findings have choices without drafts.", out)
+        self.assertIn(f"  {f['id']} (P2, from reader, at app.py new 2): json is unused [comment] (in the reader's words)", out)
         self.assertIn(f"action {self.dir} add comment --finding ID --body-file FILE", out)
 
         (self.dir / "body.md").write_text("`json` is imported but unused; drop it.")
@@ -464,10 +496,6 @@ class ReviewServerTest(ServerCase):
         (self.dir / "bad.diff").write_text("not a diff\n")
         self.assertIn("patch:", A("add", "fix", "--title", "x", "--patch-file", self.dir / "bad.diff", check=False).stderr)
         A("add", "check", "--title", "Nothing imports json", "--command", "grep -rn json src")
-        drafting = self.get("api/review")["actions"]
-        with self.assertRaises(urllib.error.HTTPError) as cm:
-            self.post("api/review", {"op": "carry-out", "ids": [drafting[0]["id"]]})
-        self.assertIn(b"still drafting", cm.exception.read())
         A("ready")
         page = self.get("api/review")
         comment, fix, check = page["actions"]
@@ -493,7 +521,9 @@ class ReviewServerTest(ServerCase):
         A("remove", self.get("api/review")["actions"][-1]["id"])
         # Without a body, a comment takes its finding's text and whoever wrote it.
         A("add", "comment", "--finding", f2["id"])
-        self.assertEqual({k: self.get("api/review")["actions"][-1][k] for k in ("body", "author")}, {"body": "keep sys?", "author": "reader"})
+        self.assertEqual({k: self.get("api/review")["actions"][-1][k] for k in ("body", "author", "include")},
+                         {"body": "keep sys?", "author": "reader", "include": False})  # not marked Comment
+        self.post("api/review", {"op": "set", "id": f2["id"], "choices": ["comment"]})  # a draft exists, so nothing to ask
         # Rewording the finding rewords the draft that still says the same, as whoever reworded it;
         # a draft with its own text keeps it.
         A("add", "comment", "--finding", f2["id"], "--body-file", self.dir / "body.md")
@@ -503,10 +533,10 @@ class ReviewServerTest(ServerCase):
         run("finding", self.dir, "set", f2["id"], "--text", "Is sys still needed?")
         self.assertEqual(last2(), [{"body": "Is sys still needed?", "author": "session", "include": True},
                                    {"body": (self.dir / "body.md").read_text(), "author": "session", "include": True}])
-        # A finding's drafts go out only while it is marked comment.
-        self.post("api/review", {"op": "set", "id": f2["id"], "action": "ignore"})
+        # A finding's drafts go out only while it is marked for their kind.
+        self.post("api/review", {"op": "set", "id": f2["id"], "choices": []})
         self.assertEqual([a["include"] for a in last2()], [False, False])
-        self.post("api/review", {"op": "set", "id": f2["id"], "action": "comment"})
+        self.post("api/review", {"op": "set", "id": f2["id"], "choices": ["comment"]})
         self.assertEqual([a["include"] for a in last2()], [True, True])
         for a in self.get("api/review")["actions"][-2:]:
             A("remove", a["id"])
@@ -543,11 +573,70 @@ class ReviewServerTest(ServerCase):
         a = self.post("api/review", {"op": "add", "text": "first", "severity": "P2"})["finding"]
         b = self.post("api/review", {"op": "add", "text": "second", "severity": "P2"})["finding"]
         (self.dir / "body.md").write_text("Body.")
-        run("action", self.dir, "add", "comment", "--finding", b["id"], "--body-file", self.dir / "body.md")
+        for f in (a, b):
+            self.post("api/review", {"op": "set", "id": f["id"], "choices": ["comment"]})
+            run("action", self.dir, "add", "comment", "--finding", f["id"], "--body-file", self.dir / "body.md")
+        run("action", self.dir, "add", "check", "--finding", b["id"], "--title", "t", "--command", "true")
         run("finding", self.dir, "merge", a["id"], b["id"])
-        self.assertEqual(self.get("api/review")["actions"][0]["finding"], a["id"])
+        # The merged finding keeps one comment draft, and drafts for the folded one still find it.
+        actions = self.get("api/review")["actions"]
+        self.assertEqual([(x["kind"], x["finding"]) for x in actions], [("comment", a["id"]), ("check", a["id"])])
+        self.assertIn(a["id"], run("action", self.dir, "add", "comment", "--finding", b["id"], "--body-file", self.dir / "body.md").stdout)
+        run("action", self.dir, "remove", self.get("api/review")["actions"][-1]["id"])
+        # Removing it drops its unsent drafts; what went out stays, unlinked.
+        run("action", self.dir, "result", actions[1]["id"], "--status", "done")
         self.post("api/review", {"op": "remove", "id": a["id"]})
-        self.assertIsNone(self.get("api/review")["actions"][0]["finding"])
+        self.assertEqual([(x["kind"], x["finding"]) for x in self.get("api/review")["actions"]], [("check", None)])
+        self.assertIn("removed, or never existed", run("action", self.dir, "add", "check", "--finding", a["id"], "--title", "t", "--command", "true", check=False).stderr)
+
+    def test_choices_edge_cases(self):
+        (self.dir / "deck.json").write_text(json.dumps(deck_spec(pr="https://github.com/o/r/pull/7")))
+        self.wait_for(lambda: self.get("api/deck")["pr"])
+        F = lambda *a, **k: run("finding", self.dir, *a, **k)
+        A = lambda *a, **k: run("action", self.dir, *a, **k)
+        api = lambda op: self.post("api/review", op)
+        # A hidden finding takes no choices, and a rejected add leaves nothing behind.
+        self.assertIn("not seen", F("add", "x", "--review", "--choose", "fix", check=False).stderr)
+        self.assertEqual(json.loads((self.dir / "findings.json").read_text() if (self.dir / "findings.json").exists() else '{"findings": []}')["findings"], [])
+        f = api({"op": "add", "text": "one", "severity": "P3"})["finding"]
+        # One kind turned on or off keeps the others, whatever the page last saw.
+        api({"op": "set", "id": f["id"], "choose": "fix", "on": True})
+        api({"op": "set", "id": f["id"], "choose": "comment", "on": True})
+        self.assertEqual(self.get("api/review")["findings"][0]["choices"], ["comment", "fix"])
+        # Turned off before the session picks it up, the request is withdrawn.
+        F("set", f["id"], "--choose", "")
+        self.assertEqual((self.get("api/review")["proposal"], [p.name for p in (self.dir / "queue").glob("*.json") if p.name != "pages.json"]), ("none", []))
+        # A draft turned off while it was drafted arrives left out; Include and the choice move together.
+        api({"op": "set", "id": f["id"], "choose": "fix", "on": True})
+        self.assertTrue(self.get("api/review")["waiting"])
+        # The page hears when the session takes the request, though no edit comes with it.
+        with urllib.request.urlopen(self.url + "api/events", timeout=10) as events:
+            self.assertEqual(events.readline().strip(), b"event: hello")
+            run("listen", self.dir, "--timeout", 5)
+            seen = []
+            while b"event: review\n" not in seen:
+                try:
+                    seen.append(events.readline())
+                except TimeoutError:
+                    self.fail(f"no review event: {seen}")
+        # Taken by the session, the request is no longer waiting, though drafting goes on.
+        self.assertEqual((self.get("api/review")["waiting"], self.get("api/review")["proposal"]), (False, "requested"))
+        api({"op": "set", "id": f["id"], "choose": "fix", "on": False})
+        (self.dir / "fix.diff").write_text("--- a/src/app.py\n+++ b/src/app.py\n@@ -1,2 +1,2 @@\n import os\n-import sys, json\n+import sys\n")
+        A("add", "fix", "--finding", f["id"], "--title", "t", "--patch-file", self.dir / "fix.diff")
+        A("ready", "--note", "This session may not change the repository.")
+        page = self.get("api/review")
+        self.assertEqual((page["actions"][0]["include"], page["proposal"], page["note"]), (False, "ready", "This session may not change the repository."))
+        api({"op": "action-set", "id": page["actions"][0]["id"], "include": True})
+        self.assertEqual(self.get("api/review")["findings"][0]["choices"], ["fix"])
+        # Rewording the finding drafts its fix again.
+        api({"op": "set", "id": f["id"], "text": "one, reworded"})
+        self.assertEqual((self.get("api/review")["actions"], self.get("api/review")["proposal"]), ([], "requested"))
+        # The finish lists what was drafted and not carried out.
+        run("listen", self.dir, "--timeout", 5)
+        A("add", "fix", "--finding", f["id"], "--title", "t", "--patch-file", self.dir / "fix.diff")
+        self.post("api/finish", {})
+        self.assertIn("1 drafted action was not carried out", run("listen", self.dir, "--timeout", 5).stdout)
 
 
 if __name__ == "__main__":

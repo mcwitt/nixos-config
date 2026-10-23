@@ -1806,7 +1806,10 @@
     pill.dataset.on = String(st.session !== "away");
     pill.textContent = PRESENCE[st.session][0];
     pill.title = PRESENCE[st.session][1]();
-    if (changed && S.deck) renderThread();
+    if (changed && S.deck) {
+      renderThread();
+      if (slide()?.generated) renderSlide({ keepScroll: true }); // generated slides may say whether the session listens
+    }
   }
 
   function banner(key, text, details) {
