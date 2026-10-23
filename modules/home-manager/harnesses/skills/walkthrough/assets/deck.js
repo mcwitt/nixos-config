@@ -37,6 +37,9 @@
   const esc = (s) =>
     String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
+  const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+  const inAppendix = (s) => s.section === "Appendix";
+
   function h(tag, attrs, ...kids) {
     const el = document.createElement(tag);
     for (const [k, v] of Object.entries(attrs || {})) {
@@ -447,7 +450,7 @@
       h("h2", { class: "slide-title" }, s.title),
     );
     inner.append(...slideBody(s));
-    if (S.idx === S.deck.slides.length - 1) inner.append(tallyEl());
+    if (S.idx === tallySlide() && (!s.quiz.length || answered(s))) inner.append(tallyEl());
     inner.append(nextUp());
     el.replaceChildren(inner);
     markAskable(el);
@@ -475,7 +478,7 @@
   }
 
   function blockEl(b, opts) {
-    if (b.type === "md") return h("div", { class: "block" }, mdEl(b.md));
+    if (b.type === "md") return h("div", { class: "block md wide" }, mdEl(b.md));
     if (b.type === "callout") {
       return h(
         "div",
@@ -509,39 +512,44 @@
     return here < i ? here : here > 0 ? start(here - 1) : 0;
   }
 
+  // Where Shift+→ goes and what its button says; null when that is just the next slide.
+  function skipTarget(i) {
+    const slides = S.deck.slides;
+    const n = slides.length;
+    if (i >= n - 1) return null;
+    if (inAppendix(slides[i + 1]) && !inAppendix(slides[i])) {
+      // With nothing after the appendix, the walkthrough ends here instead.
+      const past = slides.findIndex((t, k) => k > i && !inAppendix(t));
+      return past > 0 ? { to: past, label: "Skip the appendix ↠", title: "Skip the appendix" } : null;
+    }
+    const skip = nextSection(i);
+    if (skip > i + 1) return { to: skip, label: `Skip to ${slides[skip].section || slides[skip].title} ↠`, title: `Skip the rest of ${slides[i].section}` };
+    if (skip < 0 && i < n - 2) return { to: n - 1, label: "Skip to the end ↠", title: "Skip to the last slide" };
+    return null;
+  }
+
   function skipControls() {
-    const n = S.deck.slides.length;
-    if (S.idx >= n - 1) return null;
+    if (S.idx >= S.deck.slides.length - 1) return null;
     const next = S.deck.slides[S.idx + 1];
-    const skip = nextSection(S.idx);
+    const skip = skipTarget(S.idx);
     return h(
       "span",
       { class: "skip" },
       h("button", { type: "button", class: "ghost small", title: `Next: ${next.title} (→)`, onclick: () => go(S.idx + 1) }, "Next →"),
-      skip > S.idx + 1
-        ? h(
-            "button",
-            { type: "button", class: "ghost small", title: `Skip the rest of ${S.deck.slides[S.idx].section} (Shift+→)`, onclick: () => go(skip) },
-            `Skip to ${S.deck.slides[skip].section || S.deck.slides[skip].title} ↠`,
-          )
-        : skip < 0 && S.idx < n - 2
-          ? h("button", { type: "button", class: "ghost small", title: "Skip to the last slide (Shift+→)", onclick: () => go(n - 1) }, "Skip to the end ↠")
-          : null,
+      skip ? h("button", { type: "button", class: "ghost small", title: `${skip.title} (Shift+→)`, onclick: () => go(skip.to) }, skip.label) : null,
     );
   }
 
   function nextUp() {
-    const n = S.deck.slides.length;
-    if (S.idx < n - 1) {
-      const nx = S.deck.slides[S.idx + 1];
-      return h(
-        "div",
-        { class: "next-up wide" },
-        h("span", {}, "Next: ", h("strong", {}, nx.title)),
-        h("button", { type: "button", class: "primary", onclick: () => go(S.idx + 1) }, "Continue →"),
-      );
+    const slides = S.deck.slides;
+    const n = slides.length;
+    const rest = slides.slice(S.idx + 1);
+    const continueBtn = (cls) => h("button", { type: "button", class: cls, onclick: () => go(S.idx + 1) }, rest.every(inAppendix) ? "Read the appendix →" : "Continue →");
+    if (rest.length && !rest.every(inAppendix)) {
+      return h("div", { class: "next-up wide" }, h("span", {}, "Next: ", h("strong", {}, rest[0].title)), continueBtn("primary"));
     }
-    const unseen = S.deck.slides.map((s, i) => [s, i]).filter(([s, i]) => i !== S.idx && !S.visited.has(s.id));
+    // Only the appendix is left, which the reader may skip, so the walkthrough can end here.
+    const unseen = slides.map((t, i) => [t, i]).filter(([t, i]) => i !== S.idx && !inAppendix(t) && !S.visited.has(t.id));
     return h(
       "div",
       { class: "next-up wide" },
@@ -551,31 +559,36 @@
         unseen.length
           ? [
               "Not opened yet: ",
-              ...unseen.flatMap(([s, i], k) => [
+              ...unseen.flatMap(([t, i], k) => [
                 k ? ", " : "",
-                h("a", { href: `#${s.id}`, title: s.title }, String(i + 1)),
+                h("a", { href: `#${t.id}`, title: t.title }, String(i + 1)),
               ]),
             ]
           : "End of the walkthrough.",
       ),
       h(
-        "button",
-        {
-          type: "button",
-          class: "primary",
-          onclick: async (e) => {
-            const btn = e.currentTarget;
-            btn.disabled = true;
-            try {
-              await post("api/finish");
-              toast(`Told the ${who()} you have finished.`);
-            } catch (err) {
-              toast(`Could not reach the server: ${err.message}`);
-              btn.disabled = false;
-            }
+        "span",
+        { class: "next-up-buttons" },
+        rest.length ? continueBtn("ghost") : null,
+        h(
+          "button",
+          {
+            type: "button",
+            class: "primary finish",
+            onclick: async (e) => {
+              const btn = e.currentTarget;
+              btn.disabled = true;
+              try {
+                await post("api/finish");
+                toast(`Told the ${who()} you have finished.`);
+              } catch (err) {
+                toast(`Could not reach the server: ${err.message}`);
+                btn.disabled = false;
+              }
+            },
           },
-        },
-        "Finish the walkthrough",
+          "Finish the walkthrough",
+        ),
       ),
     );
   }
@@ -616,7 +629,7 @@
   function scoreText(s) {
     const { total, done, right, waiting } = score(s);
     const parts = [done ? `${right} of ${total} correct` : "", waiting ? `${waiting} waiting` : ""].filter(Boolean);
-    return parts.join(", ") || `${total} question${total === 1 ? "" : "s"}`;
+    return parts.join(", ") || plural(total, "question");
   }
 
   function seeLink(s, q, ch) {
@@ -643,8 +656,7 @@
         ),
       );
     });
-    const { done, waiting, total } = score(s);
-    if (done + waiting === total) {
+    if (answered(s)) {
       root.append(h("div", { class: "check-foot" }, h("button", { type: "button", class: "ghost small", onclick: () => retake(s) }, "Retake this check")));
     }
     return root;
@@ -844,10 +856,22 @@
     $("#question").focus();
   }
 
-  // On the last slide: every check's outcome, with links to what was missed.
+  // Every check's outcome, with links to what was missed: on the last check
+  // slide once it is answered, or, when content follows it, where Finish first shows.
+  function tallySlide() {
+    const slides = S.deck.slides;
+    const last = slides.findLastIndex((t) => t.quiz.length);
+    const end = slides.findLastIndex((t) => !inAppendix(t));
+    return last >= 0 && slides.slice(last + 1).some((t) => !inAppendix(t) && !t.generated) ? end : last;
+  }
+
+  function answered(s) {
+    const { done, waiting, total } = score(s);
+    return done + waiting === total;
+  }
+
   function tallyEl() {
     const checks = S.deck.slides.map((s, i) => [s, i]).filter(([s]) => s.quiz.length);
-    if (!checks.length) return null;
     let total = 0;
     let right = 0;
     const missed = [];
@@ -856,7 +880,7 @@
       const sc = score(s);
       total += sc.total;
       right += sc.right;
-      if (sc.done < sc.total) open.push([s, i]);
+      if (sc.done < sc.total && i !== S.idx) open.push([s, i]);
       s.quiz.forEach((q, k) => {
         if (outcome(s, k) === false) missed.push([s, i, q, q.choices[choiceOf(s, k)]]);
       });
@@ -952,7 +976,7 @@
     return fig;
   }
 
-  const omitRow = (n) => h("tr", { class: "omit" }, h("td", { colspan: 3 }, `⋯ ${n} line${n === 1 ? "" : "s"} of this hunk not shown here`));
+  const omitRow = (n) => h("tr", { class: "omit" }, h("td", { colspan: 3 }, `⋯ ${plural(n, "line")} of this hunk not shown here`));
 
   // ---- line selection ----
 
@@ -1671,7 +1695,7 @@
             h(
               "span",
               { class: `toc-q ${sc && sc.done ? (sc.right === sc.total ? "ok" : "warn") : ""}` },
-              [sc && sc.done ? `${sc.right}/${sc.total}` : "", q ? `${q} question${q === 1 ? "" : "s"}` : ""].filter(Boolean).join(" · "),
+              [sc && sc.done ? `${sc.right}/${sc.total}` : "", q ? plural(q, "question") : ""].filter(Boolean).join(" · "),
             ),
           ),
         ),
@@ -1950,8 +1974,7 @@
       }
       if (e.shiftKey && e.key === "ArrowRight") {
         e.preventDefault();
-        const j = nextSection(S.idx);
-        go(j >= 0 ? j : S.deck.slides.length - 1);
+        go(skipTarget(S.idx)?.to ?? Math.min(S.idx + 1, S.deck.slides.length - 1));
       } else if (e.shiftKey && e.key === "ArrowLeft") {
         e.preventDefault();
         go(prevSection(S.idx));
@@ -2022,7 +2045,7 @@
         else Object.assign(hooks[key], value);
       }
     },
-    S, $, h, mdEl, chipLabel, renderBlock, renderSlide, keepFocus, markAskable, mdInline, excerptEl,
+    S, $, h, plural, mdEl, chipLabel, renderBlock, renderSlide, keepFocus, markAskable, mdInline, excerptEl,
     paintQuoted, renderChips, saveDraft, flashRef, go, slide, slideIndex, sourceHref, toast, post, getJSON, who, debounce,
   };
 

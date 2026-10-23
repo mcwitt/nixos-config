@@ -113,7 +113,7 @@ A submitted answer queues for the session like a question. `listen` hands it ove
 
 Ask for a written answer where choosing among options would let the reader guess: explain why a design holds, predict a behavior and justify it, or write the few lines that implement an idea. A written answer costs the reader minutes, not seconds, so use one or two per deck, usually in the final check.
 
-The page records the reader's answers in `DECK/quiz.json`, the last slide shows a tally with links back to what was missed, and `listen` reports the results when the reader finishes. The reader can retake a check and can quote a question they disagree with into the question box.
+The page records the reader's answers in `DECK/quiz.json`, a tally of every check, with links back to what was missed, follows the last check once it is answered (or, if content follows the last check, sits on the last slide before the appendix), and `listen` reports the results when the reader finishes. The reader can retake a check and can quote a question they disagree with into the question box.
 
 Write questions that are answered by the code, not by the slide's wording: predict an output for an input, name the line that enforces an invariant, say what the error path does. Make each wrong choice a plausible misreading and let its `why` say what was misread. Avoid "all of the above", trick questions and questions answerable by matching the slide's own phrases.
 
