@@ -1,17 +1,18 @@
 "use strict";
-// The review layer's page, over teach-me's deck.js: appendix groups, and the
-// findings drawer and Findings slide. It works only on a deck with diffs; on
-// any other deck it stays out of the way.
+// The review layer's page, over teach-me's deck.js: appendix groups, the
+// findings drawer and Findings slide, and the Proposed actions slide. It
+// works only on a deck with diffs; on any other deck it stays out of the way.
 (() => {
   const D = window.Deck;
-  const { S, $, h, mdEl, chipLabel, renderBlock, renderSlide, keepFocus, markAskable } = D;
+  const { S, $, h, mdEl, mdInline, chipLabel, excerptEl, renderBlock, renderSlide, keepFocus, markAskable } = D;
   const { paintQuoted, renderChips, saveDraft, flashRef, go, slide, slideIndex, sourceHref, toast, post, getJSON, who, debounce } = D;
 
   Object.assign(S, {
     groupsOpen: new Map(),
     editing: new Map(),
     findings: [],
-    review: { hidden: 0, review: "none", reveal: "hidden" },
+    actions: [],
+    review: { hidden: 0, review: "none", reveal: "hidden", proposal: "none" },
   });
 
   // An appendix group: a note saying whether the changes deserve a close
@@ -60,9 +61,11 @@
 
   async function loadReview() {
     if (!findingsOn()) return;
-    const { findings, ...review } = await getJSON("api/review");
+    const { findings, actions, ...review } = await getJSON("api/review");
     S.findings = findings;
+    S.actions = actions;
     S.review = review;
+    registerFiles(actions.flatMap((a) => a.diff?.files || []));
   }
 
   async function findingOp(op) {
@@ -163,9 +166,9 @@
     if (slide()?.generated) renderSlide({ keepScroll: true });
   }
 
-  // An in-place editor for a finding's text. Its draft lives
+  // An in-place editor for a finding's or a comment's text. Its draft lives
   // in S.editing, so a redraw of the slide or the drawer keeps it.
-  function editorEl(key, save) {
+  function editorEl(key, save, hint) {
     const box = h("textarea", { class: "answer-input", rows: 4, "data-draft": key });
     box.value = S.editing.get(key);
     box.addEventListener("input", () => S.editing.set(key, box.value));
@@ -179,7 +182,7 @@
       "div",
       { class: "finding-edit" },
       box,
-      h("div", { class: "answer-row" }, h("button", { type: "button", class: "primary small", onclick: submit }, "Save"), h("button", { type: "button", class: "ghost small", onclick: close }, "Cancel")),
+      h("div", { class: "answer-row" }, h("button", { type: "button", class: "primary small", onclick: submit }, "Save"), h("button", { type: "button", class: "ghost small", onclick: close }, "Cancel"), hint ? h("span", { class: "hint" }, hint) : null),
     );
   }
 
@@ -248,6 +251,129 @@
     $("#findings-btn").setAttribute("aria-expanded", "false");
   }
 
+  // ---- proposed actions ----
+
+  // The session proposes comments, fixes and checks for the findings; the
+  // reader rewords comments, asks for changes by clicking a draft, chooses
+  // what to include, and presses Carry out. A comment posts from the account
+  // of whoever wrote its current text.
+  const ACTION_KINDS = { comment: "Comment", fix: "Fix", check: "Check" };
+  const CLAIM_STALE = 20 * 60; // as in deck.py: how long the session has to report an action it was sent
+  const postsAs = (a) => (a.author === "reader" ? "posts as you" : "posts as the agent's account");
+
+  // A fix's patch draws like the deck's diffs, so its files join the deck's.
+  function registerFiles(files) {
+    for (const f of files) {
+      S.files.set(f.key, f);
+      for (const hk of f.hunks) {
+        S.hunks.set(hk.id, { ...hk, file: f });
+        S.hl.delete(hk.id);
+      }
+    }
+  }
+
+  function actionsSlideEl() {
+    const { proposal } = S.review;
+    const ask = (label, cls = "primary small") => h("button", { type: "button", class: cls, onclick: () => findingOp({ op: "request-proposal" }) }, label);
+    const intro = mdEl(
+      `The ${who()} drafts the review comments for findings you marked **Comment**, and any fix or check you ask for. ` +
+        "Reword a comment yourself, or click a draft to ask for changes. Nothing runs until you press **Carry out**.",
+    );
+    if (proposal === "none") return h("div", { class: "block actions-slide wide" }, intro, ask("Propose actions"));
+    const drafting = proposal === "requested";
+    const status = drafting ? h("p", { class: "reveal" }, h("span", { class: "ellipsis" }, `The ${who()} is drafting the actions`), " ", ask("Ask again", "ghost small")) : null;
+    if (drafting && !S.actions.length) return h("div", { class: "block actions-slide wide" }, intro, status);
+    // Actions already sent go again only once the session has had time to report them: it may have lost the request.
+    const fresh = S.actions.filter((a) => a.include && (a.state === "proposed" || a.state === "failed"));
+    const lost = S.actions.filter((a) => a.include && a.state === "running" && Date.now() / 1000 - (a.sent || 0) > CLAIM_STALE);
+    const runnable = fresh.length ? fresh : lost;
+    const label = drafting ? "Carry out (once the drafts are ready)" : fresh.length ? carryLabel(fresh) : lost.length ? "Send again" : "Carry out";
+    return h(
+      "div",
+      { class: "block actions-slide wide" },
+      intro,
+      status,
+      S.actions.map(actionEl),
+      h(
+        "div",
+        { class: "carry-out" },
+        h("button", { type: "button", class: "primary", disabled: drafting || !runnable.length, onclick: () => carryOut(runnable) }, label),
+        drafting ? null : ask("Propose more", "ghost small"),
+      ),
+    );
+  }
+
+  function carryLabel(actions) {
+    if (!actions.length) return "Carry out";
+    const parts = [];
+    const comments = actions.filter((a) => a.kind === "comment");
+    const mine = comments.filter((a) => a.author === "reader").length;
+    if (comments.length - mine) parts.push(`${comments.length - mine} comment${comments.length - mine === 1 ? "" : "s"} as the agent's account`);
+    if (mine) parts.push(`${mine} comment${mine === 1 ? "" : "s"} as you`);
+    for (const kind of ["fix", "check"]) {
+      const n = actions.filter((a) => a.kind === kind).length;
+      if (n) parts.push(`${n} ${kind}${n === 1 ? "" : kind === "fix" ? "es" : "s"}`);
+    }
+    return `Carry out ${actions.length}: ${parts.join(", ")}`;
+  }
+
+  async function carryOut(actions) {
+    if (await findingOp({ op: "carry-out", ids: actions.map((a) => a.id) })) toast(`Sent ${actions.length} action${actions.length === 1 ? "" : "s"} to the ${who()}.`);
+  }
+
+  function actionEl(a) {
+    const locked = a.state === "running" || a.state === "done";
+    const include = h("input", { type: "checkbox", checked: a.include, disabled: locked, "aria-label": "Include this action" });
+    include.addEventListener("change", () => findingOp({ op: "action-set", id: a.id, include: include.checked }));
+    const finding = S.findings.find((f) => f.id === a.finding);
+    const head = h(
+      "div",
+      { class: "finding-head" },
+      include,
+      h("span", { class: `source kind-${a.kind}` }, ACTION_KINDS[a.kind]),
+      a.kind === "comment" ? h("span", { class: `source ${a.author}` }, postsAs(a)) : null,
+      h("strong", { class: "action-title" }, a.title),
+      a.state !== "proposed" ? h("span", { class: `action-state ${a.state}` }, a.state) : null,
+    );
+    const ask = (text) => ({ "data-ask": `Proposed ${a.kind} ${a.id} (${a.title}): ${text}`, "data-ask-source": "action" });
+    let body;
+    if (a.kind === "comment") {
+      const place = a.place ? h("span", { class: "chip static" }, h("span", { class: "chip-label" }, a.place.label)) : h("span", { class: "source" }, "review summary");
+      const key = `action:${a.id}`;
+      if (S.editing.has(key)) {
+        const hint = a.author === "reader" ? null : "Once you change it, the comment posts as you.";
+        body = [h("div", { class: "chips" }, place), editorEl(key, (t) => findingOp({ op: "action-set", id: a.id, body: t }), hint)];
+      } else {
+        const edit = locked ? null : h("div", { class: "finding-tools" }, h("button", { type: "button", class: "ghost small", onclick: () => startEditing(key, a.body) }, "Edit"));
+        body = [h("div", { class: "chips" }, place), h("div", { class: "finding-text", ...ask(a.body) }, mdEl(a.body)), edit];
+      }
+    } else if (a.kind === "fix") {
+      body = a.diff.blocks.map((b) => excerptEl(b));
+    } else {
+      body = [h("pre", { class: "code-answer finding-text", ...ask(a.command) }, h("code", {}, a.command))];
+    }
+    return h(
+      "article",
+      { class: `finding action ${a.include ? "" : "ignore"}`, "data-action": a.id },
+      head,
+      finding ? h("div", { class: "action-for" }, `For ${finding.severity || "P?"}: `, h("span", { html: mdInline(finding.text) })) : null,
+      body,
+      a.result ? resultEl(a) : null,
+    );
+  }
+
+  function resultEl(a) {
+    const r = a.result;
+    return h(
+      "div",
+      { class: `action-result ${a.state}` },
+      h("strong", {}, a.state === "done" ? "Done" : "Failed"),
+      r.note ? ` · ${r.note}` : "",
+      r.link ? [" · ", h("a", { href: r.link, target: "_blank", rel: "noopener noreferrer" }, "View")] : null,
+      r.output ? h("details", {}, h("summary", {}, "Output"), h("pre", { class: "code-answer" }, r.output)) : null,
+    );
+  }
+
   // ---- wiring ----
 
   // The drawer, its button in the top bar and the composer's Add finding button.
@@ -297,6 +423,7 @@
     load: loadReview,
     deckLoaded(deck) {
       S.agent = deck.coverage ? "review session" : "session";
+      registerFiles(S.actions.flatMap((a) => a.diff?.files || []));
     },
     render: [renderFindings, renderCoverage],
     reconnect: reviewChanged,
@@ -305,6 +432,6 @@
     composer: () => ($("#add-finding").disabled = !$("#question").value.trim()),
     // Quoting a finding into the question box closes the drawer, so the box shows.
     quoted: (el) => el.closest("#findings") && closeFindings(),
-    blocks: { group: groupEl, findings: findingsSlideEl },
+    blocks: { group: groupEl, findings: findingsSlideEl, actions: actionsSlideEl },
   });
 })();

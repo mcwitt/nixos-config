@@ -5,7 +5,7 @@ description: Walk a human through a code change (commit, branch, pull request or
 
 # Assisted review
 
-Build the reader's understanding of the change. This skill extends `teach-me`, installed beside it: read `<skill-dir>/../teach-me/SKILL.md` and `<skill-dir>/../teach-me/references/deck.md`, then `references/diffs.md` here for the diff blocks, the appendix and coverage. Run its engine as `<skill-dir>/scripts/review_deck.py`: teach-me's `deck.py`, which it loads from beside it, with the review layer this skill adds. It takes every `deck.py` command. Keep the source and Git state unchanged throughout.
+Build the reader's understanding of the change. This skill extends `teach-me`, installed beside it: read `<skill-dir>/../teach-me/SKILL.md` and `<skill-dir>/../teach-me/references/deck.md`, then `references/diffs.md` here for the diff blocks, the appendix and coverage. Run its engine as `<skill-dir>/scripts/review_deck.py`: teach-me's `deck.py`, which it loads from beside it, with the review layer this skill adds. It takes every `deck.py` command. Keep the source and Git state unchanged throughout, except for fixes the reader approves on the Proposed actions slide (see step 3).
 
 ## 1. Establish the change
 
@@ -81,3 +81,11 @@ The reader collects findings as they go, in a drawer the top bar opens, and deci
 When the reader adds a finding without one, `listen` hands it to you; set it with `finding DECK set ID --severity P2`. `finding DECK list` prints the findings with the reader's choices, and `listen` reports them when the reader finishes.
 
 Record the background review's findings, and the defects you noticed, as hidden review findings once the server runs: `finding DECK add TEXT --review --severity P1 --at PATH:LINE`, translating the review's own severities to P0 to P3. Mark the review with `finding DECK review running` while it runs and `finding DECK review done` when everything is recorded. When the reader presses Reveal on the Findings slide, `listen` hands you both lists: merge the findings that report the same problem with `finding DECK merge KEEP OTHER...`, reword a merged finding if neither text covers both, and run `finding DECK reveal`.
+
+The Proposed actions slide follows the Findings slide. When the reader presses Propose actions, `listen` hands you the findings with the reader's choices. Propose with `review_deck.py action DECK add`:
+
+- **comment**: one review comment for each finding marked Comment, written as it will be posted. It goes at the finding's first place in a file unless you pass `--at` or `--summary`.
+- **fix**: only where the reader asked for one, or where the change is the reader's own and the fix is small and certain; a patch from the repository root.
+- **check**: a test or command that would settle a doubt.
+
+Run `action DECK ready` to show them. The reader can reword a comment, skip an action, or click a draft to ask for changes, which you make with `action DECK set ID`. Nothing runs until the reader presses Carry out; then `listen` hands you the approved actions, and you report each with `action DECK result ID --status done` or `failed`. Post the comments you wrote under the GitHub identity you normally use, and the comments the reader wrote or edited under the reader's own identity, which the reader's press authorizes for those comments only. Submit reviews as comments, never as approvals or change requests unless the reader asks, and leave applied fixes uncommitted unless the reader asks otherwise.

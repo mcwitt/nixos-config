@@ -134,6 +134,10 @@ class Extension:
     def tick(self, state: State):
         """Twice a second on the server's watcher thread."""
 
+    def hunks(self, state: State) -> dict[str, Hunk]:
+        """Hunks beyond the deck's that the reader can quote."""
+        return {}
+
     def get(self, state: State, route: str):
         """A GET route's JSON, or None when the route is not its."""
 
@@ -997,6 +1001,13 @@ class State:
         return {**deck_payload(self.deck, self.version), "status": self.status(),
                 "engine": engine(), "audited": self.audited == self.version}
 
+    def hunks(self) -> dict[str, Hunk]:
+        """The hunks a reader can quote: the deck's and any an extension adds."""
+        out = dict(self.deck.hunks)
+        for ext in EXTENSIONS:
+            out.update(ext.hunks(self))
+        return out
+
     def report_issues(self, version: int, issues: list[tuple[str, str, str]], audit: bool):
         """Queue the problems no page has reported yet for `listen` to pass on;
         `audit` says a page drew every slide, so later pages need not."""
@@ -1294,7 +1305,8 @@ class Handler(BaseHTTPRequestHandler):
         deck = st.deck
         slide = deck.slide(str(body.get("slide")))
         text = body.get("text")
-        refs = parse_refs(deck.hunks, body.get("refs"))
+        hunks = st.hunks()
+        refs = parse_refs(hunks, body.get("refs"))
         if slide is None or not isinstance(text, str) or not (text.strip() or refs):
             return self._error(400, "expected a slide id and a question")
         qid = new_id()
@@ -1306,7 +1318,7 @@ class Handler(BaseHTTPRequestHandler):
             "slide": slide["id"],
             "where": f"{deck.position(slide)}: {slide['title']}",
             "text": msg["text"],
-            "refs": refs_text(deck.hunks, refs),
+            "refs": refs_text(hunks, refs),
             "at": msg["at"],
         }
         with st.threads.lock:

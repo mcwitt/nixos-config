@@ -1,5 +1,5 @@
-/* The review layer's page: appendix groups, and the findings drawer and
-   slide. Colors and fonts come from deck.css. */
+/* The review layer's page: appendix groups, the findings drawer and slide,
+   and the Proposed actions slide. Colors and fonts come from deck.css. */
 
 /* ---- appendix ---- */
 
@@ -78,6 +78,19 @@
   background: var(--note-wash);
 }
 .reveal p { margin: 0 0 0.6rem; }
+.action-title { font-weight: 600; }
+.action-for { font-size: var(--step--1); color: var(--ink-2); margin-bottom: 0.3rem; }
+.action-state { font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-3); }
+.action-state.running { color: var(--accent); }
+.action-state.done { color: var(--ok); }
+.action-state.failed { color: var(--del-ink); }
+.action .excerpt { margin: 0.4rem 0 0.2rem; }
+.action-result { margin-top: 0.4rem; font-size: var(--step--1); color: var(--ink-2); }
+.action-result.done strong { color: var(--ok); }
+.action-result.failed strong { color: var(--del-ink); }
+.actions-slide .finding { max-width: none; margin-bottom: 0.75rem; }
+.actions-slide > .prose { max-width: var(--measure); }
+.carry-out { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
 .segmented { display: inline-flex; }
 .segmented button { border-radius: 0; margin-left: -1px; }
 .segmented button:first-child { border-radius: 6px 0 0 6px; margin-left: 0; }

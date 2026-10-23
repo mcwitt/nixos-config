@@ -5,11 +5,13 @@ This is the teaching slideshow engine (teach-me's deck.py, which it imports
 from the skill installed beside it) with a review layer. A deck names unified
 diffs of the change, shows changed lines in `diff` blocks, and must show
 every changed line on some slide or appendix group. The engine ends the deck
-with a Findings slide, where the reader collects and triages findings.
+with a Findings slide, where the reader collects and triages findings, and a
+Proposed actions slide, where the session drafts review comments, fixes and
+checks that run once the reader approves them.
 
 `hunks` lists the hunks of a deck's diffs with the ids slides refer to.
-`finding` lets the session record findings. The other commands are
-deck.py's. The server keeps findings in
+`finding` and `action` let the session record findings and propose actions.
+The other commands are deck.py's. The server keeps findings and actions in
 `findings.json`; the session's edits reach it as `queue/op-*.json` files.
 """
 
@@ -17,6 +19,7 @@ from __future__ import annotations
 
 import codecs
 import contextlib
+import functools
 import json
 import re
 import sys
@@ -30,8 +33,8 @@ if CORE not in sys.path:
     sys.path.insert(0, CORE)
 import deck as core  # noqa: E402
 from deck import (  # noqa: E402
-    Deck, Extension, FileDiff, Hunk, Listening, Loading, Queue, Row, _str, log, new_id, parse_refs, read_json,
-    row_span, server_info, stale_reason, write_atomic,
+    CLAIM_STALE, Deck, Extension, FileDiff, Hunk, Listening, Loading, Queue, Row, _str, fenced, file_payload, log,
+    new_id, parse_refs, read_json, row_span, server_info, stale_reason, write_atomic,
 )
 
 FINDING_ID = re.compile(r"^f-[0-9a-z-]+$")
@@ -43,12 +46,22 @@ SEVERITIES = ("P0", "P1", "P2", "P3")
 FINDING_ACTIONS = ("ignore", "comment")
 
 
+ACTION_ID = re.compile(r"^a-[0-9a-z-]+$")
+
+
+ACTION_KINDS = ("comment", "fix", "check")
+
+
 PR_URL = re.compile(r"^https://github\.com/[\w.-]+/[\w.-]+/pull/\d+$")
 
 
 # Slides the engine adds to a deck with diffs, after the appendix.
 FINDINGS_SLIDE = {"id": "findings", "title": "Findings", "section": "Review", "generated": "findings",
                   "prompts": [], "blocks": [{"type": "findings"}], "quiz": []}
+
+
+ACTIONS_SLIDE = {"id": "proposed-actions", "title": "Proposed actions", "section": "Review", "generated": "actions",
+                 "prompts": [], "blocks": [{"type": "actions"}], "quiz": []}
 
 
 HUNK_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@ ?(.*)$")
@@ -316,7 +329,7 @@ def locate(deck: Deck, spec: str) -> dict:
 
 
 class Review:
-    """A review deck's findings, persisted to findings.json.
+    """A review deck's findings and proposed actions, persisted to findings.json.
 
     A finding is {id, text, severity, sources, refs, slide, at, action,
     hidden, merged}: severity is P0 to P3 or null, sources lists "reader" and
@@ -326,12 +339,21 @@ class Review:
     from hidden to requested (the session merges duplicates) to shown.
     `review` is the background review's status: none, running or done.
 
+    A proposed action is {id, kind, title, finding, include, state, result}
+    plus, for a comment, body, author and place; for a fix, patch (a unified
+    diff); for a check, command. A comment's author is whoever wrote its
+    current text, "session" or "reader", and decides whose account posts it;
+    a comment without a place goes in the review's summary. state goes from
+    proposed to running to done or failed. `proposal` is none, requested or
+    ready.
+
     Only the server writes it, through op(): edits come from the page (by
-    "reader") and from the `finding` command (by "session")."""
+    "reader") and from the `finding` and `action` commands (by "session")."""
 
     OPS = {
-        "reader": {"add", "set", "remove", "request-reveal"},
-        "session": {"add", "set", "remove", "merge", "review", "reveal"},
+        "reader": {"add", "set", "remove", "request-reveal", "request-proposal", "action-set", "carry-out"},
+        "session": {"add", "set", "remove", "merge", "review", "reveal",
+                    "action-add", "action-set", "action-remove", "action-ready", "action-result"},
     }
 
     def __init__(self, path: Path, queue: Queue):
@@ -343,11 +365,14 @@ class Review:
         for f in self.items:
             f.setdefault("hidden", False)
             f.setdefault("merged", [])
+        self.actions: list[dict] = data.get("actions", [])
         self.review: str = data.get("review", "none")
         self.reveal: str = data.get("reveal", "hidden")
+        self.proposal: str = data.get("proposal", "none")
 
     def save(self):
-        data = {"version": 1, "review": self.review, "reveal": self.reveal, "findings": self.items}
+        data = {"version": 1, "review": self.review, "reveal": self.reveal, "proposal": self.proposal,
+                "findings": self.items, "actions": self.actions}
         write_atomic(self.path, json.dumps(data, indent=1))
 
     def get(self, fid: str) -> dict | None:
@@ -357,8 +382,17 @@ class Review:
         """What the page shows: everything but the hidden findings, which it only counts."""
         with self.lock:
             shown = [f for f in self.items if not f.get("hidden")]
+            actions = [{**a, **({"diff": fix_payload(a)} if a["kind"] == "fix" else {})} for a in self.actions]
             return json.loads(json.dumps({"findings": shown, "hidden": len(self.items) - len(shown), "review": self.review,
-                                          "reveal": self.reveal}))
+                                          "reveal": self.reveal, "proposal": self.proposal, "actions": actions}))
+
+    def hunks(self) -> dict[str, Hunk]:
+        """The hunks of the proposed fixes, which the reader can quote like the deck's."""
+        with self.lock:
+            return self._fix_hunks()
+
+    def _fix_hunks(self) -> dict[str, Hunk]:
+        return {h.id: h for a in self.actions if a["kind"] == "fix" for f in fix_files(a) for h in f.hunks}
 
     def op(self, op: dict, by: str, deck: Deck) -> dict:
         kind = op.get("op") if isinstance(op.get("op"), str) else None
@@ -391,7 +425,7 @@ class Review:
         text = str(op.get("text") or "").strip()
         if not text:
             raise ValueError("a finding needs text")
-        refs = parse_refs(deck.hunks, op.get("refs")) + [locate(deck, str(a)) for a in op.get("at") or []]
+        refs = parse_refs({**deck.hunks, **self._fix_hunks()}, op.get("refs")) + [locate(deck, str(a)) for a in op.get("at") or []]
         slide = deck.slide(str(op.get("slide")))
         review = by == "session" and op.get("review") is True
         item = {"id": new_id("f"), "text": text[:20_000], "severity": op.get("severity"),
@@ -426,7 +460,14 @@ class Review:
         if by == "reader" and "reader" not in item["sources"]:
             raise ValueError("only your own findings can be removed")
         self.items.remove(item)
+        self._repoint(item["id"], None)
         return {"finding": item}
+
+    def _repoint(self, old: str, new: str | None):
+        """Point the actions for a finding that is gone at the one that took its place, if any."""
+        for a in self.actions:
+            if a["finding"] == old:
+                a["finding"] = new
 
     def _op_merge(self, op: dict, by: str, deck: Deck) -> dict:
         """Fold duplicates into one finding: sources and places join, the most severe severity wins."""
@@ -443,6 +484,7 @@ class Review:
             keep["action"] = keep["action"] or o["action"]
             keep["hidden"] = keep["hidden"] and o["hidden"]
             self.items.remove(o)
+            self._repoint(o["id"], keep["id"])
         keep["refs"] = keep["refs"][:8]
         return {"finding": keep}
 
@@ -470,6 +512,153 @@ class Review:
             x["hidden"] = False
         self.reveal = "shown"
         return {"reveal": "shown"}
+
+    # Proposed actions
+
+    def _action(self, aid) -> dict:
+        item = next((a for a in self.actions if a["id"] == str(aid)), None) if ACTION_ID.match(str(aid)) else None
+        if item is None:
+            raise ValueError(f"no action {aid}")
+        return item
+
+    def _action_fields(self, a: dict, op: dict, by: str, deck: Deck) -> dict:
+        """The validated changes `op` makes to action `a`; nothing changes until all are valid."""
+        out = {}
+        if "title" in op:
+            out["title"] = _required(op["title"], "title")[:200]
+        if "include" in op:
+            out["include"] = op["include"] is True
+        if "body" in op:
+            if a["kind"] != "comment":
+                raise ValueError("only a comment has a body")
+            out["body"] = _required(op["body"], "body")[:20_000]
+            if out["body"] != a.get("body"):
+                out["author"] = by
+        if by == "reader" and set(op) - {"op", "id", "include", "body"}:
+            raise ValueError("the reader can include, skip or reword an action")
+        if "at" in op:
+            if a["kind"] != "comment":
+                raise ValueError("only a comment has a place")
+            out["place"] = place_of(locate(deck, str(op["at"]))) if op["at"] else None
+        if "patch" in op:
+            if a["kind"] != "fix":
+                raise ValueError("only a fix has a patch")
+            patch = _required(op["patch"], "patch")
+            try:
+                if not parse_diff(patch):
+                    raise DiffError("it changes no files")
+            except DiffError as e:
+                raise ValueError(f"patch: {e}") from None
+            out["patch"] = patch
+        if "command" in op:
+            if a["kind"] != "check":
+                raise ValueError("only a check has a command")
+            out["command"] = _required(op["command"], "command")
+        return out
+
+    def _op_action_add(self, op: dict, by: str, deck: Deck) -> dict:
+        kind = op.get("kind")
+        if kind not in ACTION_KINDS:
+            raise ValueError(f"kind: expected one of {', '.join(ACTION_KINDS)}")
+        finding = self._finding(op["finding"]) if op.get("finding") else None
+        if kind == "comment" and not deck.spec.get("pr"):
+            raise ValueError("the deck has no pull request to comment on")
+        needed = {"comment": "body", "fix": "patch", "check": "command"}[kind]
+        if not op.get(needed):
+            raise ValueError(f"a {kind} needs its {needed}")
+        a = {"id": new_id("a"), "kind": kind, "title": "", "finding": finding["id"] if finding else None,
+             "include": True, "state": "proposed", "result": None}
+        if kind == "comment":
+            # By default a comment sits at its finding's first place in the diff, where GitHub can anchor it.
+            inline = lambda r: r["kind"] == "lines" and r["hunk"] in deck.hunks and not deck.hunks[r["hunk"]].file.plain
+            at = next((place_of(r) for r in (finding or {}).get("refs", []) if inline(r)), None)
+            a.update(author="session", place=at)
+        a.update(self._action_fields(a, {**op, "title": op.get("title") or "untitled"}, by, deck))
+        if not op.get("title"):
+            # A comment's title says where it goes; its finding is shown beside it.
+            where = f"at {a['place']['label']}" if a.get("place") else "in the review summary"
+            a["title"] = f"Comment {where}" if kind == "comment" else (finding or {}).get("text", kind)[:120]
+        self.actions.append(a)
+        return {"action": a}
+
+    def _op_action_set(self, op: dict, by: str, deck: Deck) -> dict:
+        a = self._action(op.get("id"))
+        if a["state"] in ("running", "done"):
+            raise ValueError(f"action {a['id']} is {a['state']}")
+        a.update(self._action_fields(a, op, by, deck))
+        return {"action": a}
+
+    def _op_action_remove(self, op: dict, by: str, deck: Deck) -> dict:
+        a = self._action(op.get("id"))
+        self.actions.remove(a)
+        return {"action": a}
+
+    def _op_action_ready(self, op: dict, by: str, deck: Deck) -> dict:
+        self.proposal = "ready"
+        return {"proposal": self.proposal}
+
+    def _op_action_result(self, op: dict, by: str, deck: Deck) -> dict:
+        a = self._action(op.get("id"))
+        if op.get("status") not in ("done", "failed"):
+            raise ValueError("status: expected done or failed")
+        a["state"] = op["status"]
+        a["result"] = {k: str(op[k])[:20_000] for k in ("link", "note", "output") if op.get(k)}
+        return {"action": a}
+
+    def _op_request_proposal(self, op: dict, by: str, deck: Deck) -> dict:
+        self.proposal = "requested"
+        self._ask("propose")
+        return {"proposal": self.proposal}
+
+    def _op_carry_out(self, op: dict, by: str, deck: Deck) -> dict:
+        if self.proposal != "ready":
+            raise ValueError("the session is still drafting the actions")
+        ids = op.get("ids") if isinstance(op.get("ids"), list) else []
+        chosen = [self._action(i) for i in dict.fromkeys(ids)]
+        if not chosen:
+            raise ValueError("choose the actions to carry out")
+        now = time.time()
+        for a in chosen:
+            if a["state"] == "done":
+                raise ValueError(f"action {a['id']} is done already")
+            # A running action goes again only once the session has had time to report it.
+            if a["state"] == "running" and now - a.get("sent", 0) < CLAIM_STALE:
+                raise ValueError(f"action {a['id']} was sent to the session just now")
+        for a in chosen:
+            a.update(state="running", include=True, result=None, sent=now)
+        self._ask("carry-out", once=False, actions=[a["id"] for a in chosen])
+        return {"actions": chosen}
+
+
+def _required(v, name: str) -> str:
+    if not isinstance(v, str) or not v.strip():
+        raise ValueError(f"{name}: expected text")
+    return v.strip()
+
+
+def place_of(ref: dict) -> dict:
+    """Where a review comment goes: a reference's file, side and lines."""
+    return {k: ref[k] for k in ("path", "side", "line", "end", "label")}
+
+
+def fix_files(a: dict) -> list[FileDiff]:
+    return _parse_fix(a["patch"], a["id"])
+
+
+@functools.lru_cache(maxsize=64)
+def _parse_fix(patch: str, label: str) -> list[FileDiff]:
+    try:
+        return parse_diff(patch, label)
+    except DiffError:
+        return []
+
+
+def fix_payload(a: dict) -> dict:
+    """A fix's patch as the page draws it: its files and one excerpt per file."""
+    files = fix_files(a)
+    blocks = [{"type": "excerpt", "file": f.key, "caption": "", "pieces": [{"hunk": h.id, "lo": 0, "hi": len(h.rows) - 1} for h in f.hunks]}
+              for f in files]
+    return {"files": [{**file_payload(f), "label": "proposed fix"} for f in files], "blocks": blocks}
 
 
 def finding_text(f: dict) -> str:
@@ -521,6 +710,59 @@ SEVERITY_HELP = ("P0 blocks the release or major use, such as a security hole or
 
 def load_review(deck_dir: Path) -> Review:
     return Review(deck_dir / "findings.json", Queue(deck_dir))
+
+
+def action_text(a: dict) -> str:
+    on = f" on {a['finding']}" if a["finding"] else ""
+    state = a["state"] + ("" if a["include"] else ", skipped")
+    return f"{a['id']} {a['kind']}{on}: {a['title']} [{state}]"
+
+
+def proposal_brief(review: Review, cmd: str) -> str:
+    """What the session needs to propose the review's actions."""
+    findings = "\n".join(f"  {finding_text(f)} [{f['action'] or 'no choice'}]" for f in review.items) or "  (none)"
+    actions = "\n".join(f"  {action_text(a)}" for a in review.actions) or "  (none)"
+    return f"""The reader asked for proposed actions.
+
+Findings, with the reader's choices:
+{findings}
+
+Actions proposed so far:
+{actions}
+
+Propose what the reader's choices call for, and nothing for a finding marked ignore:
+- For each finding marked comment, draft one review comment: write its body to a file, then run
+    {cmd} add comment --finding ID --body-file FILE
+  It goes at the finding's first place in a file; --at PATH:LINE[-END] moves it and --summary puts it in the review's summary. Write it as it will be posted: short, specific, and saying what to change.
+- Propose a fix only where the reader asked for one, or where the change is the reader's own and the fix is small and certain. Write it as a patch against the head of the change, as `git diff` prints it from the repository root:
+    {cmd} add fix --finding ID --title TITLE --patch-file PATCH
+- Propose a check, a test or command that settles a doubt, where one would:
+    {cmd} add check --title TITLE --command COMMAND
+Revise a draft with `{cmd} set ID` (--body-file, --title, --at, --patch-file or --command) and drop one with `{cmd} remove ID`. Then show them to the reader, who can edit comments, ask for changes and choose what to carry out:
+    {cmd} ready
+Nothing runs until the reader presses Carry out."""
+
+
+def carry_brief(review: Review, ids: list[str], cmd: str, pr: str) -> str:
+    """What the session needs to carry out the actions the reader approved."""
+    out = ["The reader approved these actions. Carry them out now:\n"]
+    for a in (a for a in review.actions if a["id"] in ids):
+        out.append(f"  {action_text(a)}")
+        if a["kind"] == "comment":
+            who = "the reader's account" if a["author"] == "reader" else "your account"
+            where = f"at {a['place']['path']}:{a['place']['line']}" + (f"-{a['place']['end']}" if a["place"]["end"] != a["place"]["line"] else "") + f" ({a['place']['side']} side)" if a["place"] else "in the review's summary"
+            out.append(f"    posts as {who}, {where}:\n" + "\n".join("    > " + line for line in a["body"].splitlines()))
+        elif a["kind"] == "fix":
+            out.append("    patch:\n" + "\n".join("    " + line for line in fenced(a["patch"], "diff").splitlines()))
+        else:
+            out.append(f"    command: {a['command']}")
+    out.append(f"""
+- Comments: post them on {pr or 'the pull request'} as review comments, one review per account. Post the comments you wrote with the GitHub identity you normally use, and the ones the reader wrote or edited with the reader's own identity; the reader's press authorizes exactly those comments under their identity, and nothing else. Submit each review as a comment: do not approve or request changes unless the reader asks. If an identity is not available to you, report those comments failed and say why; do not post them under another.
+- Fixes: apply each patch with `git apply` in the repository, and leave the changes uncommitted unless the reader asks otherwise.
+- Checks: run each command where the change is checked out.
+Report each action as you finish it, with the comment's link or the check's output:
+  {cmd} result ID --status done|failed [--link URL] [--note TEXT] [--output-file FILE]""")
+    return "\n".join(out)
 
 
 def reveal_brief(findings: Review, cmd: str) -> str:
@@ -606,6 +848,38 @@ def cmd_finding(args):
         print(f"Saved: {json.dumps(result)}")
 
 
+def cmd_action(args):
+    deck_dir = Path(args.deck).resolve()
+    if args.action == "list":
+        review = load_review(deck_dir)
+        print(f"proposal: {review.proposal}")
+        for a in review.actions:
+            print(action_text(a))
+        return
+    op = {"op": "action-" + args.action}
+    if args.action in ("set", "remove", "result"):
+        op["id"] = args.id
+    if args.action == "add":
+        op.update(kind=args.kind, finding=args.finding)
+    if args.action in ("add", "set"):
+        for key, value in (("title", args.title), ("command", args.command), ("at", args.at)):
+            if value:
+                op[key] = value
+        if args.summary:
+            op["at"] = ""
+        for key, path in (("body", args.body_file), ("patch", args.patch_file)):
+            if path:
+                op[key] = Path(path).read_text()
+    if args.action == "result":
+        op.update(status=args.status, link=args.link, note=args.note,
+                  output=Path(args.output_file).read_text(errors="replace")[-20_000:] if args.output_file else None)
+    result = send_op(deck_dir, op)
+    if "action" in result:
+        print(f"{'Removed' if args.action == 'remove' else 'Saved'} {action_text(result['action'])}")
+    else:
+        print(f"Saved: {json.dumps(result)}")
+
+
 # --------------------------------------------------------------------------
 # The extension
 
@@ -649,7 +923,7 @@ class ReviewExtension(Extension):
         diff_excerpt(load, blk, where, out)
 
     def reserves(self, slide_id: str) -> bool:
-        return slide_id.startswith("appendix-") or slide_id == FINDINGS_SLIDE["id"]
+        return slide_id.startswith("appendix-") or slide_id in (FINDINGS_SLIDE["id"], ACTIONS_SLIDE["id"])
 
     def end(self, load: Loading) -> list[dict]:
         """Lay out the appendix, check that every changed line is shown, and add the review's slides."""
@@ -702,7 +976,7 @@ class ReviewExtension(Extension):
             "files": len(load.files),
         }
         generated = _appendix_slides(groups) if groups else []
-        return generated + [json.loads(json.dumps(FINDINGS_SLIDE))]
+        return generated + json.loads(json.dumps([FINDINGS_SLIDE, ACTIONS_SLIDE]))
 
     def payload(self, deck: Deck) -> dict:
         diffs = [f for f in deck.files if not f.plain]
@@ -723,7 +997,7 @@ class ReviewExtension(Extension):
         state.review = Review(state.deck_dir / "findings.json", state.queue)
 
     def tick(self, state):
-        """Apply the session's edits, which `finding` leaves in queue/op-*.json."""
+        """Apply the session's edits, which `finding` and `action` leave in queue/op-*.json."""
         for path in state.queue.dir.glob("op-*.result"):
             with contextlib.suppress(OSError):
                 if time.time() - path.stat().st_mtime > 300:
@@ -739,6 +1013,9 @@ class ReviewExtension(Extension):
                 result = {"error": f"the server failed: {e!r}; see server.log"}
             write_atomic(path.with_suffix(".result"), json.dumps(result))
             path.unlink(missing_ok=True)
+
+    def hunks(self, state) -> dict[str, Hunk]:
+        return state.review.hunks()
 
     def get(self, state, route: str):
         return state.review.snapshot() if route == "/api/review" else None
@@ -763,8 +1040,15 @@ class ReviewExtension(Extension):
             f = item["finding"]
             print(f"The reader added a finding without a severity:\n  {finding_text(f)}\n\n"
                   f"Give it one ({SEVERITY_HELP}):\n  python3 {me} finding {deck_arg} set {f['id']} --severity P2")
-        elif kind == "reveal":
-            print(reveal_brief(load_review(ctx.deck_dir), f"python3 {me} finding {deck_arg}"))
+        elif kind in ("reveal", "propose", "carry-out"):
+            review = load_review(ctx.deck_dir)
+            if kind == "reveal":
+                print(reveal_brief(review, f"python3 {me} finding {deck_arg}"))
+            elif kind == "propose":
+                print(proposal_brief(review, f"python3 {me} action {deck_arg}"))
+            else:
+                pr = read_json(ctx.deck_dir / "deck.json").get("pr", "")
+                print(carry_brief(review, item["actions"], f"python3 {me} action {deck_arg}", pr))
         else:
             return False
         ctx.q.remove(item["id"])
@@ -821,6 +1105,32 @@ class ReviewExtension(Extension):
         fsub.add_parser("list", help="print the findings, hidden ones included")
         f.set_defaults(func=cmd_finding)
 
+        a = sub.add_parser("action", help="propose, revise and report the review's actions")
+        a.add_argument("deck")
+        asub = a.add_subparsers(dest="action", required=True)
+        aa = asub.add_parser("add", help="propose a comment, fix or check")
+        aa.add_argument("kind", choices=ACTION_KINDS)
+        aa.add_argument("--finding", help="the finding it acts on")
+        asets = [aa, asub.add_parser("set", help="revise a proposed action")]
+        asets[1].add_argument("id")
+        for ap in asets:
+            ap.add_argument("--title")
+            ap.add_argument("--body-file", help="a comment's text, Markdown")
+            ap.add_argument("--at", metavar="PATH:LINE[-END]", help="where a comment goes (default: its finding's first place)")
+            ap.add_argument("--summary", action="store_true", help="put a comment in the review's summary")
+            ap.add_argument("--patch-file", help="a fix, as a unified diff from the repository root")
+            ap.add_argument("--command", help="a check's command")
+        asub.add_parser("remove", help="drop a proposed action").add_argument("id")
+        asub.add_parser("ready", help="show the proposed actions to the reader")
+        ar = asub.add_parser("result", help="report how an action went")
+        ar.add_argument("id")
+        ar.add_argument("--status", choices=["done", "failed"], required=True)
+        ar.add_argument("--link", help="the posted comment's URL")
+        ar.add_argument("--note", help="one line for the reader")
+        ar.add_argument("--output-file", help="a check's output")
+        asub.add_parser("list", help="print the proposed actions")
+        a.set_defaults(func=cmd_action)
+
 
 class Shown:
     """The changed lines and files a deck's diff excerpts show, while it loads."""
@@ -846,13 +1156,13 @@ def diff_excerpt(load: Loading, blk: dict, where: str, blocks: list[dict]):
 
 
 def review_op(state, op: dict, by: str) -> dict:
-    """Apply an edit to the findings and tell the pages."""
+    """Apply an edit to the findings or proposed actions and tell the pages."""
     result = state.review.op(op, by, state.deck)
     state.broadcast("review", {})
     return result
 
 
-core.QUOTE_SOURCES.update(finding="a finding")
+core.QUOTE_SOURCES.update(finding="a finding", action="a proposed action")
 if not any(e.name == ReviewExtension.name for e in core.EXTENSIONS):
     core.EXTENSIONS.append(ReviewExtension())
 

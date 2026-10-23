@@ -2022,7 +2022,7 @@
         else Object.assign(hooks[key], value);
       }
     },
-    S, $, h, mdEl, chipLabel, renderBlock, renderSlide, keepFocus, markAskable,
+    S, $, h, mdEl, chipLabel, renderBlock, renderSlide, keepFocus, markAskable, mdInline, excerptEl,
     paintQuoted, renderChips, saveDraft, flashRef, go, slide, slideIndex, sourceHref, toast, post, getJSON, who, debounce,
   };
 

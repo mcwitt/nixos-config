@@ -1,5 +1,5 @@
 """Tests for assisted-review's review_deck.py: diff parsing, coverage, the
-appendix and findings, over teach-me's deck.py.
+appendix, findings and proposed actions, over teach-me's deck.py.
 
 Usage: python3 test_review_deck.py <path/to/review_deck.py>
 """
@@ -100,8 +100,8 @@ class DeckTest(DeckDirCase):
     def test_full_coverage_builds_appendix(self):
         self.write(deck_spec())
         deck = self.rd.load_deck(self.dir)
-        self.assertEqual([s["id"] for s in deck.slides], ["why", "what", "appendix-1", "findings"])
-        self.assertEqual(deck.slides[-1]["blocks"], [{"type": "findings"}])
+        self.assertEqual([s["id"] for s in deck.slides], ["why", "what", "appendix-1", "findings", "proposed-actions"])
+        self.assertEqual([s["blocks"] for s in deck.slides[-2:]], [[{"type": "findings"}], [{"type": "actions"}]])
         self.assertEqual((deck.slides[2]["title"], deck.slides[2]["section"]), ("Everything else", "Appendix"))
         (group,) = deck.slides[2]["blocks"]
         self.assertEqual((group["type"], group["title"], group["md"]), ("group", "Everything else", "The rest of the change."))
@@ -209,7 +209,7 @@ class DeckTest(DeckDirCase):
             {"diff": "staged:" + d["diff"]} for d in FULL_APPENDIX[0]["diffs"]
         ]
         self.write(spec)
-        self.assertEqual(len(self.rd.load_deck(self.dir).slides), 4)
+        self.assertEqual(len(self.rd.load_deck(self.dir).slides), 5)
         # A place named by path finds the lines of a labeled diff.
         self.assertEqual(self.rd.locate(self.rd.load_deck(self.dir), "src/app.py:2")["hunk"], "staged:src/app.py#1")
 
@@ -255,7 +255,7 @@ class ReviewServerTest(ServerCase):
         self.wait_for(lambda: "check" in [s["id"] for s in self.get("api/deck")["slides"]])
         self.post("api/answer", {"slide": "check", "question": 0, "choice": 0})
         self.post("api/finish", {})
-        self.assertIn("covered on slide 2 of 5: What", run("listen", self.dir, "--timeout", 5).stdout)
+        self.assertIn("covered on slide 2 of 6: What", run("listen", self.dir, "--timeout", 5).stdout)
 
     def test_findings(self):
         added = self.post("api/review", {"op": "add", "text": "json is unused", "slide": "what",
@@ -362,6 +362,93 @@ class ReviewServerTest(ServerCase):
     def test_reveal_without_review_findings_is_immediate(self):
         self.assertEqual(self.post("api/review", {"op": "request-reveal"}), {"reveal": "shown"})
         self.assertIn("No questions", run("listen", self.dir, "--timeout", 1).stdout)
+
+    def test_proposed_actions(self):
+        (self.dir / "deck.json").write_text(json.dumps(deck_spec(pr="https://github.com/o/r/pull/7")))
+        self.wait_for(lambda: self.get("api/deck")["pr"])
+        A = lambda *a, **k: run("action", self.dir, *a, **k)
+        f = self.post("api/review", {"op": "add", "text": "json is unused", "severity": "P2",
+                                     "refs": [{"kind": "lines", "hunk": "src/app.py#1", "lo": 1, "hi": 2}]})["finding"]
+        self.post("api/review", {"op": "set", "id": f["id"], "action": "comment"})
+        self.assertEqual(self.post("api/review", {"op": "request-proposal"}), {"proposal": "requested"})
+        out = run("listen", self.dir, "--timeout", 5).stdout
+        self.assertIn("The reader asked for proposed actions.", out)
+        self.assertIn(f"  {f['id']} (P2, from reader, at app.py new 2): json is unused [comment]", out)
+        self.assertIn(f"action {self.dir} add comment --finding ID --body-file FILE", out)
+
+        (self.dir / "body.md").write_text("`json` is imported but unused; drop it.")
+        out = A("add", "comment", "--finding", f["id"], "--body-file", self.dir / "body.md").stdout
+        comment = self.get("api/review")["actions"][0]
+        self.assertIn(f"Saved {comment['id']} comment on {f['id']}: Comment at app.py new 2 [proposed]", out)
+        self.assertEqual((comment["author"], comment["place"]["path"], comment["place"]["side"], comment["place"]["line"]),
+                         ("session", "src/app.py", "new", 2))
+        (self.dir / "fix.diff").write_text("--- a/src/app.py\n+++ b/src/app.py\n@@ -1,2 +1,2 @@\n import os\n-import sys, json\n+import sys\n")
+        A("add", "fix", "--finding", f["id"], "--title", "Drop the import", "--patch-file", self.dir / "fix.diff")
+        (self.dir / "bad.diff").write_text("not a diff\n")
+        self.assertIn("patch:", A("add", "fix", "--title", "x", "--patch-file", self.dir / "bad.diff", check=False).stderr)
+        A("add", "check", "--title", "Nothing imports json", "--command", "grep -rn json src")
+        drafting = self.get("api/review")["actions"]
+        with self.assertRaises(urllib.error.HTTPError) as cm:
+            self.post("api/review", {"op": "carry-out", "ids": [drafting[0]["id"]]})
+        self.assertIn(b"still drafting", cm.exception.read())
+        A("ready")
+        page = self.get("api/review")
+        comment, fix, check = page["actions"]
+        self.assertEqual(page["proposal"], "ready")
+        self.assertEqual([b["pieces"][0]["hunk"] for b in fix["diff"]["blocks"]], [f"{fix['id']}:src/app.py#1"])
+
+        # The reader quotes the fix's lines, rewords the comment and skips the check.
+        q = self.post("api/ask", {"slide": "proposed-actions", "text": "why?", "refs": [{"kind": "lines", "hunk": fix["diff"]["blocks"][0]["pieces"][0]["hunk"], "lo": 1, "hi": 2}]})["message"]
+        self.assertIn("+import sys", run("listen", self.dir, "--timeout", 5).stdout)
+        self.assertEqual(q["refs"][0]["path"], "src/app.py")
+        (self.dir / "a.md").write_text("Because.")
+        run("listen", self.dir, "--answer", q["id"], "--file", self.dir / "a.md", "--timeout", 1)
+        # Saving the agent's text unchanged keeps it the agent's; changing it makes it the reader's.
+        self.post("api/review", {"op": "action-set", "id": comment["id"], "body": comment["body"]})
+        self.assertEqual(self.get("api/review")["actions"][0]["author"], "session")
+        self.post("api/review", {"op": "action-set", "id": comment["id"], "body": "Please drop the unused `json` import."})
+        # A finding can point into a proposed fix.
+        f2 = self.post("api/review", {"op": "add", "text": "keep sys?", "severity": "P3",
+                                      "refs": [{"kind": "lines", "hunk": fix["diff"]["blocks"][0]["pieces"][0]["hunk"], "lo": 2, "hi": 2}]})["finding"]
+        self.assertEqual(f2["refs"][0]["line"], 2)
+        # Its comment cannot sit on lines the pull request does not show, so it goes in the summary.
+        self.assertIn("Comment in the review summary", A("add", "comment", "--finding", f2["id"], "--body-file", self.dir / "body.md").stdout)
+        A("remove", self.get("api/review")["actions"][-1]["id"])
+        self.post("api/review", {"op": "action-set", "id": check["id"], "include": False})
+        with self.assertRaises(urllib.error.HTTPError):
+            self.post("api/review", {"op": "action-set", "id": comment["id"], "title": "mine now"})
+        self.assertEqual(self.get("api/review")["actions"][0]["author"], "reader")
+
+        self.post("api/review", {"op": "carry-out", "ids": [comment["id"], fix["id"]]})
+        self.assertEqual([a["state"] for a in self.get("api/review")["actions"]], ["running", "running", "proposed"])
+        with self.assertRaises(urllib.error.HTTPError) as cm:
+            self.post("api/review", {"op": "carry-out", "ids": [comment["id"]]})
+        self.assertIn(b"sent to the session just now", cm.exception.read())
+        out = run("listen", self.dir, "--timeout", 5).stdout
+        self.assertIn("The reader approved these actions.", out)
+        self.assertIn("posts as the reader's account, at src/app.py:2 (new side):\n    > Please drop the unused `json` import.", out)
+        self.assertIn("-import sys, json", out)
+        self.assertNotIn("grep -rn json", out)
+        self.assertIn("on https://github.com/o/r/pull/7 as review comments", out)
+        A("result", comment["id"], "--status", "done", "--link", "https://github.com/o/r/pull/7#discussion_r1")
+        actions = self.get("api/review")["actions"]
+        self.assertEqual((actions[0]["state"], actions[0]["result"]), ("done", {"link": "https://github.com/o/r/pull/7#discussion_r1"}))
+        self.assertIn("is done", A("set", comment["id"], "--title", "x", check=False).stderr)
+        with self.assertRaises(urllib.error.HTTPError):
+            self.post("api/review", {"op": "carry-out", "ids": [comment["id"]]})
+        self.assertIn("[done]", A("list").stdout)
+
+    def test_actions_follow_merged_findings(self):
+        (self.dir / "deck.json").write_text(json.dumps(deck_spec(pr="https://github.com/o/r/pull/7")))
+        self.wait_for(lambda: self.get("api/deck")["pr"])
+        a = self.post("api/review", {"op": "add", "text": "first", "severity": "P2"})["finding"]
+        b = self.post("api/review", {"op": "add", "text": "second", "severity": "P2"})["finding"]
+        (self.dir / "body.md").write_text("Body.")
+        run("action", self.dir, "add", "comment", "--finding", b["id"], "--body-file", self.dir / "body.md")
+        run("finding", self.dir, "merge", a["id"], b["id"])
+        self.assertEqual(self.get("api/review")["actions"][0]["finding"], a["id"])
+        self.post("api/review", {"op": "remove", "id": a["id"]})
+        self.assertIsNone(self.get("api/review")["actions"][0]["finding"])
 
 
 if __name__ == "__main__":
