@@ -5,7 +5,7 @@ description: Walk a human through a code change (commit, branch, pull request or
 
 # Assisted review
 
-Build the reader's understanding of the change. This skill extends `teach-me`, installed beside it: read `<skill-dir>/../teach-me/SKILL.md` and `<skill-dir>/../teach-me/references/deck.md`, then `references/diffs.md` here for the diff blocks, the appendix and coverage. The deck engine is shared; run it here as `<skill-dir>/scripts/review_deck.py`. Keep the source and Git state unchanged throughout.
+Build the reader's understanding of the change. This skill extends `teach-me`, installed beside it: read `<skill-dir>/../teach-me/SKILL.md` and `<skill-dir>/../teach-me/references/deck.md`, then `references/diffs.md` here for the diff blocks, the appendix and coverage. Run its engine as `<skill-dir>/scripts/review_deck.py`: teach-me's `deck.py`, which it loads from beside it, with the review layer this skill adds. It takes every `deck.py` command. Keep the source and Git state unchanged throughout.
 
 ## 1. Establish the change
 
@@ -59,6 +59,8 @@ If you notice a concrete correctness concern, raise it on the relevant slide as 
 
 The final check spans the whole change: how the pieces fit, and what the review decision hinges on. Ask what the code does, not what the slide said.
 
+For a pull request, set `pr` to its URL; the reader can then mark findings for review comments.
+
 When the change is on GitHub (a commit, a pushed branch or a pull request), set `source_url` to a permalink template at the head commit, `https://github.com/OWNER/REPO/blob/HEAD_SHA/{path}#L{line}-L{end}`, so excerpts and selected lines link to the file in context. Leave it out for local changes.
 
 Write `DECK/deck.json`, then run `python3 <skill-dir>/scripts/review_deck.py check DECK` until it passes.
@@ -66,3 +68,12 @@ Write `DECK/deck.json`, then run `python3 <skill-dir>/scripts/review_deck.py che
 ## 3. Serve, answer and finish
 
 Serve the deck, answer questions and finish as `teach-me` describes, running `review_deck.py` in place of `deck.py`. Give the reader a one-sentence summary of the change in place of the goal. In answers, cite `path:line` and do not change the code. At the finish, say which tests or validations were actually run and which were only inspected; finishing the walkthrough does not mean the reader approved the change. Without a browser, give the summary (why and what) and the slide list, and invite questions before showing any diff.
+
+The reader collects findings as they go, in a drawer the top bar opens, and decides what to do with each on the Findings slide that ends the deck. Record a finding when the reader asks you to, with `review_deck.py finding DECK add TEXT --at PATH:LINE[-END]` (new-side lines; repeat `--at` for several places). Give every finding a severity, using the reader's when they name one:
+
+- **P0**: blocks the release or major use, such as a security hole, an auth bypass or data loss.
+- **P1**: urgent; fix it in the next cycle, such as a concurrency bug, a performance regression or sensitive data in logs.
+- **P2**: should be fixed eventually.
+- **P3**: nice to have.
+
+When the reader adds a finding without one, `listen` hands it to you; set it with `finding DECK set ID --severity P2`. `finding DECK list` prints the findings with the reader's choices, and `listen` reports them when the reader finishes.

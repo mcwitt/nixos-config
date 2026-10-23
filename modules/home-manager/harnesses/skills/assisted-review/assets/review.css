@@ -1,0 +1,75 @@
+/* The review layer's page: appendix groups, and the findings drawer and
+   slide. Colors and fonts come from deck.css. */
+
+/* ---- appendix ---- */
+
+/* An appendix group; one alone on its slide shares the slide's title. */
+.group > h3 { font: 650 var(--step-1) / 1.3 var(--font-display); margin: 0 0 0.4rem; }
+.group:only-of-type > h3 { display: none; }
+.group + .group { border-top: 1px solid var(--rule); padding-top: 1.25rem; }
+.group > .prose { max-width: var(--measure); }
+.group-diffs > summary {
+  cursor: pointer;
+  width: fit-content;
+  color: var(--ink-2);
+  font-size: var(--step--1);
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+}
+.group-diffs > summary:hover { background: var(--sunk); }
+.group-diffs[open] > summary { margin-bottom: 0.75rem; }
+
+/* ---- contents ---- */
+
+.toc-cover { font-size: var(--step--1); color: var(--ink-3); }
+
+/* ---- findings ---- */
+
+#findings-btn .count:not(:empty) {
+  margin-left: 0.2rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font: 600 0.72rem/1.5 var(--font-body);
+}
+.findings-list { display: grid; gap: 0.75rem; margin-top: 1rem; }
+.finding {
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem 0.5rem;
+  background: var(--panel);
+}
+.finding.ignore { opacity: 0.6; }
+.finding-head { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.3rem; }
+.finding-tools { margin-left: auto; display: flex; gap: 0.25rem; align-items: center; }
+.finding-text { cursor: help; border-radius: 4px; }
+.finding-text:hover, .finding-text:focus-visible { box-shadow: 0 0 0 1.5px var(--sel-edge); outline: none; }
+.finding-text .prose p:last-child { margin-bottom: 0.3rem; }
+.finding .chips { margin-top: 0.2rem; }
+.finding .chip.static { border: 1px solid var(--sel-edge); }
+.severity {
+  font: 600 0.75rem/1.4 var(--font-mono);
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 0 0.3rem;
+  background: var(--panel);
+  color: var(--ink-3);
+  cursor: pointer;
+}
+.severity.P0 { color: var(--del-ink); }
+.severity.P1 { color: var(--warn); }
+.severity.P2 { color: var(--accent); }
+.severity.P3 { color: var(--ink-2); }
+.source {
+  font-size: 0.68rem; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--ink-3); border: 1px solid var(--rule); border-radius: 999px; padding: 0 0.4rem;
+}
+.segmented { display: inline-flex; }
+.segmented button { border-radius: 0; margin-left: -1px; }
+.segmented button:first-child { border-radius: 6px 0 0 6px; margin-left: 0; }
+.segmented button:last-child { border-radius: 0 6px 6px 0; }
+.segmented button[aria-pressed="true"] { background: var(--accent-wash); border-color: var(--accent); color: var(--ink); position: relative; }
+.finding-group h3 { font: 650 var(--step-1) / 1.3 var(--font-display); margin: 1.5rem 0 0.6rem; }
+.finding-group .finding + .finding { margin-top: 0.6rem; }
+.findings-slide .finding { max-width: var(--measure); }

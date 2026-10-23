@@ -20,6 +20,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.2/languages/dockerfile.min.js" integrity="sha384-0zNCDFuDropscQQX105Gh/3QcoGRmz/FNUFCljVEETiDYRYMhSEyRydgyjQTlgds" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.2/languages/lisp.min.js" integrity="sha384-nZelEaLvnEkKZKcAvQcTGW0CPd0OJSRWSyzSwtUbMgjQmkodbAxbLTaqAFkpdIDg" crossorigin="anonymous"></script>
 <script src="deck.js" defer></script>
+<!-- extensions -->
 </head>
 <body>
 <div class="app" id="app">
@@ -41,7 +42,7 @@
   <div class="banner" id="banner" role="status" hidden></div>
 
   <main class="stage" id="stage">
-    <article class="slide" id="slide" tabindex="-1" aria-live="polite"></article>
+    <article class="slide askable" id="slide" tabindex="-1" aria-live="polite"></article>
 
     <aside class="ask" id="ask" aria-labelledby="ask-title">
       <div class="grip ask-grip" id="ask-grip" role="separator" aria-orientation="vertical" aria-controls="ask" aria-label="Question panel width" tabindex="0" title="Drag to resize · arrow keys adjust · double-click or Enter resets"></div>
@@ -82,7 +83,6 @@
         <button type="button" class="ghost small" id="toc-close">Close</button>
       </div>
       <div class="toc-about" id="toc-about"></div>
-      <p class="toc-cover" id="toc-cover"></p>
       <ol class="toc-list" id="toc-list"></ol>
     </div>
   </div>

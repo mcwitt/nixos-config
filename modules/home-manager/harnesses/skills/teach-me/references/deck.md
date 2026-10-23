@@ -18,10 +18,9 @@ A deck directory holds `deck.json` and any files it quotes from there. `deck.py 
 
 - `title` (required): a short name for the topic. It is also the browser tab's title.
 - `subtitle`, `scope`: one line each, shown under the title. Name the sources and their versions in `scope`.
-- `goal` (required unless the deck has `diffs`): what the reader should be able to do afterwards. The contents panel shows it, and `check` prints it.
+- `goal` (required): what the reader should be able to do afterwards. The contents panel shows it, and `check` prints it.
 - `root` (optional): the directory that relative excerpt paths resolve against, absolute or relative to the deck directory; defaults to the deck directory. With `root` set, quote files saved in the deck directory by absolute path.
 - `source_url` (optional): a link template to a file, with `{path}`, `{line}` and `{end}` placeholders, where `{path}` is the excerpt's path as written; excerpts quoted by absolute path get no link. Each excerpt links to its first line, and selected lines get a "View in context" link to their range; `{end}` is the range's last line and equals `{line}` for a single line. Set it when the quoted files are on GitHub at a fixed commit or tag.
-- `diffs`, `appendix` (optional): diff files and appendix groups for walking through a change. A deck that declares `diffs` must show every changed line; the assisted-review skill describes them in its `references/diffs.md`.
 
 ## Slides
 
@@ -35,7 +34,7 @@ A deck directory holds `deck.json` and any files it quotes from there. `deck.py 
 }
 ```
 
-- `id`: letters, digits and `. _ ~ -`, starting with a letter. It appears in the page URL, and the question box's history is stored under it, so keep it stable when you revise the deck. Ids starting with `appendix-` are reserved.
+- `id`: letters, digits and `. _ ~ -`, starting with a letter. It appears in the page URL, and the question box's history is stored under it, so keep it stable when you revise the deck.
 - `section` (optional): a label such as "Why" or "Key ideas". Consecutive slides with the same label are grouped in the progress bar and the contents list.
 - `prompts` (optional): suggested questions, shown while the slide's question box is empty.
 - `blocks`: the slide's content, rendered in order (a check slide has `quiz` instead; see below). Each block is one of:
@@ -108,7 +107,7 @@ A check slide asks the reader a few questions about the slides before it: multip
 - `rubric` (required): what a correct answer must contain. The session judges against it.
 - `model` (optional): a model answer, Markdown for prose and code for code. The page offers it after judging.
 - `language`, `starter` (code, optional): the highlighting language, and code the editor starts with.
-- `test` (code, optional): `listen` copies `dir` (relative to the deck directory; default empty) to `DECK/runs/ID/`, writes the answer there as `file`, runs `command` in it with a time limit of `timeout` seconds (default 60), and shows the result with the answer. The web server never runs code. Write the tests before serving, and check that they pass on the model answer and fail on a plausible wrong one.
+- `test` (code, optional): `listen` copies `dir` (a subdirectory of the deck directory; default empty) to `DECK/runs/ID/`, writes the answer there as `file`, runs `command` in it with a time limit of `timeout` seconds (default 60), and shows the result with the answer. The web server never runs code. Write the tests before serving, and check that they pass on the model answer and fail on a plausible wrong one.
 
 A submitted answer queues for the session like a question. `listen` hands it over with the rubric, the model answer and any test results, and the session posts feedback with a verdict: `correct`, `partial` or `incorrect`. Only `correct` counts as right in the tally. The reader can revise and resubmit.
 

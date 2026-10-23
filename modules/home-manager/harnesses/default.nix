@@ -64,8 +64,8 @@ in
 
     harnesses.skills = gwsSkills // {
       asd-ste100 = "${inputs.asd-ste100}";
-      # One store copy for both, so review_deck.py's relative symlink into
-      # teach-me resolves wherever a harness links the skill.
+      # One store copy for both, so review_deck.py finds teach-me's deck.py
+      # beside it wherever a harness links the skill.
       assisted-review = "${./skills}/assisted-review";
       branch-cleanup = ./skills/branch-cleanup;
       explanatory = ./skills/explanatory;

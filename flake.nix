@@ -364,6 +364,24 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
+        # Only the files a deck check uses, so unrelated edits do not rerun it.
+        harnesses = ./modules/home-manager/harnesses;
+        deckFiles =
+          root: files:
+          pkgs.lib.fileset.toSource {
+            inherit root;
+            fileset = pkgs.lib.fileset.unions files;
+          };
+        deckTests =
+          test:
+          deckFiles (harnesses + /tests) [
+            (harnesses + /tests/deck_testing.py)
+            (harnesses + "/tests/${test}")
+          ];
+        deckSkills = deckFiles (harnesses + /skills) [
+          (harnesses + /skills/teach-me)
+          (harnesses + /skills/assisted-review)
+        ];
       in
       {
 
@@ -383,15 +401,16 @@
                   ${./modules/home-manager/profiles/agent-identity/guard.sh}
                 touch $out
               '';
-          # The review skill's engine is a symlink into teach-me; check it
-          # resolves in the store copy the harnesses deploy.
+          # The review skill's script imports teach-me's deck.py from beside
+          # it, so it runs from the store copy of both that the harnesses deploy.
           assisted-review =
             pkgs.runCommand "assisted-review-check"
               {
                 nativeBuildInputs = [ pkgs.python3 ];
               }
               ''
-                python3 ${./modules/home-manager/harnesses/skills}/assisted-review/scripts/review_deck.py --help > /dev/null
+                python3 ${deckTests "test_review_deck.py"}/test_review_deck.py \
+                  ${deckSkills}/assisted-review/scripts/review_deck.py
                 touch $out
               '';
           branch-cleanup =
@@ -447,7 +466,7 @@
                 nativeBuildInputs = [ pkgs.python3 ];
               }
               ''
-                python3 ${./modules/home-manager/harnesses/tests/test_deck.py} \
+                python3 ${deckTests "test_deck.py"}/test_deck.py \
                   ${./modules/home-manager/harnesses/skills/teach-me}/scripts/deck.py
                 touch $out
               '';

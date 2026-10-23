@@ -1,26 +1,28 @@
 #!/usr/bin/env python3
 """Check and serve a teaching slideshow.
 
-`check` validates a deck, reports which slides its checks cover and, for a
-deck with diffs, which changed lines each slide shows. `hunks` lists the hunks
-of a deck's diffs with the ids slides refer to. `serve` publishes the deck as
-a local web page with a chat panel on every slide. `listen` hands the reader's
-questions to the session and posts its answers back; `stop` ends a detached
-server.
+`check` validates a deck and reports which slides its checks cover. `serve`
+publishes the deck as a local web page with a chat panel on every slide.
+`listen` hands the reader's questions to the session and posts its answers
+back; `stop` ends a detached server.
 
-A deck directory holds `deck.json`, any unified diffs it names and any text it
-saved for excerpts. The server writes `threads.json` (the chat history),
+A deck directory holds `deck.json` and any text it saved for excerpts. The
+server writes `threads.json` (the chat history), `quiz.json` (check answers),
 `server.json` (the running server), `.server-address` (the token, port and
 options a restart reuses), `server.log` and a `queue/` directory next to them.
 Questions, answers and the page's reports cross between the server and
 `listen` only as files in `queue/`, so `listen` needs no network access.
 Requires Python >= 3.11; uses only the standard library.
+
+Another skill can build on this one with an Extension: a script of its own
+that imports this module, registers the extension and calls main(). The
+extension adds slide blocks, generated slides, server routes, `listen` items,
+commands and page assets; see the Extension class.
 """
 
 from __future__ import annotations
 
 import argparse
-import codecs
 import contextlib
 import functools
 import getpass
@@ -45,11 +47,13 @@ from urllib.parse import urlsplit
 
 ASSETS = Path(__file__).resolve().parent.parent / "assets"
 SCRIPT = Path(__file__).resolve()
+# The script the user runs: this one, or an extension's, which detached
+# servers and printed commands must use.
+ENTRY = SCRIPT
 SLIDE_ID = re.compile(r"^[A-Za-z][A-Za-z0-9._~-]{0,63}$")
 QUESTION_ID = re.compile(r"^q-[0-9a-z-]+$")
-QUOTE_SOURCES = {"diagram": "a diagram", "callout": "a callout", "text": "the slide's text", "quiz": "a check", "math": "a formula"}
-HUNK_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@ ?(.*)$")
-RANGE_RE = re.compile(r"^(new|old|rows):(\d+)(?:-(\d+))?$")
+QUOTE_SOURCES = {"diagram": "a diagram", "callout": "a callout", "text": "the slide's text", "quiz": "a check",
+                 "math": "a formula"}
 LINES_RE = re.compile(r"^(\d+)(?:-(\d+))?$")
 HEARTBEAT = 15.0
 # The session re-runs `listen` after each timeout; treat it as listening for
@@ -60,11 +64,110 @@ CLAIM_STALE = 20 * 60
 
 @functools.cache
 def engine() -> str:
-    """A digest of this script and the page assets: a deploy changes it."""
+    """A digest of the scripts and page assets, the extensions' included: a deploy changes it."""
     h = hashlib.sha256()
-    for p in [SCRIPT, *sorted(ASSETS.iterdir())]:
+    for p in [SCRIPT, ENTRY, *asset_files()]:
         h.update(p.name.encode() + b"\0" + p.read_bytes())
     return h.hexdigest()[:12]
+
+
+def asset_files() -> list[Path]:
+    """The page's files, the core's and the extensions'; they share one namespace, so names must differ."""
+    files = [p for d in [ASSETS, *(e.assets for e in EXTENSIONS if e.assets)] for p in sorted(d.iterdir())]
+    names = [p.name for p in files]
+    if len(set(names)) != len(names):
+        raise SystemExit(f"page assets with the same name: {sorted({n for n in names if names.count(n) > 1})}")
+    return files
+
+
+# --------------------------------------------------------------------------
+# Extensions
+
+
+@dataclass
+class Loading:
+    """What load_deck has read so far, for the extensions' hooks."""
+    dir: Path
+    spec: dict
+    errors: list[str]
+    sources: list[Path]
+    files: list[FileDiff] = field(default_factory=list)  # files an extension adds, such as diffs
+    hunks: dict[str, Hunk] = field(default_factory=dict)
+    slides: list[dict] = field(default_factory=list)
+    extra: dict = field(default_factory=dict)  # becomes Deck.extra
+    goal_optional: bool = False
+
+
+class Extension:
+    """A layer over the core. Every hook's default does nothing."""
+
+    name = ""
+    assets: Path | None = None  # page assets; the page loads NAME.css and NAME.js from here
+    blocks: tuple[str, ...] = ()  # slide block keys it handles, beside md, callout, excerpt and diagram
+    spec_keys: tuple[str, ...] = ()  # deck.json keys it reads, beside the core's
+
+    def begin(self, load: Loading):
+        """Before the slides: read its parts of deck.json."""
+
+    def block(self, load: Loading, key: str, blk: dict, where: str, out: list[dict]):
+        """Validate a block with one of its keys and append it to `out`."""
+
+    def reserves(self, slide_id: str) -> bool:
+        """Whether a slide id is kept for a slide it generates."""
+        return False
+
+    def end(self, load: Loading) -> list[dict]:
+        """After the slides: check the deck as a whole, and return the slides it adds."""
+        return []
+
+    def payload(self, deck: Deck) -> dict:
+        """Fields it adds to the JSON the page renders."""
+        return {}
+
+    def report(self, deck: Deck) -> str:
+        """What `check` says about the deck after the slide counts."""
+        return ""
+
+    def attach(self, state: State):
+        """When the server starts."""
+
+    def tick(self, state: State):
+        """Twice a second on the server's watcher thread."""
+
+    def get(self, state: State, route: str):
+        """A GET route's JSON, or None when the route is not its."""
+
+    def post(self, state: State, route: str, body: dict):
+        """A POST route's JSON, or None when the route is not its; ValueError answers 400."""
+
+    def skip(self, q: Queue, item: dict) -> bool:
+        """Whether `listen` should drop a queued item that no longer needs the session."""
+        return False
+
+    def listen(self, item: dict, ctx: Listening) -> bool:
+        """Print a queued item of its own for the session; return whether it did."""
+        return False
+
+    def finished(self, ctx: Listening) -> str:
+        """What `listen` adds when the reader finishes."""
+        return ""
+
+    def commands(self, sub):
+        """Add its subcommands to the argument parser."""
+
+
+EXTENSIONS: list[Extension] = []
+
+
+@dataclass
+class Listening:
+    """What `listen` passes to the extensions: where the deck is and how to call this script."""
+    deck_dir: Path
+    q: Queue
+    me: str  # the script, quoted for a shell
+    deck_arg: str
+    again: str  # the command that keeps listening
+
 
 LANGUAGES = {
     ".nix": "nix", ".py": "python", ".pyi": "python", ".js": "javascript",
@@ -153,187 +256,27 @@ class FileDiff:
         return ", ".join(parts)
 
 
-class DiffError(ValueError):
-    pass
-
-
-def _unquote(path: str) -> str:
-    if len(path) >= 2 and path[0] == '"' and path[-1] == '"':
-        return codecs.escape_decode(path[1:-1].encode())[0].decode("utf-8", "replace")
-    return path
-
-
-def _side(path: str, prefix: str) -> str | None:
-    path = _unquote(path.split("\t", 1)[0].rstrip("\n"))
-    if path == "/dev/null":
-        return None
-    return path[len(prefix) :] if path.startswith(prefix) else path
-
-
-def _git_header_paths(rest: str) -> tuple[str | None, str | None]:
-    """Paths from `diff --git a/X b/Y`, used when no ---/+++ lines follow."""
-    if rest.startswith('"'):
-        end = 1
-        while end < len(rest) and (rest[end] != '"' or rest[end - 1] == "\\"):
-            end += 1
-        old, new = rest[: end + 1], rest[end + 1 :].strip()
-    elif rest.endswith('"'):
-        start = rest.index(' "')
-        old, new = rest[:start], rest[start + 1 :]
-    else:
-        half = (len(rest) - 1) // 2
-        old, new = rest[:half], rest[half + 1 :]
-    return _side(old, "a/"), _side(new, "b/")
-
-
-def parse_diff(text: str, label: str = "") -> list[FileDiff]:
-    """Parse `git diff` output (or plain `diff -u` output) into files and hunks."""
-    files: list[FileDiff] = []
-    lines = text.splitlines()
-    i = 0
-    cur: FileDiff | None = None
-
-    def start(old: str | None, new: str | None) -> FileDiff:
-        f = FileDiff(key="", label=label, old_path=old, new_path=new)
-        files.append(f)
-        return f
-
-    while i < len(lines):
-        line = lines[i]
-        if line.startswith("diff --cc ") or line.startswith("diff --combined "):
-            raise DiffError("combined (merge) diffs are not supported; diff against one parent")
-        if line.startswith("diff --git "):
-            cur = start(*_git_header_paths(line[len("diff --git ") :]))
-            i += 1
-            continue
-        if line.startswith("--- ") and i + 1 < len(lines) and lines[i + 1].startswith("+++ "):
-            old, new = _side(line[4:], "a/"), _side(lines[i + 1][4:], "b/")
-            if cur is None or cur.hunks or cur.binary:
-                cur = start(old, new)
-            else:
-                cur.old_path, cur.new_path = old, new
-            if old is None:
-                cur.status = "added"
-            elif new is None:
-                cur.status = "deleted"
-            i += 2
-            continue
-        if cur is None:
-            i += 1
-            continue
-        m = HUNK_RE.match(line)
-        if m:
-            os_, oc, ns, nc = (int(m[1]), int(m[2] or 1), int(m[3]), int(m[4] or 1))
-            h = Hunk("", cur, line, m[5], os_, oc, ns, nc)
-            o, n = os_, ns
-            left_old, left_new = oc, nc
-            i += 1
-            while (left_old > 0 or left_new > 0) and i < len(lines):
-                body = lines[i]
-                if body.startswith("\\"):
-                    if h.rows:
-                        h.rows[-1].noeol = True
-                    i += 1
-                    continue
-                kind = body[:1] or " "
-                if kind == " " and left_old > 0 and left_new > 0:
-                    h.rows.append(Row(" ", o, n, body[1:]))
-                    o, n, left_old, left_new = o + 1, n + 1, left_old - 1, left_new - 1
-                elif kind == "-" and left_old > 0:
-                    h.rows.append(Row("-", o, None, body[1:]))
-                    o, left_old = o + 1, left_old - 1
-                elif kind == "+" and left_new > 0:
-                    h.rows.append(Row("+", None, n, body[1:]))
-                    n, left_new = n + 1, left_new - 1
-                else:
-                    raise DiffError(f"{cur.path}: malformed hunk near line {i + 1}: {body[:60]!r}")
-                i += 1
-            if i < len(lines) and lines[i].startswith("\\") and h.rows:
-                h.rows[-1].noeol = True
-                i += 1
-            cur.hunks.append(h)
-            continue
-        if line.startswith("new file mode"):
-            cur.status = "added"
-        elif line.startswith("deleted file mode"):
-            cur.status = "deleted"
-        elif line.startswith("rename from "):
-            cur.status, cur.old_path = "renamed", _unquote(line[len("rename from ") :])
-        elif line.startswith("rename to "):
-            cur.new_path = _unquote(line[len("rename to ") :])
-        elif line.startswith("copy from "):
-            cur.status, cur.old_path = "copied", _unquote(line[len("copy from ") :])
-        elif line.startswith("copy to "):
-            cur.new_path = _unquote(line[len("copy to ") :])
-        elif line.startswith("Binary files ") or line.startswith("GIT binary patch"):
-            cur.binary = True
-        elif line.startswith(("old mode", "new mode")) and cur.status == "modified":
-            cur.status = "mode changed"
-        if line.startswith(("old mode", "new mode", "similarity index", "dissimilarity index")):
-            cur.meta.append(line)
-        i += 1
-
-    seen: dict[str, int] = defaultdict(int)
-    for f in files:
-        base = f"{label}:{f.path}" if label else f.path
-        seen[base] += 1
-        f.key = base if seen[base] == 1 else f"{base}~{seen[base]}"
-        for n, h in enumerate(f.hunks, 1):
-            h.id = f"{f.key}#{n}"
-    return files
+def row_lines(rows: list[Row], lo: int, hi: int) -> tuple[str, int, int] | None:
+    """Rows lo..hi as (side, first line, last line): the new side unless they are all removed lines."""
+    news = [r.new for r in rows[lo : hi + 1] if r.new is not None]
+    olds = [r.old for r in rows[lo : hi + 1] if r.old is not None]
+    side, nums = ("new", news) if news else ("old", olds)
+    return (side, nums[0], nums[-1]) if nums else None
 
 
 def row_span(rows: list[Row], lo: int, hi: int) -> str:
     """Describe rows lo..hi by line numbers, e.g. `new 12–18` or `old 4`."""
-    news = [r.new for r in rows[lo : hi + 1] if r.new is not None]
-    olds = [r.old for r in rows[lo : hi + 1] if r.old is not None]
-    side, nums = ("new", news) if news else ("old", olds)
-    if not nums:
+    lines = row_lines(rows, lo, hi)
+    if not lines:
         return "?"
-    return f"{side} {nums[0]}" if nums[0] == nums[-1] else f"{side} {nums[0]}–{nums[-1]}"
-
-
-def resolve_range(h: Hunk, spec: str | None) -> tuple[int, int]:
-    """Row indices (inclusive) selected by `new:A-B`, `old:A-B` or `rows:A-B`."""
-    if not spec:
-        return 0, len(h.rows) - 1
-    m = RANGE_RE.match(spec.replace(" ", ""))
-    if not m:
-        raise ValueError(f"range {spec!r} is not new:A-B, old:A-B or rows:A-B")
-    side, a, b = m[1], int(m[2]), int(m[3] or m[2])
-    if side == "rows":
-        if not (1 <= a <= b <= len(h.rows)):
-            raise ValueError(f"range {spec!r} is outside rows 1-{len(h.rows)}")
-        return a - 1, b - 1
-    hits = [i for i, r in enumerate(h.rows) if (getattr(r, side) or 0) and a <= getattr(r, side) <= b]
-    if not hits:
-        raise ValueError(f"range {spec!r} matches no rows of {h.id} ({row_span(h.rows, 0, len(h.rows) - 1)})")
-    lo, hi = hits[0], hits[-1]
-    # Keep both halves of a replacement: removed rows directly before the
-    # first new-side row, or added rows directly after the last old-side row.
-    if side == "new":
-        while lo > 0 and h.rows[lo - 1].kind == "-":
-            lo -= 1
-    else:
-        while hi + 1 < len(h.rows) and h.rows[hi + 1].kind == "+":
-            hi += 1
-    return lo, hi
+    side, first, last = lines
+    return f"{side} {first}" if first == last else f"{side} {first}–{last}"
 
 
 def span(h: Hunk, lo: int, hi: int) -> str:
     """Rows lo..hi as a reader sees them: `new 12–18` in a diff, `12–18` in a plain excerpt."""
     s = row_span(h.rows, lo, hi)
     return s.removeprefix("new ") if h.file.plain else s
-
-
-def changed_spans(h: Hunk, indices: set[int]) -> list[str]:
-    runs: list[tuple[int, int]] = []
-    for i in sorted(indices):
-        if runs and runs[-1][1] == i - 1:
-            runs[-1] = (runs[-1][0], i)
-        else:
-            runs.append((i, i))
-    return [row_span(h.rows, lo, hi) for lo, hi in runs]
 
 
 def numbered(h: Hunk, lo: int = 0, hi: int | None = None) -> str:
@@ -353,12 +296,9 @@ def numbered(h: Hunk, lo: int = 0, hi: int | None = None) -> str:
 # --------------------------------------------------------------------------
 # Decks
 #
-# Slides are free-form. A deck with diffs must show every changed line on some
-# slide or appendix group. A deck past TRIVIAL content slides must end with a
-# check, and a deck without diffs must state its goal.
+# Slides are free-form. A deck past TRIVIAL content slides must end with a
+# check, and a deck must state its goal unless an extension says otherwise.
 
-APPENDIX_ROWS = 160  # rows per appendix slide before groups spill onto the next
-UNCOVERED_GAP = 6  # uncovered runs closer than this are reported together
 QUIZ_QUESTIONS = (1, 6)  # questions per check slide
 QUIZ_CHOICES = (2, 5)  # choices per question
 WRITTEN = ("prose", "code")  # question kinds the session judges
@@ -376,11 +316,11 @@ class DeckInvalid(Exception):
 class Deck:
     dir: Path
     spec: dict
-    files: list[FileDiff]  # diffs, then plain excerpt sources
+    files: list[FileDiff]  # an extension's files, such as diffs, then plain excerpt sources
     hunks: dict[str, Hunk]
-    slides: list[dict]  # authored slides, then the generated appendix
-    coverage: dict | None  # None without diffs
+    slides: list[dict]  # authored slides, then the extensions' generated ones
     sources: list[Path]
+    extra: dict = field(default_factory=dict)  # what the extensions keep, by key
 
     def slide(self, slide_id: str) -> dict | None:
         return next((s for s in self.slides if s["id"] == slide_id), None)
@@ -394,7 +334,7 @@ class Deck:
 
     def main(self) -> list[dict]:
         """The authored slides outside the appendix."""
-        return [s for s in self.slides if s["section"] != "Appendix"]
+        return [s for s in self.slides if s["section"] != "Appendix" and not s.get("generated")]
 
     def unchecked(self) -> list[dict]:
         """Content slides outside the appendix that no check question points at."""
@@ -494,8 +434,12 @@ def _test(t, where: str, deck_dir: Path, errors: list[str]) -> dict | None:
     }
     if out["file"] and (Path(out["file"]).name != out["file"] or out["file"] in (".", "..")):
         errors.append(f"{where}.file: expected a file name without a directory")
-    if out["dir"] and not (deck_dir / out["dir"]).is_dir():
-        errors.append(f"{where}.dir: {deck_dir / out['dir']} is not a directory")
+    test_dir = (deck_dir / out["dir"]).resolve()
+    if out["dir"] and not test_dir.is_dir():
+        errors.append(f"{where}.dir: {test_dir} is not a directory")
+    elif out["dir"] and (test_dir == deck_dir.resolve() or not test_dir.is_relative_to(deck_dir.resolve())
+                         or test_dir.is_relative_to(deck_dir.resolve() / "runs")):
+        errors.append(f"{where}.dir: expected a subdirectory of the deck directory, outside runs/, where the tests run")
     if not isinstance(out["timeout"], (int, float)) or not 0 < out["timeout"] <= 600:
         errors.append(f"{where}.timeout: expected seconds, at most 600")
     return out
@@ -543,39 +487,6 @@ def _diagram(d, where: str, errors: list[str]) -> dict | None:
     return out
 
 
-def _excerpt(blk: dict, where: str, files: dict[str, FileDiff], hunks: dict[str, Hunk],
-             errors: list[str]) -> dict | None:
-    """Resolve {"diff": file-or-hunk, "range": ...} to per-hunk row spans."""
-    target, spec = blk["diff"], blk.get("range")
-    if target in hunks:
-        h = hunks[target]
-        try:
-            lo, hi = resolve_range(h, spec)
-        except ValueError as e:
-            errors.append(f"{where}: {e}")
-            return None
-        return {"file": h.file.key, "pieces": [{"hunk": h.id, "lo": lo, "hi": hi}]}
-    f = files.get(target)
-    if f is None:
-        errors.append(f"{where}: {target!r} is not a file or hunk in the diffs (see `hunks`)")
-        return None
-    if spec and spec.startswith("rows:"):
-        errors.append(f"{where}: rows: ranges need a hunk id, not a file")
-        return None
-    pieces = []
-    for h in f.hunks:
-        try:
-            lo, hi = resolve_range(h, spec)
-        except ValueError:
-            continue
-        pieces.append({"hunk": h.id, "lo": lo, "hi": hi})
-    if f.hunks and not pieces:
-        spans = ", ".join(row_span(h.rows, 0, len(h.rows) - 1) for h in f.hunks)
-        errors.append(f"{where}: range {spec!r} matches no rows of {target} (hunks cover {spans})")
-        return None
-    return {"file": f.key, "pieces": pieces}
-
-
 def _plain_excerpt(blk: dict, where: str, root: Path, files: dict[str, FileDiff], hunks: dict[str, Hunk],
                    sources: list[Path], errors: list[str]) -> dict | None:
     """Resolve {"excerpt": path, "range": "A-B"} to a hunk of unchanged lines."""
@@ -611,39 +522,6 @@ def _plain_excerpt(blk: dict, where: str, root: Path, files: dict[str, FileDiff]
     return {"file": f.key, "pieces": [{"hunk": hid, "lo": 0, "hi": b - a}]}
 
 
-def _uncovered(h: Hunk, shown: set[int]) -> list[tuple[int, int]]:
-    runs: list[list[int]] = []
-    for i in sorted(h.needed() - shown):
-        if runs and i - runs[-1][1] <= UNCOVERED_GAP:
-            runs[-1][1] = i
-        else:
-            runs.append([i, i])
-    return [(lo, hi) for lo, hi in runs]
-
-
-def _appendix_slides(groups: list[dict]) -> list[dict]:
-    """Lay out appendix groups as slides, keeping each group on one slide."""
-    pages: list[list[dict]] = [[]]
-    used = 0
-    for g in groups:
-        rows = sum(p["hi"] - p["lo"] + 1 for b in g["blocks"] for p in b["pieces"]) or 1
-        if pages[-1] and used + rows > APPENDIX_ROWS:
-            pages.append([])
-            used = 0
-        pages[-1].append(g)
-        used += rows
-    out = []
-    for n, page in enumerate(pages, 1):
-        # The section label already says "Appendix".
-        titles = [g["title"] for g in page]
-        joined = ", ".join(titles)
-        title = joined if len(joined) <= 70 else f"{titles[0]} and {len(titles) - 1} more"
-        blocks = [{"type": "group", "title": g["title"], "md": g["note"], "blocks": g["blocks"]} for g in page]
-        out.append({"id": f"appendix-{n}", "title": title, "section": "Appendix",
-                    "prompts": [], "blocks": blocks, "quiz": []})
-    return out
-
-
 def load_deck(deck_dir: Path) -> Deck:
     deck_dir = deck_dir.resolve()
     spec_path = deck_dir / "deck.json"
@@ -656,31 +534,13 @@ def load_deck(deck_dir: Path) -> Deck:
     if not isinstance(spec, dict):
         raise DeckInvalid([f"{spec_path}: expected a JSON object"])
     errors: list[str] = []
-
-    sources = [spec_path]
-    files: list[FileDiff] = []
-    # Decks written before diffs became optional rely on the default.
-    diffs = spec.get("diffs", ["change.diff"] if (deck_dir / "change.diff").exists() else [])
-    if not isinstance(diffs, list):
-        errors.append("diffs: expected a list of file names or {file, label}")
-        diffs = []
-    for j, d in enumerate(diffs):
-        d = {"file": d} if isinstance(d, str) else d
-        if not isinstance(d, dict):
-            errors.append(f"diffs[{j}]: expected a file name or {{file, label}}")
-            continue
-        path = deck_dir / str(d.get("file", ""))
-        sources.append(path)
-        try:
-            files += parse_diff(path.read_text(errors="replace"), str(d.get("label") or ""))
-        except OSError as e:
-            errors.append(f"diffs[{j}]: cannot read {path}: {e.strerror}")
-        except DiffError as e:
-            errors.append(f"diffs[{j}]: {path.name}: {e}")
-    if diffs and not files and not errors:
-        errors.append("the diffs contain no changes")
-    by_key = {f.key: f for f in files}
-    hunks = {h.id: h for f in files for h in f.hunks}
+    known = {"title", "subtitle", "scope", "goal", "root", "source_url", "slides", *(k for e in EXTENSIONS for k in e.spec_keys)}
+    for key in sorted(set(spec) - known):
+        errors.append(f"{key}: not a key this script reads (a deck for another skill's script?)")
+    load = Loading(deck_dir, spec, errors, [spec_path])
+    for ext in EXTENSIONS:
+        ext.begin(load)
+    handlers = {key: ext for ext in EXTENSIONS for key in ext.blocks}
     plain: dict[str, FileDiff] = {}
     root = deck_dir / _str(spec.get("root"), "root", errors)
 
@@ -688,28 +548,16 @@ def load_deck(deck_dir: Path) -> Deck:
     for key in ("subtitle", "scope", "source_url"):
         _str(spec.get(key), key, errors)
     goal = spec.get("goal")
-    if not diffs or goal is not None:
+    if not load.goal_optional or goal is not None:
         _str(goal, "goal", errors, True)
     slides_in = spec.get("slides")
     if not isinstance(slides_in, list) or not slides_in:
         errors.append("slides: expected a non-empty list")
         slides_in = []
 
-    shown: dict[str, set[int]] = defaultdict(set)
-    shown_files: set[str] = set()
-
-    def diff_excerpt(blk: dict, where: str, blocks: list[dict]):
-        """Add a diff excerpt to `blocks` and record the lines it shows."""
-        ex = _excerpt(blk, where, by_key, hunks, errors)
-        if not ex:
-            return
-        for p in ex["pieces"]:
-            shown[p["hunk"]].update(range(p["lo"], p["hi"] + 1))
-        if not ex["pieces"]:
-            shown_files.add(ex["file"])
-        blocks.append({"type": "excerpt", **ex, "caption": _str(blk.get("caption"), f"{where}.caption", errors)})
+    keys = {"md", "callout", "excerpt", "diagram", *handlers}
     seen_ids: set[str] = set()
-    slides: list[dict] = []
+    slides = load.slides
     # Checks point at the content slides that settle their questions.
     content_ids = {s.get("id") for s in slides_in if isinstance(s, dict) and "quiz" not in s}
     for k, s in enumerate(slides_in):
@@ -723,8 +571,8 @@ def load_deck(deck_dir: Path) -> Deck:
             sid = f"slide-{k}"
         elif sid in seen_ids:
             errors.append(f"{where}.id: duplicate id {sid!r}")
-        elif sid.startswith("appendix-"):
-            errors.append(f"{where}.id: ids starting with appendix- are reserved for the generated appendix")
+        elif any(ext.reserves(sid) for ext in EXTENSIONS):
+            errors.append(f"{where}.id: {sid!r} is reserved for a generated slide")
         seen_ids.add(sid)
         where = f"slide {sid!r}"
         out = {
@@ -752,11 +600,11 @@ def load_deck(deck_dir: Path) -> Deck:
             blocks = []
         for b, blk in enumerate(blocks):
             bw = f"{where}.blocks[{b}]"
-            keys = {"md", "callout", "diff", "excerpt", "diagram"} & set(blk if isinstance(blk, dict) else ())
-            if len(keys) != 1:
-                errors.append(f"{bw}: expected exactly one of md, callout, diff, excerpt or diagram")
+            found = keys & set(blk if isinstance(blk, dict) else ())
+            if len(found) != 1:
+                errors.append(f"{bw}: expected exactly one of {', '.join(sorted(keys))}")
                 continue
-            (key,) = keys
+            (key,) = found
             if key == "md":
                 out["blocks"].append({"type": "md", "md": _str(blk["md"], f"{bw}.md", errors, True)})
             elif key == "callout":
@@ -770,71 +618,21 @@ def load_deck(deck_dir: Path) -> Deck:
                 if d:
                     out["blocks"].append({"type": "diagram", "diagram": d})
             elif key == "excerpt":
-                ex = _plain_excerpt(blk, bw, root, plain, hunks, sources, errors)
+                ex = _plain_excerpt(blk, bw, root, plain, load.hunks, load.sources, errors)
                 if ex:
                     out["blocks"].append({"type": "excerpt", **ex, "caption": _str(blk.get("caption"), f"{bw}.caption", errors)})
             else:
-                diff_excerpt(blk, bw, out["blocks"])
+                handlers[key].block(load, key, blk, bw, out["blocks"])
         slides.append(out)
 
-    groups = []
-    appendix = spec.get("appendix") or []
-    if not isinstance(appendix, list):
-        errors.append("appendix: expected a list of {title, note, diffs}")
-        appendix = []
-    for g, grp in enumerate(appendix):
-        gw = f"appendix[{g}]"
-        if not isinstance(grp, dict) or not isinstance(grp.get("diffs"), list) or not grp["diffs"]:
-            errors.append(f"{gw}: expected {{title, note, diffs: [{{diff, range}}, ...]}}")
-            continue
-        out = {
-            "title": _str(grp.get("title"), f"{gw}.title", errors, True),
-            "note": _str(grp.get("note"), f"{gw}.note", errors, True),
-            "blocks": [],
-        }
-        for b, blk in enumerate(grp["diffs"]):
-            bw = f"{gw}.diffs[{b}]"
-            if not isinstance(blk, dict) or "diff" not in blk:
-                errors.append(f"{bw}: expected {{diff, range, caption}}")
-                continue
-            diff_excerpt(blk, bw, out["blocks"])
-        groups.append(out)
-
-    for f in files:
-        if not f.hunks and f.key not in shown_files:
-            errors.append(f"{f.key} ({f.describe()}) is not shown; add {json.dumps({'diff': f.key})}")
-        for h in f.hunks:
-            runs = _uncovered(h, shown[h.id])
-            if runs and runs == [(min(h.needed()), max(h.needed()))] and not shown[h.id]:
-                errors.append(f"{h.id} ({row_span(h.rows, 0, len(h.rows) - 1)}) is not shown; "
-                              f"add {json.dumps({'diff': h.id})}")
-                continue
-            for lo, hi in runs:
-                ref = {"diff": h.id, "range": f"rows:{lo + 1}-{hi + 1}"}
-                errors.append(f"{h.id}: changed lines {row_span(h.rows, lo, hi)} are not shown; "
-                              f"add {json.dumps(ref)}")
+    generated = [g for ext in EXTENSIONS for g in ext.end(load)]
     main = [s for s in slides if s["section"] != "Appendix"]
     if sum(not s["quiz"] for s in main) > TRIVIAL and not main[-1]["quiz"]:
         errors.append(f"the deck has more than {TRIVIAL} content slides, so the last slide before the appendix "
                       "must be a final check of two to four questions that span the deck")
     if errors:
         raise DeckInvalid(errors)
-
-    generated = _appendix_slides(groups) if groups else []
-    coverage = None
-    if diffs:
-        diff_hunks = [h for f in files for h in f.hunks]
-        in_appendix: set[tuple[str, int]] = set()
-        for g in groups:
-            for b in g["blocks"]:
-                for p in b["pieces"]:
-                    in_appendix.update((p["hunk"], i) for i in range(p["lo"], p["hi"] + 1))
-        coverage = {
-            "changed": sum(len(h.needed()) for h in diff_hunks),
-            "appendix": sum((h.id, i) in in_appendix for h in diff_hunks for i in h.needed()),
-            "files": len(files),
-        }
-    return Deck(deck_dir, spec, files + list(plain.values()), hunks, slides + generated, coverage, sources)
+    return Deck(deck_dir, spec, load.files + list(plain.values()), load.hunks, slides + generated, load.sources, load.extra)
 
 
 # Math delimiters, matched as the page matches them (pandoc's dollar rule).
@@ -879,52 +677,43 @@ def math_warnings(deck: Deck) -> list[str]:
     return out
 
 
+def file_payload(f: FileDiff) -> dict:
+    return {
+        "key": f.key,
+        "label": f.label,
+        "path": f.path,
+        "oldPath": f.old_path,
+        "status": f.status,
+        "describe": f.describe(),
+        "binary": f.binary,
+        "meta": f.meta,
+        "lang": f.language,
+        "adds": f.adds,
+        "dels": f.dels,
+        "plain": f.plain,
+        "hunks": [
+            {"id": h.id, "header": h.header, "rows": [[r.kind, r.old, r.new, r.text] + ([1] if r.noeol else []) for r in h.rows]}
+            for h in f.hunks
+        ],
+    }
+
+
 def deck_payload(deck: Deck, version: int) -> dict:
     """The JSON the page renders."""
-    files = []
-    for f in deck.files:
-        files.append(
-            {
-                "key": f.key,
-                "label": f.label,
-                "path": f.path,
-                "oldPath": f.old_path,
-                "status": f.status,
-                "describe": f.describe(),
-                "binary": f.binary,
-                "meta": f.meta,
-                "lang": f.language,
-                "adds": f.adds,
-                "dels": f.dels,
-                "plain": f.plain,
-                "hunks": [
-                    {
-                        "id": h.id,
-                        "header": h.header,
-                        "rows": [[r.kind, r.old, r.new, r.text] + ([1] if r.noeol else []) for r in h.rows],
-                    }
-                    for h in f.hunks
-                ],
-            }
-        )
     spec = deck.spec
-    diffs = [f for f in deck.files if not f.plain]
-    return {
+    out = {
         "version": version,
         "title": spec.get("title", ""),
         "subtitle": spec.get("subtitle", ""),
         "scope": spec.get("scope", ""),
         "goal": spec.get("goal", ""),
         "sourceUrl": spec.get("source_url", ""),
-        "stats": {
-            "files": len(diffs),
-            "adds": sum(f.adds for f in diffs),
-            "dels": sum(f.dels for f in diffs),
-        },
-        "coverage": deck.coverage,
-        "files": files,
+        "files": [file_payload(f) for f in deck.files],
         "slides": deck.slides,
     }
+    for ext in EXTENSIONS:
+        out.update(ext.payload(deck))
+    return out
 
 
 # --------------------------------------------------------------------------
@@ -936,11 +725,11 @@ def deck_payload(deck: Deck, version: int) -> dict:
 # <id>.answer.md, which the server moves into the slide's thread.
 
 
-def refs_text(deck: Deck, refs: list[dict]) -> str:
+def refs_text(hunks: dict[str, Hunk], refs: list[dict]) -> str:
     out = []
     for r in refs:
         if r["kind"] == "lines":
-            h = deck.hunks[r["hunk"]]
+            h = hunks[r["hunk"]]
             fence = (h.file.language or "text") if h.file.plain else "diff"
             out.append(
                 f"Selected lines, {h.file.path} {span(h, r['lo'], r['hi'])}:\n"
@@ -949,7 +738,36 @@ def refs_text(deck: Deck, refs: list[dict]) -> str:
         elif r["kind"] == "quote":
             where = QUOTE_SOURCES[r["source"]]
             out.append(f"Quoted from {where}:\n> " + r["text"].replace("\n", "\n> "))
+        elif r["kind"] == "place":
+            out.append(f"At {r['path']}:{r['line']}" + (f"-{r['end']}" if r["end"] != r["line"] else ""))
     return "\n\n".join(out)
+
+
+def parse_refs(hunks: dict[str, Hunk], refs) -> list[dict]:
+    """Validate references: selected lines and quotes from a page, and places from the session."""
+    out = []
+    for r in refs if isinstance(refs, list) else []:
+        if not isinstance(r, dict):
+            continue
+        if r.get("kind") == "lines" and r.get("hunk") in hunks:
+            h = hunks[r["hunk"]]
+            try:
+                lo, hi = sorted((int(r.get("lo", 0)), int(r.get("hi", 0))))
+            except (TypeError, ValueError):
+                continue
+            lo, hi = max(lo, 0), min(hi, len(h.rows) - 1)
+            side, line, end = row_lines(h.rows, lo, hi) or ("new", 0, 0)
+            # path, side, line and end locate the lines outside the deck.
+            out.append({"kind": "lines", "hunk": h.id, "lo": lo, "hi": hi, "path": h.file.path, "side": side,
+                        "line": line, "end": end, "label": f"{Path(h.file.path).name} {span(h, lo, hi)}"})
+        elif r.get("kind") in ("quote", "diagram") and isinstance(r.get("text"), str) and r["text"].strip():
+            source = r.get("source") if r.get("source") in QUOTE_SOURCES else "diagram"
+            out.append({"kind": "quote", "source": source, "text": r["text"].strip()[:2000]})
+        elif r.get("kind") == "place" and isinstance(r.get("path"), str) and isinstance(r.get("line"), int):
+            end = r.get("end") if isinstance(r.get("end"), int) and r["end"] >= r["line"] else r["line"]
+            out.append({"kind": "place", "path": r["path"], "side": "new", "line": r["line"], "end": end,
+                        "label": f"{Path(r['path']).name} {r['line']}" + (f"–{end}" if end != r["line"] else "")})
+    return out[:8]
 
 
 def write_atomic(path: Path, text: str, mode: int = 0o644):
@@ -977,8 +795,8 @@ def read_json(path: Path) -> dict:
     return data if isinstance(data, dict) else {}
 
 
-def new_id() -> str:
-    return f"q-{int(time.time() * 1000):x}-{secrets.token_hex(2)}"
+def new_id(prefix: str = "q") -> str:
+    return f"{prefix}-{int(time.time() * 1000):x}-{secrets.token_hex(2)}"
 
 
 class Queue:
@@ -1003,6 +821,13 @@ class Queue:
 
     def claimed(self, qid: str) -> bool:
         return self.file(qid, ".claimed").exists()
+
+    def claim_age(self, qid: str) -> float:
+        """Seconds since the session claimed an item, or infinity when it has not."""
+        try:
+            return time.time() - self.file(qid, ".claimed").stat().st_mtime
+        except OSError:
+            return float("inf")
 
     def answered(self, qid: str) -> bool:
         return self.file(qid, ".answer.md").exists()
@@ -1162,6 +987,8 @@ class State:
         self.audited = 0
         self.issues: set[tuple[str, str, str]] = set()
         self.issues_lock = threading.Lock()
+        for ext in EXTENSIONS:
+            ext.attach(self)
 
     def status(self) -> dict:
         return {"session": self.presence}
@@ -1218,8 +1045,10 @@ class State:
             tick += 1
             try:
                 self._sync_queue()
-            except OSError as e:
-                log(f"queue: {e}")
+                for ext in EXTENSIONS:
+                    ext.tick(self)
+            except Exception as e:  # keep watching; the log says what failed
+                log(f"queue: {e!r}")
             now = time.time()
             if self.queue.listener():
                 self.last_listener = now
@@ -1262,11 +1091,7 @@ class State:
             qid = item["id"]
             if item.get("kind") not in ("question", "answer"):
                 continue
-            claim = self.queue.file(qid, ".claimed")
-            try:
-                busy |= time.time() - claim.stat().st_mtime < CLAIM_STALE
-            except OSError:
-                pass
+            busy |= self.queue.claim_age(qid) < CLAIM_STALE
             if item["kind"] == "answer":
                 self._sync_answer(item)
                 continue
@@ -1295,8 +1120,10 @@ class State:
         """Mark a written answer as being judged, or record the session's verdict."""
         qid, slide, question = item["id"], item["slide"], item["question"]
         if self.queue.answered(qid):
-            verdict = self.queue.file(qid, ".verdict").read_text().strip()
+            verdict = self.queue.file(qid, ".verdict")
+            verdict = verdict.read_text().strip() if verdict.exists() else ""
             feedback = self.queue.file(qid, ".answer.md").read_text()
+            verdict = verdict if verdict in VERDICTS else None
             self.queue.remove(qid)
             changed = self.quiz.update(slide, question, qid, state="judged", verdict=verdict, feedback=feedback)
         elif self.queue.claimed(qid):
@@ -1383,15 +1210,26 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(st.quiz.snapshot())
         if route == "/api/events":
             return self._events()
+        for ext in EXTENSIONS:
+            data = ext.get(st, route)
+            if data is not None:
+                return self._json(data)
         name = route.lstrip("/")
-        if "/" not in name and not name.startswith(".") and (ASSETS / name).is_file():
+        path = next((p for p in asset_files() if p.name == name), None)
+        if path and not name.startswith("."):
             return self._static(name)
         self._error(404, "not found")
 
     def _static(self, name: str):
         types = {".html": "text/html", ".css": "text/css", ".js": "text/javascript"}
         ctype = types.get(Path(name).suffix, "application/octet-stream") + "; charset=utf-8"
-        self._send(200, (ASSETS / name).read_bytes(), ctype)
+        body = next(p for p in asset_files() if p.name == name).read_bytes()
+        if name == "index.html":
+            # The extensions' styles and scripts load after the core's.
+            tags = "".join(f'<link rel="stylesheet" href="{e.name}.css">\n<script src="{e.name}.js" defer></script>\n'
+                           for e in EXTENSIONS if e.assets)
+            body = body.replace(b"<!-- extensions -->\n", tags.encode())
+        self._send(200, body, ctype)
 
     def _events(self):
         q: queue.Queue = queue.Queue()
@@ -1441,35 +1279,22 @@ class Handler(BaseHTTPRequestHandler):
             "/api/issues": self._issues,
         }.get(route)
         if handler is None:
+            for ext in EXTENSIONS:
+                try:
+                    data = ext.post(self.state, route, body)
+                except ValueError as e:
+                    return self._error(400, str(e))
+                if data is not None:
+                    return self._json(data)
             return self._error(404, "not found")
         handler(body)
-
-    def _refs(self, deck: Deck, refs) -> list[dict]:
-        out = []
-        for r in refs if isinstance(refs, list) else []:
-            if not isinstance(r, dict):
-                continue
-            if r.get("kind") == "lines" and r.get("hunk") in deck.hunks:
-                h = deck.hunks[r["hunk"]]
-                try:
-                    lo, hi = sorted((int(r.get("lo", 0)), int(r.get("hi", 0))))
-                except (TypeError, ValueError):
-                    continue
-                lo, hi = max(lo, 0), min(hi, len(h.rows) - 1)
-                label = f"{Path(h.file.path).name} {span(h, lo, hi)}"
-                out.append({"kind": "lines", "hunk": h.id, "lo": lo, "hi": hi, "label": label})
-            elif r.get("kind") in ("quote", "diagram") and isinstance(r.get("text"), str) and r["text"].strip():
-                text = r["text"].strip()[:2000]
-                source = r.get("source") if r.get("source") in QUOTE_SOURCES else "diagram"
-                out.append({"kind": "quote", "source": source, "text": text})
-        return out[:8]
 
     def _ask(self, body: dict):
         st = self.state
         deck = st.deck
         slide = deck.slide(str(body.get("slide")))
         text = body.get("text")
-        refs = self._refs(deck, body.get("refs"))
+        refs = parse_refs(deck.hunks, body.get("refs"))
         if slide is None or not isinstance(text, str) or not (text.strip() or refs):
             return self._error(400, "expected a slide id and a question")
         qid = new_id()
@@ -1481,7 +1306,7 @@ class Handler(BaseHTTPRequestHandler):
             "slide": slide["id"],
             "where": f"{deck.position(slide)}: {slide['title']}",
             "text": msg["text"],
-            "refs": refs_text(deck, refs),
+            "refs": refs_text(deck.hunks, refs),
             "at": msg["at"],
         }
         with st.threads.lock:
@@ -1534,7 +1359,7 @@ class Handler(BaseHTTPRequestHandler):
         else:
             prev = st.quiz.get(sid, question)
             if isinstance(prev, dict) and prev.get("state") in ("queued", "judging"):
-                if prev["state"] == "judging" or st.queue.claimed(prev["id"]):
+                if st.queue.claim_age(prev["id"]) < CLAIM_STALE:
                     return self._error(409, "the session is judging this answer")
                 st.queue.remove(prev["id"])
             if text is None:
@@ -1571,13 +1396,9 @@ class Handler(BaseHTTPRequestHandler):
 
 def print_report(deck: Deck):
     main = deck.main()
-    appendix = len(deck.slides) - len(main)
+    appendix = sum(s["section"] == "Appendix" for s in deck.slides)
     head = f"{len(main)} slides and {appendix} appendix slides"
-    c = deck.coverage
-    if c:
-        head += (f"; all {c['changed']} non-blank changed lines in {c['files']} files are shown "
-                 f"({c['appendix']} only in the appendix)")
-    print(head)
+    print(head + "".join(ext.report(deck) for ext in EXTENSIONS))
     if deck.spec.get("goal"):
         print(f"goal: {deck.spec['goal']}")
     checks = deck.checks()
@@ -1597,6 +1418,8 @@ def print_report(deck: Deck):
     for n, s in enumerate(deck.slides, 1):
         if s["quiz"]:
             note = "check"
+        elif s.get("generated"):
+            note = "generated"
         elif s["section"] == "Appendix":
             note = "appendix"
         else:
@@ -1614,42 +1437,6 @@ def print_report(deck: Deck):
         print("\nwarning: math delimiters without a match; close the formula, or write a literal dollar as \\$:")
         for w in math:
             print(f"  {w}")
-
-
-def cmd_hunks(args):
-    deck_dir = Path(args.deck)
-    diffs = args.diff or []
-    if not diffs:
-        try:
-            spec = json.loads((deck_dir / "deck.json").read_text())
-            # As in load_deck: a declared empty list means no diffs.
-            for d in spec.get("diffs", ["change.diff"]) or []:
-                d = {"file": d} if isinstance(d, str) else d
-                diffs.append(d.get("file", "") + (f"={d['label']}" if d.get("label") else ""))
-        except (OSError, ValueError):
-            diffs = ["change.diff"]
-    files: list[FileDiff] = []
-    for d in diffs:
-        name, _, label = d.partition("=")
-        try:
-            files += parse_diff((deck_dir / name).read_text(errors="replace"), label)
-        except (OSError, DiffError) as e:
-            sys.exit(f"{name}: {e}")
-    print(
-        f"{len(files)} files, {sum(len(f.hunks) for f in files)} hunks, "
-        f"+{sum(f.adds for f in files)} −{sum(f.dels for f in files)}\n"
-    )
-    for f in files:
-        print(f"{f.key}  ({f.describe()}, +{f.adds} −{f.dels})")
-        if not f.hunks:
-            print(f"  {f.key}  file-level change: {' '.join(f.meta) or f.describe()}")
-        for h in f.hunks:
-            print(f"  {h.id}  {h.header}  changed {', '.join(changed_spans(h, h.changed()))}")
-            if args.show:
-                for i, r in enumerate(h.rows, 1):
-                    o = "" if r.old is None else r.old
-                    n = "" if r.new is None else r.new
-                    print(f"    {i:>4} {o:>5} {n:>5} {r.kind}{r.text}")
 
 
 def load_or_exit(deck_dir: Path) -> Deck:
@@ -1689,7 +1476,7 @@ def stale_reason(info: dict) -> str | None:
     """Why a running server is not this deck.py with these page assets, if it is not."""
     if info.get("engine") == engine():
         return None
-    if info.get("script") == str(SCRIPT):
+    if info.get("script") == str(ENTRY):
         return "deck.py or its page changed since it started"
     return f"it runs {info.get('script', 'an older deck.py')}"
 
@@ -1708,9 +1495,11 @@ def stop_server(deck_dir: Path, info: dict):
     except OSError:
         pass  # no /proc (macOS); trust server.json
     os.kill(info["pid"], signal.SIGTERM)
+    # Wait for the process to exit, not just for server.json to go: older servers removed it before freeing the port.
     for _ in range(50):
         time.sleep(0.1)
-        if not server_info(deck_dir):
+        if not pid_alive(info["pid"]):
+            (deck_dir / "server.json").unlink(missing_ok=True)
             return
     sys.exit("the server did not stop")
 
@@ -1737,7 +1526,7 @@ def cmd_serve(args):
         argv = [a for a in sys.argv[1:] if a != "--detach"]
         with open(deck_dir / "server.log", "ab") as logf:
             proc = subprocess.Popen(
-                [sys.executable, str(SCRIPT), *argv],
+                [sys.executable, str(ENTRY), *argv],
                 stdin=subprocess.DEVNULL,
                 stdout=logf,
                 stderr=logf,
@@ -1772,7 +1561,7 @@ def cmd_serve(args):
         "port": port,
         "tunnel": f"ssh -N -L {port}:127.0.0.1:{port} {opts['tunnel']}" if opts["tunnel"] else None,
         "engine": engine(),
-        "script": str(SCRIPT),
+        "script": str(ENTRY),
         "options": opts,
     }
     write_atomic(deck_dir / "server.json", json.dumps(info), 0o600)
@@ -1780,7 +1569,7 @@ def cmd_serve(args):
     state.pages_changed()
     print_report(state.deck)
     print_address(info)
-    log(f"serving {info['url']} (pid {os.getpid()}, engine {engine()} at {SCRIPT})")
+    log(f"serving {info['url']} (pid {os.getpid()}, engine {engine()} at {ENTRY})")
     threading.Thread(target=state.watch, daemon=True).start()
 
     def shutdown(why: str):
@@ -1828,7 +1617,7 @@ def _ago(ts: float) -> str:
 def cmd_listen(args):
     deck_dir = Path(args.deck).resolve()
     q = Queue(deck_dir)
-    me = shlex_path(SCRIPT)
+    me = shlex_path(ENTRY)
     deck_arg = shlex_path(deck_dir)
     if args.answer:
         posted = read_json(q.file(args.answer)) if QUESTION_ID.match(args.answer) else {}
@@ -1850,6 +1639,8 @@ def cmd_listen(args):
     serve = f"python3 {me} serve {deck_arg} --detach"
     if not info:
         sys.exit(f"No server is running for this deck. Start it with:\n  {serve}")
+    if Path(info.get("script", ENTRY)).name != ENTRY.name:
+        sys.exit(f"This deck is served by {info['script']}, which handles its requests; listen with that script.")
     if stale_reason(info):
         print(f"The server is out of date: {stale_reason(info)}. "
               f"Restart it in place; the URL stays the same and open pages reload:\n  {serve}\n")
@@ -1863,7 +1654,8 @@ def cmd_listen(args):
         while True:
             # Claimed but unanswered questions come first: a session that lost
             # track of one (an interruption, a context reset) gets it again.
-            pending = [x for x in q.items() if x["id"] != args.answer and not q.answered(x["id"])]
+            pending = [x for x in q.items() if x["id"] != args.answer and not q.answered(x["id"])
+                       and not any(ext.skip(q, x) for ext in EXTENSIONS)]
             pending.sort(key=lambda x: (not q.claimed(x["id"]), x.get("at", 0)))
             if pending:
                 item = pending[0]
@@ -1880,6 +1672,7 @@ def cmd_listen(args):
 
     wait = "" if args.timeout == 100 else f" --timeout {args.timeout:g}"
     again = f"python3 {me} listen {deck_arg}{wait}"
+    ctx = Listening(deck_dir, q, me, deck_arg, again)
     if item is None:
         pages = q.pages()
         if pages.get("open"):
@@ -1898,6 +1691,8 @@ def cmd_listen(args):
         if rest:
             print(f"({rest} more waiting.)")
         return
+    if any(ext.listen(item, ctx) for ext in EXTENSIONS):
+        return
     if item.get("kind") == "finished":
         q.remove(item["id"])
         print("The reader marked the walkthrough finished.")
@@ -1907,9 +1702,15 @@ def cmd_listen(args):
             report = ""
         if report:
             print(report + "\nRevisit what was missed in the wrap-up.")
+        for ext in EXTENSIONS:
+            extra = ext.finished(ctx)
+            if extra:
+                print(extra)
         if rest:
             print(f"{rest} more still wait for you; keep listening with:\n  {again}")
         return
+    if item.get("kind") not in ("question", "answer"):
+        sys.exit(f"{item['id']} is a {item.get('kind')!r} request this script cannot handle; listen with the deck's own script.")
     write_atomic(q.file(item["id"], ".claimed"), json.dumps({"pid": os.getpid(), "at": time.time()}))
     if item.get("kind") == "answer":
         print(judging_brief(item, deck_dir))
@@ -1997,24 +1798,17 @@ def shlex_path(p: Path) -> str:
     return s if re.fullmatch(r"[\w./~+-]+", s) else "'" + s.replace("'", "'\\''") + "'"
 
 
-def main(argv=None):
+def main(argv=None, entry: str | None = None, description: str | None = None):
+    """Run a command; an extension's script passes itself as `entry`, and its own help text."""
+    global ENTRY
+    if entry:
+        ENTRY = Path(entry).resolve()
     p = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=description or __doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     sub = p.add_subparsers(dest="cmd", required=True)
 
-    h = sub.add_parser("hunks", help="list hunk ids in the deck's diffs")
-    h.add_argument("deck", help="deck directory")
-    h.add_argument(
-        "--diff",
-        action="append",
-        metavar="FILE[=LABEL]",
-        help="diff file in the deck directory (default: the deck's diffs, or change.diff)",
-    )
-    h.add_argument("--show", action="store_true", help="print every row with its row number")
-    h.set_defaults(func=cmd_hunks)
-
-    c = sub.add_parser("check", help="validate a deck and report its checks and coverage")
+    c = sub.add_parser("check", help="validate a deck and report its checks")
     c.add_argument("deck")
     c.set_defaults(func=cmd_check)
 
@@ -2047,6 +1841,9 @@ def main(argv=None):
     l.add_argument("--verdict", choices=list(VERDICTS), help="with --answer for a check answer: the verdict")
     l.add_argument("--timeout", type=float, default=100, help="seconds to wait (default 100)")
     l.set_defaults(func=cmd_listen)
+
+    for ext in EXTENSIONS:
+        ext.commands(sub)
 
     t = sub.add_parser("stop", help="stop a detached server")
     t.add_argument("deck")

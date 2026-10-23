@@ -1,7 +1,8 @@
 "use strict";
 // Teaching slideshow. The server (scripts/deck.py) serves the deck as JSON,
 // relays questions to the session and pushes updates over server-sent events.
-// Review-only parts (diff stats, coverage) render only for a deck with diffs.
+// An extension's script, loaded after this one, adds to the page through
+// window.Deck (see "extensions" below).
 (() => {
   const MERMAID = {
     src: "https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.15.0/mermaid.min.js",
@@ -26,7 +27,7 @@
     visited: new Set(),
     cleanups: [],
     banners: new Map(),
-    groupsOpen: new Map(),
+    agent: "session", // what the page calls whoever answers; an extension may rename it
     answerDrafts: {},
     revising: new Set(),
   };
@@ -308,8 +309,7 @@
     const s = rowSpan(hk.rows, lo, hi);
     return `${base(hk.file.path)} ${hk.file.plain ? s.replace(/^new /, "") : s}`;
   };
-  // Who answers: the deck's author, a review session when the deck has diffs.
-  const who = () => (S.deck?.coverage ? "review session" : "session");
+  const who = () => S.agent;
 
   // ---- deck state ----
 
@@ -325,6 +325,7 @@
     S.hunks = new Map();
     for (const f of deck.files) for (const hk of f.hunks) S.hunks.set(hk.id, { ...hk, file: f });
     S.hl.clear();
+    for (const fn of hooks.deckLoaded) fn(deck);
     if (deck.status) S.status = deck.status;
     document.title = deck.title;
     $("#deck-title").textContent = deck.title;
@@ -373,6 +374,7 @@
     renderThread();
     renderNav();
     renderToc();
+    for (const fn of hooks.render) fn();
   }
 
   function renderTrack() {
@@ -409,13 +411,29 @@
     });
   }
 
-  function renderSlide({ keepScroll = false } = {}) {
+  // Text being written keeps its focus and cursor when what holds it
+  // redraws, as long as its element has the same data-draft key; the text
+  // itself lives in S.
+  function keepFocus(redraw) {
+    const el = document.activeElement;
+    const typing = el?.dataset?.draft;
+    const { selectionStart, selectionEnd } = el || {};
+    redraw();
+    const field = typing && document.querySelector(`[data-draft="${CSS.escape(typing)}"]`);
+    if (field && field !== document.activeElement) {
+      field.focus({ preventScroll: true });
+      field.setSelectionRange(selectionStart, selectionEnd);
+    }
+  }
+
+  function renderSlide(opts) {
+    keepFocus(() => drawSlide(opts));
+  }
+
+  function drawSlide({ keepScroll = false } = {}) {
     const s = slide();
     const el = $("#slide");
     const top = el.scrollTop;
-    // An answer being written keeps its focus and cursor when the slide redraws.
-    const typing = document.activeElement?.closest("#slide") && document.activeElement.dataset.draft;
-    const { selectionStart, selectionEnd } = document.activeElement || {};
     const inner = h(
       "div",
       { class: "slide-inner" },
@@ -436,11 +454,6 @@
     markAskable(el);
     paintQuoted();
     el.scrollTop = keepScroll ? top : 0;
-    const field = typing && el.querySelector(`[data-draft="${CSS.escape(typing)}"]`);
-    if (field) {
-      field.focus({ preventScroll: true });
-      field.setSelectionRange(selectionStart, selectionEnd);
-    }
   }
 
   // A slide's content. `where` names each block as deck.json does, so that
@@ -474,35 +487,7 @@
     }
     if (b.type === "excerpt") return excerptEl(b);
     if (b.type === "diagram") return diagramEl(b.diagram, opts);
-    if (b.type === "group") return groupEl(b, opts);
-    return h("div");
-  }
-
-  // An appendix group: a note saying whether the changes deserve a close
-  // look, with a long diff folded away until the reader opens it. A group
-  // alone on its slide shares the slide's title, so the stylesheet hides its own.
-  const FOLD_LINES = 30;
-  function groupEl(b, { where, audit }) {
-    const key = `${slide().id}:${where}`;
-    let adds = 0;
-    let dels = 0;
-    for (const ex of b.blocks) {
-      for (const p of ex.pieces) {
-        for (const r of S.hunks.get(p.hunk).rows.slice(p.lo, p.hi + 1)) {
-          if (r[0] === "+") adds++;
-          else if (r[0] === "-") dels++;
-        }
-      }
-    }
-    const files = new Set(b.blocks.map((ex) => ex.file)).size;
-    const diffs = h(
-      "details",
-      { class: "group-diffs", open: audit || (S.groupsOpen.get(key) ?? adds + dels <= FOLD_LINES) },
-      h("summary", {}, `Changes in ${files} file${files === 1 ? "" : "s"}`, adds || dels ? h("span", { class: "ex-stat" }, h("span", { class: "a" }, ` +${adds}`), " ", h("span", { class: "d" }, `−${dels}`)) : null),
-      b.blocks.map((ex, k) => renderBlock(ex, { where: `${where}.blocks[${k}]`, audit })),
-    );
-    if (!audit) diffs.addEventListener("toggle", () => S.groupsOpen.set(key, diffs.open));
-    return h("section", { class: "block group wide" }, h("h3", {}, b.title), mdEl(b.md), diffs);
+    return hooks.blocks[b.type]?.(b, opts) ?? h("div");
   }
 
   // The first slide of the next section, or -1. Slides without a section
@@ -739,9 +724,9 @@
         ),
       ];
     }
-    const given = h("div", { class: "answer-given" }, q.kind === "code" ? codeBlock(a.text, q.language) : h("div", { class: "answer-text", html: mathText(a.text) }));
+    const given = h("div", { class: "answer-given", "data-not-deck": "" }, q.kind === "code" ? codeBlock(a.text, q.language) : h("div", { class: "answer-text", html: mathText(a.text) }));
     if (a.state !== "judged") {
-      const status = a.state === "judging" ? h("span", { class: "dots" }, `The ${who()} is judging`) : `Waiting for the ${who()} · `;
+      const status = a.state === "judging" ? h("span", { class: "ellipsis" }, `The ${who()} is judging`) : `Waiting for the ${who()} · `;
       return [given, h("div", { class: "msg-state" }, status, h("span", { "data-since": a.at }))];
     }
     const model = q.model
@@ -753,7 +738,8 @@
       "Revise and resubmit",
     );
     const see = a.verdict === "correct" ? null : seeLink(s, q);
-    return [given, feedbackEl(s, i, VERDICT[a.verdict] || "Judged.", mdEl(a.feedback || ""), { see, model, revise })];
+    const feedback = h("div", { "data-not-deck": "" }, mdEl(a.feedback || ""));
+    return [given, feedbackEl(s, i, VERDICT[a.verdict] || "Judged.", feedback, { see, model, revise })];
   }
 
   async function submitWritten(s, i, text) {
@@ -1316,7 +1302,7 @@
   // that would not fit, or, when one opens the quote, inside it as raw TeX.
   const LABEL_MAX = 60;
   function refLabel(r) {
-    if (r.kind === "lines") return r.label;
+    if (r.kind !== "quote") return r.label;
     const text = r.text.replace(/\s+/g, " ").trim();
     const plain = (t) => (r.source === "math" ? t : t.replace(/[*`_]+/g, ""));
     let out = "";
@@ -1358,15 +1344,17 @@
   }
 
   document.addEventListener("click", (e) => {
-    const a = e.target.closest("#slide .math[data-tex], #slide [data-ask]");
-    if (!a || e.target.closest("a, button, input, label") || !getSelection().isCollapsed) return;
+    const a = e.target.closest("#slide .math[data-tex], .askable [data-ask]");
+    if (!a || e.target.closest("a, button, input, label, select, textarea") || !getSelection().isCollapsed) return;
     addRef(askOf(a));
+    for (const fn of hooks.quoted) fn(a);
   });
   document.addEventListener("keydown", (e) => {
-    const a = e.target.closest?.("#slide [data-ask]");
+    const a = e.target.closest?.(".askable [data-ask]");
     if (a && e.target === a && (e.key === "Enter" || e.key === " ")) {
       e.preventDefault();
       addRef(askOf(a));
+      for (const fn of hooks.quoted) fn(a);
     }
   });
 
@@ -1439,6 +1427,7 @@
     try {
       for (const s of S.deck.slides) {
         if (S.deck.version !== version) return;
+        if (s.generated) continue;
         const drawing = [];
         const extra = s.quiz.flatMap((q) => [...q.choices.map((c) => c.why), q.kind === "prose" ? q.model : ""]).filter(Boolean);
         const quiz = s.quiz.length ? [h("div", { "data-where": "quiz" }, extra.map((t) => mdEl(t)))] : [];
@@ -1457,7 +1446,8 @@
   function drawingIssues(root) {
     const out = [];
     const whereOf = (el) => el.closest("[data-where]").dataset.where;
-    for (const el of root.querySelectorAll(".katex-error")) out.push([whereOf(el), `KaTeX: ${el.title.replace(/^ParseError: KaTeX parse error: /, "")}`]);
+    // What the reader or the session wrote is not in deck.json, so it is not the author's to fix.
+    for (const el of root.querySelectorAll(".katex-error:not([data-not-deck] *)")) out.push([whereOf(el), `KaTeX: ${el.title.replace(/^ParseError: KaTeX parse error: /, "")}`]);
     for (const el of root.querySelectorAll("[data-issue]")) out.push([whereOf(el), el.dataset.issue]);
     for (const svg of root.querySelectorAll('.diagram-body svg:not([id^="mmd-"])')) {
       for (const message of svgOverflows(svg)) out.push([whereOf(svg), message]);
@@ -1533,7 +1523,7 @@
   function questionEl(m) {
     const state = {
       queued: [h("span", {}, `Waiting for the ${who()} · `, h("span", { "data-since": m.at })), h("button", { type: "button", class: "ghost small", onclick: () => withdraw(m) }, "Withdraw")],
-      claimed: [h("span", { class: "dots" }, `The ${who()} is answering`), h("span", { "data-since": m.at })],
+      claimed: [h("span", { class: "ellipsis" }, `The ${who()} is answering`), h("span", { "data-since": m.at })],
       withdrawn: [h("span", {}, "Withdrawn")],
     }[m.state];
     return h(
@@ -1595,6 +1585,7 @@
 
   function updateSend() {
     $("#send").disabled = !$("#question").value.trim() && !S.refs.length;
+    for (const fn of hooks.composer) fn();
   }
 
   function saveDraft() {
@@ -1660,12 +1651,6 @@
 
   function renderToc() {
     const d = S.deck;
-    const c = d.coverage;
-    $("#toc-cover").hidden = !c;
-    $("#toc-cover").textContent = !c
-      ? ""
-      : `${d.stats.files} file${d.stats.files === 1 ? "" : "s"} · +${d.stats.adds} −${d.stats.dels} · ` +
-        (c.appendix ? `${c.appendix} of ${c.changed} changed lines are only in the appendix` : `all ${c.changed} changed lines are shown in the walkthrough`);
     const list = $("#toc-list");
     list.replaceChildren();
     let label = null;
@@ -1864,6 +1849,7 @@
         banner("conn", null);
         threadsChanged();
         quizChanged();
+        for (const fn of hooks.reconnect) fn();
       }
       failures = 0;
       setStatus(d.status);
@@ -1877,6 +1863,7 @@
     );
     es.addEventListener("thread", threadsChanged);
     es.addEventListener("quiz", quizChanged);
+    for (const [event, fn] of Object.entries(hooks.events)) es.addEventListener(event, fn);
     es.addEventListener("status", (e) => setStatus(JSON.parse(e.data)));
     es.onerror = () => {
       failures += 1;
@@ -1938,6 +1925,7 @@
       if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
       if (e.key === "Escape") {
         if (!$("#toc").hidden) return closeToc();
+        if (hooks.escape.some((fn) => fn())) return;
         if (S.sel) return clearSel();
         $("#ask").classList.remove("open");
         return;
@@ -1982,6 +1970,13 @@
   }
 
   async function boot() {
+    // This script and the extensions' are deferred: they all run before
+    // DOMContentLoaded, and the extensions register their hooks by then. The
+    // load event covers a script that runs later than that.
+    if (document.readyState !== "complete") {
+      await new Promise((r) => ["DOMContentLoaded", "load"].forEach((e) => addEventListener(e, r, { once: true })));
+    }
+    for (const fn of hooks.init) fn();
     applyTheme(store.get("theme", "system"));
     S.drafts = store.get("drafts", {});
     S.answerDrafts = store.get("answer-drafts", {});
@@ -1991,6 +1986,7 @@
       await loadDeck();
       await loadThreads();
       await loadQuiz();
+      for (const fn of hooks.load) await fn();
     } catch (e) {
       $("#deck-title").textContent = "The deck server is not reachable";
       banner("deck", `Could not load the deck: ${e.message}. Ask the session to start the server again.`);
@@ -2003,6 +1999,32 @@
     scheduleAudit();
     setInterval(tickElapsed, 1000);
   }
+
+  // ---- extensions ----
+
+  // An extension's script calls Deck.extend with any of: blocks (renderers
+  // by block type), events (handlers by server event), and functions, or
+  // lists of them, run at init (before the deck loads), load (async, after
+  // it loads), deckLoaded (with each version of the deck), render (after each
+  // redraw), reconnect (after the server comes back), composer (after the
+  // question box changes), quoted (with the element a click quoted) and
+  // escape (on Escape; return true when it closed something).
+  const hooks = {
+    blocks: {}, events: {},
+    init: [], load: [], deckLoaded: [], render: [], reconnect: [], composer: [], quoted: [], escape: [],
+  };
+  window.Deck = {
+    extend(ext) {
+      const unknown = Object.keys(ext).filter((k) => !(k in hooks));
+      if (unknown.length) throw new Error(`Deck.extend: unknown hooks ${unknown.join(", ")}`);
+      for (const [key, value] of Object.entries(ext)) {
+        if (Array.isArray(hooks[key])) hooks[key].push(...[value].flat());
+        else Object.assign(hooks[key], value);
+      }
+    },
+    S, $, h, mdEl, chipLabel, renderBlock, renderSlide, keepFocus, markAskable,
+    paintQuoted, renderChips, saveDraft, flashRef, go, slide, slideIndex, sourceHref, toast, post, getJSON, who, debounce,
+  };
 
   boot();
 })();

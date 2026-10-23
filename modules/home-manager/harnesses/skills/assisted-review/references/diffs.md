@@ -18,6 +18,7 @@ A review deck is a `teach-me` deck (see `<skill-dir>/../teach-me/references/deck
 
 - `title`: a short name for the change. State the comparison base in `scope`. `goal` is optional; the change bounds the deck.
 - `source_url`: set it when the change is on GitHub (a commit, a pushed branch or a pull request), pointing at the head commit as in the example, so links open the new version of the file; leave it out for local changes.
+- `pr` (optional): the pull request's URL, `https://github.com/OWNER/REPO/pull/N`. With it, the reader can mark findings for review comments.
 - `diffs`: the diff files, relative to the deck directory; defaults to `["change.diff"]` when that file exists. Give each separate local diff a label, as in `[{"file": "staged.diff", "label": "staged"}, {"file": "unstaged.diff", "label": "unstaged"}]`. Paths from a labeled diff are written `LABEL:PATH`.
 
 ## Diff excerpts
@@ -43,7 +44,11 @@ Unchanged code the reader needs for context can be quoted with the base `excerpt
 ]
 ```
 
-The page lays the groups out as slides after the authored ones, keeping each group together. A group with more than 30 changed lines starts folded: the reader sees its title and note and opens the diff if it is worth reading. Write the note for that decision: say what kind of change the group is, why it was needed, and anything that makes it less routine than it looks.
+The page lays the groups out as slides after the authored ones (ids `appendix-1`, `appendix-2` and so on, reserved), keeping each group together. A group with more than 30 changed lines starts folded: the reader sees its title and note and opens the diff if it is worth reading. Write the note for that decision: say what kind of change the group is, why it was needed, and anything that makes it less routine than it looks.
+
+## Findings
+
+The engine ends a deck with diffs with a generated Findings slide (id `findings`, reserved). It lists the findings by severity, with a choice for each: ignore it, or with `pr` set, comment on it. The findings are kept in `DECK/findings.json`. A finding records its places as `path`, `side` (`new` or `old`), `line` and `end`, which also anchor a review comment; places in the diff also keep the hunk and rows, so the page can show the lines.
 
 ## Coverage
 

@@ -1,0 +1,271 @@
+"use strict";
+// The review layer's page, over teach-me's deck.js: appendix groups, and the
+// findings drawer and Findings slide. It works only on a deck with diffs; on
+// any other deck it stays out of the way.
+(() => {
+  const D = window.Deck;
+  const { S, $, h, mdEl, chipLabel, renderBlock, renderSlide, keepFocus, markAskable } = D;
+  const { paintQuoted, renderChips, saveDraft, flashRef, go, slide, slideIndex, sourceHref, toast, post, getJSON, who, debounce } = D;
+
+  Object.assign(S, {
+    groupsOpen: new Map(),
+    editing: new Map(),
+    findings: [],
+  });
+
+  // An appendix group: a note saying whether the changes deserve a close
+  // look, with a long diff folded away until the reader opens it. A group
+  // alone on its slide shares the slide's title, so the stylesheet hides its own.
+  const FOLD_LINES = 30;
+  function groupEl(b, { where, audit }) {
+    const key = `${slide().id}:${where}`;
+    let adds = 0;
+    let dels = 0;
+    for (const ex of b.blocks) {
+      for (const p of ex.pieces) {
+        for (const r of S.hunks.get(p.hunk).rows.slice(p.lo, p.hi + 1)) {
+          if (r[0] === "+") adds++;
+          else if (r[0] === "-") dels++;
+        }
+      }
+    }
+    const files = new Set(b.blocks.map((ex) => ex.file)).size;
+    const diffs = h(
+      "details",
+      { class: "group-diffs", open: audit || (S.groupsOpen.get(key) ?? adds + dels <= FOLD_LINES) },
+      h("summary", {}, `Changes in ${files} file${files === 1 ? "" : "s"}`, adds || dels ? h("span", { class: "ex-stat" }, h("span", { class: "a" }, ` +${adds}`), " ", h("span", { class: "d" }, `−${dels}`)) : null),
+      b.blocks.map((ex, k) => renderBlock(ex, { where: `${where}.blocks[${k}]`, audit })),
+    );
+    if (!audit) diffs.addEventListener("toggle", () => S.groupsOpen.set(key, diffs.open));
+    return h("section", { class: "block group wide" }, h("h3", {}, b.title), mdEl(b.md), diffs);
+  }
+
+  // ---- findings ----
+
+  // Review findings: the reader's, kept in a drawer from the top bar, and
+  // laid out on the Findings slide at the end, where the reader decides what
+  // to do with each. Clicking a finding quotes it into the question box.
+  const SEVERITIES = ["P0", "P1", "P2", "P3"];
+  const SEVERITY_HELP = {
+    P0: "Blocks the release or major use: a security hole, data loss",
+    P1: "Urgent: fix it in the next cycle",
+    P2: "Fix it eventually",
+    P3: "Nice to have",
+  };
+  const findingsOn = () => !!S.deck?.coverage;
+
+  async function loadReview() {
+    if (!findingsOn()) return;
+    S.findings = (await getJSON("api/review")).findings;
+  }
+
+  async function findingOp(op) {
+    try {
+      return await post("api/review", op);
+    } catch (e) {
+      toast(`Could not update the finding: ${e.message}`);
+    }
+  }
+
+  function renderFindings() {
+    const on = findingsOn();
+    $("#findings-btn").hidden = !on;
+    if (!on) return;
+    $("#findings-count").textContent = S.findings.length || "";
+    $("#findings-list").replaceChildren(
+      ...(S.findings.length ? S.findings.map((f) => findingEl(f)) : [h("p", { class: "thread-empty" }, "No findings yet. Write one in the question box and press Add finding.")]),
+    );
+    markAskable($("#findings-list"));
+  }
+
+  // A finding with its severity, sources, text and places. On the Findings
+  // slide it also offers the actions.
+  function findingEl(f, { actions = false } = {}) {
+    const severity = h(
+      "select",
+      { class: `severity ${f.severity || "none"}`, "aria-label": "Severity", title: SEVERITY_HELP[f.severity] || "No severity yet" },
+      h("option", { value: "" }, "P?"),
+      SEVERITIES.map((p) => h("option", { value: p, title: SEVERITY_HELP[p], selected: p === f.severity }, p)),
+    );
+    severity.addEventListener("change", () => findingOp({ op: "set", id: f.id, severity: severity.value || null }));
+    const sources = sourceTags(f.sources);
+    // The drawer and the slide show the same finding; each has its own editor.
+    const editKey = `${actions ? "slide" : "drawer"}:${f.id}`;
+    const text = S.editing.has(editKey)
+      ? editorEl(editKey, (t) => findingOp({ op: "set", id: f.id, text: t }))
+      : h("div", { class: "finding-text", "data-ask": `Finding ${f.id} (${f.severity || "no severity"}): ${f.text}`, "data-ask-source": "finding" }, mdEl(f.text));
+    const places = f.refs.length
+      ? h("div", { class: "chips" }, f.refs.map((r) => h("button", { type: "button", class: "chip static", title: r.text || r.path || r.label, onclick: () => showRef(f, r) }, chipLabel(r))))
+      : null;
+    const tools = h(
+      "div",
+      { class: "finding-tools" },
+      actions ? actionButtons(f) : null,
+      h("button", { type: "button", class: "ghost small", onclick: () => startEditing(editKey, f.text) }, "Edit"),
+      h("button", { type: "button", class: "ghost small", onclick: () => findingOp({ op: "remove", id: f.id }) }, "Remove"),
+    );
+    return h("article", { class: `finding ${f.action || ""}`, "data-finding": f.id }, h("div", { class: "finding-head" }, severity, sources, tools), text, places);
+  }
+
+  const sourceTags = (sources) => sources.map((s) => h("span", { class: `source ${s}` }, s === "reader" ? "you" : "review"));
+
+  function actionButtons(f) {
+    const choices = [["ignore", "Ignore"], ...(S.deck.pr ? [["comment", "Comment"]] : [])];
+    return h(
+      "span",
+      { class: "segmented", role: "group", "aria-label": "What to do" },
+      choices.map(([value, label]) =>
+        h("button", { type: "button", class: "small", "aria-pressed": String(f.action === value), onclick: () => findingOp({ op: "set", id: f.id, action: f.action === value ? null : value }) }, label),
+      ),
+    );
+  }
+
+  function renderFindingViews() {
+    keepFocus(renderFindings);
+    if (slide()?.generated) renderSlide({ keepScroll: true });
+  }
+
+  // An in-place editor for a finding's text. Its draft lives
+  // in S.editing, so a redraw of the slide or the drawer keeps it.
+  function editorEl(key, save) {
+    const box = h("textarea", { class: "answer-input", rows: 4, "data-draft": key });
+    box.value = S.editing.get(key);
+    box.addEventListener("input", () => S.editing.set(key, box.value));
+    const close = () => (S.editing.delete(key), renderFindingViews());
+    const submit = async () => (await save(box.value)) && close();
+    box.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) submit();
+      else if (e.key === "Escape") close();
+    });
+    return h(
+      "div",
+      { class: "finding-edit" },
+      box,
+      h("div", { class: "answer-row" }, h("button", { type: "button", class: "primary small", onclick: submit }, "Save"), h("button", { type: "button", class: "ghost small", onclick: close }, "Cancel")),
+    );
+  }
+
+  function startEditing(key, text) {
+    S.editing.set(key, text);
+    renderFindingViews();
+    document.querySelector(`[data-draft="${CSS.escape(key)}"]`)?.focus();
+  }
+
+  // Go to where a finding points: the slide that shows its lines, the file
+  // in context, or the slide it was added on.
+  function showRef(f, r) {
+    closeFindings();
+    if (r.kind === "lines") {
+      const i = S.deck.slides.findIndex((s) => showsLines(s.blocks, r));
+      if (i >= 0) {
+        go(i);
+        return setTimeout(() => flashRef(r), 50);
+      }
+    }
+    const href = r.kind !== "quote" && r.side === "new" && sourceHref(r.path, r.line, r.end);
+    if (href) return window.open(href, "_blank", "noopener");
+    const i = slideIndex(f.slide);
+    if (i >= 0) go(i);
+  }
+
+  const showsLines = (blocks, r) =>
+    blocks.some((b) => (b.type === "group" ? showsLines(b.blocks, r) : b.type === "excerpt" && b.pieces.some((p) => p.hunk === r.hunk && p.lo <= r.hi && r.lo <= p.hi)));
+
+  function findingsSlideEl() {
+    const groups = [...SEVERITIES, null].map((p) => [p, S.findings.filter((f) => (f.severity || null) === p)]).filter(([, fs]) => fs.length);
+    return h(
+      "div",
+      { class: "block findings-slide wide" },
+      mdEl(
+        S.findings.length
+          ? `Your findings by severity. Choose what to do with each${S.deck.pr ? ": ignore it, or comment on the pull request" : ""}, and click one to discuss it. Write a general finding in the question box and press **Add finding**.`
+          : "No findings yet. To add one, write it in the question box on any slide and press **Add finding**; quoted lines become its place.",
+      ),
+      groups.map(([p, fs]) => h("section", { class: "finding-group" }, h("h3", {}, p ? `${p} · ${SEVERITY_HELP[p]}` : "No severity yet"), fs.map((f) => findingEl(f, { actions: true })))),
+    );
+  }
+
+  async function addFinding() {
+    const raw = $("#question").value.trim();
+    const m = raw.match(/^(P[0-3])\b[:\s-]*/i);
+    const text = m ? raw.slice(m[0].length) : raw;
+    if (!text) return toast("Write the finding first.");
+    const done = await findingOp({ op: "add", text, refs: S.refs, slide: slide().id, ...(m ? { severity: m[1].toUpperCase() } : {}) });
+    if (!done) return;
+    $("#question").value = "";
+    S.refs = [];
+    saveDraft();
+    renderChips();
+    paintQuoted();
+    toast(m ? "Added the finding." : `Added the finding; the ${who()} will give it a severity.`);
+  }
+
+  function openFindings() {
+    $("#findings").hidden = false;
+    $("#findings-btn").setAttribute("aria-expanded", "true");
+  }
+  function closeFindings() {
+    $("#findings").hidden = true;
+    $("#findings-btn").setAttribute("aria-expanded", "false");
+  }
+
+  // ---- wiring ----
+
+  // The drawer, its button in the top bar and the composer's Add finding button.
+  function init() {
+    $(".bar-actions").prepend(
+      h("button", { type: "button", class: "ghost", id: "findings-btn", "aria-expanded": "false", "aria-controls": "findings", hidden: true, onclick: () => ($("#findings").hidden ? openFindings() : closeFindings()) },
+        "Findings ", h("span", { class: "count", id: "findings-count" })),
+    );
+    const drawer = h(
+      "div",
+      { class: "toc", id: "findings", hidden: true, onclick: (e) => e.target.id === "findings" && closeFindings() },
+      h(
+        "div",
+        { class: "toc-panel askable", role: "dialog", "aria-label": "Findings" },
+        h("div", { class: "toc-head" }, h("h2", {}, "Findings"), h("button", { type: "button", class: "ghost small", onclick: closeFindings }, "Close")),
+        h("p", { class: "toc-about" }, "Click a finding to discuss it; its severity menu changes it."),
+        h("div", { class: "findings-list", id: "findings-list" }),
+      ),
+    );
+    $("#toasts").before(drawer);
+    const add = h("button", { type: "button", class: "ghost small", id: "add-finding", title: "Save the text and quotes as a review finding; start with P0 to P3 to set its severity", hidden: true, disabled: true, onclick: addFinding }, "Add finding");
+    $("#send").before(add);
+    $("#toc-about").after(h("p", { class: "toc-cover", id: "toc-cover", hidden: true }));
+  }
+
+  // The contents panel says how much of the change the walkthrough shows.
+  function renderCoverage() {
+    const d = S.deck;
+    const c = d.coverage;
+    $("#toc-cover").hidden = !c;
+    $("#add-finding").hidden = !c;
+    if (!c) return;
+    $("#toc-cover").textContent =
+      `${d.stats.files} file${d.stats.files === 1 ? "" : "s"} · +${d.stats.adds} −${d.stats.dels} · ` +
+      (c.appendix ? `${c.appendix} of ${c.changed} changed lines are only in the appendix` : `all ${c.changed} changed lines are shown in the walkthrough`);
+  }
+
+  const reviewChanged = debounce(async () => {
+    try {
+      await loadReview();
+      renderFindingViews();
+    } catch {}
+  }, 150);
+
+  D.extend({
+    init,
+    load: loadReview,
+    deckLoaded(deck) {
+      S.agent = deck.coverage ? "review session" : "session";
+    },
+    render: [renderFindings, renderCoverage],
+    reconnect: reviewChanged,
+    events: { review: reviewChanged },
+    escape: () => !$("#findings").hidden && (closeFindings(), true),
+    composer: () => ($("#add-finding").disabled = !$("#question").value.trim()),
+    // Quoting a finding into the question box closes the drawer, so the box shows.
+    quoted: (el) => el.closest("#findings") && closeFindings(),
+    blocks: { group: groupEl, findings: findingsSlideEl },
+  });
+})();
