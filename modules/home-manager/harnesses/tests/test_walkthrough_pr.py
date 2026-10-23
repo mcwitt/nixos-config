@@ -428,6 +428,8 @@ class ReviewServerTest(ServerCase):
         run("finding", self.dir, "add", "dup", "--review")
         review = json.loads((self.dir / "findings.json").read_text())["findings"][1]["id"]
         self.assertIn("from reader and review", run("finding", self.dir, "merge", "f-1-aa", review).stdout)
+        # Who wrote an old finding's text is unknown, so its comment would post from the agent's account.
+        self.assertEqual(self.get("api/review")["findings"][0]["author"], "session")
 
     def test_finishing_while_the_review_runs(self):
         run("finding", self.dir, "review", "running")
@@ -448,7 +450,7 @@ class ReviewServerTest(ServerCase):
         self.assertEqual(self.post("api/review", {"op": "request-proposal"}), {"proposal": "requested"})
         out = run("listen", self.dir, "--timeout", 5).stdout
         self.assertIn("The reader asked for proposed actions.", out)
-        self.assertIn(f"  {f['id']} (P2, from reader, at app.py new 2): json is unused [comment]", out)
+        self.assertIn(f"  {f['id']} (P2, from reader, at app.py new 2): json is unused [comment, in the reader's words]", out)
         self.assertIn(f"action {self.dir} add comment --finding ID --body-file FILE", out)
 
         (self.dir / "body.md").write_text("`json` is imported but unused; drop it.")
@@ -489,6 +491,25 @@ class ReviewServerTest(ServerCase):
         # Its comment cannot sit on lines the pull request does not show, so it goes in the summary.
         self.assertIn("Comment in the review summary", A("add", "comment", "--finding", f2["id"], "--body-file", self.dir / "body.md").stdout)
         A("remove", self.get("api/review")["actions"][-1]["id"])
+        # Without a body, a comment takes its finding's text and whoever wrote it.
+        A("add", "comment", "--finding", f2["id"])
+        self.assertEqual({k: self.get("api/review")["actions"][-1][k] for k in ("body", "author")}, {"body": "keep sys?", "author": "reader"})
+        # Rewording the finding rewords the draft that still says the same, as whoever reworded it;
+        # a draft with its own text keeps it.
+        A("add", "comment", "--finding", f2["id"], "--body-file", self.dir / "body.md")
+        last2 = lambda: [{k: a[k] for k in ("body", "author", "include")} for a in self.get("api/review")["actions"][-2:]]
+        self.post("api/review", {"op": "set", "id": f2["id"], "text": "keep sys??"})
+        self.assertEqual(last2()[0], {"body": "keep sys??", "author": "reader", "include": True})
+        run("finding", self.dir, "set", f2["id"], "--text", "Is sys still needed?")
+        self.assertEqual(last2(), [{"body": "Is sys still needed?", "author": "session", "include": True},
+                                   {"body": (self.dir / "body.md").read_text(), "author": "session", "include": True}])
+        # A finding's drafts go out only while it is marked comment.
+        self.post("api/review", {"op": "set", "id": f2["id"], "action": "ignore"})
+        self.assertEqual([a["include"] for a in last2()], [False, False])
+        self.post("api/review", {"op": "set", "id": f2["id"], "action": "comment"})
+        self.assertEqual([a["include"] for a in last2()], [True, True])
+        for a in self.get("api/review")["actions"][-2:]:
+            A("remove", a["id"])
         self.post("api/review", {"op": "action-set", "id": check["id"], "include": False})
         with self.assertRaises(urllib.error.HTTPError):
             self.post("api/review", {"op": "action-set", "id": comment["id"], "title": "mine now"})

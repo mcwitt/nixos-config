@@ -40,7 +40,8 @@
   padding: 0.6rem 0.75rem 0.5rem;
   background: var(--panel);
 }
-.finding.ignore { opacity: 0.6; }
+/* A finding set aside, or an action left out, dims all but its controls. */
+.finding.ignore > :not(.finding-head), .finding.excluded > :not(.finding-head) { opacity: 0.55; }
 .finding-head { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.3rem; }
 .finding-tools { margin-left: auto; display: flex; gap: 0.25rem; align-items: center; }
 .finding-text { cursor: help; border-radius: 4px; }
@@ -70,14 +71,15 @@
 .merged > summary { cursor: pointer; color: var(--ink-2); width: fit-content; }
 .merged-item { display: flex; gap: 0.5rem; align-items: baseline; margin-top: 0.3rem; color: var(--ink-2); }
 .merged-item .prose p { margin: 0; }
-.reveal {
+.note {
   max-width: var(--measure);
   margin-bottom: 1.25rem;
   padding: 0.75rem 1rem;
   border-radius: 8px;
   background: var(--note-wash);
 }
-.reveal p { margin: 0 0 0.6rem; }
+.note p { margin: 0 0 0.6rem; }
+.note p:last-child { margin-bottom: 0; }
 .action-title { font-weight: 600; }
 .action-for { font-size: var(--step--1); color: var(--ink-2); margin-bottom: 0.3rem; }
 .action-state { font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-3); }
@@ -88,14 +90,17 @@
 .action-result { margin-top: 0.4rem; font-size: var(--step--1); color: var(--ink-2); }
 .action-result.done strong { color: var(--ok); }
 .action-result.failed strong { color: var(--del-ink); }
-.actions-slide .finding { max-width: none; margin-bottom: 0.75rem; }
+.actions-slide .finding { margin-bottom: 0.75rem; }
+.findings-slide .finding-text, .actions-slide .finding-text { max-width: var(--measure); }
+.include { display: inline-flex; align-items: center; gap: 0.3rem; font-size: var(--step--1); color: var(--ink-2); cursor: pointer; }
+/* While actions wait for Carry out, finishing is not the next step. */
+.slide-inner:has(.carry-out button.primary:not(:disabled)) .next-up .finish { background: transparent; border-color: var(--rule); color: var(--ink-2); font-weight: 400; }
 .actions-slide > .prose { max-width: var(--measure); }
 .carry-out { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
 .segmented { display: inline-flex; }
 .segmented button { border-radius: 0; margin-left: -1px; }
 .segmented button:first-child { border-radius: 6px 0 0 6px; margin-left: 0; }
 .segmented button:last-child { border-radius: 0 6px 6px 0; }
-.segmented button[aria-pressed="true"] { background: var(--accent-wash); border-color: var(--accent); color: var(--ink); position: relative; }
+.segmented button[aria-pressed="true"] { background: var(--accent-wash); border-color: var(--accent); color: var(--ink); font-weight: 600; box-shadow: inset 0 0 0 1px var(--accent); position: relative; }
 .finding-group h3 { font: 650 var(--step-1) / 1.3 var(--font-display); margin: 1.5rem 0 0.6rem; }
 .finding-group .finding + .finding { margin-top: 0.6rem; }
-.findings-slide .finding { max-width: var(--measure); }

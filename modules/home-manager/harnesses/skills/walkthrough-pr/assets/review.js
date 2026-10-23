@@ -4,7 +4,7 @@
 // works only on a deck with diffs; on any other deck it stays out of the way.
 (() => {
   const D = window.Deck;
-  const { S, $, h, mdEl, mdInline, chipLabel, excerptEl, renderBlock, renderSlide, keepFocus, markAskable } = D;
+  const { S, $, h, plural, mdEl, mdInline, chipLabel, excerptEl, renderBlock, renderSlide, keepFocus, markAskable } = D;
   const { paintQuoted, renderChips, saveDraft, flashRef, go, slide, slideIndex, sourceHref, toast, post, getJSON, who, debounce } = D;
 
   Object.assign(S, {
@@ -35,7 +35,7 @@
     const diffs = h(
       "details",
       { class: "group-diffs", open: audit || (S.groupsOpen.get(key) ?? adds + dels <= FOLD_LINES) },
-      h("summary", {}, `Changes in ${files} file${files === 1 ? "" : "s"}`, adds || dels ? h("span", { class: "ex-stat" }, h("span", { class: "a" }, ` +${adds}`), " ", h("span", { class: "d" }, `−${dels}`)) : null),
+      h("summary", {}, `Changes in ${plural(files, "file")}`, adds || dels ? h("span", { class: "ex-stat" }, h("span", { class: "a" }, ` +${adds}`), " ", h("span", { class: "d" }, `−${dels}`)) : null),
       b.blocks.map((ex, k) => renderBlock(ex, { where: `${where}.blocks[${k}]`, audit })),
     );
     if (!audit) diffs.addEventListener("toggle", () => S.groupsOpen.set(key, diffs.open));
@@ -45,7 +45,7 @@
   // ---- findings ----
 
   // Review findings: the reader's, kept in a drawer from the top bar, and
-  // laid out on the Findings slide at the end, where the reader decides what
+  // laid out on the Findings slide near the end, where the reader decides what
   // to do with each. A background review's findings stay hidden until the
   // reader reveals them there, so they do not steer the reader's own; the
   // session then merges duplicates. Clicking a finding quotes it into the
@@ -136,16 +136,16 @@
     if (reveal === "requested") {
       return h(
         "div",
-        { class: "reveal" },
+        { class: "note" },
         h("p", {}, h("span", { class: "ellipsis" }, `The ${who()} is merging the review's findings with yours`)),
         h("button", { type: "button", class: "ghost small", title: `Send the request to the ${who()} again`, onclick: () => reviewOp({ op: "request-reveal" }) }, "Ask again"),
       );
     }
     if (review !== "running" && !hidden) return null;
-    const status = review === "running" ? "The background review is still running." : `The background review found ${hidden} issue${hidden === 1 ? "" : "s"}.`;
+    const status = review === "running" ? "The background review is still running." : `The background review found ${plural(hidden, "issue")}.`;
     return h(
       "div",
-      { class: "reveal" },
+      { class: "note" },
       h("p", {}, `${status} Its findings stay hidden until you have added yours, so they do not steer you.`),
       h("button", { type: "button", class: "primary small", onclick: () => reviewOp({ op: "request-reveal" }) }, "Reveal the review's findings"),
     );
@@ -226,7 +226,11 @@
       revealEl(),
       mdEl(
         S.findings.length
-          ? `${S.review.reveal === "shown" ? "The findings" : "Your findings"} by severity. Choose what to do with each${S.deck.pr ? ": ignore it, or comment on the pull request" : ""}, and click one to discuss it. Write a general finding in the question box and press **Add finding**.`
+          ? `${S.review.reveal === "shown" ? "The findings" : "Your findings"} by severity. ` +
+              (S.deck.pr
+                ? `Mark each one **Comment** to have the ${who()} draft it as a pull request comment, or **Ignore** it. You review the drafts on the next slide, and nothing is posted until you press **Carry out** there. To ask for a fix or a check, say so in the question box. `
+                : "") +
+              "Click a finding to discuss it. To add a general one, write it in the question box and press **Add finding**."
           : "No findings yet. To add one, write it in the question box on any slide and press **Add finding**; quoted lines become its place.",
       ),
       groups.map(([p, fs]) => h("section", { class: "finding-group" }, h("h3", {}, p ? `${p} · ${SEVERITY_HELP[p]}` : "No severity yet"), fs.map((f) => findingEl(f, { actions: true })))),
@@ -264,7 +268,7 @@
   // what to include, and presses Carry out. A comment posts from the account
   // of whoever wrote its current text.
   const ACTION_KINDS = { comment: "Comment", fix: "Fix", check: "Check" };
-  const postsAs = (a) => (a.author === "reader" ? "posts as you" : "posts as the agent's account");
+  const postsAs = (a) => (a.author === "reader" ? "posts as you" : "posts as the agent");
 
   // A fix's patch draws like the deck's diffs, so its files join the deck's.
   function registerFiles(files) {
@@ -279,15 +283,18 @@
 
   function actionsSlideEl() {
     const { proposal } = S.review;
-    const ask = (label, cls = "primary small") => h("button", { type: "button", class: cls, onclick: () => reviewOp({ op: "request-proposal" }) }, label);
+    const slideEl = (...kids) => h("div", { class: "block actions-slide wide" }, ...kids);
+    const draft = (label, cls = "primary small") => h("button", { type: "button", class: cls, onclick: () => reviewOp({ op: "request-proposal" }) }, label);
     const intro = mdEl(
-      `The ${who()} drafts the review comments for findings you marked **Comment**, and any fix or check you ask for. ` +
-        "Reword a comment yourself, or click a draft to ask for changes. Nothing runs until you press **Carry out**.",
+      `The ${who()} drafts a review comment for each finding you marked **Comment**, and any fix or check you ask for in the question box. ` +
+        "Reword a comment yourself, or click a draft to ask for changes. Untick **Include** to leave an action out. Nothing runs until you press **Carry out**.",
     );
-    if (proposal === "none") return h("div", { class: "block actions-slide wide" }, intro, ask("Propose actions"));
+    const undrafted = proposal === "ready" ? S.findings.filter((f) => f.action === "comment" && !S.actions.some((a) => a.finding === f.id)).length : 0;
+    const choices = choicesEl(undrafted, draft);
+    if (proposal === "none") return slideEl(intro, choices, draft("Draft actions"));
     const drafting = proposal === "requested";
-    const status = drafting ? h("p", { class: "reveal" }, h("span", { class: "ellipsis" }, `The ${who()} is drafting the actions`), " ", ask("Ask again", "ghost small")) : null;
-    if (drafting && !S.actions.length) return h("div", { class: "block actions-slide wide" }, intro, status);
+    const status = drafting ? h("p", { class: "note" }, h("span", { class: "ellipsis" }, `The ${who()} is drafting the actions`), " ", draft("Ask again", "ghost small")) : null;
+    if (drafting && !S.actions.length) return slideEl(intro, choices, status);
     // Actions already sent go again only once the session has had time to report them: it may have lost the request.
     const fresh = S.actions.filter((a) => a.include && (a.state === "proposed" || a.state === "failed"));
     const waited = Date.now() / 1000 - S.reviewAt;
@@ -298,64 +305,82 @@
     if (Number.isFinite(next)) S.resendTimer = setTimeout(renderFindingViews, next * 1000 + 500);
     const runnable = fresh.length ? fresh : lost;
     const label = drafting ? "Carry out (once the drafts are ready)" : fresh.length ? carryLabel(fresh) : lost.length ? "Send again" : "Carry out";
-    return h(
-      "div",
-      { class: "block actions-slide wide" },
+    return slideEl(
       intro,
+      choices,
       status,
-      S.actions.map(actionEl),
+      S.actions.length ? S.actions.map(actionEl) : h("p", {}, "No actions proposed."),
       h(
         "div",
         { class: "carry-out" },
         h("button", { type: "button", class: "primary", disabled: drafting || !runnable.length, onclick: () => carryOut(runnable) }, label),
-        drafting ? null : ask("Propose more", "ghost small"),
+        drafting || undrafted ? null : draft("Ask for more", "ghost small"),
       ),
     );
   }
 
-  function carryLabel(actions) {
-    if (!actions.length) return "Carry out";
+  // What the drafts leave out: findings with no choice, and findings marked
+  // Comment since the last drafts, with a button to draft those.
+  function choicesEl(undrafted, draft) {
+    if (!S.deck.pr || !S.findings.length) return null;
+    const marked = S.findings.filter((f) => f.action === "comment").length;
+    const open = S.findings.filter((f) => !f.action).length;
     const parts = [];
-    const comments = actions.filter((a) => a.kind === "comment");
-    const mine = comments.filter((a) => a.author === "reader").length;
-    if (comments.length - mine) parts.push(`${comments.length - mine} comment${comments.length - mine === 1 ? "" : "s"} as the agent's account`);
-    if (mine) parts.push(`${mine} comment${mine === 1 ? "" : "s"} as you`);
-    for (const kind of ["fix", "check"]) {
-      const n = actions.filter((a) => a.kind === kind).length;
-      if (n) parts.push(`${n} ${kind}${n === 1 ? "" : kind === "fix" ? "es" : "s"}`);
-    }
-    return `Carry out ${actions.length}: ${parts.join(", ")}`;
+    if (!marked) parts.push(`No finding is marked **Comment**${open ? `, and ${plural(open, "has", "have")} no choice yet` : ""}.`);
+    else if (open) parts.push(`${plural(open, "finding has", "findings have")} no choice yet and will get no comment.`);
+    if (undrafted) parts.push(`${plural(undrafted, "finding marked **Comment** has", "findings marked **Comment** have")} no draft yet.`);
+    if (!parts.length) return null;
+    return h(
+      "div",
+      { class: "note" },
+      h("p", {}, h("span", { html: mdInline(parts.join(" ") + " ") }), !marked || open ? h("a", { href: "#findings" }, "Choose on the Findings slide") : null),
+      undrafted ? draft(`Draft ${undrafted} more`) : null,
+    );
+  }
+
+  function carryLabel(actions) {
+    const n = (kind) => actions.filter((a) => a.kind === kind).length;
+    const mine = actions.filter((a) => a.kind === "comment" && a.author === "reader").length;
+    const theirs = n("comment") - mine;
+    const parts = [
+      theirs ? `post ${plural(theirs, "comment")} as the agent` : "",
+      mine ? (theirs ? `${mine} as you` : `post ${plural(mine, "comment")} as you`) : "",
+      n("fix") ? `apply ${plural(n("fix"), "fix", "fixes")}` : "",
+      n("check") ? `run ${plural(n("check"), "check")}` : "",
+    ].filter(Boolean);
+    return parts.length ? `Carry out: ${parts.join(", ")}` : "Carry out";
   }
 
   async function carryOut(actions) {
-    if (await reviewOp({ op: "carry-out", ids: actions.map((a) => a.id) })) toast(`Sent ${actions.length} action${actions.length === 1 ? "" : "s"} to the ${who()}.`);
+    if (await reviewOp({ op: "carry-out", ids: actions.map((a) => a.id) })) toast(`Sent ${plural(actions.length, "action")} to the ${who()}.`);
   }
 
   function actionEl(a) {
     const locked = a.state === "running" || a.state === "done";
-    const include = h("input", { type: "checkbox", checked: a.include, disabled: locked, "aria-label": "Include this action" });
+    const include = h("input", { type: "checkbox", checked: a.include, disabled: locked });
     include.addEventListener("change", () => reviewOp({ op: "action-set", id: a.id, include: include.checked }));
     const finding = S.findings.find((f) => f.id === a.finding);
+    const key = `action:${a.id}`;
+    const edit = a.kind === "comment" && !locked && !S.editing.has(key) ? h("div", { class: "finding-tools" }, h("button", { type: "button", class: "ghost small", onclick: () => startEditing(key, a.body) }, "Edit")) : null;
     const head = h(
       "div",
       { class: "finding-head" },
-      include,
+      h("label", { class: "include" }, include, "Include"),
       h("span", { class: `source kind-${a.kind}` }, ACTION_KINDS[a.kind]),
       a.kind === "comment" ? h("span", { class: `source ${a.author}` }, postsAs(a)) : null,
       h("strong", { class: "action-title" }, a.title),
       a.state !== "proposed" ? h("span", { class: `action-state ${a.state}` }, a.state) : null,
+      edit,
     );
     const ask = (text) => ({ "data-ask": `Proposed ${a.kind} ${a.id} (${a.title}): ${text}`, "data-ask-source": "action" });
     let body;
     if (a.kind === "comment") {
       const place = a.place ? h("span", { class: "chip static" }, h("span", { class: "chip-label" }, a.place.label)) : h("span", { class: "source" }, "review summary");
-      const key = `action:${a.id}`;
       if (S.editing.has(key)) {
         const hint = a.author === "reader" ? null : "Once you change it, the comment posts as you.";
         body = [h("div", { class: "chips" }, place), editorEl(key, (t) => reviewOp({ op: "action-set", id: a.id, body: t }), hint)];
       } else {
-        const edit = locked ? null : h("div", { class: "finding-tools" }, h("button", { type: "button", class: "ghost small", onclick: () => startEditing(key, a.body) }, "Edit"));
-        body = [h("div", { class: "chips" }, place), h("div", { class: "finding-text", ...ask(a.body) }, mdEl(a.body)), edit];
+        body = [h("div", { class: "chips" }, place), h("div", { class: "finding-text", ...ask(a.body) }, mdEl(a.body))];
       }
     } else if (a.kind === "fix") {
       body = a.diff.blocks.map((b) => excerptEl(b));
@@ -364,9 +389,10 @@
     }
     return h(
       "article",
-      { class: `finding action ${a.include ? "" : "ignore"}`, "data-action": a.id },
+      { class: `finding action ${a.include ? "" : "excluded"}`, "data-action": a.id },
       head,
-      finding ? h("div", { class: "action-for" }, `For ${finding.severity || "P?"}: `, h("span", { html: mdInline(finding.text) })) : null,
+      // A comment that says what its finding says need not show it twice.
+      finding ? h("div", { class: "action-for" }, `For ${finding.severity || "P?"}`, a.body === finding.text ? "" : [": ", h("span", { html: mdInline(finding.text) })]) : null,
       body,
       a.result ? resultEl(a) : null,
     );
@@ -417,7 +443,7 @@
     $("#add-finding").hidden = !c;
     if (!c) return;
     $("#toc-cover").textContent =
-      `${d.stats.files} file${d.stats.files === 1 ? "" : "s"} · +${d.stats.adds} −${d.stats.dels} · ` +
+      `${plural(d.stats.files, "file")} · +${d.stats.adds} −${d.stats.dels} · ` +
       (c.appendix ? `${c.appendix} of ${c.changed} changed lines are only in the appendix` : `all ${c.changed} changed lines are shown in the walkthrough`);
   }
 

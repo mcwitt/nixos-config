@@ -325,8 +325,9 @@ class OpContext:
 class Review:
     """A review deck's findings and proposed actions, persisted to findings.json.
 
-    A finding is {id, text, severity, sources, refs, slide, at, action,
-    hidden, merged}: severity is P0 to P3 or null, sources lists "reader" and
+    A finding is {id, text, author, severity, sources, refs, slide, at,
+    action, hidden, merged}: author wrote its current text, "session" or
+    "reader"; severity is P0 to P3 or null, sources lists "reader" and
     "review", action is the reader's choice (ignore or comment), and merged
     holds the findings folded into it. The background review's findings stay
     hidden from the page until the reader asks to see them: `reveal` goes
@@ -359,6 +360,7 @@ class Review:
         for f in self.items:
             f.setdefault("hidden", False)
             f.setdefault("merged", [])
+            f.setdefault("author", "session")  # older files did not record it; the agent's account is the safe guess
         self.actions: list[dict] = data.get("actions", [])
         self.review: str = data.get("review", "none")
         self.reveal: str = data.get("reveal", "hidden")
@@ -423,7 +425,7 @@ class Review:
         refs = parse_refs(ctx.hunks, op.get("refs")) + [locate(ctx.deck, str(a)) for a in op.get("at") or []]
         slide = ctx.deck.slide(str(op.get("slide")))
         review = by == "session" and op.get("review") is True
-        item = {"id": new_id("f"), "text": text[:20_000], "severity": op.get("severity"),
+        item = {"id": new_id("f"), "text": text[:20_000], "author": by, "severity": op.get("severity"),
                 "sources": ["review" if review else "reader"], "refs": refs[:8], "slide": slide["id"] if slide else "",
                 "at": time.time(), "action": None, "hidden": review and self.reveal != "shown", "merged": []}
         self.items.append(item)
@@ -444,17 +446,35 @@ class Review:
             if op["action"] == "comment" and not ctx.deck.spec.get("pr"):
                 raise ValueError("the deck has no pull request to comment on")
         if "text" in op:
-            item["text"] = str(op["text"]).strip()[:20_000]
+            text = str(op["text"]).strip()[:20_000]
+            if text != item["text"]:
+                # Drafts that still say what the finding said follow it.
+                for a in self._drafts(item["id"]):
+                    if a["body"] == item["text"]:
+                        a.update(body=text, author=by)
+                item.update(text=text, author=by)
+        if "action" in op and op["action"] != item["action"]:
+            self._include(item["id"], op["action"] == "comment")
         for key in ("severity", "action"):
             if key in op:
                 item[key] = op[key]
         return {"finding": item}
+
+    def _drafts(self, fid: str) -> list[dict]:
+        """The comments drafted for a finding that have not gone out yet."""
+        return [a for a in self.actions if a["finding"] == fid and a["kind"] == "comment" and a["state"] in ("proposed", "failed")]
+
+    def _include(self, fid: str, on: bool):
+        """A finding's unsent comments go out only while it is marked comment."""
+        for a in self._drafts(fid):
+            a["include"] = on
 
     def _op_remove(self, op: dict, by: str, ctx: OpContext) -> dict:
         item = self._finding(op.get("id"))
         if by == "reader" and "reader" not in item["sources"]:
             raise ValueError("only your own findings can be removed")
         self.items.remove(item)
+        self._include(item["id"], False)
         self._repoint(item["id"], None)
         return {"finding": item}
 
@@ -530,7 +550,7 @@ class Review:
             if out["body"] != a.get("body"):
                 out["author"] = by
         if by == "reader" and set(op) - {"op", "id", "include", "body"}:
-            raise ValueError("the reader can include, skip or reword an action")
+            raise ValueError("the reader can include, leave out or reword an action")
         if "at" in op:
             if a["kind"] != "comment":
                 raise ValueError("only a comment has a place")
@@ -559,6 +579,8 @@ class Review:
         if kind == "comment" and not ctx.deck.spec.get("pr"):
             raise ValueError("the deck has no pull request to comment on")
         needed = {"comment": "body", "fix": "patch", "check": "command"}[kind]
+        if kind == "comment" and not op.get("body") and finding:
+            op = {**op, "body": finding["text"]}
         if not op.get(needed):
             raise ValueError(f"a {kind} needs its {needed}")
         a = {"id": new_id("a"), "kind": kind, "title": "", "finding": finding["id"] if finding else None,
@@ -567,8 +589,10 @@ class Review:
             # By default a comment sits at its finding's first place in the diff, where GitHub can anchor it.
             inline = lambda r: r["kind"] == "lines" and r["hunk"] in ctx.deck.hunks and not ctx.deck.hunks[r["hunk"]].file.plain
             at = next((place_of(r) for r in (finding or {}).get("refs", []) if inline(r)), None)
-            a.update(author="session", place=at)
+            a["place"] = at
         a.update(self._action_fields(a, {**op, "title": op.get("title") or "untitled"}, by, ctx))
+        if kind == "comment" and finding and a["body"] == finding["text"]:
+            a["author"] = finding["author"]  # the finding's own words post as whoever wrote them
         if not op.get("title"):
             # A comment's title says where it goes; its finding is shown beside it.
             where = f"at {a['place']['label']}" if a.get("place") else "in the review summary"
@@ -742,7 +766,8 @@ def action_text(a: dict) -> str:
 
 def proposal_brief(review: Review, cmd: str) -> str:
     """What the session needs to propose the review's actions."""
-    findings = "\n".join(f"  {finding_text(f)} [{f['action'] or 'no choice'}]" for f in review.items) or "  (none)"
+    words = lambda f: ", in the reader's words" if f["author"] == "reader" else ""
+    findings = "\n".join(f"  {finding_text(f)} [{f['action'] or 'no choice'}{words(f)}]" for f in review.items) or "  (none)"
     actions = "\n".join(f"  {action_text(a)}" for a in review.actions) or "  (none)"
     return f"""The reader asked for proposed actions.
 
@@ -753,7 +778,7 @@ Actions proposed so far:
 {actions}
 
 Propose what the reader's choices call for, and nothing for a finding marked ignore:
-- For each finding marked comment, draft one review comment: write its body to a file, then run
+- For each finding marked comment, draft one review comment. If the finding is in the reader's words, post them as written: leave out --body-file, and the comment takes the finding's text and posts as the reader. Otherwise write its body to a file, then run
     {cmd} add comment --finding ID --body-file FILE
   It goes at the finding's first place in a file; --at PATH:LINE[-END] moves it and --summary puts it in the review's summary. Write it as it will be posted: short, specific, and saying what to change.
 - Propose a fix only where the reader asked for one, or where the change is the reader's own and the fix is small and certain. Write it as a patch against the head of the change, as `git diff` prints it from the repository root:
@@ -848,7 +873,7 @@ def cmd_finding(args):
         findings = load_review(deck_dir)
         print(f"review: {findings.review}, findings {findings.reveal}")
         for f in findings.items:
-            print(finding_text(f) + (f" [{f['action']}]" if f["action"] else ""))
+            print(f"{finding_text(f)} [{f['action'] or 'no choice'}]")
         return
     op = {"op": args.action}
     if args.action == "add":
@@ -1068,7 +1093,7 @@ class ReviewExtension(Extension):
         findings = review.items
         out = []
         if findings:
-            out.append("\nFindings:\n" + "\n".join(f"  {finding_text(f)} [{f['action'] or 'no action chosen'}]" for f in findings))
+            out.append("\nFindings:\n" + "\n".join(f"  {finding_text(f)} [{f['action'] or 'no choice'}]" for f in findings))
         if any(f["hidden"] for f in findings) or review.review == "running":
             cmd = f"python3 {ctx.me} finding {ctx.deck_arg}"
             wait = (f" The background review is still running: wait for it, record its findings and run `{cmd} review done`."
@@ -1123,8 +1148,8 @@ class ReviewExtension(Extension):
         asets[1].add_argument("id")
         for ap in asets:
             ap.add_argument("--title")
-            ap.add_argument("--body-file", help="a comment's text, Markdown")
-            ap.add_argument("--at", metavar="PATH:LINE[-END]", help="where a comment goes (default: its finding's first place)")
+            ap.add_argument("--body-file", help="a comment's text, Markdown (on add, default: its finding's text)")
+            ap.add_argument("--at", metavar="PATH:LINE[-END]", help="where a comment goes (on add, default: its finding's first place)")
             ap.add_argument("--summary", action="store_true", help="put a comment in the review's summary")
             ap.add_argument("--patch-file", help="a fix, as a unified diff from the repository root")
             ap.add_argument("--command", help="a check's command")
