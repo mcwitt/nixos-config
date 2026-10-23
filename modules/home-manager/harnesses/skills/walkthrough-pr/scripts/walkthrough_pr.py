@@ -43,6 +43,8 @@ SEVERITIES = ("P0", "P1", "P2", "P3")
 FINDING_CHOICES = ("comment", "fix")
 ACTION_ID = re.compile(r"^a-[0-9a-z-]+$")
 ACTION_KINDS = ("comment", "fix", "check")
+LOG_MAX = 200  # Carry out log entries kept
+LOG_NOTE = 300  # characters of a note the log keeps; the action's result keeps it all
 PR_URL = re.compile(r"^https://github\.com/[\w.-]+/[\w.-]+/pull/\d+$")
 HUNK_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@ ?(.*)$")
 RANGE_RE = re.compile(r"^(new|old|rows):(\d+)(?:-(\d+))?$")
@@ -343,13 +345,18 @@ class Review:
     asks the session to draft it; `proposal` is none, requested (drafting) or
     ready.
 
+    `log` records Carry out as it goes, oldest first: {at, event} with event
+    "sent" (actions, and started once the session takes them; each action
+    records started too),
+    "progress" (action, note), or "done" or "failed" (action, note, link).
+
     Only the server writes it, through op(): edits come from the page (by
     "reader") and from the `finding` and `action` commands (by "session")."""
 
     OPS = {
         "reader": {"add", "set", "remove", "request-reveal", "request-proposal", "action-set", "carry-out"},
         "session": {"add", "set", "remove", "merge", "review", "reveal",
-                    "action-add", "action-set", "action-remove", "action-ready", "action-result"},
+                    "action-add", "action-set", "action-remove", "action-ready", "action-progress", "action-result"},
     }
 
     def __init__(self, path: Path, queue: Queue):
@@ -368,10 +375,11 @@ class Review:
         self.reveal: str = data.get("reveal", "hidden")
         self.proposal: str = data.get("proposal", "none")
         self.note: str = data.get("note", "")
+        self.log: list[dict] = data.get("log", [])
 
     def save(self):
         data = {"version": 1, "review": self.review, "reveal": self.reveal, "proposal": self.proposal, "note": self.note,
-                "findings": self.items, "actions": self.actions}
+                "findings": self.items, "actions": self.actions, "log": self.log}
         write_atomic(self.path, json.dumps(data, indent=1))
 
     def get(self, fid: str) -> dict | None:
@@ -384,9 +392,15 @@ class Review:
             actions = [{**a, **({"diff": fix_payload(a)} if a["kind"] == "fix" else {}), "resend_in": resend_in(a)}
                        for a in self.actions]
             return json.loads(json.dumps({"findings": shown, "hidden": len(self.items) - len(shown), "review": self.review,
-                                          "reveal": self.reveal, "proposal": self.proposal, "note": self.note, "actions": actions,
+                                          "reveal": self.reveal, "proposal": self.proposal, "note": self.note, "actions": actions, "log": self.log,
                                           # A drafting request the session has not taken yet, unlike one it is working on.
                                           "waiting": any(x.get("kind") == "propose" for x in self.queue.items())}))
+
+    def working(self) -> bool:
+        """Whether the session took actions to carry out and has not reported them all, nor gone quiet for long."""
+        with self.lock:
+            now = time.time()
+            return any(a["state"] == "running" and a.get("started") and now - a["started"] < CLAIM_STALE for a in self.actions)
 
     def hunks(self) -> dict[str, Hunk]:
         """The hunks of the proposed fixes, which the reader can quote like the deck's."""
@@ -414,6 +428,30 @@ class Review:
             return
         self.save()
         self.queue.add({"id": new_id(), "kind": kind, "at": time.time(), **extra})
+
+    def _log(self, event: str, **fields):
+        self.log = [*self.log, {"at": time.time(), "event": event, **fields}][-LOG_MAX:]
+
+    def mark_started(self) -> bool:
+        """Note when the session took running actions, as no queued request holds them any more;
+        True when one was taken since last asked."""
+        with self.lock:
+            pending = [a for a in self.actions if a["state"] == "running" and not a.get("started")]
+            if not pending:
+                return False
+            queued = {i for x in self.queue.items() if x.get("kind") == "carry-out" for i in x.get("actions", [])}
+            taken = {a["id"] for a in pending if a["id"] not in queued}
+            if not taken:
+                return False
+            now = time.time()
+            for a in pending:
+                if a["id"] in taken:
+                    a["started"] = now
+            for e in self.log:
+                if e["event"] == "sent" and not e.get("started") and taken & set(e["actions"]):
+                    e["started"] = now
+            self.save()
+            return True
 
     # Findings
 
@@ -694,8 +732,18 @@ class Review:
         a = self._action(op.get("id"))
         if op.get("status") not in ("done", "failed"):
             raise ValueError("status: expected done or failed")
+        if a["state"] != "running":
+            raise ValueError(f"action {a['id']} is {a['state']}, not running")
         a["state"] = op["status"]
         a["result"] = {k: str(op[k])[:20_000] for k in ("link", "note", "output") if op.get(k)}
+        self._log(a["state"], action=a["id"], **{k: a["result"][k][:LOG_NOTE] for k in ("note", "link") if k in a["result"]})
+        return {"action": a}
+
+    def _op_action_progress(self, op: dict, by: str, ctx: OpContext) -> dict:
+        a = self._action(op.get("id"))
+        if a["state"] != "running":
+            raise ValueError(f"action {a['id']} is {a['state']}, not running")
+        self._log("progress", action=a["id"], note=_required(op.get("note"), "note")[:LOG_NOTE])
         return {"action": a}
 
     def _op_request_proposal(self, op: dict, by: str, ctx: OpContext) -> dict:
@@ -712,11 +760,15 @@ class Review:
         for a in chosen:
             if a["state"] == "done":
                 raise ValueError(f"action {a['id']} is done already")
+            if a["state"] == "running" and not a.get("started"):
+                raise ValueError(f"action {a['id']} is waiting for the session to take it")
             if resend_in(a, now):
                 raise ValueError(f"action {a['id']} was sent to the session just now")
         for a in chosen:
-            a.update(state="running", include=True, result=None, sent=now)
-        self._ask("carry-out", once=False, actions=[a["id"] for a in chosen])
+            a.update(state="running", include=True, result=None, sent=now, started=None)
+        ids = [a["id"] for a in chosen]
+        self._ask("carry-out", once=False, actions=ids)
+        self._log("sent", actions=ids)
         return {"actions": chosen}
 
 
@@ -869,7 +921,7 @@ If your instructions do not let you post to GitHub or change the repository, add
 def carry_brief(review: Review, ids: list[str], cmd: str, pr: str) -> str:
     """What the session needs to carry out the actions the reader approved."""
     out = ["The reader approved these actions. Carry them out now:\n"]
-    for a in (a for a in review.actions if a["id"] in ids):
+    for a in (a for a in review.actions if a["id"] in ids and a["state"] == "running"):
         out.append(f"  {action_text(a)}")
         if a["kind"] == "comment":
             who = "the reader's account" if a["author"] == "reader" else "your account"
@@ -883,8 +935,10 @@ def carry_brief(review: Review, ids: list[str], cmd: str, pr: str) -> str:
 - Comments: post them on {pr or 'the pull request'} as review comments, one review per account. Post the comments you wrote with the GitHub identity you normally use, and the ones the reader wrote or edited with the reader's own identity; the reader's press authorizes exactly those comments under their identity, and nothing else. Submit each review as a comment: do not approve or request changes unless the reader asks. If an identity is not available to you, report those comments failed and say why; do not post them under another.
 - Fixes: apply each patch with `git apply` in the repository, and leave the changes uncommitted unless the reader asks otherwise.
 - Checks: run each command where the change is checked out.
-Report each action as you finish it, with the comment's link or the check's output:
-  {cmd} result ID --status done|failed [--link URL] [--note TEXT] [--output-file FILE]""")
+Report each action as you finish it, with the comment's link or the check's output; the reader watches the log on the slide:
+  {cmd} result ID --status done|failed [--link URL] [--note TEXT] [--output-file FILE]
+Before a step that takes more than a minute, such as a slow check, say what it is doing:
+  {cmd} progress ID --note TEXT""")
     return "\n".join(out)
 
 
@@ -982,7 +1036,7 @@ def cmd_action(args):
             print(action_text(a))
         return
     op = {"op": "action-" + args.action}
-    if args.action in ("set", "remove", "result"):
+    if args.action in ("set", "remove", "progress", "result"):
         op["id"] = args.id
     if args.action == "add":
         op.update(kind=args.kind, finding=args.finding)
@@ -996,6 +1050,8 @@ def cmd_action(args):
             if path:
                 op[key] = Path(path).read_text()
     if args.action == "ready" and args.note is not None:
+        op["note"] = args.note
+    if args.action == "progress":
         op["note"] = args.note
     if args.action == "result":
         op.update(status=args.status, link=args.link, note=args.note,
@@ -1112,6 +1168,10 @@ class ReviewExtension(Extension):
 
     def tick(self, state):
         """Apply the session's edits, which `finding` and `action` leave in queue/op-*.json."""
+        # `listen` taking a request changes no file the server writes, so tell the pages here,
+        # before any report on the actions it handed over.
+        if state.review.mark_started():
+            state.broadcast("review", {})
         for path in state.queue.dir.glob("op-*.result"):
             with contextlib.suppress(OSError):
                 if time.time() - path.stat().st_mtime > 300:
@@ -1127,13 +1187,15 @@ class ReviewExtension(Extension):
                 result = {"error": f"the server failed: {e!r}; see server.log"}
             write_atomic(path.with_suffix(".result"), json.dumps(result))
             path.unlink(missing_ok=True)
-        # `listen` taking a drafting request changes no file the server writes, so tell the pages here.
         if self._told_waiting and not any(x.get("kind") == "propose" for x in state.queue.items()):
             self._told_waiting = False
             state.broadcast("review", {})
 
     def hunks(self, state) -> dict[str, Hunk]:
         return state.review.hunks()
+
+    def busy(self, state) -> bool:
+        return state.review.working()
 
     def get(self, state, route: str):
         if route != "/api/review":
@@ -1252,6 +1314,9 @@ class ReviewExtension(Extension):
         asub.add_parser("remove", help="drop a proposed action").add_argument("id")
         ar = asub.add_parser("ready", help="show the proposed actions to the reader")
         ar.add_argument("--note", help="a line for the slide, such as what Carry out cannot do here; empty to clear")
+        ap = asub.add_parser("progress", help="tell the reader what a running action is doing")
+        ap.add_argument("id")
+        ap.add_argument("--note", required=True, help="one line for the slide's log")
         ar = asub.add_parser("result", help="report how an action went")
         ar.add_argument("id")
         ar.add_argument("--status", choices=["done", "failed"], required=True)

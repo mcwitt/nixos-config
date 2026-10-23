@@ -5,14 +5,14 @@
 (() => {
   const D = window.Deck;
   const { S, $, h, plural, mdEl, mdInline, chipLabel, excerptEl, renderBlock, renderSlide, keepFocus, markAskable } = D;
-  const { paintQuoted, renderChips, saveDraft, flashRef, go, slide, slideIndex, sourceHref, toast, post, getJSON, who, debounce } = D;
+  const { paintQuoted, renderChips, saveDraft, flashRef, go, slide, slideIndex, sourceHref, toast, post, getJSON, who, debounce, clock } = D;
 
   Object.assign(S, {
     groupsOpen: new Map(),
     editing: new Map(),
     findings: [],
     actions: [],
-    review: { hidden: 0, review: "none", reveal: "hidden", proposal: "none" },
+    review: { hidden: 0, review: "none", reveal: "hidden", proposal: "none", log: [] },
   });
 
   // An appendix group: a note saying whether the changes deserve a close
@@ -65,7 +65,8 @@
     S.findings = findings;
     S.actions = actions;
     S.reviewAt = Date.now() / 1000; // resend_in counts from here, by this page's clock
-    S.review = review;
+    S.review = { log: [], ...review };
+    announceLog(S.logSeen === undefined);
     registerFiles(actions.flatMap((a) => a.diff?.files || []));
   }
 
@@ -306,7 +307,7 @@
     const chosen = S.findings.filter((f) => f.choices.length);
     const undrafted = chosen.flatMap((f) => f.choices.filter((k) => !S.actions.some((a) => a.finding === f.id && a.kind === k))).length;
     const note = drafting
-      ? S.review.waiting && S.status.session === "away"
+      ? S.review.waiting && S.status.session !== "listening"
         ? h("p", { class: "note" }, `Drafting starts when the ${who()} is listening again.`)
         : h("p", { class: "note" }, h("span", { class: "ellipsis" }, `The ${who()} is drafting`), " ", again("Ask again"))
       : undrafted
@@ -316,12 +317,13 @@
           : null;
     const said = S.review.note ? h("p", { class: "note" }, `${who()[0].toUpperCase()}${who().slice(1)}: ${S.review.note}`) : null;
     if (!S.actions.length) return slideEl(intro, said, note);
-    // Actions already sent go again only once the session has had time to report them: it may have lost the request.
+    // An action the session took goes again only once it has had time to report it: it may have lost the request.
     const fresh = S.actions.filter((a) => a.include && (a.state === "proposed" || a.state === "failed"));
     const waited = Date.now() / 1000 - S.reviewAt;
-    const lost = S.actions.filter((a) => a.include && a.state === "running" && waited >= a.resend_in);
+    const taken = S.actions.filter((a) => a.state === "running" && a.started);
+    const lost = taken.filter((a) => a.include && waited >= a.resend_in);
     // Redraw when the next running action may go again.
-    const next = Math.min(...S.actions.filter((a) => a.state === "running" && waited < a.resend_in).map((a) => a.resend_in - waited));
+    const next = Math.min(...taken.filter((a) => waited < a.resend_in).map((a) => a.resend_in - waited));
     clearTimeout(S.resendTimer);
     if (Number.isFinite(next)) S.resendTimer = setTimeout(renderFindingViews, next * 1000 + 500);
     const runnable = fresh.length ? fresh : lost;
@@ -331,8 +333,112 @@
       said,
       note,
       S.actions.map(actionEl),
-      h("div", { class: "carry-out" }, h("button", { type: "button", class: "primary", disabled: !runnable.length, onclick: () => carryOut(runnable) }, label)),
+      h("div", { class: "carry-out" }, h("button", { type: "button", class: "primary", disabled: !runnable.length, onclick: () => carryOut(runnable) }, label), carryStatus()),
+      logEl(),
     );
+  }
+
+  // Beside the button: what Carry out is doing now, or how the actions it ran went.
+  function carryStatus() {
+    const running = S.actions.filter((a) => a.state === "running");
+    if (!running.length) {
+      const n = (state) => S.actions.filter((a) => a.state === state).length;
+      if (!n("done") && !n("failed")) return null;
+      return h("p", { class: "carry-status" }, `Finished: ${[n("done") ? `${n("done")} done` : "", n("failed") ? `${n("failed")} failed` : ""].filter(Boolean).join(" · ")}`);
+    }
+    const started = running.filter((a) => a.started);
+    const waiting = running.length - started.length;
+    const away = S.status.session === "away";
+    const text = !started.length
+      ? away ? `${plural(waiting, "action")} will start when the ${who()} is listening again` : `Waiting for the ${who()} to start on ${plural(waiting, "action")}`
+      : `The ${who()} is carrying out ${plural(started.length, "action")}` +
+        (!waiting ? "" : away ? `; ${waiting} more will start when it is listening again` : `; ${waiting} more ${waiting === 1 ? "waits" : "wait"} for it`);
+    const since = started.length ? Math.min(...started.map((a) => a.started)) : Math.min(...running.map((a) => a.sent));
+    return h(
+      "p",
+      { class: "carry-status working" },
+      h("span", { class: `spinner ${started.length ? "" : "idle"}`, "aria-hidden": "true" }),
+      h("span", {}, `${text} · `, h("span", { "data-since": since })),
+    );
+  }
+
+  // An action as the log names it: its title leads to its card, and a comment adds the start of its text.
+  function actionLink(id) {
+    const a = S.actions.find((x) => x.id === id);
+    if (!a) return ["an action since removed"];
+    const kind = ACTION_KINDS[a.kind];
+    const go = (e) => {
+      e.preventDefault();
+      const card = $(`[data-action="${id}"]`);
+      card?.scrollIntoView({ block: "center", behavior: "smooth" });
+      card?.focus({ preventScroll: true });
+    };
+    const text = a.kind === "comment" ? a.body.replace(/\s+/g, " ") : "";
+    const cut = text.length > 48 ? `${text.slice(0, 48).replace(/\s+\S*$/, "")}…` : text;
+    return [h("a", { href: "#", onclick: go }, `${a.title.startsWith(kind) ? "" : `${kind}: `}${a.title}`), cut ? ` “${cut}”` : ""];
+  }
+
+  // The log as rows of [at, kind, parts], newest first; only the latest progress note of each action.
+  function logRows() {
+    const log = S.review.log;
+    const latest = new Map(log.filter((e) => e.event === "progress").map((e) => [e.action, e]));
+    const rows = log.flatMap((e) =>
+      e.event === "sent"
+        ? [
+            [e.at, "sent", [`Sent ${plural(e.actions.length, "action")} to the ${who()}`]],
+            ...(e.started ? [[e.started, "started", [`The ${who()} started on ${plural(e.actions.length, "action")}`]]] : []),
+          ]
+        : e.event === "progress"
+          ? latest.get(e.action) === e && S.actions.find((a) => a.id === e.action)?.state === "running" ? [[e.at, "progress", [...actionLink(e.action), `: ${e.note}`]]] : []
+          : [[e.at, e.event, [
+              h("strong", {}, e.event === "done" ? "Done" : "Failed"), " · ", ...actionLink(e.action), e.note ? ` · ${e.note}` : "",
+              ...(e.link ? [" · ", h("a", { href: e.link, target: "_blank", rel: "noopener noreferrer" }, "View")] : []),
+            ]]],
+    );
+    return rows.sort((x, y) => y[0] - x[0]);
+  }
+
+  // What Carry out did, newest first; older entries fold away.
+  const LOG_SHOWN = 6;
+  function logEl() {
+    const rows = logRows();
+    if (!rows.length) return null;
+    let shown = "";
+    const li = ([at, kind, parts]) => {
+      const t = clock(at);
+      const el = h("li", { class: kind }, h("time", {}, t === shown ? "" : t), h("span", {}, parts));
+      shown = t;
+      return el;
+    };
+    const recent = rows.slice(0, LOG_SHOWN).map(li);
+    shown = "";
+    const earlier = rows.slice(LOG_SHOWN).map(li);
+    return h(
+      "section",
+      { class: "log", "aria-label": "Carry out log" },
+      h("h3", {}, "Log"),
+      h("ol", {}, recent),
+      earlier.length ? h("details", { open: S.logOpen, ontoggle: (e) => (S.logOpen = e.target.open) }, h("summary", {}, plural(earlier.length, "earlier entry", "earlier entries")), h("ol", {}, earlier)) : null,
+    );
+  }
+
+  // New log entries, read out once by screen readers; the visible log redraws too often to be a live region.
+  function announceLog(first) {
+    const at = (e) => Math.max(e.at, e.started || 0);
+    const seen = S.logSeen ?? 0;
+    S.logSeen = Math.max(seen, ...S.review.log.map(at));
+    if (first) return;
+    const fresh = logRows().filter(([t]) => t > seen).reverse();
+    const said = (parts) => {
+      const el = h("span", {}, parts);
+      for (const a of el.querySelectorAll("a[target]")) {
+        a.previousSibling?.remove(); // its " · "
+        a.remove();
+      }
+      return el.textContent;
+    };
+    const text = fresh.map(([, , parts]) => said(parts)).join(". ");
+    if (text) $("#carry-live").textContent = text;
   }
 
   function carryLabel(actions) {
@@ -349,7 +455,7 @@
   }
 
   async function carryOut(actions) {
-    if (await reviewOp({ op: "carry-out", ids: actions.map((a) => a.id) })) toast(`Sent ${plural(actions.length, "action")} to the ${who()}.`);
+    await reviewOp({ op: "carry-out", ids: actions.map((a) => a.id) });
   }
 
   function actionEl(a) {
@@ -357,6 +463,7 @@
     const include = h("input", { type: "checkbox", checked: a.include, disabled: locked });
     include.addEventListener("change", () => reviewOp({ op: "action-set", id: a.id, include: include.checked }));
     const finding = S.findings.find((f) => f.id === a.finding);
+    const progress = a.started && S.review.log.findLast((e) => e.event === "progress" && e.action === a.id && e.at >= a.started);
     const key = `action:${a.id}`;
     const edit = a.kind === "comment" && !locked && !S.editing.has(key) ? h("div", { class: "finding-tools" }, h("button", { type: "button", class: "ghost small", onclick: () => startEditing(key, a.body) }, "Edit")) : null;
     const head = h(
@@ -366,7 +473,9 @@
       h("span", { class: `source kind-${a.kind}` }, ACTION_KINDS[a.kind]),
       a.kind === "comment" ? h("span", { class: `source ${a.author}` }, postsAs(a)) : null,
       h("strong", { class: "action-title" }, a.title),
-      a.state !== "proposed" ? h("span", { class: `action-state ${a.state}` }, a.state) : null,
+      a.state === "running"
+        ? h("span", { class: "action-state running" }, a.started ? [h("span", { class: "spinner", "aria-hidden": "true" }), "running"] : "sent")
+        : a.state !== "proposed" ? h("span", { class: `action-state ${a.state}` }, a.state) : null,
       edit,
     );
     const ask = (text) => ({ "data-ask": `Proposed ${a.kind} ${a.id} (${a.title}): ${text}`, "data-ask-source": "action" });
@@ -386,12 +495,13 @@
     }
     return h(
       "article",
-      { class: `finding action ${a.include ? "" : "excluded"}`, "data-action": a.id },
+      { class: `finding action ${a.include ? "" : "excluded"}`, "data-action": a.id, tabindex: "-1" },
       head,
       // A comment that says what its finding says need not show it twice.
       finding ? h("div", { class: "action-for" }, `For ${finding.severity || "P?"}`, a.body === finding.text ? "" : [": ", h("span", { html: mdInline(finding.text) })]) : null,
       body,
       a.result ? resultEl(a) : null,
+      a.state === "running" && progress ? h("div", { class: "action-result" }, progress.note) : null,
     );
   }
 
@@ -426,7 +536,7 @@
         h("div", { class: "findings-list", id: "findings-list" }),
       ),
     );
-    $("#toasts").before(drawer);
+    $("#toasts").before(drawer, h("div", { class: "visually-hidden", id: "carry-live", role: "status" }));
     const add = h("button", { type: "button", class: "ghost small", id: "add-finding", title: "Save the text and quotes as a review finding; start with P0 to P3 to set its severity", hidden: true, disabled: true, onclick: addFinding }, "Add finding");
     $("#send").before(add);
     $("#toc-about").after(h("p", { class: "toc-cover", id: "toc-cover", hidden: true }));

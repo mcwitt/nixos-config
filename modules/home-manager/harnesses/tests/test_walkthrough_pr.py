@@ -8,6 +8,7 @@ import copy
 import json
 import re
 import sys
+import time
 import unittest
 import urllib.error
 from pathlib import Path
@@ -428,8 +429,15 @@ class ReviewServerTest(ServerCase):
         run("stop", self.dir)
         old = {"id": "f-1-aa", "text": "old", "severity": "P2", "sources": ["reader"], "refs": [], "slide": "", "at": 0, "action": "comment"}
         ignored = {**old, "id": "f-1-bb", "action": "ignore"}
-        (self.dir / "findings.json").write_text(json.dumps({"version": 1, "findings": [old, ignored]}))
+        # An action sent before the log existed counts as taken, since no queued request holds it.
+        sent = {"id": "a-1-cc", "kind": "check", "title": "t", "finding": None, "include": True, "state": "running",
+                "result": None, "command": "true", "sent": time.time()}
+        (self.dir / "findings.json").write_text(json.dumps({"version": 1, "findings": [old, ignored], "actions": [sent]}))
         run("serve", self.dir, "--detach")
+        self.wait_for(lambda: self.get("api/review")["actions"][0].get("started"))
+        self.wait_for(lambda: self.get("api/deck")["status"]["session"] == "working")
+        run("action", self.dir, "result", "a-1-cc", "--status", "done")
+        self.wait_for(lambda: self.get("api/deck")["status"]["session"] == "away")
         run("finding", self.dir, "add", "dup", "--review")
         review = json.loads((self.dir / "findings.json").read_text())["findings"][2]["id"]
         self.assertIn("from reader and review", run("finding", self.dir, "merge", "f-1-aa", review).stdout)
@@ -552,14 +560,31 @@ class ReviewServerTest(ServerCase):
         self.assertEqual(actions[2]["resend_in"], 0)
         with self.assertRaises(urllib.error.HTTPError) as cm:
             self.post("api/review", {"op": "carry-out", "ids": [comment["id"]]})
-        self.assertIn(b"sent to the session just now", cm.exception.read())
+        self.assertIn(b"waiting for the session to take it", cm.exception.read())
+        sent = self.get("api/review")["log"][-1]
+        self.assertEqual((sent["event"], sent["actions"], sent.get("started")), ("sent", [comment["id"], fix["id"]], None))
         out = run("listen", self.dir, "--timeout", 5).stdout
         self.assertIn("The reader approved these actions.", out)
         self.assertIn("posts as the reader's account, at src/app.py:2 (new side):\n    > Please drop the unused `json` import.", out)
         self.assertIn("-import sys, json", out)
         self.assertNotIn("grep -rn json", out)
         self.assertIn("on https://github.com/o/r/pull/7 as review comments", out)
+        # The server notices the request was taken on its next tick.
+        deadline = time.time() + 5
+        while not self.get("api/review")["log"][-1].get("started") and time.time() < deadline:
+            time.sleep(0.1)
+        self.assertTrue(self.get("api/review")["log"][-1].get("started"))
+        self.assertTrue(all(a.get("started") for a in self.get("api/review")["actions"][:2]))
+        self.wait_for(lambda: self.get("api/deck")["status"]["session"] == "listening")  # `listen` ran just now
+        with self.assertRaises(urllib.error.HTTPError) as cm:
+            self.post("api/review", {"op": "carry-out", "ids": [comment["id"]]})
+        self.assertIn(b"sent to the session just now", cm.exception.read())
+        self.assertIn("is proposed, not running", A("result", check["id"], "--status", "done", check=False).stderr)
+        self.assertIn("is proposed, not running", A("progress", check["id"], "--note", "x", check=False).stderr)
+        A("progress", fix["id"], "--note", "applying the patch")
         A("result", comment["id"], "--status", "done", "--link", "https://github.com/o/r/pull/7#discussion_r1")
+        self.assertEqual([(e["event"], e.get("action"), e.get("note") or e.get("link")) for e in self.get("api/review")["log"][-2:]],
+                         [("progress", fix["id"], "applying the patch"), ("done", comment["id"], "https://github.com/o/r/pull/7#discussion_r1")])
         actions = self.get("api/review")["actions"]
         self.assertEqual((actions[0]["state"], actions[0]["result"]), ("done", {"link": "https://github.com/o/r/pull/7#discussion_r1"}))
         self.assertIn("is done", A("set", comment["id"], "--title", "x", check=False).stderr)
@@ -584,6 +609,7 @@ class ReviewServerTest(ServerCase):
         self.assertIn(a["id"], run("action", self.dir, "add", "comment", "--finding", b["id"], "--body-file", self.dir / "body.md").stdout)
         run("action", self.dir, "remove", self.get("api/review")["actions"][-1]["id"])
         # Removing it drops its unsent drafts; what went out stays, unlinked.
+        self.post("api/review", {"op": "carry-out", "ids": [actions[1]["id"]]})
         run("action", self.dir, "result", actions[1]["id"], "--status", "done")
         self.post("api/review", {"op": "remove", "id": a["id"]})
         self.assertEqual([(x["kind"], x["finding"]) for x in self.get("api/review")["actions"]], [("check", None)])
