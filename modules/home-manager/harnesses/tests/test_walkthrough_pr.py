@@ -320,9 +320,10 @@ class ReviewServerTest(ServerCase):
         self.assertIn(f"This deck is served by {SCRIPT.path}", r.stderr)
         # A server from before the rename, by its old name, is out of date rather than another script's.
         info = json.loads((self.dir / "server.json").read_text())
-        del info["extensions"]
-        (self.dir / "server.json").write_text(json.dumps({**info, "engine": "old", "script": "/old/review_deck.py"}))
+        old = {k: v for k, v in info.items() if k != "extensions"}
+        (self.dir / "server.json").write_text(json.dumps({**old, "engine": "old", "script": "/old/review_deck.py"}))
         self.assertIn("The server is out of date", run("listen", self.dir, "--timeout", 1).stdout)
+        (self.dir / "server.json").write_text(json.dumps(info))  # so that the cleanup's `stop` recognises it
 
     def test_check_report_counts_generated_slides(self):
         self.write(deck_spec(slides=[*deck_spec()["slides"], CHECK]))
