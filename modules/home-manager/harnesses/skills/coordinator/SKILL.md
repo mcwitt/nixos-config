@@ -74,7 +74,7 @@ The new session knows nothing of this conversation. The brief must be self-conta
 - **Pointers you already found**: PR and issue numbers, branch names, file paths, links, transcript or document IDs. The session should not have to repeat your search.
 - **Who the user is**, where it matters: their name, handles and accounts, as you know them from this session's context.
 - **Tools and identity**: which CLIs, wrappers and skills to use, as the user's instructions require (for example the GitHub CLI wrapper for the agent account).
-- **Constraints and what not to do**. Default to read-only, no commit, no post: "leave changes in the working tree", "show me the draft before filing", "do not push, rebase, un-draft or comment". Remove a default only when the user asks.
+- **Constraints and what not to do**. Default to read-only, no commit, no post: "leave changes in the working tree", "show me the draft before filing", "do not push, rebase, un-draft or comment". Remove a default only when the user asks. A skill that asks the user's approval for each action keeps it: for a `walkthrough-pr` session, write "post or apply only what I approve with Carry out in the deck" in place of "no post".
 - **Fan-out**: allow subagents explicitly when wanted ("you may fan out up to 5 subagents").
 
 To invoke a skill in the new session, start the brief with the harness's skill syntax from the table, for example `/walkthrough-pr PR #1028 in OWNER/REPO (...)` for Claude Code.
