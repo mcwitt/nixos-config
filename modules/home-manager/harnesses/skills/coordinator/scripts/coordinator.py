@@ -31,6 +31,7 @@ import uuid
 from pathlib import Path
 
 PLACEHOLDER = re.compile(r"\{(prompt|name|session_id)\}")
+COORDINATOR = "coordinator"  # the coordinator's own session, as agent-coordinator names it
 NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,47}$")
 MAX_PROMPT_BYTES = 100_000  # Linux caps a single argv string at 128 KiB
 STATES = ("working", "input", "done")
@@ -80,11 +81,11 @@ def option(name: str, opt: str) -> str:
     return tmux("display-message", "-p", "-t", pane(name), f"#{{{opt}}}", check=False).strip()
 
 
-def current_session() -> str | None:
+def current_session(fmt: str = "#{session_name}") -> str | None:
     if not os.environ.get("TMUX_PANE"):
         return None
     out = subprocess.run(
-        ["tmux", "display-message", "-p", "-t", os.environ["TMUX_PANE"], "#{session_name}"],
+        ["tmux", "display-message", "-p", "-t", os.environ["TMUX_PANE"], fmt],
         capture_output=True,
         text=True,
     )
@@ -381,8 +382,10 @@ def cmd_launch(args) -> int:
 
 def cmd_relaunch(args) -> int:
     rec = load_record(args.name)
-    if not rec or not rec.get("command"):
+    if not rec:
         die(f"no launch record for {args.name}")
+    if not rec.get("command"):
+        die(f"{args.name} was not launched by this helper, so there is no command to relaunch")
     status = git_status(rec["dir"])
     if status and not args.force:
         die(f"{rec['dir']} has uncommitted changes; pass --force to relaunch anyway:\n{status}")
@@ -424,6 +427,39 @@ def cmd_exec(args) -> int:
     return status
 
 
+def cmd_claim(args) -> int:
+    """Rename this tmux session to `coordinator`, unless another session has that name."""
+    me = current_session()
+    if not me:
+        print("not in tmux: nothing to rename")
+        return 0
+    if me == COORDINATOR:
+        print(f"this session is already named {COORDINATOR}")
+        return 0
+    if exists(COORDINATOR):
+        print(f"another tmux session is already named {COORDINATOR}; this session keeps the name {me}")
+        return 0
+    info = current_session("#{session_id}\t#{session_created}\t#{pane_current_path}") or ""
+    sid, created, directory = info.split("\t")
+    r = subprocess.run(["tmux", "rename-session", "-t", sid, COORDINATOR], capture_output=True, text=True)
+    if r.returncode:
+        if exists(COORDINATOR):  # another session took the name meanwhile
+            print(f"another tmux session is already named {COORDINATOR}; this session keeps the name {me}")
+            return 0
+        die(f"tmux rename-session: {r.stderr.strip() or f'exit {r.returncode}'}")
+    # Replace any record of an earlier coordinator, so that `list`, `show` and
+    # `agent-coordinator --resume` describe this session. Keep this session's
+    # own launch record, if it has one, for its command and session ID.
+    rec = load_record(me) or {}
+    if rec.get("ended") or rec.get("closed_at") or rec.get("launched_at", 0) < int(created or 0) - 10:
+        rec = {}  # a record of an earlier session that had this name
+    rec |= {"name": COORDINATOR, "renamed_from": me, "renamed_at": int(time.time())}
+    rec.setdefault("dir", directory)
+    save_record(rec)
+    print(f"renamed tmux session {me} to {COORDINATOR}")
+    return 0
+
+
 # ---------------------------------------------------------------- inspect
 
 
@@ -445,6 +481,8 @@ def roster() -> list[dict]:
         if (ended := rec.get("ended")) and ended["status"]:
             state = f"exited({ended['status']})"
         brief = (rec.get("prompt") or "").splitlines()
+        if not brief and rec.get("renamed_from"):
+            brief = [f"(renamed from {rec['renamed_from']})"]
         rows.append(
             {
                 "name": s["session_name"],
@@ -637,6 +675,9 @@ def main(argv=None) -> int:
     s.add_argument("--force", action="store_true", help="send even if the session waits on a prompt")
     s.add_argument("--delay", type=float, default=0.5, help=argparse.SUPPRESS)
     s.set_defaults(fn=cmd_send)
+
+    s = sub.add_parser("claim", help=f"rename this tmux session to {COORDINATOR} unless that name is taken")
+    s.set_defaults(fn=cmd_claim)
 
     s = sub.add_parser("list", help="list tmux sessions with agent, state and brief")
     s.add_argument("--json", action="store_true")

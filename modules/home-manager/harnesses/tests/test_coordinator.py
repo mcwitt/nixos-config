@@ -297,6 +297,42 @@ class CoordinatorTest(unittest.TestCase):
         self.assertEqual(self.run_script("show", "coord", "--field", "session_id").stdout, "\n")
         self.close("coord")
 
+    def claim(self, session):
+        socket, pane_id = self.tmux("display-message", "-p", "-t", f"={session}:", "#{socket_path} #{pane_id}").split()
+        return self.run_script("claim", env=self.env | {"TMUX": f"{socket},0,0", "TMUX_PANE": pane_id}).stdout
+
+    def test_claim_renames_unless_taken(self):
+        self.assertIn("not in tmux", self.run_script("claim").stdout)
+        # A stale record of an earlier coordinator is replaced.
+        self.launch("coordinator", prompt="EXIT 0", ok=False)
+        self.assertTrue(self.wait_for(lambda: "coordinator" not in self.names()))
+        self.tmux("new-session", "-d", "-s", "0")
+        self.tmux("new-session", "-d", "-s", "1")
+        self.assertIn("renamed tmux session 0 to coordinator", self.claim("0"))
+        self.assertIn("coordinator", self.names())
+        self.assertNotIn("0", self.names())
+        rec = self.record("coordinator")
+        self.assertEqual(rec["renamed_from"], "0")
+        self.assertNotIn("ended", rec)
+        self.assertNotIn("command", rec)
+        self.assertEqual(self.run_script("show", "coordinator", "--field", "session_id").stdout, "\n")
+        self.assertIn("not launched by this helper", self.run_script("relaunch", "coordinator", ok=False).stderr)
+        rows = {r["name"]: r for r in json.loads(self.run_script("list", "--json").stdout)}
+        self.assertEqual(rows["coordinator"]["state"], "-")
+        self.assertEqual(rows["coordinator"]["brief"], "(renamed from 0)")
+        self.assertIn("already named coordinator", self.claim("coordinator"))
+        self.assertIn("keeps the name 1", self.claim("1"))
+        self.assertIn("1", self.names())
+        self.tmux("kill-session", "-t", "=coordinator")
+        # A session the helper launched keeps its command and session ID.
+        self.launch("helped")
+        sid = self.record("helped")["session_id"]
+        self.assertIn("renamed", self.claim("helped"))
+        rec = self.record("coordinator")
+        self.assertEqual((rec["session_id"], rec["command"]), (sid, CLAUDE))
+        self.tmux("kill-session", "-t", "=coordinator")
+        self.tmux("kill-session", "-t", "=1")
+
     @unittest.skipUnless(Path("/proc/self/environ").exists(), "needs /proc")
     def test_close_reports_strays(self):
         self.launch("spawner", prompt="SPAWN a server")

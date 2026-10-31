@@ -12,6 +12,12 @@ These instructions apply to this session only. Do not save them, or the decision
 
 The helper is `scripts/coordinator.py` in this skill's directory (Python ≥ 3.11, standard library only; it needs tmux). If your harness did not say where this file is, the directory is `coordinator` under its skills directory: `~/.claude/skills`, `~/.codex/skills`, `~/.pi/agent/skills`, `~/.config/opencode/skills` or `~/.gemini/config/skills`. Below, `coord` means `python3 <skill-dir>/scripts/coordinator.py`. The helper knows tmux and Git but no agent: you give it the agent's command line, and it passes every argument through without a shell, so a brief needs no quoting.
 
+## Claiming the session name
+
+When this skill is invoked, run `coord claim` before anything else. In tmux, it renames this session to `coordinator`, so that the user and `agent-coordinator` find it. It does nothing outside tmux or when the session already has the name. If another session is already named `coordinator`, it keeps this session's name: tell the user in one line that another coordinator is running, then continue here.
+
+A session renamed this way keeps its launch record only if the helper launched it. Otherwise `coord relaunch coordinator` has no command to run, and `agent-coordinator --resume` continues the newest conversation in its current directory instead of resuming by ID.
+
 ## Triage
 
 Handle a request in this session when a few tool calls answer it: a status check, a factual question, a quick lookup, closing or inspecting a session, or a question that needs knowledge across sessions. Launch a session when the request needs sustained work: reviewing, investigating, writing or changing code, drafting a document, or anything that takes more than a few minutes or fills the context. If you are not sure, ask the user in one line rather than guessing.
