@@ -18,14 +18,11 @@ pkgs.writeShellScript "claude-statusline" ''
       .model.display_name,
       (.context_window.used_percentage // ""),
       (.rate_limits.five_hour.used_percentage // ""),
-      (.rate_limits.five_hour.resets_at // ""),
-      (.rate_limits.seven_day.used_percentage // ""),
-      (.rate_limits.seven_day.resets_at // "")
+      (.rate_limits.five_hour.resets_at // "")
     '
   )
   cwd=''${f[0]} model=''${f[1]} ctx=''${f[2]}
   five_h=''${f[3]} five_h_reset=''${f[4]}
-  seven_d=''${f[5]} seven_d_reset=''${f[6]}
 
   if [[ "$cwd" == "$HOME" ]]; then
     display_path="~"
@@ -98,7 +95,6 @@ pkgs.writeShellScript "claude-statusline" ''
   printf '%s%s%s' "$abbreviated" "$sep" "$model"
   fmt_pct "$ctx" "ctx" 40 60
   fmt_pct "$five_h" "5h" 60 85 "$five_h_reset"
-  fmt_pct "$seven_d" "7d" 60 85 "$seven_d_reset"
 
   # --- worktree git segment (local-only; instant, no network) ---
   # Rendered in the existing theme ($sep / $chrome / $yellow / $red / $reset).
