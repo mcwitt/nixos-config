@@ -58,6 +58,18 @@ in
   #   '
   claude-agent-acp = callPackage ../packages/development/misc/claude-agent-acp.nix { };
 
+  # codex-acp 0.13.0's bundled Codex build script predates Bubblewrap 0.12.
+  # Include its new safe-open helpers when compiling the updated sandbox source.
+  codex-acp = prev.codex-acp.overrideAttrs (old: {
+    postPatch =
+      (old.postPatch or "")
+      + lib.optionalString final.stdenv.hostPlatform.isLinux ''
+        substituteInPlace "$cargoDepsCopy/source-git-0/codex-linux-sandbox-0.128.0/build.rs" \
+          --replace-fail '.file(src_dir.join("utils.c"))' \
+            '.file(src_dir.join("utils.c")).file(src_dir.join("chroot_realpath.c")).file(src_dir.join("safe_openat.c"))'
+      '';
+  });
+
   github-gitignore = callPackage ../packages/data/misc/github-gitignore.nix { };
 
   gitignores = callPackage ../packages/development/misc/gitignores.nix { };
