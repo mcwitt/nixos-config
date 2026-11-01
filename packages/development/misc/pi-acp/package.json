@@ -1,6 +1,6 @@
 {
   "name": "pi-acp",
-  "version": "0.0.33",
+  "version": "0.0.34",
   "type": "module",
   "bin": {
     "pi-acp": "dist/index.js"
@@ -8,6 +8,7 @@
   "main": "dist/index.js",
   "dependencies": {
     "@agentclientprotocol/sdk": "^0.26.0",
+    "cross-spawn": "^7.0.6",
     "zod": "^3.25.0"
   }
 }
