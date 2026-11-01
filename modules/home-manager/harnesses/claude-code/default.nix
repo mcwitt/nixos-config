@@ -31,6 +31,11 @@ in
         # sniffing misfires inside a multiplexer attached over SSH
         env.VISUAL = "emacsclient -t";
 
+        # the Bash tool supports only bash and zsh; with fish as the login
+        # shell it falls back to detection and picks zsh, whose glob, word
+        # splitting and `=` expansion rules break bash-style commands
+        env.CLAUDE_CODE_SHELL = "${pkgs.bashInteractive}/bin/bash";
+
         # omit every attribution Claude Code adds: the claude.ai session link,
         # the Co-Authored-By commit trailer and the "Generated with" PR line
         attribution = {
