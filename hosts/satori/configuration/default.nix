@@ -92,6 +92,25 @@
     drivers = [ pkgs.brlaser ];
   };
 
+  services.pipewire.wireplumber.extraConfig."51-satori-audio-defaults" = {
+    "monitor.alsa.rules" = [
+      {
+        # Prefer the Q2U over the OBSBOT webcam mic as input.
+        matches = [
+          { "node.name" = "alsa_input.usb-Samson_Technologies_Samson_Q2U_Microphone-00.analog-stereo"; }
+        ];
+        actions.update-props."priority.session" = 2200;
+      }
+      {
+        # Don't let the Q2U's headphone jack take over output from the speakers.
+        matches = [
+          { "node.name" = "alsa_output.usb-Samson_Technologies_Samson_Q2U_Microphone-00.analog-stereo"; }
+        ];
+        actions.update-props."priority.session" = 900;
+      }
+    ];
+  };
+
   services.udev.extraRules = ''
     # Disable USB autosuspend for OBSBOT Meet 2 webcam
     ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="3564", ATTR{idProduct}=="fefb", ATTR{power/control}="on"
