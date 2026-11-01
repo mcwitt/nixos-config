@@ -99,6 +99,7 @@ Then ask the user which items to proceed with before making any changes.
 
 - Each package upgrade gets its own commit: `<package-path>: <old> -> <new>`
 - Risky changes (workaround removals, fork updates) get separate commits
+- Commit other logical changes separately too, not as one catch-all maintenance commit; flake input updates can share a commit
 - Use `nix store prefetch-file` or `nix-prefetch-git` for new hashes
 - For scheduler-card updates, regenerate `package-lock.json` and `npmDepsHash`
 - Run `nix flake check` after all changes to validate
