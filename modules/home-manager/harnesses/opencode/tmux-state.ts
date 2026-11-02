@@ -48,8 +48,8 @@ export default (async () => {
   };
 
   // No state until the first event: the plugin loads about two seconds before
-  // the TUI takes input, and agent-coordinator waits for a state before it
-  // types into a new session.
+  // the TUI takes input, and bud waits for a state before it types into a
+  // new session.
 
   return {
     event: async ({ event }) => {

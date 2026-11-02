@@ -108,6 +108,10 @@ nix store prefetch-file --json --hash-type sha256 "https://files.pythonhosted.or
 - **Shared agent skills** — track home-manager PR [#9247](https://github.com/nix-community/home-manager/pull/9247) (`agent-skills`: shared skills module for AI coding agents). When it lands, replace our shared-skills wiring (the `harnesses.skills` option in `modules/home-manager/harnesses/`, composed into each `programs.<harness>.skills`) with the upstream shared module. Check status: `gh pr view 9247 --repo nix-community/home-manager`.
 - **Writable harness settings** — Home Manager [#10000](https://github.com/nix-community/home-manager/pull/10000) added `programs.codex.mutableSettings` on master and closed [#9397](https://github.com/nix-community/home-manager/issues/9397). The pinned `release-26.05` branch still lacks this option. Keep the Codex writable-copy activation until the stable module supports it, then enable `mutableSettings` and remove the local activation and `home.file` override. The same stable-branch limitation requires the Claude Code and Antigravity writable-settings activations; Pi has no module in the pinned Home Manager. Codex and Claude Code reset their settings to the declarative baseline on activation; Antigravity and Pi preserve other runtime settings by merging. Check the actual pinned modules before removing these workarounds.
 
+### bud harness adapters
+
+`bud` (`packages/development/misc/bud`) builds every harness command line itself, in `src/adapter.rs`. When a harness bump renames or drops a launch, resume, model or effort flag, `bud launch` fails with the harness's own error: fix the adapter, not the skill. After bumping a harness, run the "Checking a harness by hand" list in `modules/home-manager/harnesses/skills/bud/reference.md`; the flake check uses stub agents and cannot catch flag changes.
+
 ### TODO audit
 
 ```bash
