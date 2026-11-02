@@ -35,6 +35,7 @@ in
     ./memex.nix
     ./opencode
     ./pi
+    ./voice.nix
   ];
 
   options.harnesses = {
