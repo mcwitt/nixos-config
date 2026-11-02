@@ -68,6 +68,9 @@ fontSize = "@fontSize@"
 
 notifySend = "@notifySend@"
 
+-- Empty unless harnesses.voice is enabled.
+dictate = "@dictate@"
+
 main = do
   logOutput <- setupLogOutput
   nScreens <- countScreens
@@ -141,6 +144,8 @@ main = do
                           ("M-' c", spawn "rofi -show calc -no-show-match -no-sort"),
                           ("M-' w", spawn "rofi -show-icons -show window")
                         ]
+      -- dictation: press to record, again to type the text
+      `additionalKeysP` [("M-v", safeSpawn dictate ["x11"]) | not (null dictate)]
       `additionalKeys` ( first (noModMask,)
                            <$> [ (xF86XK_MonBrightnessUp, spawn "xbacklight -inc 5"),
                                  (xF86XK_MonBrightnessDown, spawn "xbacklight -dec 5"),

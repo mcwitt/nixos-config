@@ -114,10 +114,13 @@ are about 100 lines in `voice.nix`:
 - **Mac**: Hammerspoon (a cask) gives true hold-to-talk on a chord. It records
   with nixpkgs `sox`, posts to satori, and pastes with Cmd-V, which Ghostty
   sends through mosh and tmux as a bracketed paste.
-- **satori**: `prefix v` toggles `pw-record` and pastes into the pane that
-  pressed it with `tmux paste-buffer -p`. It needs no X11 or xmonad. I tested
+- **satori**: one `dictate` script toggles `pw-record`. In tmux, `prefix v`
+  pastes into the pane that pressed it with `tmux paste-buffer -p`. I tested
   the paste path on a scratch tmux server: the text arrived as one line inside
-  bracketed-paste markers, with no Enter.
+  bracketed-paste markers, with no Enter. Outside tmux, Super-V in xmonad
+  types the text into the focused X11 window with `xdotool type`, so browser
+  text boxes work too. It types rather than pastes because Ctrl-V is not
+  paste in every app (terminals use Ctrl-Shift-V).
 
 One Nix list feeds Whisper's `prompt` on both sides. Every piece is in
 nixpkgs and declarative. What I give up compared with Handy: Parakeet (see
@@ -239,7 +242,7 @@ not dictate when satori is down or unreachable.
   microphone and accessibility grants across updates (my inference; not
   tested).
 - **satori (local case)**: `prefix v` to start, `prefix v` again to
-  transcribe and paste.
+  transcribe and paste. Super-V does the same for any X11 window.
 - **Keep Claude Code's built-in voice.** It costs nothing and its Space key
   stays inside Claude.
 - **Parakeet later**: after a few days of use, run the saved clips through
@@ -310,7 +313,7 @@ All tests ran on satori, without switching the system:
 - **Build**: satori's `system.build.toplevel` builds from the private
   repository, with this branch as its `nixos-config` input. Compared with
   the running system, the new closure adds whisper-cpp, the two model files
-  and `tmux-dictate`, and changes `tmux.conf`. The darwin system evaluates,
+  and `dictate`, and changes `tmux.conf` and the xmonad config. The darwin system evaluates,
   and the generated `init.lua` passes a Lua syntax check.
 - **llama-swap config**: the generated config differs from the live one only
   by the `whisper` model and the `matrix`.
@@ -322,6 +325,11 @@ All tests ran on satori, without switching the system:
   bracketed paste with no Enter. The clip and the transcript were archived,
   no recorder was left running, and the status message went to the right
   client.
+- **X11 mode**: on a throwaway Xvfb display, with the same virtual mic and
+  llama-swap, `dictate x11` twice typed the transcript into a focused xterm.
+  The test ran with no notification daemon, and the script still finished.
+  xmonad compiles with the binding, and with it left out when
+  `harnesses.voice` is off.
 - **Speed**: 162 ms per request warm, 1.5 s cold, through llama-swap. After
   the deploy, the live service gave the same: 1.5 s cold on localhost, and
   167 ms warm over the tailnet through `satori-ts:8080`, the Mac's path.

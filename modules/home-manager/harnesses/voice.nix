@@ -9,23 +9,46 @@ let
   prompt = lib.concatStringsSep ", " cfg.vocabulary;
   luaList = xs: "{ ${lib.concatMapStringsSep ", " builtins.toJSON xs} }";
 
-  # First call records; second transcribes and pastes into the pane as a
-  # bracketed paste, so newlines never submit. Never sends Enter.
-  tmuxDictate = pkgs.writeShellApplication {
-    name = "tmux-dictate";
+  # First call records; second transcribes and inserts the text without
+  # submitting it. The second call's mode decides where the text goes:
+  #   dictate tmux PANE CLIENT  bracketed paste into a tmux pane
+  #   dictate x11               typed into the focused X11 window
+  dictate = pkgs.writeShellApplication {
+    name = "dictate";
     runtimeInputs = [
       pkgs.coreutils
       pkgs.curl
       pkgs.gnused
+      pkgs.libnotify
       pkgs.pipewire
+      pkgs.xdotool
       config.programs.tmux.package
     ];
     text = ''
-      pane=$1
-      client=$2
-      dir="''${XDG_RUNTIME_DIR:-/tmp}/tmux-dictate"
+      mode=$1
+      dir="''${XDG_RUNTIME_DIR:-/tmp}/dictate"
       mkdir -p "$dir"
-      say() { tmux display-message -c "$client" "dictation: $1"; }
+      # The stack tag makes each message replace the previous one.
+      notify() {
+        notify-send -a dictate -h string:x-dunst-stack-tag:dictate \
+          -t "''${2:-3000}" dictation "$1" || true
+      }
+      case $mode in
+        tmux)
+          pane=$2
+          client=$3
+          say() { tmux display-message -c "$client" "dictation: $1"; }
+          stop_hint="prefix v"
+          ;;
+        x11)
+          say() { notify "$@"; }
+          stop_hint="super-v"
+          ;;
+        *)
+          echo "usage: dictate tmux PANE CLIENT | dictate x11" >&2
+          exit 2
+          ;;
+      esac
 
       pid=$(cat "$dir/pid" 2>/dev/null || true)
       if [[ -z "$pid" ]] || ! kill -0 "$pid" 2>/dev/null; then
@@ -33,11 +56,16 @@ let
           ${lib.optionalString (cfg.source != null) "--target ${lib.escapeShellArg cfg.source}"} \
           "$dir/clip.wav" &
         echo $! >"$dir/pid"
-        say "recording, prefix v to stop"
+        echo "$mode" >"$dir/mode"
+        say "recording, $stop_hint to stop" 0
         exit 0
       fi
 
       rm -f "$dir/pid"
+      # A recording started with super-v left a notification that never expires.
+      if [[ $(cat "$dir/mode" 2>/dev/null || true) == x11 && $mode != x11 ]]; then
+        notify "stopped" 1000
+      fi
       kill -INT "$pid"
       while kill -0 "$pid" 2>/dev/null; do sleep 0.05; done
 
@@ -65,8 +93,17 @@ let
         say "nothing transcribed"
         exit 0
       fi
-      printf '%s' "$text" | tmux load-buffer -b dictate -
-      tmux paste-buffer -p -d -b dictate -t "$pane"
+      case $mode in
+        tmux)
+          printf '%s' "$text" | tmux load-buffer -b dictate -
+          tmux paste-buffer -p -d -b dictate -t "$pane"
+          ;;
+        x11)
+          say "$text" 2000
+          # Typing rather than pasting: Ctrl-V is not paste in every app.
+          xdotool type --clearmodifiers --delay 5 -- "$text"
+          ;;
+      esac
     '';
   };
 
@@ -180,6 +217,13 @@ in
       description = "PipeWire node to record from on Linux; null uses the default source.";
     };
 
+    package = lib.mkOption {
+      type = lib.types.package;
+      readOnly = true;
+      default = dictate;
+      description = "The `dictate` script, for binding in a window manager.";
+    };
+
     macHotkey = {
       mods = lib.mkOption {
         type = lib.types.listOf lib.types.str;
@@ -198,9 +242,9 @@ in
   config = lib.mkIf cfg.enable (
     lib.mkMerge [
       (lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
-        home.packages = [ tmuxDictate ];
+        home.packages = [ dictate ];
         programs.tmux.extraConfig = ''
-          bind v run-shell -b '${lib.getExe tmuxDictate} #{q:pane_id} #{q:client_name}'
+          bind v run-shell -b '${lib.getExe dictate} tmux #{q:pane_id} #{q:client_name}'
         '';
       })
 

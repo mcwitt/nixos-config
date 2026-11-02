@@ -34,6 +34,7 @@
                 "@fontSize@"
                 "@notifySend@"
                 "@wpctl@"
+                "@dictate@"
               ]
               [
                 colors.withHashtag.base00
@@ -48,6 +49,7 @@
                 (toString fonts.sizes.desktop)
                 "${pkgs.libnotify}/bin/notify-send"
                 "${pkgs.wireplumber}/bin/wpctl"
+                (lib.optionalString config.harnesses.voice.enable (lib.getExe config.harnesses.voice.package))
               ]
               raw;
         in
