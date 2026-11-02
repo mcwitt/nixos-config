@@ -33,6 +33,8 @@ in
 
   agy-acp-server = callPackage ../packages/development/misc/agy-acp-server.nix { };
 
+  bud = callPackage ../packages/development/misc/bud { };
+
   # MCP profiles are mutable state, but nixpkgs points PLAYWRIGHT_BROWSERS_PATH
   # at the read-only store. Keep the browser binaries there and use Playwright's
   # normal per-user cache for profiles, preserving its per-project names.

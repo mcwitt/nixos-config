@@ -1,0 +1,18 @@
+[package]
+name = "bud"
+version = "0.1.0"
+edition = "2021"
+description = "Launch agent sessions in tmux as a tree, and supervise them"
+license = "MIT"
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+strip = true
+
+[dev-dependencies]
+serde_json = "1"
