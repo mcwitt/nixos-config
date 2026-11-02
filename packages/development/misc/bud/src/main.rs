@@ -939,7 +939,7 @@ fn pick_inner(client: &str, rows_only: bool) -> Result<i32> {
         return Ok(0);
     }
     let mut child = Command::new("fzf")
-        .args(["--delimiter", "\t", "--with-nth", "2..", "--accept-nth", "1", "--ansi", "--no-sort"])
+        .args(["--delimiter", "\t", "--with-nth", "2..", "--accept-nth", "1", "--ansi", "--no-sort", "--exact"])
         .args(["--layout", "reverse", "--sync", "--bind", &format!("start:pos({pos})")])
         .env_remove("FZF_DEFAULT_OPTS")
         .env_remove("FZF_DEFAULT_OPTS_FILE")
