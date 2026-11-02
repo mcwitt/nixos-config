@@ -48,6 +48,7 @@ in
         skipAutoPermissionPrompt = true;
         editorMode = "vim";
         voiceEnabled = true;
+        agentPushNotifEnabled = true;
         theme = if config.stylix.polarity == "dark" then "dark" else "light";
         statusLine = {
           type = "command";
