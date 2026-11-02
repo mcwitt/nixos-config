@@ -114,7 +114,8 @@ in
         set -g window-status-format '#I:#W#{?#{E:@window_agent_glyph}, #{E:@window_agent_glyph},}#{?window_flags,#{window_flags}, }'
         set -g window-status-current-format '#I:#W#{?#{E:@window_agent_glyph}, #{E:@window_agent_glyph},}#{?window_flags,#{window_flags}, }'
 
-        set -g @tree_format '#{?pane_format,#{pane_current_command} ${glyph "#{@agent_state}"},#{?window_format,#{window_name}#{window_flags} #{E:@window_agent_glyph},#{session_windows}w#{?session_attached, (attached),} ${glyph "#{E:@session_agent_state}"}}}'
+        # bud sets @bud_parent on the sessions it launches; prefix S shows the tree.
+        set -g @tree_format '#{?pane_format,#{pane_current_command} ${glyph "#{@agent_state}"},#{?window_format,#{window_name}#{window_flags} #{E:@window_agent_glyph},#{?@bud_parent,↳ #{@bud_parent} ,}#{session_windows}w#{?session_attached, (attached),} ${glyph "#{E:@session_agent_state}"}}}'
         bind s choose-tree -Zs -F '#{E:@tree_format}'
         bind w choose-tree -Zw -F '#{E:@tree_format}'
         # Jump to the next agent waiting for input, or list all waiting agents.
