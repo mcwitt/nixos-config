@@ -117,7 +117,7 @@ are about 100 lines in `voice.nix`:
 - **satori**: one `dictate` script toggles `pw-record`. In tmux, `prefix v`
   pastes into the pane that pressed it with `tmux paste-buffer -p`. I tested
   the paste path on a scratch tmux server: the text arrived as one line inside
-  bracketed-paste markers, with no Enter. Outside tmux, Super-V in xmonad
+  bracketed-paste markers, with no Enter. Outside tmux, holding Super-V in xmonad
   types the text into the focused X11 window with `xdotool type`, so browser
   text boxes work too. It types rather than pastes because Ctrl-V is not
   paste in every app (terminals use Ctrl-Shift-V).
@@ -242,7 +242,8 @@ not dictate when satori is down or unreachable.
   microphone and accessibility grants across updates (my inference; not
   tested).
 - **satori (local case)**: `prefix v` to start, `prefix v` again to
-  transcribe and paste. Super-V does the same for any X11 window.
+  transcribe and paste. Hold Super-V to dictate into any X11 window;
+  release it to type the text.
 - **Keep Claude Code's built-in voice.** It costs nothing and its Space key
   stays inside Claude.
 - **Parakeet later**: after a few days of use, run the saved clips through
@@ -326,7 +327,9 @@ All tests ran on satori, without switching the system:
   no recorder was left running, and the status message went to the right
   client.
 - **X11 mode**: on a throwaway Xvfb display, with the same virtual mic and
-  llama-swap, `dictate x11` twice typed the transcript into a focused xterm.
+  llama-swap, holding `v` while the sample played typed the transcript into
+  a focused xterm once, after the release. Extra invocations during the hold,
+  as X autorepeat sends them, were ignored.
   The test ran with no notification daemon, and the script still finished.
   xmonad compiles with the binding, and with it left out when
   `harnesses.voice` is off.
