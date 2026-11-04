@@ -82,7 +82,8 @@ pub fn load(name: &str) -> Option<Record> {
 pub fn save(rec: &Record) -> Result<()> {
     let p = path(&rec.name);
     std::fs::create_dir_all(p.parent().unwrap())?;
-    let tmp = p.with_extension("tmp");
+    // By process: the session-closed hook can save while `bud close` does.
+    let tmp = p.with_extension(format!("tmp.{}", std::process::id()));
     std::fs::write(&tmp, serde_json::to_string_pretty(rec)? + "\n")
         .with_context(|| format!("writing {}", tmp.display()))?;
     std::fs::rename(&tmp, &p)?;

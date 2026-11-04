@@ -470,6 +470,96 @@ fn context_hook_reminds_parents_and_children() {
 }
 
 #[test]
+fn closed_hook_marks_sessions_the_user_closes() {
+    let env = Env::new();
+    let closed = |name: &str| env.record(name)["closed_at"].is_u64();
+
+    // launch installs the hook. Ctrl+D ends the agent, and so the session: it
+    // is closed, and resume reopens it.
+    ok(&env.bud(&["launch", "x", "--brief", &env.brief("work"), "--harness", "claude"]));
+    assert!(!closed("x"));
+    env.tmux(&["send-keys", "-t", "=x:", "C-d"]);
+    env.wait_for(|| closed("x"));
+    let ls = ok(&env.bud(&["ls", "--closed"]));
+    assert!(ls.lines().any(|l| l.starts_with("x ") && l.contains("closed")), "{ls}");
+    let e = err(&env.bud(&["peek", "x"]));
+    assert!(e.contains("closed at") && e.contains("bud resume x"), "{e}");
+    ok(&env.bud(&["resume", "x"]));
+    assert!(!closed("x"));
+
+    // So does kill-session; `bud close` still reports normally alongside the hook.
+    env.tmux(&["kill-session", "-t", "=x"]);
+    env.wait_for(|| closed("x"));
+    ok(&env.bud(&["resume", "x"]));
+    assert!(ok(&env.bud(&["close", "x"])).contains("closed x"));
+    assert!(closed("x"));
+}
+
+#[test]
+fn closed_hook_does_not_undo_a_resume_over_a_failed_pane() {
+    let env = Env::new();
+    assert!(!env.bud(&["launch", "x", "--brief", &env.brief("EXIT 3"), "--harness", "claude"]).status.success());
+    std::fs::write(env.dir.join("bin/claude"), "#!/bin/sh\nexit 3\n").unwrap();
+    // Resume kills the failed session, which fires the hook, and starts a new
+    // one at once. The two race, so go round several times.
+    for _ in 0..25 {
+        env.bud(&["resume", "x", "--wait", "0.05"]);
+        std::thread::sleep(Duration::from_millis(200));
+        let rec = env.record("x");
+        assert!(rec["closed_at"].is_null(), "{rec}");
+        assert_eq!(rec["pane"].as_str().unwrap(), env.pane_of("x"));
+    }
+}
+
+#[test]
+fn closed_hook_changes_only_the_session_that_closed() {
+    let env = Env::new();
+    let closed_at = |name: &str| env.record(name)["closed_at"].clone();
+    let hook = |name: &str| assert!(ok(&env.bud(&["_closed", name])).is_empty());
+
+    // No record: nothing to do, and no record appears.
+    hook("nobody");
+    assert!(!env.dir.join("state/sessions/nobody.json").exists());
+
+    // A session that died without the hook, as in a reboot.
+    ok(&env.bud(&["launch", "x", "--brief", &env.brief("work"), "--harness", "claude"]));
+    env.tmux(&["set-hook", "-gu", "session-closed"]);
+    env.tmux(&["kill-session", "-t", "=x"]);
+    let path = env.dir.join("state/sessions/x.json");
+
+    // Another session has the name now.
+    env.tmux(&["new-session", "-d", "-s", "x", "sleep", "100"]);
+    hook("x");
+    assert!(closed_at("x").is_null());
+    env.tmux(&["kill-session", "-t", "=x"]);
+
+    // The system is shutting down.
+    let systemctl = env.dir.join("bin/systemctl");
+    std::fs::write(&systemctl, "#!/bin/sh\necho stopping\nexit 1\n").unwrap();
+    env.cmd("chmod").arg("755").arg(&systemctl).status().unwrap();
+    hook("x");
+    assert!(closed_at("x").is_null());
+
+    // Any other system state, including one that exits nonzero, is a user's close.
+    std::fs::write(&systemctl, "#!/bin/sh\necho degraded\nexit 1\n").unwrap();
+    let touch = |date: &str| assert!(env.cmd("touch").args(["-d", date]).arg(&path).status().unwrap().success());
+    // The record is older than this tmux server: it is not the session that closed.
+    touch("@1000");
+    hook("x");
+    assert!(closed_at("x").is_null());
+    touch("now");
+    hook("x");
+    assert!(closed_at("x").is_u64());
+
+    // A closed_at that is already set stays.
+    let mut rec = env.record("x");
+    rec["closed_at"] = 12345.into();
+    std::fs::write(&path, rec.to_string()).unwrap();
+    hook("x");
+    assert_eq!(closed_at("x"), 12345);
+}
+
+#[test]
 fn picker_rows_in_tree_order() {
     let mut env = Env::new();
     env.root("main");

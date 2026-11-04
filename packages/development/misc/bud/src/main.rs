@@ -18,7 +18,7 @@ use std::io::{Read, Write};
 use std::os::unix::process::CommandExt;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
-use std::time::{Duration, Instant};
+use std::time::{Duration, Instant, UNIX_EPOCH};
 use tree::World;
 
 const MAX_BRIEF_BYTES: usize = 100_000; // Linux caps one argv string at 128 KiB
@@ -105,6 +105,8 @@ enum Cmd {
     Run { record: PathBuf },
     #[command(name = "_context", hide = true)]
     Context,
+    #[command(name = "_closed", hide = true)]
+    Closed { name: String },
     #[command(name = "_pick", hide = true)]
     PickInner {
         client: String,
@@ -174,6 +176,10 @@ fn dispatch(cmd: Cmd) -> Result<i32> {
         Cmd::Strays => strays(),
         Cmd::Run { record } => run(&record),
         Cmd::Context => context(),
+        Cmd::Closed { name } => {
+            session_closed(&name);
+            Ok(0)
+        }
         Cmd::PickInner { client, rows } => pick_inner(&client, rows),
     }
 }
@@ -223,7 +229,7 @@ fn require_pane(world: &World, name: &str) -> Result<String> {
         );
     }
     match world.recs.get(name).and_then(|r| r.closed_at) {
-        Some(t) => bail!("no session {name}: it was closed at {}", clock(t)),
+        Some(t) => bail!("no session {name}: it was closed at {}; `bud resume {name}` starts it again", clock(t)),
         None if world.recs.contains_key(name) => {
             bail!("no session {name}: its agent exited or the session was killed; `bud resume {name}` starts it again")
         }
@@ -320,11 +326,14 @@ fn start(mut rec: Record, ad: &Adapter, wait: Option<f64>, fresh: bool) -> Resul
     // new-session finds no session. The name was just created, so a plain
     // target matches it exactly.
     let window = format!("{name}:");
+    // The hook needs the state directory: the server's environment may not have it.
+    let hook = format!("run-shell -b \"BUD_STATE_DIR='{}' '{exe}' _closed -- #{{q:hook_session_name}}\"", state.display());
     let mut args = vec![
         "new-session", "-d", "-P", "-F", "#{pane_id}", "-s", &name, "-c", &rec.dir, "-e", &env,
         &exe, "_run", &path,
         // In the same command queue, before tmux handles an early exit.
         ";", "set-option", "-w", "-t", &window, "remain-on-exit", "failed",
+        ";", "set-hook", "-g", "session-closed", &hook,
     ]; // fmt: skip
     let parent = rec.parent.clone().unwrap_or_default();
     if !parent.is_empty() {
@@ -885,6 +894,41 @@ fn context() -> Result<i32> {
     });
     println!("{out}");
     Ok(0)
+}
+
+/// The tmux session-closed hook: record that a session was closed on purpose.
+/// It prints nothing and ignores errors, because tmux shows both to the user.
+/// tmux exits without running it for its last session, which so stays unmarked.
+fn session_closed(name: &str) {
+    // Last, and just before the load: `bud resume` can be starting a new
+    // session under this name, and a stale save would undo its record.
+    if record_predates_server(name) || system_stopping() || tmux::has_session(name) {
+        return;
+    }
+    let Some(mut rec) = record::load(name).filter(|r| r.closed_at.is_none()) else { return };
+    rec.closed_at = Some(now());
+    let _ = record::save(&rec);
+}
+
+/// A record last written before this tmux server started describes a session
+/// of an earlier server: the session that closed only took its name.
+fn record_predates_server(name: &str) -> bool {
+    let started = tmux::run(&["display-message", "-p", "#{start_time}"]).ok().and_then(|s| s.trim().parse::<u64>().ok());
+    let written = std::fs::metadata(record::path(name))
+        .and_then(|m| m.modified())
+        .ok()
+        .and_then(|t| t.duration_since(UNIX_EPOCH).ok())
+        .map(|d| d.as_secs());
+    matches!((written, started), (Some(w), Some(s)) if w < s)
+}
+
+/// At shutdown an agent can exit before tmux does; that is not a user's close.
+fn system_stopping() -> bool {
+    Command::new("systemctl")
+        .arg("is-system-running")
+        .stdin(Stdio::null())
+        .output()
+        .is_ok_and(|o| String::from_utf8_lossy(&o.stdout).trim() == "stopping")
 }
 
 fn pick(client: &str) -> Result<i32> {
