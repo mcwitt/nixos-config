@@ -70,7 +70,7 @@ Coverage is the one firm rule: every changed line must appear on some slide. Put
 
 Keep specific defects out of the slides, including ones you notice yourself: record them as review findings (step 3), so the reader judges the change before seeing them. Use `risk` callouts for the approach's tradeoffs and limits. Keep the deck about understanding; step 3 says what to do when the reader asks for a change.
 
-The final check spans the whole change: how the pieces fit, and what the review decision hinges on. Ask what the code does, not what the slide said.
+The final check spans the whole change: how the pieces fit, and what the review decision hinges on. Ask what the code does, not what the slide said, and make each question stand on its own, as Checks in walkthrough's `references/deck.md` describes.
 
 For a pull request, set `pr` to its URL; the reader can then mark findings for review comments.
 

@@ -72,11 +72,11 @@ A check slide asks the reader a few questions about the slides before it: multip
   "section": "Key ideas",
   "quiz": [
     {
-      "q": "A request has failed three times. What happens on the fourth failure?",
+      "q": "A retry loop allows `max_attempts = 3` retries, with delays capped at 30 s. A request has failed and been retried three times. What happens on the next failure?",
       "see": "retry-loop",
       "choices": [
-        {"text": "It retries after 30 s", "why": "The cap applies to the delay, not the count; the fourth failure is past `max_attempts`.", "see": "retry-budget"},
-        {"text": "It raises `RetryExhausted` to the caller", "correct": true, "why": "`attempts` reaches `max_attempts` (3) and the loop re-raises."},
+        {"text": "It retries after 30 s", "why": "The cap applies to the delay, not the count; the next failure is past `max_attempts`.", "see": "retry-budget"},
+        {"text": "It raises `RetryExhausted` to the caller", "correct": true, "why": "All three retries are used, so the loop re-raises."},
         {"text": "It is queued for the next poll", "why": "Nothing re-enqueues failed requests; compare the loop's exit path."}
       ]
     }
@@ -84,14 +84,14 @@ A check slide asks the reader a few questions about the slides before it: multip
 }
 ```
 
-- `q`: the question, in Markdown. One to six per slide, usually two or three.
+- `q`: the question, in Markdown, which can hold links and fenced code. One to six per slide, usually two or three.
 - `see`: the id of the content slide that settles the question. A wrong answer links there; a choice's own `see` overrides it. It must name a slide with `blocks`, not another check.
 - `choices`: two to five, each with `text` (a phrase, Markdown), `why` (a sentence of feedback shown after choosing it) and, on exactly one, `"correct": true`.
 
 ### Written answers
 
 ```json
-{"q": "Why does the loop re-raise instead of returning `None`?", "see": "retry-loop", "kind": "prose",
+{"q": "When the retry loop runs out of retries, why does it re-raise the last error instead of returning `None`?", "see": "retry-loop", "kind": "prose",
  "rubric": "Callers must see the last error; `None` would look like a successful empty result.",
  "model": "So the caller sees the final error rather than a `None` it would take for an empty result."}
 ```
@@ -111,11 +111,24 @@ A check slide asks the reader a few questions about the slides before it: multip
 
 A submitted answer queues for the session like a question. `listen` hands it over with the rubric, the model answer and any test results, and the session posts feedback with a verdict: `correct`, `partial` or `incorrect`. Only `correct` counts as right in the tally. The reader can revise and resubmit.
 
-Ask for a written answer where choosing among options would let the reader guess: explain why a design holds, predict a behavior and justify it, or write the few lines that implement an idea. A written answer costs the reader minutes, not seconds, so use one or two per deck, usually in the final check.
+Ask for a written answer where choosing among options would let the reader guess: explain why a design holds, predict a behavior and justify it, or write the few lines that implement an idea, given the signature and the names they may use. A written answer costs the reader minutes, not seconds, so use one or two per deck, usually in the final check.
 
 The page records the reader's answers in `DECK/quiz.json`, a tally of every check, with links back to what was missed, follows the last check once it is answered (or, if content follows the last check, sits on the last slide before the appendix), and `listen` reports the results when the reader finishes. The reader can retake a check and can quote a question they disagree with into the question box.
 
-Write questions that are answered by the code, not by the slide's wording: predict an output for an input, name the line that enforces an invariant, say what the error path does. Make each wrong choice a plausible misreading and let its `why` say what was misread. Avoid "all of the above", trick questions and questions answerable by matching the slide's own phrases.
+Write questions that test what the material implies, not the slide's wording: predict an output for an input, say what enforces an invariant, say what the error path does. Make each wrong choice a plausible misreading and let its `why` say what was misread. Avoid "all of the above", trick questions and questions answerable by matching the slide's own phrases.
+
+Make each question stand on its own. The reader sees neither the code nor the earlier slides, and may not remember the names. In the question, its choices and its `why`, give the context in one of these ways:
+
+- **Spell it out.** Say what each identifier means, or describe the thing in plain words and drop the name. Quote the code that the question relies on, in inline code or a fenced block. Do this when the context is short.
+- **Link to it.** Link the identifier or phrase to the code, when the code is too long to quote. With `source_url`, fill in its template by hand for each link, for example ``[`slot`](https://github.com/OWNER/REPO/blob/SHA/ring.py#L124-L134)``; the link opens in a new tab. Without `source_url`, or for a file it does not cover, link to the slide that shows the code, as `[the gather](#slide-id)`, or spell the context out. A file path alone is not a link.
+
+Never rely on a bare line number: a question that asks for "line 71", or for which line does something, must show those lines. Otherwise ask for the step or the condition.
+
+Give what the reader needs to reason, not the conclusion. Define a name, but do not say how it behaves in the case you ask about. Quote or link the inputs and the surrounding function, not only the line that decides the answer. Leave out details that the reasoning does not need.
+
+Before: "A padding token has `selected = [3, 9, 12, 20]` with `local_experts = 4`. Its `combine_weights` entry at `k = 1` is nonzero. What gradient does that entry get after this PR, and which line makes it so?"
+
+After: "`combine_weights[t, k]` is the weight that token `t` gives to the `k`-th of its selected experts. A padding token has in-range selected experts and a nonzero weight at `k = 1`. What gradient does that weight get after this PR, and which step of [the backward pass](https://github.com/OWNER/REPO/blob/SHA/ring.py#L64-L71) makes it so?"
 
 ## Excerpts
 
