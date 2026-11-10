@@ -5,13 +5,15 @@ description: Walk a human through a code change (commit, branch, pull request or
 
 # Walkthrough of a code change
 
-Build the reader's understanding of the change. This skill extends `walkthrough`, installed beside it: read `<skill-dir>/../walkthrough/SKILL.md` and `<skill-dir>/../walkthrough/references/deck.md`, then `references/diffs.md` here for the diff blocks, the appendix and coverage. Run its engine as `<skill-dir>/scripts/walkthrough_pr.py`: walkthrough's `deck.py`, which it loads from beside it, with the review layer this skill adds. It takes every `deck.py` command. Keep the source and Git state unchanged throughout, except for fixes the reader approves on the Proposed actions slide (see step 3).
+Build the reader's understanding of the change. This skill extends `walkthrough`, installed beside it: read `<skill-dir>/../walkthrough/SKILL.md` and `<skill-dir>/../walkthrough/references/deck.md`, then `references/diffs.md` here for the diff blocks, the appendix and coverage. Run its engine as `<skill-dir>/scripts/walkthrough_pr.py`: walkthrough's `deck.py`, which it loads from beside it, with the review layer this skill adds. It takes every `deck.py` command. Keep the source and Git state unchanged throughout, except for fixes the reader approves on the Proposed actions slide (see step 4).
 
 ## 1. Establish the change
 
 This replaces the base skill's first step; the change is the topic, and the review decision is the goal.
 
 Resolve the requested commit, branch comparison, pull request, or local changes from the user's request and conversation. If the target is materially ambiguous, ask before choosing it. For a branch, compare against its merge base with the base branch. For local changes, account for staged, unstaged and untracked files, and keep them apart.
+
+Settle the reader's starting point as the base skill does, and set `reader` in the deck. The reader of a change is new to the change itself, and often to the work around it: the earlier pull requests, the discussion, and the names its authors use for things.
 
 Read the diff and enough surrounding code, callers, configuration and tests to explain its behavior. Use commit messages or the pull request description for stated intent. Distinguish observed behavior, documented intent and inferred rationale; do not invent the author's reasons. If the change is empty or unavailable, say so rather than building a deck.
 
@@ -36,7 +38,7 @@ When a diff comes from the working tree (local changes, or any change in `apply`
 
 Run `python3 <skill-dir>/scripts/walkthrough_pr.py hunks DECK` to list the files, hunks and changed line ranges.
 
-Then start an independent defect review of the same change in the background, so that it runs while you write the deck and does not share its framing. Use the review the user names; otherwise your harness's own code-review command; otherwise a subagent briefed to find correctness, security and performance defects in the diff and report each with a severity, a place (`path:line`) and a one-paragraph explanation. Never let it change the code. Its findings stay hidden from the reader until the end (see step 3).
+Then start an independent defect review of the same change in the background, so that it runs while you write the deck and does not share its framing. Use the review the user names; otherwise your harness's own code-review command; otherwise a subagent briefed to find correctness, security and performance defects in the diff and report each with a severity, a place (`path:line`) and a one-paragraph explanation. Never let it change the code. Its findings stay hidden from the reader until the end (see step 4).
 
 ## 2. Write the deck
 
@@ -68,7 +70,7 @@ Keep the reader oriented in time and in the diff:
 
 Coverage is the one firm rule: every changed line must appear on some slide. Put lines that teach nothing new in appendix groups, such as renames, formatting, generated files, test fixtures or plumbing. Give each group a title and a one- or two-sentence note saying what the changes are and why they are safe to skim. `check` fails while any changed line is missing and prints a block you can paste for each gap.
 
-Keep specific defects out of the slides, including ones you notice yourself: record them as review findings (step 3), so the reader judges the change before seeing them. Use `risk` callouts for the approach's tradeoffs and limits. Keep the deck about understanding; step 3 says what to do when the reader asks for a change.
+Keep specific defects out of the slides, including ones you notice yourself: record them as review findings (step 4), so the reader judges the change before seeing them. Use `risk` callouts for the approach's tradeoffs and limits. Keep the deck about understanding; step 4 says what to do when the reader asks for a change.
 
 The final check spans the whole change: how the pieces fit, and what the review decision hinges on. Ask what the code does, not what the slide said, and make each question stand on its own, as Checks in walkthrough's `references/deck.md` describes.
 
@@ -78,7 +80,18 @@ When the change is on GitHub (a commit, a pushed branch or a pull request), set 
 
 Write `DECK/deck.json`, then run `python3 <skill-dir>/scripts/walkthrough_pr.py check DECK` until it passes.
 
-## 3. Serve, answer and finish
+## 3. Cold-read it
+
+Cold-read the deck as `walkthrough` describes, with `walkthrough_pr.py text`. These rules are for a change.
+
+- **The cold reader gets the deck alone.** Do not give it the diff file, the description or the discussion. The reader of a change meets these through the deck, and so must the cold reader.
+- **The cold read and the defect review stay apart.** The defect review reads the change and not the deck. The cold reader reads the deck and does not judge the change. Give neither one the other's brief or result. If the cold reader reports a possible defect all the same, keep it out of the slides. Check it against the code, and if it is real, record it as a review finding like one of your own (step 4).
+- **The deck gives no verdict.** A cold reader possibly asks which risk blocks approval. Do not add a recommendation: the decision is the reader's. If the reader cannot weigh a risk, say on the slide what the risk costs and when it applies.
+- **A fix can move changed lines.** Run `check` again after the edits: every changed line must still appear.
+
+Do not cold-read again after `refresh` (step 4).
+
+## 4. Serve, answer and finish
 
 Serve the deck, answer questions and finish as `walkthrough` describes, running `walkthrough_pr.py` in place of `deck.py`. Give the reader a one-sentence summary of the change in place of the goal. In answers, cite `path:line`. At the finish, say which tests or validations were actually run and which were only inspected; finishing the walkthrough does not mean the reader approved the change. Without a browser, give the summary (why and what) and the slide list, and invite questions before showing any diff.
 
