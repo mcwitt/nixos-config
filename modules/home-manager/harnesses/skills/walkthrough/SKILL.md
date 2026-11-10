@@ -14,7 +14,7 @@ The bundled script `scripts/deck.py` (Python ≥ 3.11, standard library only) ch
 Bound the deck before writing it. Settle three things from the request and conversation, and ask for any the request does not give:
 
 - **Goal**: what the reader should be able to do afterwards, such as explain a mechanism, predict a behavior, change a subsystem safely or judge a paper's claim. One sentence; it goes in the deck as `goal`.
-- **Starting point**: what the reader already knows. Skip what they know and define what they do not.
+- **Starting point**: what the reader already knows. Skip what they know and define what they do not. It goes in the deck as `reader`, in two sentences: what the reader knows, then what they are new to.
 - **Sources**: the code, documents, papers or pages the deck draws on. Name them to the reader. Read enough of them to explain the topic, and distinguish what a source states from what you infer.
 
 Set the slide budget from the goal, counting checks but not the appendix: two to four slides for one concept, six to eight for a subsystem or a paper, and rarely more than a dozen. A reader who feels there is too much material skims, and a skimmed deck teaches nothing. When a draft runs over, cut whole slides rather than trimming each one: fold a minor idea into the slide that uses it, and move everything the goal does not need to the appendix or propose it as a follow-up deck.
@@ -37,7 +37,17 @@ Check slides guard against skimming. End every deck but a trivial one with a fin
 
 Write `DECK/deck.json`, then run `python3 <skill-dir>/scripts/deck.py check DECK` until it passes. `check` prints the slide list and warns about content slides outside the appendix that no check question points at. Decide for each whether the goal depends on it: if it does, point a question at it; if it does not, consider moving it to the appendix. A warning is not an error.
 
-## 3. Serve it
+## 3. Cold-read it
+
+By now you know the material, so you cannot see what the deck leaves unexplained: a term the sources introduce, a name from the work behind them, a fact you learned while reading and then used. A reader who starts with none of that can see it. Before you serve a deck of more than three content slides, give it to such a reader, as `references/cold-read.md` describes:
+
+1. Print the deck as the reader sees it, behind the instructions for a cold reader and your `reader` statement: `python3 <skill-dir>/scripts/deck.py text DECK --brief`. Add nothing to it.
+2. Give that text to a fresh agent that has none of this conversation. It reads only the deck. It returns one report: a summary of each slide, the places where it stopped understanding, and its answers to the checks, which it sees without their answers. At the same time, a second fresh agent answers the checks without the deck (`text DECK --brief --checks-only`), to show which questions need no deck.
+3. Fix the deck, not the reader. A question the cold reader asks is one the reader would ask, so its answer belongs on a slide: use plain words in place of the term, define it where it first appears, move a slide earlier, add a background slide, or cut. Grade the check answers against the key and repair the checks that are unanswerable, ambiguous or too easy.
+
+One round is the default, and it takes a minute or two. Read a changed deck again, with a new reader, only when you added, removed or reordered slides.
+
+## 4. Serve it
 
 ```sh
 python3 <skill-dir>/scripts/deck.py serve DECK --detach
@@ -47,9 +57,9 @@ This prints a URL with a secret token. The server listens on 127.0.0.1. If the r
 
 A deck directory keeps its URL: later servers reuse its token, port and `serve` options. Running `serve` again prints the URL of the running server. If that server runs another copy of `deck.py`, for example one from before an update, or other options, `serve` restarts it in place, and open pages reconnect and reload.
 
-Give the reader the URL, the goal and the number of slides. Tell them they can ask on any slide, quote lines by clicking line numbers (shift-click or drag to extend), and click diagram parts or callouts, or select text, to quote those. Then start listening.
+Give the reader the URL, the goal, the number of slides and the starting point you assumed, so that they can correct it. Tell them they can ask on any slide, quote lines by clicking line numbers (shift-click or drag to extend), and click diagram parts or callouts, or select text, to quote those. Then start listening.
 
-## 4. Answer questions
+## 5. Answer questions
 
 ```sh
 python3 <skill-dir>/scripts/deck.py listen DECK --timeout SECONDS
@@ -74,7 +84,7 @@ Every `listen` run prints the exact command to run next. Questions and answers p
 
 The page shows the reader whether you are listening, answering, working on something it asked for, or away. Questions asked while you are away wait in the queue.
 
-## 5. Finish
+## 6. Finish
 
 When the reader finishes, `listen` reports how they did on the check slides. Go over what they missed in the conversation, briefly and without scolding: state the point and where in the deck or the sources it lives. Then connect the pieces back to the goal. Name anything you could not read or resolve, and any follow-up deck you proposed. Stop the server with `python3 <skill-dir>/scripts/deck.py stop DECK` (it also exits after 12 idle hours). The questions and answers remain in `DECK/threads.json`, and the check answers in `DECK/quiz.json`.
 
