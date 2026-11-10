@@ -14,7 +14,7 @@ The bundled script `scripts/deck.py` (Python ≥ 3.11, standard library only) ch
 Bound the deck before writing it. Settle three things from the request and conversation, and ask for any the request does not give:
 
 - **Goal**: what the reader should be able to do afterwards, such as explain a mechanism, predict a behavior, change a subsystem safely or judge a paper's claim. One sentence; it goes in the deck as `goal`.
-- **Starting point**: what the reader already knows. Skip what they know and define what they do not. It goes in the deck as `reader`, in two sentences: what the reader knows, then what they are new to.
+- **Starting point**: what the reader already knows. Skip what they know and define what they do not. It goes in the deck as `reader`, in two sentences: what the reader knows, then what they are new to. When the request does not give it, infer it from the conversation and what you know of the reader, and do not stop to ask for it alone: you tell the reader what you assumed when you serve the deck.
 - **Sources**: the code, documents, papers or pages the deck draws on. Name them to the reader. Read enough of them to explain the topic, and distinguish what a source states from what you infer.
 
 Set the slide budget from the goal, counting checks but not the appendix: two to four slides for one concept, six to eight for a subsystem or a paper, and rarely more than a dozen. A reader who feels there is too much material skims, and a skimmed deck teaches nothing. When a draft runs over, cut whole slides rather than trimming each one: fold a minor idea into the slide that uses it, and move everything the goal does not need to the appendix or propose it as a follow-up deck.
