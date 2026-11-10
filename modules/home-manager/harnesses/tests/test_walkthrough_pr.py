@@ -223,6 +223,18 @@ class DeckTest(DeckDirCase):
         r = run("check", self.dir)
         self.assertIn("all 10 non-blank changed lines", r.stdout)
 
+    def test_text_prints_diff_excerpts_and_appendix_groups(self):
+        self.write(deck_spec(reader="Knows the app."))
+        out = run("text", self.dir).stdout
+        self.assertIn("# Sample change\n\nReader: Knows the app.\n", out)
+        self.assertIn("## Slide 2 of 2 `what`: What\n\n[Diff excerpt]\n```diff\nsrc/app.py  @@", out)
+        self.assertRegex(out, r"(?m)^ +\d+ \+.*return 0")
+        # The generated review slides are not content, and the appendix is listed by title.
+        self.assertTrue(out.endswith("## Appendix (not shown)\n\n- Everything else\n"))
+        full = run("text", self.dir, "--appendix").stdout
+        self.assertIn("## Slide 3 of 3 `appendix-1` (Appendix): Everything else\n\n### Everything else\n\nThe rest of the change.", full)
+        self.assertNotIn("Findings", full)
+
     def test_pr_and_reserved_ids(self):
         spec = deck_spec(pr="https://github.com/o/r/issues/3")
         spec["slides"][0]["id"] = "findings"

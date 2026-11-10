@@ -27,6 +27,7 @@ import contextlib
 import functools
 import getpass
 import hashlib
+import html
 import json
 import os
 import queue
@@ -465,7 +466,8 @@ def _diagram(d, where: str, errors: list[str]) -> dict | None:
         errors.append(f"{where}: diagram must be an object")
         return None
     kind = d.get("type")
-    out = {"type": kind, "caption": _str(d.get("caption"), f"{where}.caption", errors)}
+    out = {"type": kind, "caption": _str(d.get("caption"), f"{where}.caption", errors),
+           "alt": _str(d.get("alt"), f"{where}.alt", errors)}
     if kind == "svg":
         out["svg"] = _str(d.get("svg"), f"{where}.svg", errors, True)
     elif kind == "mermaid":
@@ -549,7 +551,7 @@ def load_deck(deck_dir: Path) -> Deck:
     if not isinstance(spec, dict):
         raise DeckInvalid([f"{spec_path}: expected a JSON object"])
     errors: list[str] = []
-    known = {"title", "subtitle", "scope", "goal", "root", "source_url", "slides", *(k for e in EXTENSIONS for k in e.spec_keys)}
+    known = {"title", "subtitle", "scope", "goal", "reader", "root", "source_url", "slides", *(k for e in EXTENSIONS for k in e.spec_keys)}
     for key in sorted(set(spec) - known):
         errors.append(f"{key}: not a key this script reads (a deck for another skill's script?)")
     load = Loading(deck_dir, spec, errors, [spec_path])
@@ -560,7 +562,7 @@ def load_deck(deck_dir: Path) -> Deck:
     root = deck_dir / _str(spec.get("root"), "root", errors)
 
     _str(spec.get("title"), "title", errors, True)
-    for key in ("subtitle", "scope", "source_url"):
+    for key in ("subtitle", "scope", "reader", "source_url"):
         _str(spec.get(key), key, errors)
     goal = spec.get("goal")
     if not load.goal_optional or goal is not None:
@@ -1433,6 +1435,8 @@ def print_report(deck: Deck):
     print(head + "".join(ext.report(deck) for ext in EXTENSIONS))
     if deck.spec.get("goal"):
         print(f"goal: {deck.spec['goal']}")
+    if deck.spec.get("reader"):
+        print(f"reader: {deck.spec['reader']}")
     checks = deck.checks()
     if not checks:
         print("no check slides; add a final check unless the deck is trivial")
@@ -1482,6 +1486,194 @@ def load_or_exit(deck_dir: Path) -> Deck:
 
 def cmd_check(args):
     print_report(load_or_exit(Path(args.deck)))
+
+
+# --------------------------------------------------------------------------
+# The deck as text
+#
+# `text` prints what the page shows, in slide order, for a reader that has
+# no browser: a cold reader that looks for what the deck leaves undefined.
+# It leaves out the answers to the checks unless asked for the key.
+
+COLD_READ = """\
+You are a test reader for the slide deck below. Its author knows the subject too well to see what the deck
+does not explain. Your report shows the author where a new reader stops understanding.
+
+## The reader you stand in for
+
+{reader}
+
+- Do not report what this reader knows.
+- Read as a person who does not know the subjects this reader is new to. You possibly know a term from those
+  subjects yourself. If the deck uses the term and does not explain it, report it.
+- The reader sees only the deck. The reader did not see its sources, or the work and the discussions behind it.
+
+## Rules
+
+- Use only the text below. Do not open files, search, or run commands.
+- Read the slides in order, one time. Record a problem at the slide where you find it, before you read on.
+- Answer each check when you reach it, from the slides before it.
+- Do not review the subject. Do not report defects in the code or errors in the sources.
+- Do not rewrite slides or suggest wording. Do not report typing errors, style or layout.
+
+## Your report
+
+Write Markdown with these four sections and nothing else.
+
+### Summaries
+
+One sentence for each content slide, by slide id: the idea the slide teaches, in your own words. Write
+"unclear" if you cannot say it.
+
+### Gaps
+
+At most 12, the most serious first. Give each gap these fields:
+
+- **Slide**: the slide id.
+- **Kind**: one of these.
+  - `term`: the deck uses a name, abbreviation or identifier before it says what it is.
+  - `leap`: a claim or step does not follow from the slides before it.
+  - `order`: the deck explains it, but later than the reader needs it.
+  - `why`: the deck says what was done or decided, and not the reason, which the goal needs.
+  - `question`: the goal makes the reader ask another question, which the deck does not answer.
+- **Quote**: the words on the slide, 15 words at most.
+- **Question**: what you needed to know, as the question the reader would ask.
+- **Effect**: `blocks` (you could not follow the slide) or `slows` (you continued on a guess, and you give the guess).
+
+### Checks
+
+For each check question, by its id:
+
+- **Answer**: the number of the choice, or your written answer.
+- **Basis**: the ids of the slides that gave you the answer. Write `guess` if you did not know. Write
+  `background` if you knew the answer without the deck. Write `wording` if you chose the answer because it
+  repeats a slide's words or because the other choices are implausible.
+- **Confidence**: `high` or `low`.
+
+### Goal
+
+Two sentences at most: can you now do what the goal says, and if not, what is missing most.
+
+---
+
+"""
+
+BLIND_CHECKS = """\
+Below are the check questions of a slide deck, without the deck. Answer each question from general knowledge
+and from the wording of the question and its choices. Do not open files, search, or run commands. The author
+uses your answers to find questions that a reader can answer without reading the deck.
+
+For each question, by its id, give the number of the choice or a written answer in one or two sentences, and
+your confidence: `high` or `low`. Write nothing else.
+
+---
+
+"""
+
+TAG_RE = re.compile(r"<[^>]+>")
+SVG_TEXT_RE = re.compile(r"<text\b[^>]*>(.*?)</text>", re.S)
+ASK_RE = re.compile(r"""\bdata-ask=(?:"([^"]*)"|'([^']*)')""")
+
+
+def _labels(markup: str, texts: re.Pattern | None = None) -> list[str]:
+    """The words a reader sees in SVG or HTML markup, and the parts they can click."""
+    shown = texts.findall(markup) if texts else [re.sub(r"<(script|style)\b.*?</\1>", " ", markup, flags=re.S)]
+    words = [" ".join(html.unescape(TAG_RE.sub(" ", t)).split()) for t in shown]
+    asks = [html.unescape(a or b) for a, b in ASK_RE.findall(markup)]
+    return list(dict.fromkeys(w for w in words + asks if w))
+
+
+def diagram_text(d: dict) -> str:
+    out = [f"[Diagram ({d['type']})]" + (f" {d['caption']}" if d.get("caption") else "")]
+    if d.get("alt"):
+        out.append(f"Description: {d['alt']}")
+    if d["type"] == "mermaid":
+        out.append(fenced(d["source"], "mermaid"))
+    elif d["type"] == "svg":
+        out.append("Labels: " + " | ".join(_labels(d["svg"], SVG_TEXT_RE)))
+    elif d["type"] == "html":
+        out.append("Text: " + " | ".join(_labels(d["html"])))
+    else:
+        for n, fr in enumerate(d["frames"], 1):
+            out.append(f"Frame {n}" + (f": {fr['caption']}" if fr["caption"] else ""))
+            out.append(fenced(fr["mermaid"], "mermaid") if fr["mermaid"] else "Labels: " + " | ".join(_labels(fr["svg"], SVG_TEXT_RE)))
+    return "\n".join(out)
+
+
+def block_text(deck: Deck, blk: dict) -> str:
+    kind = blk["type"]
+    if kind == "md":
+        return blk["md"]
+    if kind == "callout":
+        return f"[Callout: {blk['tone']}] {blk['md']}"
+    if kind == "diagram":
+        return diagram_text(blk["diagram"])
+    if kind == "excerpt":
+        out = [blk["caption"]] if blk.get("caption") else []
+        for p in blk["pieces"]:
+            h = deck.hunks[p["hunk"]]
+            lines = numbered(h, p["lo"], p["hi"])
+            head = f"[Excerpt: {h.file.path}, lines {span(h, p['lo'], p['hi'])}]" if h.file.plain else "[Diff excerpt]"
+            out.append(f"{head}\n{fenced(lines, h.file.language if h.file.plain else 'diff')}")
+        if not blk["pieces"]:
+            f = next(f for f in deck.files if f.key == blk["file"])
+            out.append(f"[File: {f.path}, {f.describe()}]")
+        return "\n".join(out)
+    if kind == "group":
+        return "\n\n".join([f"### {blk['title']}\n\n{blk['md']}", *(block_text(deck, b) for b in blk["blocks"])])
+    return ""
+
+
+def quiz_text(s: dict, key: bool) -> str:
+    out = []
+    for n, q in enumerate(s["quiz"], 1):
+        qid = f"{s['id']}.{n}"
+        if q["kind"] == "choice":
+            out.append(f"**{qid}** (choose one) {q['q']}\n\n" + "\n".join(f"{j}. {c['text']}" for j, c in enumerate(q["choices"], 1)))
+            if key:
+                j = next(j for j, c in enumerate(q["choices"], 1) if c["correct"])
+                out.append(f"Key: {j}. Settled by slide `{q['see']}`.")
+        else:
+            starter = f"\n\n{fenced(q['starter'], q.get('language', ''))}" if q.get("starter") else ""
+            out.append(f"**{qid}** (written answer, {q['kind']}) {q['q']}{starter}")
+            if key:
+                out.append(f"Rubric: {q['rubric']} Settled by slide `{q['see']}`.")
+    return "\n\n".join(out)
+
+
+def deck_text(deck: Deck, appendix: bool = False, key: bool = False, checks_only: bool = False) -> str:
+    spec = deck.spec
+    out = [f"# {spec['title']}"]
+    if not checks_only:
+        out += [f"{label}{spec[k]}" for k, label in (("subtitle", ""), ("scope", "Sources: "), ("goal", "Goal: "), ("reader", "Reader: "))
+                if spec.get(k)]
+    slides = [s for s in deck.slides if not s.get("generated")]
+    shown = [s for s in slides if appendix or s["section"] != "Appendix"]
+    skipped = [s["title"] for s in slides if s not in shown]
+    for n, s in enumerate(shown, 1):
+        if checks_only and not s["quiz"]:
+            continue
+        section = f" ({s['section']})" if s["section"] else ""
+        head = f"## Slide {n} of {len(shown)} `{s['id']}`{section}: {s['title']}"
+        body = quiz_text(s, key) if s["quiz"] else "\n\n".join(filter(None, (block_text(deck, b) for b in s["blocks"])))
+        out.append(f"{head}\n\n{body}")
+    if skipped and not checks_only:
+        out.append("## Appendix (not shown)\n\n" + "\n".join(f"- {t}" for t in skipped))
+    return "\n\n".join(out) + "\n"
+
+
+def cmd_text(args):
+    deck = load_or_exit(Path(args.deck))
+    brief = ""
+    if args.brief and args.key:
+        sys.exit("error: --brief is for a reader who must not see the key")
+    if args.brief and args.checks_only:
+        brief = BLIND_CHECKS
+    elif args.brief:
+        if not deck.spec.get("reader"):
+            sys.exit("error: reader: say in deck.json what the reader knows and is new to, so the cold reader can stand in for them")
+        brief = COLD_READ.format(reader=deck.spec["reader"])
+    print(brief + deck_text(deck, args.appendix, args.key, args.checks_only), end="")
 
 
 def server_info(deck_dir: Path) -> dict | None:
@@ -1879,6 +2071,20 @@ def main(argv=None, entry: str | None = None, description: str | None = None):
     l.add_argument("--verdict", choices=list(VERDICTS), help="with --answer for a check answer: the verdict")
     l.add_argument("--timeout", type=float, default=100, help="seconds to wait (default 100)")
     l.set_defaults(func=cmd_listen)
+
+    x = sub.add_parser(
+        "text",
+        help="print the deck as the reader sees it, in slide order",
+        description="Print the deck as Markdown: each slide's prose, callouts, excerpts and diagram labels, and "
+        "the check questions without their answers. Give this to a cold reader.",
+    )
+    x.add_argument("deck")
+    x.add_argument("--appendix", action="store_true", help="also print the appendix slides (default: their titles)")
+    x.add_argument("--key", action="store_true", help="also print each check question's answer, for grading")
+    x.add_argument("--checks-only", action="store_true", help="print the check slides alone")
+    x.add_argument("--brief", action="store_true", help="start with the instructions for a cold reader "
+                   "(with --checks-only: for a reader who answers the checks without the deck)")
+    x.set_defaults(func=cmd_text)
 
     for ext in EXTENSIONS:
         ext.commands(sub)

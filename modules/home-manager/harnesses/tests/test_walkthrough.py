@@ -159,6 +159,61 @@ class TopicDeckTest(DeckDirCase):
         self.write(spec)
         self.assertIn("last authored slide is not a check", run("check", self.dir).stdout)
 
+    def test_text_prints_the_deck_without_the_key(self):
+        spec = topic_spec(reader="Knows files. New to line numbers.")
+        spec["slides"][0]["blocks"] += [
+            {"callout": "Lines start at 1.", "tone": "risk"},
+            {"diagram": {"type": "svg", "alt": "Two boxes", "caption": "Flow",
+                         "svg": "<svg><text>read &amp; print</text><g data-ask='the reader loop'><text>loop</text></g></svg>"}},
+            {"diagram": {"type": "html", "html": "<div class='w'><b>Step</b> one<style>.w{}</style></div>", "script": "x()"}},
+            {"diagram": {"type": "steps", "frames": [{"mermaid": "flowchart LR\n  A --> B", "caption": "Before"},
+                                                     {"svg": "<svg><text>after</text></svg>"}]}},
+        ]
+        spec["slides"].append(topic_check())
+        spec["slides"][-1]["quiz"] += written_check()["quiz"][:1]
+        spec["slides"].append({"id": "extra", "title": "Extra", "section": "Appendix", "blocks": [{"md": "Beyond the goal."}]})
+        self.write(spec)
+        self.assertIn("reader: Knows files. New to line numbers.", run("check", self.dir).stdout)
+        out = run("text", self.dir).stdout
+        for needle in (
+            "# Sample topic\n\nGoal: Explain what the notes say.\n\nReader: Knows files. New to line numbers.\n",
+            "## Slide 1 of 3 `intro`: Intro\n\nHello.\n\n[Callout: risk] Lines start at 1.",
+            "[Diagram (svg)] Flow\nDescription: Two boxes\nLabels: read & print | loop | the reader loop",
+            "[Diagram (html)]\nText: Step one",
+            "Frame 1: Before\n```mermaid\nflowchart LR\n  A --> B\n```\nFrame 2\nLabels: after",
+            "[Excerpt: notes.txt, lines 2–3]\n```\n    2  second line\n    3  third line\n```",
+            "**final.1** (choose one) What is on line 2?\n\n1. second line\n2. first line",
+            "**final.2** (written answer, prose) Why is line 2 second?",
+            "## Appendix (not shown)\n\n- Extra\n",
+        ):
+            self.assertIn(needle, out)
+        # The answers stay out: which choice is right, its feedback, the rubric and the model answer.
+        for hidden in ("Line 2.", "That is line 1.", "Says it follows", "Because it comes after", "Key:", "Beyond the goal."):
+            self.assertNotIn(hidden, out)
+        key = run("text", self.dir, "--key", "--appendix").stdout
+        self.assertIn("2. first line\n\nKey: 1. Settled by slide `lines`.", key)
+        self.assertIn("Rubric: Says it follows line 1. Settled by slide `lines`.", key)
+        self.assertIn("## Slide 4 of 4 `extra` (Appendix): Extra\n\nBeyond the goal.", key)
+        # The brief puts the cold reader's instructions and the stated reader before the deck.
+        brief = run("text", self.dir, "--brief").stdout
+        self.assertTrue(brief.startswith("You are a test reader"))
+        self.assertIn("stand in for\n\nKnows files. New to line numbers.\n", brief)
+        self.assertTrue(brief.endswith(out))
+        blind = run("text", self.dir, "--brief", "--checks-only").stdout
+        self.assertIn("without the deck", blind)
+        self.assertNotIn("Hello.", blind)
+        self.assertIn("must not see the key", run("text", self.dir, "--brief", "--key", check=False).stderr)
+        del spec["reader"]
+        self.write(spec)
+        r = run("text", self.dir, "--brief", check=False)
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("error: reader: say in deck.json", r.stderr)
+        self.write({**spec, "reader": "Knows files. New to line numbers."})
+        checks = run("text", self.dir, "--checks-only").stdout
+        self.assertTrue(checks.startswith("# Sample topic\n\n## Slide 3 of 3 `final`: Check\n\n**final.1**"))
+        for hidden in ("Hello.", "second line\n    3", "Goal:", "Appendix"):
+            self.assertNotIn(hidden, checks)
+
     def test_check_validation(self):
         spec = topic_spec()
         q = topic_check()["quiz"][0]

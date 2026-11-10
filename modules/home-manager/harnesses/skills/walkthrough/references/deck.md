@@ -1,6 +1,6 @@
 # Deck format
 
-A deck directory holds `deck.json` and any files it quotes from there. `deck.py check DECK` validates the deck. A running server reloads the deck whenever `deck.json` or a quoted file changes. If an edit fails validation, the page keeps showing the previous version and lists the errors.
+A deck directory holds `deck.json` and any files it quotes from there. `deck.py check DECK` validates the deck, and `deck.py text DECK` prints it as Markdown in slide order, as the page shows it (`--appendix` adds the appendix, `--key` the answers to the checks). A running server reloads the deck whenever `deck.json` or a quoted file changes. If an edit fails validation, the page keeps showing the previous version and lists the errors.
 
 ## deck.json
 
@@ -10,6 +10,7 @@ A deck directory holds `deck.json` and any files it quotes from there. `deck.py 
   "subtitle": "Run queues, virtual runtime and preemption",
   "scope": "kernel/sched/fair.c at v6.18",
   "goal": "Predict which task runs next from the run queue's state, and say when a waking task preempts the current one",
+  "reader": "Knows: C, processes and threads, and what a scheduler is for. New to: the kernel's source and its fair-scheduling class.",
   "root": "/home/me/src/linux",
   "source_url": "https://github.com/torvalds/linux/blob/v6.18/{path}#L{line}-L{end}",
   "slides": []
@@ -19,6 +20,7 @@ A deck directory holds `deck.json` and any files it quotes from there. `deck.py 
 - `title` (required): a short name for the topic. It is also the browser tab's title.
 - `subtitle`, `scope`: one line each, shown under the title. Name the sources and their versions in `scope`.
 - `goal` (required): what the reader should be able to do afterwards. The contents panel shows it, and `check` prints it.
+- `reader` (optional): what the reader knows, then what they are new to, in two sentences. `check` prints it, and the cold read needs it (see `cold-read.md`).
 - `root` (optional): the directory that relative excerpt paths resolve against, absolute or relative to the deck directory; defaults to the deck directory. With `root` set, quote files saved in the deck directory by absolute path.
 - `source_url` (optional): a link template to a file, with `{path}`, `{line}` and `{end}` placeholders, where `{path}` is the excerpt's path as written; excerpts quoted by absolute path get no link. Each excerpt links to its first line, and selected lines get a "View in context" link to their range; `{end}` is the range's last line and equals `{line}` for a single line. Set it when the quoted files are on GitHub at a fixed commit or tag.
 
