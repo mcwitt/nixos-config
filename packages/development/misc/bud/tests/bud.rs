@@ -138,7 +138,15 @@ impl Env {
         std::fs::read_to_string(self.dir.join("log").join(format!("{}.{ext}", pane.trim_start_matches('%')))).unwrap_or_default()
     }
 
+    /// Wait for the stub in `session` to log its argv and cwd. `--wait` can
+    /// return first: it waits for the agent's state or its exit, and under load
+    /// a fresh stub can take over a second to start.
+    fn started(&self, session: &str) {
+        self.wait_for(|| !self.log(session, "cwd").is_empty());
+    }
+
     fn argv(&self, session: &str) -> Vec<String> {
+        self.started(session);
         let raw = self.log(session, "argv");
         raw.split('\0').filter(|s| !s.is_empty()).map(String::from).collect()
     }
@@ -423,6 +431,7 @@ fn worktrees_and_shared_checkouts() {
     let rec = env.record("feat");
     assert_eq!(rec["worktree"]["branch"], "feat");
     assert_ne!(rec["dir"], r.as_str());
+    env.started("feat");
     assert_eq!(env.log("feat", "cwd").trim(), rec["dir"].as_str().unwrap());
 }
 
