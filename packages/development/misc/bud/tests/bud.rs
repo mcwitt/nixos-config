@@ -432,11 +432,17 @@ fn close_reports_leftover_processes() {
     ok(&env.bud(&["launch", "s", "--brief", &env.brief("SPAWN"), "--harness", "claude"]));
     env.wait_for(|| !env.log("s", "spawned").is_empty());
     let pid = env.log("s", "spawned").trim().to_string();
-    let out = ok(&env.bud(&["close", "s"]));
-    assert!(out.contains(&format!("pid {pid}")), "{out}");
-    let out = ok(&env.bud(&["strays"]));
-    assert!(out.contains(&format!("pid {pid}")), "{out}");
+    let close = ok(&env.bud(&["close", "s"]));
+    let strays = ok(&env.bud(&["strays"]));
     let _ = Command::new("kill").arg(&pid).status();
+    // Process tracking reads /proc, so other systems only say it was skipped.
+    let expected = if cfg!(target_os = "linux") {
+        format!("pid {pid}")
+    } else {
+        "leftover processes: not checked on this system".to_string()
+    };
+    assert!(close.contains(&expected), "{close}");
+    assert!(strays.contains(&expected), "{strays}");
 }
 
 #[test]
