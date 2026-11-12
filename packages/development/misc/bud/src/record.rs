@@ -80,8 +80,29 @@ pub fn load(name: &str) -> Option<Record> {
 }
 
 pub fn save(rec: &Record) -> Result<()> {
-    let p = path(&rec.name);
+    let _lock = lock(&rec.name)?;
+    write(rec)
+}
+
+/// Load, change and save a record under its lock, so that no save lands
+/// between the load and the save. `change` returns false to leave it as it is.
+pub fn update(name: &str, change: impl FnOnce(&mut Record) -> bool) -> Result<()> {
+    let _lock = lock(name)?;
+    let Some(mut rec) = load(name) else { return Ok(()) };
+    if change(&mut rec) { write(&rec) } else { Ok(()) }
+}
+
+/// Held until dropped.
+fn lock(name: &str) -> Result<std::fs::File> {
+    let p = path(name).with_extension("lock");
     std::fs::create_dir_all(p.parent().unwrap())?;
+    let f = std::fs::File::create(&p).with_context(|| format!("opening {}", p.display()))?;
+    f.lock().with_context(|| format!("locking {}", p.display()))?;
+    Ok(f)
+}
+
+fn write(rec: &Record) -> Result<()> {
+    let p = path(&rec.name);
     // By process: the session-closed hook can save while `bud close` does.
     let tmp = p.with_extension(format!("tmp.{}", std::process::id()));
     std::fs::write(&tmp, serde_json::to_string_pretty(rec)? + "\n")

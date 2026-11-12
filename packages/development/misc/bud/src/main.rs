@@ -905,9 +905,18 @@ fn session_closed(name: &str) {
     if record_predates_server(name) || system_stopping() || tmux::has_session(name) {
         return;
     }
-    let Some(mut rec) = record::load(name).filter(|r| r.closed_at.is_none()) else { return };
-    rec.closed_at = Some(now());
-    let _ = record::save(&rec);
+    // `bud resume` can start the new session and save its record just after
+    // has_session looks, so look again under the lock: a record whose pane
+    // still exists describes a running session. tmux does not reuse pane IDs.
+    let _ = record::update(name, |rec| {
+        let panes = tmux::run(&["list-panes", "-a", "-F", "#{pane_id}"]).unwrap_or_default();
+        let running = rec.pane.as_deref().is_some_and(|p| panes.split_whitespace().any(|q| q == p));
+        if rec.closed_at.is_some() || running {
+            return false;
+        }
+        rec.closed_at = Some(now());
+        true
+    });
 }
 
 /// A record last written before this tmux server started describes a session
