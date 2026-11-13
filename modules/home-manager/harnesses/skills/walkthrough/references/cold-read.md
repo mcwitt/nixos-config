@@ -13,6 +13,7 @@ Set `reader` in `deck.json` from the starting point you settled in step 1, as tw
 - **Knows** stops the cold reader from asking about the reader's own field. Name the project's parts the reader works with, with a few words on each, because the cold reader does not know the project either. Add the people and teams the reader works with when the deck names them.
 - **New to** matters as much. The cold reader is a model, and it possibly knows a subject that the reader does not. It reports an unexplained term from a subject only when the statement says that the reader is new to that subject.
 - Write only what the reader knew before this deck's subject existed. A term you learned from the sources does not belong in either sentence.
+- Match the audience stop (see `dials.md`): "Knows" covers the layers the stop names. `text --brief` gives the cold reader the deck's audience and detail stops, so that it does not report what the detail stop leaves out by design.
 
 ## 2. Run the two readers
 

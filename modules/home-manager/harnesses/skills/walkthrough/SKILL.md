@@ -11,13 +11,14 @@ The bundled script `scripts/deck.py` (Python ≥ 3.11, standard library only) ch
 
 ## 1. Establish the topic
 
-Bound the deck before writing it. Settle three things from the request and conversation, and ask for any the request does not give:
+Bound the deck before writing it. Settle these from the request and conversation, and ask for the goal or sources if the request does not give them:
 
 - **Goal**: what the reader should be able to do afterwards, such as explain a mechanism, predict a behavior, change a subsystem safely or judge a paper's claim. One sentence; it goes in the deck as `goal`.
 - **Starting point**: what the reader already knows. Skip what they know and define what they do not. It goes in the deck as `reader`, in two sentences: what the reader knows, then what they are new to. When the request does not give it, infer it from the conversation and what you know of the reader, and do not stop to ask for it alone: you tell the reader what you assumed when you serve the deck.
+- **Setting**: the audience stop (1 novice to 5 expert: how much background the deck assumes and supplies) and the detail stop (1 concise to 5 complete: how much it covers, and how deeply). Read `references/dials.md`, which defines each stop. Take `--audience STOP` and `--detail STOP` from the arguments (a number or a stop name), or the words of the request; otherwise infer the audience from the starting point and use detail 3. Write `reader` to match the audience stop. They go in the deck as `audience` and `detail`.
 - **Sources**: the code, documents, papers or pages the deck draws on. Name them to the reader. Read enough of them to explain the topic, and distinguish what a source states from what you infer.
 
-Set the slide budget from the goal, counting checks but not the appendix: two to four slides for one concept, six to eight for a subsystem or a paper, and rarely more than a dozen. A reader who feels there is too much material skims, and a skimmed deck teaches nothing. When a draft runs over, cut whole slides rather than trimming each one: fold a minor idea into the slide that uses it, and move everything the goal does not need to the appendix or propose it as a follow-up deck.
+Set the slide budget from the goal and the detail stop, counting checks but not the appendix. At detail 3: two to four slides for one concept, six to eight for a subsystem or a paper, and rarely more than a dozen; `references/dials.md` scales it for the other stops. A reader who feels there is too much material skims, and a skimmed deck teaches nothing. When a draft runs over, cut whole slides rather than trimming each one: fold a minor idea into the slide that uses it, and move everything the goal does not need to the appendix or propose it as a follow-up deck.
 
 Create a deck directory in a scratch location outside any repository. Save fetched text you will quote (a paper, a web page, documentation) into it as plain text files.
 
@@ -57,7 +58,7 @@ This prints a URL with a secret token. The server listens on 127.0.0.1. If the r
 
 A deck directory keeps its URL: later servers reuse its token, port and `serve` options. Running `serve` again prints the URL of the running server. If that server runs another copy of `deck.py`, for example one from before an update, or other options, `serve` restarts it in place, and open pages reconnect and reload.
 
-Give the reader the URL, the goal, the number of slides and the starting point you assumed, so that they can correct it. Tell them they can ask on any slide, quote lines by clicking line numbers (shift-click or drag to extend), and click diagram parts or callouts, or select text, to quote those. Then start listening.
+Give the reader the URL, the goal, the number of slides, and the starting point and setting you assumed, so that they can correct them. Tell them the dials above each content slide rewrite that slide (or every slide) at another audience or detail stop, and that a setting already written switches at once. Tell them they can ask on any slide, quote lines by clicking line numbers (shift-click or drag to extend), and click diagram parts or callouts, or select text, to quote those. Then start listening.
 
 ## 5. Answer questions
 
@@ -76,6 +77,8 @@ Every `listen` run prints the exact command to run next. Questions and answers p
 - Use the longest timeout your harness allows for a command (the default is 100 seconds). If your harness can run a command in the background and notify you when it exits, run `listen` that way, so the user can still talk to you in between. Otherwise run it in the foreground.
 - When a run ends without a question, run it again. Stop listening when the reader finishes the walkthrough (`listen` reports it), when the user tells you to stop, or when no page has had the deck open for about 30 minutes. Then tell the user how to resume.
 - Answer the question asked. Distinguish what the sources show from what you infer, and do not change the sources.
+- `listen` also hands you the slides the reader asked for at another setting, all waiting requests at once. Rewrite each as "Rewriting a slide" in `references/dials.md` says, and store it with `deck.py variant`; `listen` prints the commands. Do this before other questions: the reader is waiting on the slide. If your harness has subagents, rewrite several slides in parallel, and give each one the stops' rows, the slide as written (`variant DECK SLIDE --show`) and the sources.
+- If a question comes from a slide shown at another setting, `listen` says so; answer at that setting.
 - If the reader asks for more depth, a diagram, a correction or a new slide, edit `deck.json` and run `check`. The open page reloads in place and keeps the reader's slide. Say in the answer what changed.
 - If `listen` hands you a question you already claimed, you lost track of it; answer it now.
 - `listen` also reports what the page could not draw: formulas KaTeX rejects, diagrams that fail, text in hand-drawn SVG that is wider than its box, and widget scripts that throw. Fix these in `deck.json` before the reader reaches the slide; mention a fix in your next answer only if the reader saw the slide.
@@ -90,4 +93,4 @@ When the reader finishes, `listen` reports how they did on the check slides. Go 
 
 ## Without a browser
 
-If no browser can reach this machine, or the reader prefers to stay in the conversation, present the same deck there. Give the goal and the list of slides, then stop and invite questions before the first slide. After that, present one slide per turn and wait for the reader before moving on. Answer questions without advancing, and honor requests to go deeper, go back, jump, skip or stop. Do not treat elapsed time or a missing response as permission to continue.
+If no browser can reach this machine, or the reader prefers to stay in the conversation, present the same deck there. The reader changes the setting in words ("more basic", "shorter"); rewrite the current slide as `references/dials.md` says. Give the goal and the list of slides, then stop and invite questions before the first slide. After that, present one slide per turn and wait for the reader before moving on. Answer questions without advancing, and honor requests to go deeper, go back, jump, skip or stop. Do not treat elapsed time or a missing response as permission to continue.

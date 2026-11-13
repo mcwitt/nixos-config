@@ -13,7 +13,7 @@ This replaces the base skill's first step; the change is the topic, and the revi
 
 Resolve the requested commit, branch comparison, pull request, or local changes from the user's request and conversation. If the target is materially ambiguous, ask before choosing it. For a branch, compare against its merge base with the base branch. For local changes, account for staged, unstaged and untracked files, and keep them apart.
 
-Set `reader` in the deck from the reader's starting point, as the base skill describes. Infer it when the request does not give it, and do not ask for it. The reader of a change is new to the change itself, and often to the work around it: the earlier pull requests, the discussion, and the names its authors use for things.
+Set `reader`, `audience` and `detail` in the deck as the base skill describes, from `--audience` and `--detail` in the arguments or from the reader's starting point. Infer the reader when the request does not give it, and do not ask for it. The reader of a change is new to the change itself, and often to the work around it: the earlier pull requests, the discussion, and the names its authors use for things.
 
 Read the diff and enough surrounding code, callers, configuration and tests to explain its behavior. Use commit messages or the pull request description for stated intent. Distinguish observed behavior, documented intent and inferred rationale; do not invent the author's reasons. If the change is empty or unavailable, say so rather than building a deck.
 
@@ -44,7 +44,7 @@ Then start an independent defect review of the same change in the background, so
 
 Write the deck as the base skill describes, with these rules for a change.
 
-Budget by the change, counting checks but not the appendix: two to four slides for a small fix, six to eight for a typical feature, and rarely more than a dozen for a large change. When a draft runs over, cut whole slides: merge why and what, fold a key idea the decision does not hinge on into the slide that uses it, and move everything else to the appendix. These sections usually work, in this order:
+Budget by the change and the detail stop, counting checks but not the appendix. At detail 3: two to four slides for a small fix, six to eight for a typical feature, and rarely more than a dozen for a large change. At every stop, keep what `references/dials.md` in walkthrough says a change never drops: the intent, the risks and their hunks, coverage, and the findings. When a draft runs over, cut whole slides: merge why and what, fold a key idea the decision does not hinge on into the slide that uses it, and move everything else to the appendix. These sections usually work, in this order:
 
 - **Why**: the problem or motivation, and what was wrong or missing before. For a small change, one slide with what.
 - **What**: the resulting behavior and the overall approach, at a high level.

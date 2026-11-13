@@ -11,6 +11,8 @@ A deck directory holds `deck.json` and any files it quotes from there. `deck.py 
   "scope": "kernel/sched/fair.c at v6.18",
   "goal": "Predict which task runs next from the run queue's state, and say when a waking task preempts the current one",
   "reader": "Knows: C, processes and threads, and what a scheduler is for. New to: the kernel's source and its fair-scheduling class.",
+  "audience": 3,
+  "detail": 3,
   "root": "/home/me/src/linux",
   "source_url": "https://github.com/torvalds/linux/blob/v6.18/{path}#L{line}-L{end}",
   "slides": []
@@ -21,6 +23,7 @@ A deck directory holds `deck.json` and any files it quotes from there. `deck.py 
 - `subtitle`, `scope`: one line each, shown under the title. Name the sources and their versions in `scope`.
 - `goal` (required): what the reader should be able to do afterwards. The contents panel shows it, and `check` prints it.
 - `reader` (optional): what the reader knows, then what they are new to, in two sentences. `check` prints it, and the cold read needs it (see `cold-read.md`).
+- `audience`, `detail` (optional): the stops the deck is written at, 1 to 5 or a stop's name (see `dials.md`). With them, the page shows the dials on each content slide, and the slides rewritten at other settings live in `DECK/variants/`. `detail` defaults to 3 when `audience` is given.
 - `root` (optional): the directory that relative excerpt paths resolve against, absolute or relative to the deck directory; defaults to the deck directory. With `root` set, quote files saved in the deck directory by absolute path.
 - `source_url` (optional): a link template to a file, with `{path}`, `{line}` and `{end}` placeholders, where `{path}` is the excerpt's path as written; excerpts quoted by absolute path get no link. Each excerpt links to its first line, and selected lines get a "View in context" link to their range; `{end}` is the range's last line and equals `{line}` for a single line. Set it when the quoted files are on GitHub at a fixed commit or tag.
 
