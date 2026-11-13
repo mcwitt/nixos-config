@@ -236,7 +236,7 @@ class DeckTest(DeckDirCase):
         self.assertIn("not a content slide", run("variant", self.dir, "appendix-1", "-a", "1", "-d", "1", "--file", f, check=False).stderr)
         brief = run("variant", self.dir, "what", "-a", "5", "-d", "5", "--brief").stdout
         self.assertIn("## Rewriting a slide of a change", brief)
-        self.assertIn("Keep defects, recommendations and verdicts off the slide", brief)
+        self.assertIn("Keep defects, recommendations, verdicts and judgements", brief)
 
     def test_text_prints_diff_excerpts_and_appendix_groups(self):
         self.write(deck_spec(reader="Knows the app."))

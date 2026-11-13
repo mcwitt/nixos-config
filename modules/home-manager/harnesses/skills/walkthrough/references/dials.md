@@ -22,7 +22,7 @@ Treat the reader at every stop as capable. At stops 1 and 2, define a term in on
 
 ## Detail
 
-Word counts are prose and callouts on one content slide. Two things come on top of them: definitions and background that the audience stop asks for, and, for a change, what the list below the table keeps. The final check stays at every stop (one or two questions at stop 1), even when the deck has three content slides or fewer and `check` does not require it.
+Word counts are prose and callouts on one content slide. Two things come on top of them, and win over the count when they conflict: definitions and background that the audience stop asks for (at audience 1 and detail 1, a slide still defines every term it uses), and, for a change, what the list below the table keeps. The final check of two to four questions stays at every stop (two at stops 1 and 2), even when the deck has three content slides or fewer and `check` does not require it.
 
 | Stop | Name | The deck covers | One slide holds |
 | --- | --- | --- | --- |
@@ -57,14 +57,14 @@ The page asks for a content slide at another setting, and `listen` hands you the
 - **Keep the prompts useful** at the new setting.
 - **Keep the checks answerable.** Each check question whose `see` names the slide must still be settled by the rewrite, at every stop, concise included.
 
-Write the slide object to a file and store it with `deck.py variant DECK SLIDE --audience A --detail D --file FILE`. It validates the slide like `check`, and an open page shows it at once. The variant stays valid until the slide as written, the lines it quotes, `reader` or `goal` change; `variant DECK` lists the stored variants, and `variant DECK --prune` deletes the stale ones.
+Write the slide object to a file and store it with the deck's script (`deck.py`, or `walkthrough_pr.py` for a change): `variant DECK SLIDE --audience A --detail D --file FILE`. It validates the slide like `check`, and an open page shows it at once. The variant stays valid until the slide as written, the lines it quotes, `reader` or `goal` change; `variant DECK` lists the stored variants, and `variant DECK --prune` deletes the stale ones.
 
 ### Rewriting a slide of a change
 
 For `walkthrough-pr`, a rewrite follows the same rules as the slide as written:
 
 - Keep each risk callout of the slide, in one sentence at detail 1 and 2, and the excerpt of the hunk it is about.
-- Keep defects, recommendations and verdicts off the slide, at every stop, including detail 4 and 5 where the rewrite reads the sources again. A defect you notice becomes a review finding (`walkthrough_pr.py finding DECK add TEXT --review --severity PN --at PATH:LINE`), as in step 4 of walkthrough-pr.
+- Keep defects, recommendations, verdicts and judgements of the code's quality ("redundant", "unnecessary", "should") off the slide, at every stop, including detail 4 and 5 where the rewrite reads the sources again. A defect you notice becomes a review finding (`walkthrough_pr.py finding DECK add TEXT --review --severity PN --at PATH:LINE`), as in step 4 of walkthrough-pr.
 - Label diagrams and examples of behavior as before or after the change, and say when an excerpt shows unchanged code for context.
 
 ### After storing

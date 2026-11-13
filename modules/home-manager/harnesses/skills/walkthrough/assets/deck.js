@@ -617,7 +617,13 @@
     // Every slide keeps its other dial; only the one clicked changes.
     const ids = dials().slides;
     const want = {};
-    for (const id of ids) want[id] = withKey(wantedKey(S.deck.slides[slideIndex(id)]), dial, n);
+    const prev = {};
+    for (const id of ids) prev[id] = wantedKey(S.deck.slides[slideIndex(id)]);
+    for (const id of ids) want[id] = withKey(prev[id], dial, n);
+    // Rewrites queued for the settings the reader leaves are no longer wanted.
+    const leaving = {};
+    for (const id of ids) if (prev[id] !== want[id]) (leaving[prev[id]] ||= []).push(id);
+    for (const [key, group] of Object.entries(leaving)) withdrawRewrites(group, key);
     for (const id of ids) setWanted(id, want[id]);
     S.view.deck = null;
     saveView();
