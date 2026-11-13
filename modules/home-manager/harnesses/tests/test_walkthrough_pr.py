@@ -223,6 +223,18 @@ class DeckTest(DeckDirCase):
         r = run("check", self.dir)
         self.assertIn("all 10 non-blank changed lines", r.stdout)
 
+    def test_variants_quote_diffs_without_counting_for_coverage(self):
+        self.write(deck_spec(audience=4, detail=3))
+        f = self.dir / "v.json"
+        f.write_text(json.dumps({"blocks": [{"md": "Briefly."}, {"diff": "src/app.py", "range": "new:1-2"}]}))
+        run("variant", self.dir, "what", "-a", "4", "-d", "concise", "--file", f)
+        deck = self.rd.load_deck(self.dir)
+        self.assertEqual(deck.extra["coverage"]["appendix"], 5)
+        self.assertEqual(list(deck.extra["variants"].fresh["what"]), ["4-1"])
+        # Generated slides keep the deck's setting.
+        self.assertEqual(self.rd.deck_payload(deck, 1)["dials"]["slides"], ["why", "what"])
+        self.assertIn("not a content slide", run("variant", self.dir, "appendix-1", "-a", "1", "-d", "1", "--file", f, check=False).stderr)
+
     def test_text_prints_diff_excerpts_and_appendix_groups(self):
         self.write(deck_spec(reader="Knows the app."))
         out = run("text", self.dir).stdout
