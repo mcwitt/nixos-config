@@ -2200,10 +2200,16 @@ def cmd_listen(args):
             print(f"({rest} more waiting.)")
         return
     print(f"Question {item['id']} on slide {item['slide']} ({item['where']}):\n")
+    setting = _setting(read_json(deck_dir / "deck.json"), [])
     if item.get("view"):
         a, d = map(int, item["view"].split("-"))
         print(f"The reader sees this slide at {setting_text(a, d)}, not as written: "
               f"{deck_dir / 'variants' / item['slide'] / (item['view'] + '.json')}\n")
+    elif setting:
+        a, d = setting
+    if setting:
+        print(f"Answer at {setting_text(a, d)}, unless the question asks for another level:\n"
+              f"  audience {stop_definition('audience', a)}\n  detail {stop_definition('detail', d)}\n")
     if item.get("refs"):
         print(item["refs"] + "\n")
     print(item["text"] or "(No text; the reader wants the selection explained.)")

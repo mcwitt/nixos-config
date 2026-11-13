@@ -402,6 +402,12 @@ class DialsServerTest(ServerCase):
         out = run("listen", self.dir, "--timeout", 5).stdout
         self.assertIn("sees this slide at audience 1 (novice), detail 3 (standard)", out)
         self.assertIn("variants/lines/1-3.json", out)
+        self.assertIn("Answer at audience 1 (novice), detail 3 (standard), unless", out)
+        (self.dir / "a.md").write_text("Because.")
+        self.post("api/ask", {"slide": "intro", "text": "And this?"})
+        out = run("listen", self.dir, "--answer", msg["id"], "--file", self.dir / "a.md", "--timeout", 5).stdout
+        self.assertIn("Answer at audience 4 (specialist), detail 3 (standard), unless", out)
+        self.assertIn("  detail standard: ", out)
 
 
 class CoreServerTest(ServerCase):
