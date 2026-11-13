@@ -40,6 +40,7 @@ from deck import (  # noqa: E402
     new_id, parse_refs, read_json, row_span, server_info, stale_reason, write_atomic,
 )
 
+DIFFS_DOC = Path(__file__).resolve().parent.parent / "references" / "diffs.md"
 FINDING_ID = re.compile(r"^f-[0-9a-z-]+$")
 SEVERITIES = ("P0", "P1", "P2", "P3")
 FINDING_CHOICES = ("comment", "fix")
@@ -1339,6 +1340,14 @@ class ReviewExtension(Extension):
     def block(self, load: Loading, key: str, blk: dict, where: str, out: list[dict]):
         diff_excerpt(load, blk, where, out)
 
+    def rewrite_rules(self, deck: Deck, slide: dict) -> str:
+        """A change's content slides keep its rules when rewritten at another setting."""
+        if "coverage" not in deck.extra or slide["quiz"]:
+            return ""
+        rules = core.md_section(DIFFS_DOC, "Rewriting a slide at another setting")
+        return (f"## Rewriting a slide of a change\n\n{rules}\n\nDiff excerpts are described in {DIFFS_DOC}; "
+                f"`python3 {core.shlex_path(core.ENTRY)} hunks {core.shlex_path(deck.dir)}` lists the change's hunks.")
+
     def reserves(self, slide_id: str) -> bool:
         return slide_id.startswith("appendix-") or slide_id in (FINDINGS_SLIDE["id"], ACTIONS_SLIDE["id"])
 
@@ -1653,16 +1662,18 @@ class Shown:
 
 
 def diff_excerpt(load: Loading, blk: dict, where: str, blocks: list[dict]):
-    """Add a diff excerpt to `blocks` and record the lines it shows; a variant's lines do not count for coverage."""
+    """Add a diff excerpt to `blocks` and record the lines it shows; a slide rewritten at another
+    setting does not count for coverage, which the deck as written carries."""
     files = {f.key: f for f in load.files}
     ex = _excerpt(blk, where, files, load.hunks, load.errors)
     if not ex:
         return
-    shown: Shown | None = load.extra.get("review")
-    for p in ex["pieces"] if shown else ():
-        shown.rows[p["hunk"]].update(range(p["lo"], p["hi"] + 1))
-    if shown and not ex["pieces"]:
-        shown.files.add(ex["file"])
+    if not load.variant:
+        shown: Shown = load.extra["review"]
+        for p in ex["pieces"]:
+            shown.rows[p["hunk"]].update(range(p["lo"], p["hi"] + 1))
+        if not ex["pieces"]:
+            shown.files.add(ex["file"])
     blocks.append({"type": "excerpt", **ex, "caption": _str(blk.get("caption"), f"{where}.caption", load.errors)})
 
 

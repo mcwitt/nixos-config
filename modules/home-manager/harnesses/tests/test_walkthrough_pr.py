@@ -230,13 +230,14 @@ class DeckTest(DeckDirCase):
         run("variant", self.dir, "what", "-a", "4", "-d", "concise", "--file", f)
         deck = self.rd.load_deck(self.dir)
         self.assertEqual(deck.extra["coverage"]["appendix"], 5)
-        self.assertEqual(list(deck.extra["variants"].fresh["what"]), ["4-1"])
+        self.assertEqual(list(deck.variants.fresh["what"]), ["4-1"])
         # Generated slides keep the deck's setting.
         self.assertEqual(self.rd.deck_payload(deck, 1)["dials"]["slides"], ["why", "what"])
         self.assertIn("generated slides keep one", run("variant", self.dir, "appendix-1", "-a", "1", "-d", "1", "--file", f, check=False).stderr)
         brief = run("variant", self.dir, "what", "-a", "5", "-d", "5", "--brief").stdout
         self.assertIn("## Rewriting a slide of a change", brief)
         self.assertIn("Keep defects, recommendations, verdicts and judgements", brief)
+        self.assertIn(" hunks ", brief)
 
     def test_text_prints_diff_excerpts_and_appendix_groups(self):
         self.write(deck_spec(reader="Knows the app."))
@@ -356,7 +357,8 @@ class ReviewServerTest(ServerCase):
     def test_check_report_counts_generated_slides(self):
         self.write(deck_spec(slides=[*deck_spec()["slides"], CHECK]))
         self.wait_for(lambda: "check" in [s["id"] for s in self.get("api/deck")["slides"]])
-        self.post("api/answer", {"slide": "check", "question": 0, "choice": 0})
+        version = next(s["qkey"] for s in self.get("api/deck")["slides"] if s["id"] == "check")
+        self.post("api/answer", {"slide": "check", "version": version, "question": 0, "choice": 0})
         self.post("api/finish", {})
         self.assertIn("covered on slide 2 of 6: What", run("listen", self.dir, "--timeout", 5).stdout)
 

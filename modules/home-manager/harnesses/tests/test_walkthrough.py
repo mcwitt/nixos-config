@@ -312,37 +312,40 @@ class DialsTest(DeckDirCase):
         for bad in ("0", "6", "beginner"):
             with self.assertRaises(ValueError):
                 self.rd.parse_stop(bad, "audience")
-        self.assertIn("Definitions only of names", self.rd.stop_definition("audience", 4))
-        self.assertIn("The point and nothing else", self.rd.stop_definition("detail", 1))
+
+    def test_references_define_every_stop_and_section(self):
+        # stop_definition falls back to the bare name, and md_section to "", when dials.md drifts.
+        for dial, names in self.rd.DIALS.items():
+            for n, name in enumerate(names, 1):
+                self.assertGreater(len(self.rd.stop_definition(dial, n)), len(name) + 40, (dial, n))
+        for title in ("Rules for a rewrite", "Rewriting a check"):
+            self.assertTrue(self.rd.md_section(self.rd.DIALS_DOC, title), title)
 
     def test_setting_in_deck_json(self):
         self.write(topic_spec(audience="expert"))
-        self.assertEqual(self.rd._setting(self.rd.load_deck(self.dir).spec, []), (5, 3))
+        self.assertEqual(self.rd.load_deck(self.dir).setting, "5-3")
         self.write(topic_spec(detail=2))
         self.assertIn("audience: required", run("check", self.dir, check=False).stdout)
         self.write(topic_spec())
-        self.assertNotIn("dials", self.rd.deck_payload(self.rd.load_deck(self.dir), 1))
+        deck = self.rd.load_deck(self.dir)
+        self.assertEqual((deck.setting, "dials" in self.rd.deck_payload(deck, 1)), (None, False))
 
-    def test_store_show_and_go_stale(self):
+    def test_store_and_go_stale(self):
         self.write(topic_spec(audience=3, detail=3, slides=topic_spec()["slides"] + [topic_check()]))
         self.assertIn("Stored lines at audience 1 (novice), detail 1 (concise)", self.variant().stdout)
         deck = self.rd.load_deck(self.dir)
-        v = deck.extra["variants"].fresh["lines"]["1-1"]
-        self.assertEqual((v["title"], v["section"], v["setting"]), ("Lines, briefly", "", {"audience": 1, "detail": 1}))
+        v = deck.variants.fresh["lines"]["1-1"]
+        self.assertEqual((v["title"], v["section"], v["setting"]), ("Lines, briefly", "", "1-1"))
         dials = self.rd.deck_payload(deck, 1)["dials"]
-        self.assertEqual((dials["audience"], dials["detail"], dials["slides"]), (3, 3, ["intro", "lines", "final"]))
-        self.assertIn('"Two lines."', run("variant", self.dir, "lines", "--show", "-a", "1", "-d", "concise").stdout)
+        self.assertEqual((dials["setting"], dials["slides"]), ("3-3", ["intro", "lines", "final"]))
         self.assertIn("lines: 1-1", run("variant", self.dir).stdout)
-        text = run("text", self.dir, "-a", "1", "-d", "1")
-        self.assertIn("Lines, briefly", text.stdout)
-        self.assertIn("shown as written: intro", text.stderr)
-        # Editing the slide as written, or the lines it quotes, retires the variant.
+        # Editing the slide as written, or the lines it quotes, retires the variant; a new store replaces it.
         (self.dir / "notes.txt").write_text(NOTES.replace("second line", "2nd line"))
         deck = self.rd.load_deck(self.dir)
-        self.assertEqual((deck.extra["variants"].fresh, len(deck.extra["variants"].stale)), ({}, 1))
+        self.assertEqual((deck.variants.fresh, len(deck.variants.stale)), ({}, 1))
         self.assertIn("1-1*", run("variant", self.dir).stdout)
-        run("variant", self.dir, "--prune")
-        self.assertFalse((self.dir / "variants" / "lines" / "1-1.json").exists())
+        self.variant()
+        self.assertIn("1-1", self.rd.load_deck(self.dir).variants.fresh["lines"])
 
     def test_invalid_variants_are_refused(self):
         self.write(topic_spec(audience=3, detail=3, slides=topic_spec()["slides"] + [topic_check()]))
@@ -363,21 +366,13 @@ class DialsTest(DeckDirCase):
     def test_variant_goes_stale_when_its_own_lines_change(self):
         self.write(topic_spec(audience=3, detail=3))
         self.variant(slide="intro", body={"blocks": [{"excerpt": "notes.txt", "range": "4"}]})
-        deck = self.rd.load_deck(self.dir)
-        self.assertIn("1-1", deck.extra["variants"].fresh["intro"])
+        self.assertIn("1-1", self.rd.load_deck(self.dir).variants.fresh["intro"])
         (self.dir / "notes.txt").write_text(NOTES.replace("fourth line", "4th line"))
         deck = self.rd.load_deck(self.dir)
-        self.assertEqual((deck.extra["variants"].fresh, len(deck.extra["variants"].stale)), ({}, 1))
-        # The rejected variant's lines do not ship with the deck.
+        self.assertEqual((deck.variants.fresh, len(deck.variants.stale)), ({}, 1))
+        # A variant that is not used ships none of its lines with the deck.
         self.assertNotIn("notes.txt#L4-4", deck.hunks)
-        # A file it quotes shrinking makes it invalid; --prune removes that too, with orphans.
-        (self.dir / "notes.txt").write_text("one\ntwo\nthree\n")
-        orphan = self.dir / "variants" / "gone" / "2-2.json"
-        orphan.parent.mkdir()
-        orphan.write_text("{}")
-        self.assertIn("2 invalid", run("variant", self.dir).stdout)
-        run("variant", self.dir, "--prune")
-        self.assertEqual(list((self.dir / "variants").iterdir()), [])
+        self.assertEqual([len(f.hunks) for f in deck.files if f.plain], [1])
 
     def test_answers_kept_by_slide_move_to_the_version_as_written(self):
         self.write(topic_spec(slides=topic_spec()["slides"] + [topic_check()]))
@@ -393,21 +388,17 @@ class DialsTest(DeckDirCase):
         # The cold reader gets the detail stop; `reader` alone says what the reader knows.
         self.assertIn("a set level of detail, concise: The point", brief)
         self.assertNotIn("newcomer", brief)
-        r = run("text", self.dir, "--brief", "--audience", "beginner", check=False)
-        self.assertEqual((r.returncode, "is not cold-read" in r.stderr), (1, True))
-        r = run("text", self.dir, "--audience", "beginner", check=False)
-        self.assertEqual((r.returncode, r.stderr.strip()[:16]), (1, "error: audience:"))
 
     def test_rewrite_brief(self):
         self.write(topic_spec(audience=3, detail=3, reader="Knows: Python. New to: the notes.",
                               slides=topic_spec()["slides"] + [topic_check()]))
         brief = run("variant", self.dir, "lines", "-a", "1", "-d", "1", "--brief").stdout
-        for part in ("- Audience novice:", "- Detail concise:", "**Keep the slide's idea and id.**",
+        for part in ("- Audience novice:", "- Detail concise:", "## Rules for a rewrite\n\n- **Keep the slide's idea and id.**",
                      "Slides in order:\n- intro: Intro", "The rewrite must still settle each of these:\n\n- final: What is on line 2?",
-                     '"id": "lines"', "variant", "--audience 1 --detail 1 --file FILE"):
+                     '"id": "lines"', "--audience 1 --detail 1 --file FILE"):
             self.assertIn(part, brief)
-        self.assertNotIn("Rewriting a slide of a change", brief)
-        self.assertIn("other than the deck's own", run("variant", self.dir, "lines", "-a", "3", "-d", "3", "--brief", check=False).stderr)
+        self.assertNotIn("Rewriting a check", brief)
+        self.assertIn("deck's own setting", run("variant", self.dir, "lines", "-a", "3", "-d", "3", "--brief", check=False).stderr)
 
 
 class DialsServerTest(ServerCase):
@@ -416,21 +407,28 @@ class DialsServerTest(ServerCase):
     def spec(self):
         return {**topic_spec(audience=4, detail="standard"), "slides": [*topic_spec()["slides"], topic_check()]}
 
+    def ask_for(self, slides, setting, **extra):
+        return self.post("api/variant", {"slides": slides, "setting": setting, **extra})["queued"]
+
+    def requests(self):
+        return self.get("api/deck")["dials"]["requests"]
+
     def test_request_listen_store_and_ask(self):
-        with self.assertRaises(urllib.error.HTTPError) as cm:
-            self.post("api/variant", {"slides": ["nope"], "audience": 1, "detail": 3})
-        self.assertEqual(cm.exception.code, 400)
-        r = self.post("api/variant", {"slides": ["intro", "lines"], "audience": "novice", "detail": 3})
-        self.assertEqual(r["queued"], ["intro", "lines"])
+        for bad in ({"slides": ["nope"], "setting": "1-3"}, {"slides": ["lines"], "setting": "1-6"}, {"slides": [], "setting": "1-3"}):
+            with self.assertRaises(urllib.error.HTTPError) as cm:
+                self.post("api/variant", bad)
+            self.assertEqual(cm.exception.code, 400)
+        self.assertEqual(self.ask_for(["intro", "lines"], "1-3"), ["intro", "lines"])
         # The deck's own setting and a request already waiting queue nothing.
-        self.assertEqual(self.post("api/variant", {"slides": ["lines"], "audience": 4, "detail": 3})["queued"], [])
-        self.assertEqual(self.post("api/variant", {"slides": ["lines"], "audience": 1, "detail": 3})["queued"], [])
+        self.assertEqual(self.ask_for(["lines"], "4-3"), [])
+        self.assertEqual(self.ask_for(["lines"], "1-3"), [])
+        self.assertEqual(sorted(p.name for p in (self.dir / "queue").glob("q-v-*")), ["q-v-intro-1-3.json", "q-v-lines-1-3.json"])
         out = run("listen", self.dir, "--timeout", 5).stdout
         self.assertIn("asked for 2 slides at another setting", out)
-        self.assertIn("- lines (slide 2 of 3", out)
-        self.assertIn("audience 1: novice:", out)
+        self.assertIn("- lines (slide 2 of 3: Lines) at audience 1 (novice), detail 3 (standard)", out)
         self.assertIn(" variant ", out)
-        self.wait_for(lambda: self.get("api/deck")["dials"]["requests"].get("lines", {}).get("1-3") == "claimed")
+        self.assertIn(" --brief", out)
+        self.wait_for(lambda: self.requests().get("lines", {}).get("1-3") == "claimed")
         f = self.dir / "v.json"
         for sid in ("intro", "lines"):
             f.write_text(json.dumps({"blocks": [{"md": f"{sid} for a novice."}]}))
@@ -439,7 +437,7 @@ class DialsServerTest(ServerCase):
         self.assertEqual(dials["variants"]["lines"]["1-3"]["blocks"][0]["md"], "lines for a novice.")
         self.assertEqual(list((self.dir / "queue").glob("q-*")), [])
         # A stored setting needs no request; a question says what the reader saw.
-        self.assertEqual(self.post("api/variant", {"slides": ["lines"], "audience": 1, "detail": 3})["queued"], [])
+        self.assertEqual(self.ask_for(["lines"], "1-3"), [])
         msg = self.post("api/ask", {"slide": "lines", "text": "Why?", "view": "1-3"})["message"]
         self.assertEqual(msg["view"], "1-3")
         out = run("listen", self.dir, "--timeout", 5).stdout
@@ -455,9 +453,9 @@ class DialsServerTest(ServerCase):
         self.assertNotIn("  audience specialist:", out)
 
     def test_current_slide_first_then_questions_then_the_batch(self):
-        self.post("api/variant", {"slides": ["intro"], "audience": 2, "detail": 2})
+        self.ask_for(["intro"], "2-2")
         msg = self.post("api/ask", {"slide": "intro", "text": "Next?"})["message"]
-        self.post("api/variant", {"slides": ["intro", "lines"], "audience": 1, "detail": 1, "current": "lines"})
+        self.ask_for(["intro", "lines"], "1-1", current="lines")
         out = run("listen", self.dir, "--timeout", 5).stdout
         self.assertIn("asked for 1 slide at another setting", out)
         self.assertIn("- lines (", out)
@@ -484,14 +482,15 @@ class DialsServerTest(ServerCase):
         base_key = next(s["qkey"] for s in deck["slides"] if s["id"] == "final")
         v_key = deck["dials"]["variants"]["final"]["1-3"]["qkey"]
         self.assertTrue(v_key.startswith("final@1-3:") and v_key != base_key)
-        # Each version keeps its own answers.
+        # Each version keeps its own answers; an answer names its version.
         self.post("api/answer", {"slide": "final", "version": base_key, "question": 0, "choice": 1})
         self.post("api/answer", {"slide": "final", "version": v_key, "question": 0, "choice": 1})
         self.post("api/answer", {"slide": "final", "version": v_key, "question": 1, "choice": 0})
         self.assertEqual(self.get("api/quiz"), {base_key: {"0": 1}, v_key: {"0": 1, "1": 0}})
-        with self.assertRaises(urllib.error.HTTPError) as cm:
-            self.post("api/answer", {"slide": "final", "version": "final@9-9:00000000", "question": 0, "choice": 0})
-        self.assertEqual(cm.exception.code, 409)
+        for version in ("final@9-9:00000000", None):
+            with self.assertRaises(urllib.error.HTTPError) as cm:
+                self.post("api/answer", {"slide": "final", "version": version, "question": 0, "choice": 0})
+            self.assertEqual(cm.exception.code, 409)
         # The report counts the version answered last.
         self.post("api/finish", {})
         out = run("listen", self.dir, "--timeout", 5).stdout
@@ -507,14 +506,14 @@ class DialsServerTest(ServerCase):
         self.wait_for(lambda: not self.get("api/deck")["dials"]["variants"].get("final"))
 
     def test_withdraw_a_rewrite_not_started(self):
-        self.post("api/variant", {"slides": ["intro", "lines"], "audience": 2, "detail": 2})
-        r = self.post("api/variant-withdraw", {"slides": ["intro"], "setting": "2-2"})
-        self.assertEqual((r["withdrawn"], list(r["requests"])), (["intro"], ["lines"]))
+        self.ask_for(["intro", "lines"], "2-2")
+        self.assertEqual(self.post("api/variant-withdraw", {"slides": ["intro"], "setting": "2-2"})["withdrawn"], ["intro"])
+        self.assertEqual(list(self.wait_for(lambda: list(self.requests()) == ["lines"] and self.requests())), ["lines"])
         run("listen", self.dir, "--timeout", 5)
         self.assertEqual(self.post("api/variant-withdraw", {"slides": ["lines"], "setting": "2-2"})["withdrawn"], [])
 
     def test_claimed_and_unstorable_requests_do_not_block_questions(self):
-        self.post("api/variant", {"slides": ["intro", "lines"], "audience": 2, "detail": 2})
+        self.ask_for(["intro", "lines"], "2-2")
         self.assertIn("asked for 2 slides", run("listen", self.dir, "--timeout", 5).stdout)
         # Claimed rewrites are not handed out again; a question behind them is.
         msg = self.post("api/ask", {"slide": "intro", "text": "Next?"})["message"]
@@ -523,11 +522,11 @@ class DialsServerTest(ServerCase):
         spec = self.spec()
         spec["audience"], spec["detail"] = 2, 2
         self.write(spec)
-        self.wait_for(lambda: not self.get("api/deck")["dials"]["requests"])
+        self.wait_for(lambda: not self.requests())
         self.assertEqual([p.name for p in (self.dir / "queue").glob("q-*.json")], [f"{msg['id']}.json"])
 
     def test_listen_survives_a_deck_that_does_not_check(self):
-        self.post("api/variant", {"slides": ["lines"], "audience": 1, "detail": 1})
+        self.ask_for(["lines"], "1-1")
         (self.dir / "deck.json").write_text("{")
         out = run("listen", self.dir, "--timeout", 5).stdout
         self.assertIn("does not check", out)
@@ -595,12 +594,12 @@ class CoreServerTest(ServerCase):
 
     def test_check_answers(self):
         self.assertEqual(self.get("api/quiz"), {})
-        for bad in ({"slide": "lines", "question": 0, "choice": 0}, {"slide": "final", "question": 1, "choice": 0},
-                    {"slide": "final", "question": 0, "choice": 2}, {"slide": "final", "question": "0", "choice": 0}):
+        for bad in ({"slide": "lines", "question": 0, "choice": 0}, {"slide": "final", "version": self.key(), "question": 1, "choice": 0},
+                    {"slide": "final", "version": self.key(), "question": 0, "choice": 2}, {"slide": "final", "version": self.key(), "question": "0", "choice": 0}):
             with self.assertRaises(urllib.error.HTTPError) as cm:
                 self.post("api/answer", bad)
             self.assertEqual(cm.exception.code, 400)
-        self.post("api/answer", {"slide": "final", "question": 0, "choice": 1})
+        self.post("api/answer", {"slide": "final", "version": self.key(), "question": 0, "choice": 1})
         key = self.key()
         self.assertRegex(key, r"^final@as-written:[0-9a-f]{8}$")
         self.assertEqual(self.get("api/quiz"), {key: {"0": 1}})
@@ -612,9 +611,9 @@ class CoreServerTest(ServerCase):
         self.assertIn("chose: first line", out)
         self.assertIn("correct: second line", out)
         self.assertIn("covered on slide 2 of 3: Lines", out)
-        self.post("api/answer", {"slide": "final", "question": 0, "choice": None})
+        self.post("api/answer", {"slide": "final", "version": self.key(), "question": 0, "choice": None})
         self.assertEqual(self.get("api/quiz"), {key: {}})
-        self.post("api/answer", {"slide": "final", "question": 0, "choice": 0})
+        self.post("api/answer", {"slide": "final", "version": self.key(), "question": 0, "choice": 0})
         self.post("api/finish", {})
         out = run("listen", self.dir, "--timeout", 5).stdout
         self.assertIn("Checks: 1 of 1 answered correctly.", out)
@@ -703,9 +702,9 @@ class CoreServerTest(ServerCase):
         self.wait_for(lambda: '"prose"' in json.dumps(self.get("api/deck")))
 
         # A resubmission before the session claims the answer replaces it.
-        self.post("api/answer", {"slide": "final", "question": 0, "text": "draft"})
+        self.post("api/answer", {"slide": "final", "version": self.key(), "question": 0, "text": "draft"})
         first = self.quiz()["0"]["id"]
-        self.post("api/answer", {"slide": "final", "question": 0, "text": "It follows $L_1$."})
+        self.post("api/answer", {"slide": "final", "version": self.key(), "question": 0, "text": "It follows $L_1$."})
         self.assertFalse((self.dir / "queue" / f"{first}.json").exists())
         prose = self.quiz()["0"]
         self.assertEqual((prose["state"], prose["text"]), ("queued", "It follows $L_1$."))
@@ -717,13 +716,13 @@ class CoreServerTest(ServerCase):
         self.assertIn("--verdict correct|partial|incorrect", out)
         self.wait_for(lambda: self.quiz()["0"]["state"] == "judging")
         with self.assertRaises(urllib.error.HTTPError) as cm:
-            self.post("api/answer", {"slide": "final", "question": 0, "text": "again"})
+            self.post("api/answer", {"slide": "final", "version": self.key(), "question": 0, "text": "again"})
         self.assertEqual(cm.exception.code, 409)
 
         # A judgment nobody finishes stops blocking the question.
         claim = self.dir / "queue" / f"{prose['id']}.claimed"
         os.utime(claim, (time.time() - 3600, time.time() - 3600))
-        self.post("api/answer", {"slide": "final", "question": 0, "text": "It follows $L_1$."})
+        self.post("api/answer", {"slide": "final", "version": self.key(), "question": 0, "text": "It follows $L_1$."})
         prose = self.quiz()["0"]
         self.assertEqual(prose["state"], "queued")
         run("listen", self.dir, "--timeout", 5)
@@ -736,7 +735,7 @@ class CoreServerTest(ServerCase):
         judged = self.wait_for(lambda: self.quiz()["0"].get("state") == "judged" and self.quiz()["0"])
         self.assertEqual((judged["verdict"], judged["feedback"]), ("correct", "Right."))
 
-        self.post("api/answer", {"slide": "final", "question": 1, "text": "def second():\n    return 'first line'\n"})
+        self.post("api/answer", {"slide": "final", "version": self.key(), "question": 1, "text": "def second():\n    return 'first line'\n"})
         out = run("listen", self.dir, "--timeout", 5).stdout
         self.assertIn("The reader's answer:\n```python\ndef second():", out)
         self.assertIn("Tests (python3 check.py, in ", out)
@@ -755,7 +754,7 @@ class CoreServerTest(ServerCase):
         self.assertIn("Checks: 1 of 2 answered correctly.", out)
         self.assertIn("answered (not yet): def second(): return 'first line'", out)
 
-        self.post("api/answer", {"slide": "final", "question": 1, "text": "def second():\n    return 'second line'\n"})
+        self.post("api/answer", {"slide": "final", "version": self.key(), "question": 1, "text": "def second():\n    return 'second line'\n"})
         self.assertIn("Tests (python3 check.py", run("listen", self.dir, "--timeout", 5).stdout)
         self.assertIn(" passed:\n```\nok\n```", (self.dir / "runs" / f"{self.quiz()['1']['id']}.txt").read_text())
 
