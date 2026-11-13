@@ -29,7 +29,7 @@
     agent: "session", // what the page calls whoever answers; an extension may rename it
     answerDrafts: {},
     revising: new Set(),
-    view: { deck: null, slides: {} }, // the setting the reader chose, "A-D", for the deck and per slide
+    wanted: {}, // the setting the reader chose per slide, "A-D", where not as written
     lastShown: {}, // per slide, the setting drawn last, kept on screen while another is written
   };
 
@@ -436,7 +436,7 @@
 
   function drawSlide({ keepScroll = false } = {}) {
     const base = slide();
-    const s = shownSlide(base);
+    const s = viewOf(base);
     const el = $("#slide");
     const top = el.scrollTop;
     const inner = h(
@@ -536,17 +536,24 @@
 
   // ---- audience and detail ----
   //
-  // The deck is written at one setting; the session can rewrite a content
-  // slide at another, and the deck carries every rewrite it has stored, so
-  // switching to one draws it without asking the server.
+  // The deck is written at one setting, "A-D". The reader chooses a setting
+  // per slide (S.wanted); the deck carries every rewrite the session has
+  // stored, so a setting already written draws without asking the server.
+  // Until a wanted setting is written, the slide keeps the one it last showed.
 
   const dials = () => S.deck.dials;
   const dialsOn = (s) => !!dials() && dials().slides.includes(s.id);
-  const baseKey = () => `${dials().audience}-${dials().detail}`;
-  const wantedKey = (s) => S.view.slides[s.id] || S.view.deck || baseKey();
+  const baseKey = () => dials().setting;
+  const parseKey = (key) => key.split("-").map(Number);
+  const withKey = (key, dial, n) => {
+    const [a, d] = parseKey(key);
+    return dial === "audience" ? `${n}-${d}` : `${a}-${n}`;
+  };
+  const wantedKey = (s) => S.wanted[s.id] || baseKey();
   const variant = (s, key) => (key === baseKey() ? s : dials().variants[s.id]?.[key]);
+  const requested = (id, key) => dials().requests?.[id]?.[key];
   const settingName = (key) => {
-    const [a, d] = key.split("-").map(Number);
+    const [a, d] = parseKey(key);
     return `${dials().stops.audience[a - 1]} · ${dials().stops.detail[d - 1]}`;
   };
 
@@ -562,93 +569,49 @@
   // The check helpers below take the version they are given: callers that hold a slide as
   // written (the progress bar, contents, tally and keys) pass viewOf(s).
   const viewOf = (s) => (s.setting || !dialsOn(s) ? s : variant(s, shownKey(s)) || s);
-  // Where a check version's answers are kept.
-  const qkeyOf = (s) => s.qkey || s.id;
 
-  function shownSlide(s) {
-    const key = shownKey(s);
-    if (!key) return s;
-    S.lastShown[s.id] = key;
-    return variant(s, key);
-  }
+  // Slides whose wanted setting is neither written nor asked for.
+  const missingRewrites = () =>
+    dials().slides.filter((id) => {
+      const s = S.deck.slides[slideIndex(id)];
+      return !variant(s, wantedKey(s)) && !requested(id, wantedKey(s));
+    });
 
-  function saveView() {
-    store.set("view", S.view);
-  }
-
-  const withKey = (key, dial, n) => {
-    const [a, d] = key.split("-").map(Number);
-    return dial === "audience" ? `${n}-${d}` : `${a}-${n}`;
-  };
-
-  function setWanted(id, key) {
-    if (key === baseKey()) delete S.view.slides[id];
-    else S.view.slides[id] = key;
-  }
-
-  async function withdrawRewrites(ids, key) {
-    const reqs = dials().requests || {};
-    const queued = ids.filter((id) => reqs[id]?.[key] === "queued");
-    if (!queued.length) return;
-    try {
-      dials().requests = (await post("api/variant-withdraw", { slides: queued, setting: key })).requests;
-    } catch (err) {
-      toast(err.message);
+  // The page learns what is queued from the server's `variants` event.
+  async function requestRewrites(ids) {
+    const byKey = {};
+    for (const id of ids) (byKey[wantedKey(S.deck.slides[slideIndex(id)])] ||= []).push(id);
+    for (const [setting, slides] of Object.entries(byKey)) {
+      try {
+        await post("api/variant", { slides, setting, current: slide().id });
+      } catch (err) {
+        toast(err.message);
+      }
     }
   }
 
-  async function requestRewrites(ids, key) {
-    const missing = ids.filter((id) => !variant(S.deck.slides[slideIndex(id)], key) && !dials().requests?.[id]?.[key]);
-    if (!missing.length) return;
-    const [a, d] = key.split("-").map(Number);
-    try {
-      const r = await post("api/variant", { slides: missing, audience: a, detail: d, current: slide().id });
-      dials().requests = r.requests;
-    } catch (err) {
-      toast(err.message);
-    }
-    renderSlide({ keepScroll: true });
-  }
-
-  // `dial` is "audience" or "detail", or "both" to go back to the slide as written.
-  async function chooseSetting(s, dial, n, scope) {
-    S.confirm = null;
-    if (scope !== "deck") {
-      const prev = wantedKey(s);
-      const key = dial === "both" ? baseKey() : withKey(prev, dial, n);
-      setWanted(s.id, key);
-      saveView();
-      renderSlide({ keepScroll: true });
-      renderTrack();
-      if (prev !== key) await withdrawRewrites([s.id], prev);
-      return requestRewrites([s.id], key);
-    }
-    // Every slide keeps its other dial; only the one clicked changes.
-    const ids = dials().slides;
-    const want = {};
-    const prev = {};
-    for (const id of ids) prev[id] = wantedKey(S.deck.slides[slideIndex(id)]);
-    for (const id of ids) want[id] = withKey(prev[id], dial, n);
-    // Rewrites queued for the settings the reader leaves are no longer wanted.
+  // `dial` is "audience" or "detail", or "both" to go back to the slide as written. With
+  // scope "deck", every slide changes that dial and keeps its other one.
+  function chooseSetting(s, dial, n, scope) {
+    const ids = scope === "deck" ? dials().slides : [s.id];
     const leaving = {};
-    for (const id of ids) if (prev[id] !== want[id]) (leaving[prev[id]] ||= []).push(id);
-    for (const [key, group] of Object.entries(leaving)) withdrawRewrites(group, key);
-    for (const id of ids) setWanted(id, want[id]);
-    S.view.deck = null;
-    saveView();
-    const missing = ids.filter((id) => !variant(S.deck.slides[slideIndex(id)], want[id]) && !dials().requests?.[id]?.[want[id]]);
-    if (missing.length > 1) S.confirm = { missing, want };
+    for (const id of ids) {
+      const t = S.deck.slides[slideIndex(id)];
+      const prev = wantedKey(t);
+      const next = dial === "both" ? baseKey() : withKey(prev, dial, n);
+      if (prev === next) continue;
+      S.lastShown[id] = shownKey(t);
+      if (requested(id, prev) === "queued") (leaving[prev] ||= []).push(id);
+      if (next === baseKey()) delete S.wanted[id];
+      else S.wanted[id] = next;
+    }
+    store.set("wanted", S.wanted);
+    for (const [setting, slides] of Object.entries(leaving)) post("api/variant-withdraw", { slides, setting }).catch((e) => toast(e.message));
     renderSlide({ keepScroll: true });
     renderTrack();
-    if (missing.length === 1) requestRewrites(missing, want[missing[0]]);
-  }
-
-  async function confirmRewrites() {
-    const { missing, want } = S.confirm;
-    S.confirm = null;
-    const byKey = {};
-    for (const id of missing) (byKey[want[id]] ||= []).push(id);
-    for (const [key, ids] of Object.entries(byKey)) await requestRewrites(ids, key);
+    // One rewrite goes at once; several wait for the reader to confirm in the popover.
+    const missing = missingRewrites().filter((id) => ids.includes(id));
+    if (missing.length === 1) requestRewrites(missing);
   }
 
   // The dials live in a popover from the top bar, which leaves the slide open
@@ -660,9 +623,9 @@
     if (!dialsOn(s)) return null;
     const want = wantedKey(s);
     const shown = shownKey(s);
-    const reqs = dials().requests?.[s.id] || {};
+    const asWritten = () => chooseSetting(s, "both", 0, "slide");
     if (shown !== want) {
-      const state = reqs[want];
+      const state = requested(s.id, want);
       const away = S.status.session === "away";
       const parts =
         state === "claimed"
@@ -672,29 +635,26 @@
                 away
                   ? `Asked for ${settingName(want)}. The ${who()} is away; the request waits for it. Settings already written switch at once. `
                   : `Asked for ${settingName(want)}; the ${who()} picks it up next. `,
-                linkBtn("Cancel", () => chooseSetting(s, "both", 0, "slide")),
+                linkBtn("Cancel", asWritten),
               ]
             : [
                 `Not written at ${settingName(want)}, or this slide changed since it was. `,
-                linkBtn(`Rewrite at ${settingName(want)}`, () => requestRewrites([s.id], want)),
+                linkBtn(`Rewrite at ${settingName(want)}`, () => requestRewrites([s.id])),
                 " · ",
-                linkBtn("Show as written", () => chooseSetting(s, "both", 0, "slide")),
+                linkBtn("Show as written", asWritten),
               ];
       return h("p", { class: "dial-note", role: "status" }, ...parts, ` Showing ${settingName(shown)}.`);
     }
-    if (shown !== baseKey()) {
-      return h("p", { class: "dial-note quiet" }, `Shown at ${settingName(shown)}. `, linkBtn("Show as written", () => chooseSetting(s, "both", 0, "slide")));
-    }
+    if (shown !== baseKey()) return h("p", { class: "dial-note quiet" }, `Shown at ${settingName(shown)}. `, linkBtn("Show as written", asWritten));
     return null;
   }
 
   function dialsBody(s) {
     if (!dialsOn(s)) return [h("p", { class: "dial-help" }, `This slide keeps the deck's setting, ${settingName(baseKey())}.`)];
     const want = wantedKey(s);
-    const [wa, wd] = want.split("-").map(Number);
-    const reqs = dials().requests?.[s.id] || {};
+    const [wa, wd] = parseKey(want);
+    const [ba, bd] = parseKey(baseKey());
     const scope = store.get("dial-scope", "slide");
-    const [ba, bd] = baseKey().split("-").map(Number);
     const group = (dial, label, cur) => {
       const names = dials().stops[dial];
       return h(
@@ -707,7 +667,7 @@
           names.map((name, i) => {
             const n = i + 1;
             const key = withKey(want, dial, n);
-            const state = variant(s, key) ? "have" : reqs[key] ? "pending" : "";
+            const state = variant(s, key) ? "have" : requested(s.id, key) ? "pending" : "";
             const isBase = n === (dial === "audience" ? ba : bd);
             return h(
               "button",
@@ -738,16 +698,14 @@
         h("div", { class: "dial-scope", role: "group", "aria-label": "A change of setting applies to" }, scopeBtn("slide", "This slide"), scopeBtn("deck", "All slides")),
       ),
     ];
-    if (S.confirm) {
-      const n = S.confirm.missing.length;
+    const missing = missingRewrites();
+    if (missing.length > 1) {
       out.push(
         h(
           "p",
           { class: "dial-note", role: "status" },
-          `${plural(n, "slide")} are not written at this setting yet; the ${who()} rewrites them one by one, about half a minute each. `,
-          linkBtn(`Rewrite ${plural(n, "slide")}`, confirmRewrites),
-          " · ",
-          linkBtn("Not now", () => ((S.confirm = null), renderSlide({ keepScroll: true }))),
+          `${plural(missing.length, "slide")} are not written at the settings you chose; the ${who()} rewrites them one by one, about half a minute each. `,
+          linkBtn(`Rewrite ${plural(missing.length, "slide")}`, () => requestRewrites(missing)),
         ),
       );
     }
@@ -888,13 +846,13 @@
 
   // The reader's choice on question i of check slide s, or null.
   function choiceOf(s, i) {
-    const c = S.quiz[qkeyOf(s)]?.[i];
+    const c = S.quiz[s.qkey]?.[i];
     return s.quiz[i].kind === "choice" && Number.isInteger(c) && c >= 0 && c < s.quiz[i].choices.length ? c : null;
   }
 
   // The reader's written answer to question i, {text, state, verdict, feedback}, or null.
   function writtenOf(s, i) {
-    const a = S.quiz[qkeyOf(s)]?.[i];
+    const a = S.quiz[s.qkey]?.[i];
     return s.quiz[i].kind !== "choice" && a && typeof a === "object" ? a : null;
   }
 
@@ -994,7 +952,7 @@
   function writtenParts(s, i) {
     const q = s.quiz[i];
     const a = writtenOf(s, i);
-    const key = `${qkeyOf(s)}:${i}`;
+    const key = `${s.qkey}:${i}`;
     if (!a || S.revising.has(key)) {
       const value = S.answerDrafts[key] ?? a?.text ?? q.starter ?? "";
       const input = q.kind === "code" ? codeInput(value, q.language) : h("textarea", { class: "answer-input", rows: 4, placeholder: "Answer in your own words" });
@@ -1042,7 +1000,7 @@
   }
 
   async function submitWritten(s, i, text) {
-    const key = `${qkeyOf(s)}:${i}`;
+    const key = `${s.qkey}:${i}`;
     if (!text.trim()) return toast("Write an answer first.");
     try {
       await post("api/answer", { slide: s.id, version: s.qkey, question: i, text });
@@ -1097,7 +1055,7 @@
   }
 
   async function record(s, i, choice) {
-    const got = (S.quiz[qkeyOf(s)] ||= {});
+    const got = (S.quiz[s.qkey] ||= {});
     if (choice == null) delete got[i];
     else got[i] = choice;
     store.set("quiz", S.quiz);
@@ -2130,11 +2088,9 @@
 
   async function refreshDeck() {
     const id = S.deck && slide()?.id;
-    // Everything but the rewrites and the counters, to tell a deck edit from rewrites arriving.
-    const sig = (d) =>
-      JSON.stringify({ ...d, version: 0, status: 0, audited: 0, dials: d.dials && { ...d.dials, variants: 0, requests: 0 } });
-    const before = S.deck && sig(S.deck);
-    const shownBefore = S.deck && dialsOn(slide()) ? JSON.stringify(shownSlide(slide())) : null;
+    // The server's `base` digest leaves out the rewrites, to tell a deck edit from rewrites arriving.
+    const before = S.deck?.base;
+    const shownBefore = S.deck && shownKey(slide());
     try {
       await loadDeck();
     } catch (e) {
@@ -2143,11 +2099,9 @@
     banner("deck", null);
     const i = slideIndex(id);
     S.idx = i >= 0 ? i : Math.min(S.idx, S.deck.slides.length - 1);
-    if (before === sig(S.deck)) {
-      // Only rewrites at other settings arrived: redraw this slide if it now shows one.
-      const now = dialsOn(slide()) ? JSON.stringify(shownSlide(slide())) : null;
-      if (now !== shownBefore) renderSlide();
-      else renderSlide({ keepScroll: true });
+    if (before === S.deck.base) {
+      // Only rewrites at other settings arrived: redraw this slide, from the top if it now shows another.
+      renderSlide({ keepScroll: shownKey(slide()) === shownBefore });
       renderTrack();
       scheduleAudit();
       return;
@@ -2323,7 +2277,7 @@
     S.drafts = store.get("drafts", {});
     S.answerDrafts = store.get("answer-drafts", {});
     S.visited = new Set(store.get("visited", []));
-    S.view = { deck: null, slides: {}, ...store.get("view", {}) };
+    S.wanted = store.get("wanted", {});
     bindUI();
     try {
       await loadDeck();
