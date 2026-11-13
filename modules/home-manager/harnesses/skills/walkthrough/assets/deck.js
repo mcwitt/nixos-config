@@ -1974,7 +1974,10 @@
 
   async function refreshDeck() {
     const id = S.deck && slide()?.id;
-    const before = S.deck && JSON.stringify(S.deck.slides);
+    // Everything but the rewrites and the counters, to tell a deck edit from rewrites arriving.
+    const sig = (d) =>
+      JSON.stringify({ ...d, version: 0, status: 0, audited: 0, dials: d.dials && { ...d.dials, variants: 0, requests: 0 } });
+    const before = S.deck && sig(S.deck);
     const shownBefore = S.deck && dialsOn(slide()) ? JSON.stringify(shownSlide(slide())) : null;
     try {
       await loadDeck();
@@ -1984,7 +1987,7 @@
     banner("deck", null);
     const i = slideIndex(id);
     S.idx = i >= 0 ? i : Math.min(S.idx, S.deck.slides.length - 1);
-    if (before === JSON.stringify(S.deck.slides)) {
+    if (before === sig(S.deck)) {
       // Only rewrites at other settings arrived: redraw this slide if it now shows one.
       const now = dialsOn(slide()) ? JSON.stringify(shownSlide(slide())) : null;
       if (now !== shownBefore) renderSlide();

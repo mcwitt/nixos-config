@@ -360,11 +360,32 @@ class DialsTest(DeckDirCase):
         self.assertIn("variants/intro/2-2.json", run("variant", self.dir).stdout)
         run("check", self.dir)
 
+    def test_variant_goes_stale_when_its_own_lines_change(self):
+        self.write(topic_spec(audience=3, detail=3))
+        self.variant(slide="intro", body={"blocks": [{"excerpt": "notes.txt", "range": "4"}]})
+        deck = self.rd.load_deck(self.dir)
+        self.assertIn("1-1", deck.extra["variants"].fresh["intro"])
+        (self.dir / "notes.txt").write_text(NOTES.replace("fourth line", "4th line"))
+        deck = self.rd.load_deck(self.dir)
+        self.assertEqual((deck.extra["variants"].fresh, len(deck.extra["variants"].stale)), ({}, 1))
+        # The rejected variant's lines do not ship with the deck.
+        self.assertNotIn("notes.txt#L4-4", deck.hunks)
+        # A file it quotes shrinking makes it invalid; --prune removes that too, with orphans.
+        (self.dir / "notes.txt").write_text("one\ntwo\nthree\n")
+        orphan = self.dir / "variants" / "gone" / "2-2.json"
+        orphan.parent.mkdir()
+        orphan.write_text("{}")
+        self.assertIn("2 invalid", run("variant", self.dir).stdout)
+        run("variant", self.dir, "--prune")
+        self.assertEqual(list((self.dir / "variants").iterdir()), [])
+
     def test_cold_read_brief_states_the_setting(self):
         self.write(topic_spec(audience="newcomer", detail="concise", reader="Knows: Python. New to: the notes."))
         brief = run("text", self.dir, "--brief").stdout
         self.assertIn("- Audience newcomer:", brief)
         self.assertIn("- Detail concise:", brief)
+        r = run("text", self.dir, "--brief", "--audience", "beginner", check=False)
+        self.assertEqual((r.returncode, r.stderr.strip()[:16]), (1, "error: audience:"))
 
 
 class DialsServerTest(ServerCase):
@@ -408,6 +429,25 @@ class DialsServerTest(ServerCase):
         out = run("listen", self.dir, "--answer", msg["id"], "--file", self.dir / "a.md", "--timeout", 5).stdout
         self.assertIn("Answer at audience 4 (specialist), detail 3 (standard), unless", out)
         self.assertIn("  detail standard: ", out)
+
+    def test_claimed_and_unstorable_requests_do_not_block_questions(self):
+        self.post("api/variant", {"slides": ["intro", "lines"], "audience": 2, "detail": 2})
+        self.assertIn("asked for 2 slides", run("listen", self.dir, "--timeout", 5).stdout)
+        # Claimed rewrites are not handed out again; a question behind them is.
+        msg = self.post("api/ask", {"slide": "intro", "text": "Next?"})["message"]
+        self.assertIn(f"Question {msg['id']}", run("listen", self.dir, "--timeout", 5).stdout)
+        # A rewrite that can no longer be stored leaves the queue.
+        spec = self.spec()
+        spec["audience"], spec["detail"] = 2, 2
+        self.write(spec)
+        self.wait_for(lambda: not self.get("api/deck")["dials"]["requests"])
+        self.assertEqual([p.name for p in (self.dir / "queue").glob("q-*.json")], [f"{msg['id']}.json"])
+
+    def test_listen_survives_a_deck_that_does_not_check(self):
+        self.post("api/variant", {"slides": ["lines"], "audience": 1, "detail": 1})
+        (self.dir / "deck.json").write_text("{")
+        out = run("listen", self.dir, "--timeout", 5).stdout
+        self.assertIn("does not check", out)
 
 
 class CoreServerTest(ServerCase):

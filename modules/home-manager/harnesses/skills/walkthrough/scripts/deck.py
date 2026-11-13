@@ -358,6 +358,7 @@ def setting_text(a: int, d: int) -> str:
     return f"audience {stop_name('audience', a)}, detail {stop_name('detail', d)}"
 
 
+@functools.cache
 def stop_definition(dial: str, n: int) -> str:
     """The row for one stop in references/dials.md, as "name: definition"."""
     try:
@@ -392,20 +393,29 @@ class Variants:
     """The variants on disk: fresh ones by slide and setting, and what is wrong with the rest."""
     fresh: dict[str, dict[str, dict]] = field(default_factory=dict)  # slide id -> "A-D" -> slide
     stale: list[Path] = field(default_factory=list)
+    invalid: list[Path] = field(default_factory=list)  # files that do not parse, or name no content slide
     errors: list[str] = field(default_factory=list)
     keys: dict[str, str] = field(default_factory=dict)  # slide id -> its current key
 
 
+def _quoted(slide: dict, hunks: dict[str, Hunk]) -> list:
+    """The lines a slide's excerpts show, as (kind, text) rows."""
+    return [[[r.kind, r.text] for r in hunks[p["hunk"]].rows[p["lo"]:p["hi"] + 1]]
+            for b in slide["blocks"] for blk in [b, *b.get("blocks", [])] for p in blk.get("pieces", [])]
+
+
+def _digest(body) -> str:
+    return hashlib.sha256(json.dumps(body, sort_keys=True).encode()).hexdigest()[:16]
+
+
 def slide_key(slide: dict, hunks: dict[str, Hunk], spec: dict) -> str:
     """What a variant was written from: the slide as written, the lines it quotes, and the reader and goal."""
-    lines = []
-    for b in slide["blocks"]:
-        for blk in [b, *b.get("blocks", [])]:
-            for p in blk.get("pieces", []):
-                h = hunks[p["hunk"]]
-                lines.append([[r.kind, r.text] for r in h.rows[p["lo"]:p["hi"] + 1]])
-    body = {"slide": slide, "lines": lines, "reader": spec.get("reader"), "goal": spec.get("goal")}
-    return hashlib.sha256(json.dumps(body, sort_keys=True).encode()).hexdigest()[:16]
+    return _digest({"slide": slide, "lines": _quoted(slide, hunks), "reader": spec.get("reader"), "goal": spec.get("goal")})
+
+
+def lines_key(variant: dict, hunks: dict[str, Hunk]) -> str:
+    """The lines a variant itself quotes, which can differ from the slide as written."""
+    return _digest(_quoted(variant, hunks))
 
 
 def variant_dials(slide: dict) -> bool:
@@ -413,8 +423,11 @@ def variant_dials(slide: dict) -> bool:
     return not slide["quiz"] and not slide.get("generated") and not any(ext.reserves(slide["id"]) for ext in EXTENSIONS)
 
 
-def _load_variants(load: Loading, slides: list[dict], content, setting) -> Variants:
-    """Read DECK/variants/: parse each variant like a slide, and set aside stale and invalid ones."""
+def _load_variants(load: Loading, slides: list[dict], content, setting, plain: dict) -> Variants:
+    """Read DECK/variants/: parse each variant like a slide, and set aside stale and invalid ones.
+
+    A variant is stale when the slide it was written from changed, or when the lines it quotes changed
+    since it was stored. An invalid one adds no files or hunks to the deck."""
     out = Variants()
     vdir = load.dir / "variants"
     load.sources.append(vdir)
@@ -434,17 +447,20 @@ def _load_variants(load: Loading, slides: list[dict], content, setting) -> Varia
             where = f"variants/{sub.name}/{path.name}"
             if not m or base is None:
                 out.errors.append(f"{where}: no content slide {sub.name!r}, or not named A-D.json")
+                out.invalid.append(path)
                 continue
             try:
                 rec = json.loads(path.read_text())
             except (OSError, ValueError) as e:
                 out.errors.append(f"{where}: {e}")
+                out.invalid.append(path)
                 continue
             if rec.get("key") != out.keys[sub.name]:
                 out.stale.append(path)
                 continue
             raw = rec.get("slide") if isinstance(rec.get("slide"), dict) else {}
             errs: list[str] = []
+            before = (set(plain), set(load.hunks), {k: len(f.hunks) for k, f in plain.items()})
             load.errors, outer = errs, load.errors  # an extension's blocks report to load.errors
             v = {"id": base["id"], "title": _str(raw.get("title", base["title"]), f"{where}.title", errs, True),
                  "section": base["section"], "prompts": [], "blocks": [], "quiz": [],
@@ -453,10 +469,21 @@ def _load_variants(load: Loading, slides: list[dict], content, setting) -> Varia
                 content(raw, where, v, errs)
             finally:
                 load.errors = outer
-            if errs:
-                out.errors.extend(errs)
+            if errs or rec.get("lines", lines_key(v, load.hunks)) != lines_key(v, load.hunks):
+                # Undo what the parse added, so that a rejected variant ships nothing in the payload.
+                for k in set(plain) - before[0]:
+                    del plain[k]
+                for k in set(load.hunks) - before[1]:
+                    del load.hunks[k]
+                for k, f in plain.items():
+                    del f.hunks[before[2][k]:]
+                if errs:
+                    out.errors.extend(errs)
+                    out.invalid.append(path)
+                else:
+                    out.stale.append(path)
                 continue
-            out.fresh.setdefault(sid := sub.name, {})[f"{m[1]}-{m[2]}"] = v
+            out.fresh.setdefault(sub.name, {})[f"{m[1]}-{m[2]}"] = v
     return out
 
 
@@ -712,13 +739,16 @@ def load_deck(deck_dir: Path) -> Deck:
 
     keys = {"md", "callout", "excerpt", "diagram", *handlers}
 
-    def content(s: dict, where: str, out: dict, errors: list[str]):
-        """Parse a content slide's prompts and blocks into `out`."""
-        prompts = s.get("prompts") or []
-        if not isinstance(prompts, list) or not all(isinstance(p, str) for p in prompts):
+    def prompts(s: dict, where: str, out: dict, errors: list[str]):
+        p = s.get("prompts") or []
+        if not isinstance(p, list) or not all(isinstance(x, str) for x in p):
             errors.append(f"{where}.prompts: expected a list of strings")
         else:
-            out["prompts"] = prompts
+            out["prompts"] = p
+
+    def content(s: dict, where: str, out: dict, errors: list[str]):
+        """Parse a content slide's prompts and blocks into `out`."""
+        prompts(s, where, out, errors)
         blocks = s.get("blocks")
         if not isinstance(blocks, list) or not blocks:
             errors.append(f"{where}.blocks: expected a non-empty list")
@@ -777,11 +807,7 @@ def load_deck(deck_dir: Path) -> Deck:
             "quiz": [],
         }
         if "quiz" in s:
-            prompts = s.get("prompts") or []
-            if isinstance(prompts, list) and all(isinstance(p, str) for p in prompts):
-                out["prompts"] = prompts
-            else:
-                errors.append(f"{where}.prompts: expected a list of strings")
+            prompts(s, where, out, errors)
             if "blocks" in s:
                 errors.append(f"{where}: a check slide has quiz, not blocks")
             out["quiz"] = _quiz(s["quiz"], where, sid, content_ids, deck_dir, errors)
@@ -795,7 +821,7 @@ def load_deck(deck_dir: Path) -> Deck:
         errors.append(f"the deck has more than {TRIVIAL} content slides, so the last slide before the appendix "
                       "must be a final check of two to four questions that span the deck")
     setting = _setting(spec, errors)
-    variants = _load_variants(load, slides, content, setting) if not errors else Variants()
+    variants = _load_variants(load, slides, content, setting, plain) if not errors else Variants()
     if errors:
         raise DeckInvalid(errors)
     load.extra["variants"] = variants
@@ -1187,22 +1213,28 @@ class State:
             s = self.deck.slide(sid)
             if s is None or not variant_dials(s):
                 raise ValueError(f"{sid}: not a content slide that takes another setting")
+        for sid in dict.fromkeys(slides):
+            s = self.deck.slide(sid)
             if (a, d) == setting or key in fresh.get(sid, {}) or (sid, key) in pending:
                 continue
             self.queue.add({"id": new_id(), "kind": "variant", "slide": sid, "setting": key, "audience": a, "detail": d,
                             "where": f"{self.deck.position(s)}: {s['title']}", "at": time.time()})
             queued.append(sid)
-        self._sync_variant_requests()
+        self._sync_variant_requests(self.queue.items())
         return queued
 
-    def _sync_variant_requests(self):
-        """Drop requests a stored variant answers, and tell the pages what is queued or being written."""
+    def _sync_variant_requests(self, items: list[dict]):
+        """Drop requests that a stored variant answers or that can no longer be stored, and tell the
+        pages what is queued or being written."""
         fresh = self.deck.extra["variants"].fresh
+        setting = _setting(self.deck.spec, [])
         now: dict[str, dict[str, str]] = {}
-        for x in self.queue.items():
+        for x in items:
             if x.get("kind") != "variant":
                 continue
-            if x["setting"] in fresh.get(x["slide"], {}) or not self.deck.slide(x["slide"]):
+            s = self.deck.slide(x["slide"])
+            if (x["setting"] in fresh.get(x["slide"], {}) or s is None or not variant_dials(s) or setting is None
+                    or x["setting"] == f"{setting[0]}-{setting[1]}"):
                 self.queue.remove(x["id"])
                 continue
             now.setdefault(x["slide"], {})[x["setting"]] = "claimed" if self.queue.claimed(x["id"]) else "queued"
@@ -1314,7 +1346,8 @@ class State:
     def _sync_queue(self):
         changed = set()
         busy = False
-        for item in self.queue.items():
+        items = self.queue.items()
+        for item in items:
             qid = item["id"]
             if item.get("kind") == "variant":
                 busy |= self.queue.claim_age(qid) < CLAIM_STALE
@@ -1342,7 +1375,7 @@ class State:
                     self.threads.save()
                     changed.add(slide)
         self.busy = busy
-        self._sync_variant_requests()
+        self._sync_variant_requests(items)
         for slide in changed:
             self.broadcast("thread", {"slide": slide})
 
@@ -1898,10 +1931,9 @@ def cmd_text(args):
     elif args.brief:
         if not deck.spec.get("reader"):
             sys.exit("error: reader: say in deck.json what the reader knows and is new to, so the cold reader can stand in for them")
-        brief = COLD_READ.format(reader=deck.spec["reader"], setting=setting_brief(deck, args))
-    slides = None
+    base = _setting(deck.spec, [])
+    a, d = base or (None, None)
     if args.audience or args.detail:
-        base = _setting(deck.spec, [])
         if base is None:
             sys.exit("error: the deck has no audience and detail setting")
         try:
@@ -1909,19 +1941,18 @@ def cmd_text(args):
             d = parse_stop(args.detail or base[1], "detail")
         except ValueError as e:
             sys.exit(f"error: {e}")
+    if args.brief and not args.checks_only:
+        brief = COLD_READ.format(reader=deck.spec["reader"], setting=setting_brief(a, d) if base else "")
+    slides = None
+    if args.audience or args.detail:
         slides, missing = at_setting(deck, a, d)
         if missing:
             print(f"note: not written at {setting_text(a, d)}, shown as written: {', '.join(missing)}", file=sys.stderr)
     print(brief + deck_text(deck, args.appendix, args.key, args.checks_only, slides), end="")
 
 
-def setting_brief(deck: Deck, args) -> str:
+def setting_brief(a: int, d: int) -> str:
     """For the cold reader: the setting the deck is written at, so that it does not report what the setting leaves out."""
-    base = _setting(deck.spec, [])
-    if base is None:
-        return ""
-    a = parse_stop(args.audience or base[0], "audience")
-    d = parse_stop(args.detail or base[1], "detail")
     return (f"\nThe deck is written for this reader at a set audience and detail level:\n\n"
             f"- Audience {stop_definition('audience', a)}\n- Detail {stop_definition('detail', d)}\n\n"
             "Report a gap that this detail level leaves out by design only when the slide cannot be followed without it.\n")
@@ -2132,7 +2163,9 @@ def cmd_listen(args):
         while True:
             # Claimed but unanswered questions come first: a session that lost
             # track of one (an interruption, a context reset) gets it again.
+            # A rewrite request has no answer file; once claimed, it waits for its variant, unless the claim is stale.
             pending = [x for x in q.items() if x["id"] != args.answer and not q.answered(x["id"])
+                       and not (x.get("kind") == "variant" and q.claim_age(x["id"]) < CLAIM_STALE)
                        and not any(ext.skip(q, x) for ext in EXTENSIONS)]
             pending.sort(key=lambda x: (not q.claimed(x["id"]), x.get("at", 0)))
             if pending:
@@ -2170,7 +2203,7 @@ def cmd_listen(args):
             print(f"({rest} more waiting.)")
         return
     if item.get("kind") == "variant":
-        return listen_variants(deck_dir, q, [x for x in pending if x.get("kind") == "variant"], ctx, wait)
+        return listen_variants(deck_dir, q, [x for x in pending if x.get("kind") == "variant"], ctx)
     if any(ext.listen(item, ctx) for ext in EXTENSIONS):
         return
     if item.get("kind") == "finished":
@@ -2226,10 +2259,21 @@ def cmd_listen(args):
         print(f"({rest} more waiting.)")
 
 
-def listen_variants(deck_dir: Path, q: Queue, items: list[dict], ctx: Listening, wait: str):
+def listen_variants(deck_dir: Path, q: Queue, items: list[dict], ctx: Listening):
     """Hand the session every waiting request for a slide at another setting, at once."""
-    deck = load_deck(deck_dir)
-    a0, d0 = _setting(deck.spec, [])
+    try:
+        deck = load_deck(deck_dir)
+    except DeckInvalid as e:
+        print("The reader asked for slides at another setting, but deck.json does not check, so they cannot be "
+              f"stored yet. Fix these, then listen again:\n  " + "\n  ".join(e.errors) + f"\n  {ctx.again}")
+        return
+    setting = _setting(deck.spec, [])
+    if setting is None:
+        for x in items:
+            q.remove(x["id"])
+        print(f"Dropped {plural(len(items), 'request')} for another setting: the deck no longer has one.\n  {ctx.again}")
+        return
+    a0, d0 = setting
     for x in items:
         write_atomic(q.file(x["id"], ".claimed"), json.dumps({"pid": os.getpid(), "at": time.time()}))
     settings = sorted({(x["audience"], x["detail"]) for x in items})
@@ -2245,7 +2289,8 @@ def listen_variants(deck_dir: Path, q: Queue, items: list[dict], ctx: Listening,
           f"Write the rewritten slide object (title, prompts and blocks, as in deck.json) to a file and store it; "
           f"the page shows it at once:\n"
           f"  python3 {ctx.me} variant {ctx.deck_arg} SLIDE --audience A --detail D --file SLIDE.json\n"
-          f"With several slides, rewrite them in parallel if your harness has subagents. Then keep listening with:\n"
+          f"With several slides, rewrite them in parallel if your harness has subagents. `listen` does not hand these "
+          f"requests out again unless they wait for {CLAIM_STALE // 60} minutes. Then keep listening with:\n"
           f"  {ctx.again}")
 
 
@@ -2263,9 +2308,12 @@ def cmd_variant(args):
     if setting is None:
         sys.exit("error: the deck has no setting; give deck.json `audience` and `detail` (see references/dials.md)")
     if args.prune:
-        for p in variants.stale:
-            p.unlink()
-        print(f"Removed {plural(len(variants.stale), 'stale variant')}.")
+        for p in variants.stale + variants.invalid:
+            p.unlink(missing_ok=True)
+        for d in vdir.iterdir() if vdir.is_dir() else ():
+            if d.is_dir() and not any(d.iterdir()):
+                d.rmdir()
+        print(f"Removed {plural(len(variants.stale), 'stale variant')} and {plural(len(variants.invalid), 'invalid file')}.")
         return
     if not args.slide:
         dials = [s for s in deck.slides if variant_dials(s)]
@@ -2278,7 +2326,7 @@ def cmd_variant(args):
             have = sorted(variants.fresh.get(s["id"], {})) + stale[s["id"]]
             print(f"  {s['id']}: {' '.join(have) or '-'}")
         n = sum(len(v) for v in variants.fresh.values())
-        print(f"{n} fresh, {len(variants.stale)} stale, {size / 1024:.0f} KiB on disk")
+        print(f"{n} fresh, {len(variants.stale)} stale, {len(variants.invalid)} invalid, {size / 1024:.0f} KiB on disk")
         for e in variants.errors:
             print(f"error: {e}")
         return
@@ -2321,7 +2369,11 @@ def cmd_variant(args):
     old = path.read_text() if path.exists() else None
     write_atomic(path, json.dumps(rec, indent=1))
     deck = load_or_exit(deck_dir)
-    errors = [e for e in deck.extra["variants"].errors if f"variants/{args.slide}/{a}-{d}.json" in e]
+    stored: Variants = deck.extra["variants"]
+    errors = [e for e in stored.errors if f"variants/{args.slide}/{a}-{d}.json" in e]
+    if not errors:
+        rec["lines"] = lines_key(stored.fresh[args.slide][f"{a}-{d}"], deck.hunks)
+        write_atomic(path, json.dumps(rec, indent=1))
     if errors:
         if old is None:
             path.unlink()
@@ -2475,7 +2527,7 @@ def main(argv=None, entry: str | None = None, description: str | None = None):
     v.add_argument("--detail", "-d", help="1-5 or " + "|".join(DETAIL))
     v.add_argument("--file", help="the rewritten slide, as a deck.json slide object")
     v.add_argument("--show", action="store_true", help="print the slide's JSON instead of storing one")
-    v.add_argument("--prune", action="store_true", help="delete variants written from an older version of their slide")
+    v.add_argument("--prune", action="store_true", help="delete stale variants and variant files that do not load")
     v.add_argument("--seconds", type=float, help=argparse.SUPPRESS)
     v.add_argument("--tokens", type=int, help=argparse.SUPPRESS)
     v.set_defaults(func=cmd_variant)
