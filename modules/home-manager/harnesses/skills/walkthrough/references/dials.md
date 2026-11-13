@@ -2,7 +2,7 @@
 
 A deck is written at one setting of two dials, each with five stops. **Audience** sets how much background the deck assumes and how much it supplies. **Detail** sets how much of the material the deck covers and how deeply. The dials are independent: a novice can ask for a concise deck, which is short and still defines its terms, and an expert can ask for a complete one, which covers everything and defines nothing.
 
-Record the setting in `deck.json` as `"audience": N` and `"detail": N` (1 to 5). The page then shows both dials on every content slide, and the reader can ask for a slide, or all of them, at another setting. `deck.py` and `listen` quote the rows below; keep each row's text self-contained.
+Record the setting in `deck.json` as `"audience": N` and `"detail": N` (1 to 5). The page then has a Level button in its top bar with both dials for the slide on screen, and the reader can ask for a slide, or all of them, at another setting. `deck.py` and `listen` quote the rows below; keep each row's text self-contained.
 
 ## Audience
 

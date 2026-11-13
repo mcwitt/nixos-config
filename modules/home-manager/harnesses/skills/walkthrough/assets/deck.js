@@ -450,9 +450,10 @@
         s.quiz.length ? h("span", { class: "check-tag" }, `Check · ${scoreText(s)}`) : null,
         skipControls(),
       ),
-      dialsEl(base),
       h("h2", { class: "slide-title" }, s.title),
     );
+    const note = dialNote(base);
+    if (note) inner.querySelector(".slide-title").after(h("div", { class: "dial-status" }, note));
     inner.append(...slideBody(s));
     if (S.idx === tallySlide() && (!s.quiz.length || answered(s))) inner.append(tallyEl());
     inner.append(nextUp());
@@ -460,6 +461,7 @@
     markAskable(el);
     paintQuoted();
     el.scrollTop = keepScroll ? top : 0;
+    renderDials();
   }
 
   // A slide's content. `where` names each block as deck.json does, so that
@@ -642,71 +644,17 @@
     for (const [key, ids] of Object.entries(byKey)) await requestRewrites(ids, key);
   }
 
-  function dialsEl(s) {
+  // The dials live in a popover from the top bar, which leaves the slide open
+  // to view while the reader flips settings; the slide itself shows only a
+  // one-line status when it is not as written or a rewrite is pending.
+  const linkBtn = (label, onclick) => h("button", { type: "button", class: "linkish", onclick }, label);
+
+  function dialNote(s) {
     if (!dialsOn(s)) return null;
     const want = wantedKey(s);
     const shown = shownKey(s);
-    const [wa, wd] = want.split("-").map(Number);
     const reqs = dials().requests?.[s.id] || {};
-    const scope = store.get("dial-scope", "slide");
-    const group = (dial, label, cur) => {
-      const names = dials().stops[dial];
-      const [ba, bd] = baseKey().split("-").map(Number);
-      return h(
-        "div",
-        { class: "dial", role: "radiogroup", "aria-label": label },
-        h("span", { class: "dial-label" }, label),
-        h("span", { class: "dial-end" }, names[0]),
-        names.map((name, i) => {
-          const n = i + 1;
-          const key = withKey(want, dial, n);
-          const state = variant(s, key) ? "have" : reqs[key] ? "pending" : "";
-          const isBase = n === (dial === "audience" ? ba : bd);
-          return h(
-            "button",
-            {
-              type: "button",
-              role: "radio",
-              "aria-checked": String(n === cur),
-              class: ["stop", n === cur && "on", state, isBase && "base"].filter(Boolean).join(" "),
-              title: `${label} ${n}: ${name}${isBase ? " (as written)" : ""}${state === "have" ? " · ready" : state === "pending" ? " · being written" : ""}`,
-              onclick: () => n !== cur && chooseSetting(s, dial, n, store.get("dial-scope", "slide")),
-            },
-            String(n),
-          );
-        }),
-        h("span", { class: "dial-end" }, names[names.length - 1]),
-      );
-    };
-    const scopeBtn = (value, label) =>
-      h(
-        "button",
-        {
-          type: "button",
-          "aria-pressed": String(scope === value),
-          onclick: () => (store.set("dial-scope", value), renderSlide({ keepScroll: true })),
-        },
-        label,
-      );
-    const scopeEl = h(
-      "div",
-      { class: "dial-scope", role: "group", "aria-label": "A change of setting applies to" },
-      scopeBtn("slide", "This slide"),
-      scopeBtn("deck", "All slides"),
-    );
-    const btn = (label, onclick) => h("button", { type: "button", class: "linkish", onclick }, label);
-    let note = null;
-    if (S.confirm) {
-      const n = S.confirm.missing.length;
-      note = h(
-        "p",
-        { class: "dial-note", role: "status" },
-        `${plural(n, "slide")} are not written at this setting yet; the ${who()} rewrites them one by one, about half a minute each. `,
-        btn(`Rewrite ${plural(n, "slide")}`, confirmRewrites),
-        " · ",
-        btn("Not now", () => ((S.confirm = null), renderSlide({ keepScroll: true }))),
-      );
-    } else if (shown !== want) {
+    if (shown !== want) {
       const state = reqs[want];
       const away = S.status.session === "away";
       const parts =
@@ -717,19 +665,149 @@
                 away
                   ? `Asked for ${settingName(want)}. The ${who()} is away; the request waits for it. Settings already written switch at once. `
                   : `Asked for ${settingName(want)}; the ${who()} picks it up next. `,
-                btn("Cancel", () => chooseSetting(s, "both", 0, "slide")),
+                linkBtn("Cancel", () => chooseSetting(s, "both", 0, "slide")),
               ]
             : [
                 `Not written at ${settingName(want)}, or this slide changed since it was. `,
-                btn(`Rewrite at ${settingName(want)}`, () => requestRewrites([s.id], want)),
+                linkBtn(`Rewrite at ${settingName(want)}`, () => requestRewrites([s.id], want)),
                 " · ",
-                btn("Show as written", () => chooseSetting(s, "both", 0, "slide")),
+                linkBtn("Show as written", () => chooseSetting(s, "both", 0, "slide")),
               ];
-      note = h("p", { class: "dial-note", role: "status" }, ...parts, ` Showing ${settingName(shown)}.`);
-    } else if (shown !== baseKey()) {
-      note = h("p", { class: "dial-note quiet" }, `Rewritten at ${settingName(shown)}. `, btn("Show as written", () => chooseSetting(s, "both", 0, "slide")));
+      return h("p", { class: "dial-note", role: "status" }, ...parts, ` Showing ${settingName(shown)}.`);
     }
-    return h("div", { class: "dials" }, h("div", { class: "dial-row" }, group("audience", "Audience", wa), group("detail", "Detail", wd), scopeEl), note);
+    if (shown !== baseKey()) {
+      return h("p", { class: "dial-note quiet" }, `Shown at ${settingName(shown)}. `, linkBtn("Show as written", () => chooseSetting(s, "both", 0, "slide")));
+    }
+    return null;
+  }
+
+  function dialsBody(s) {
+    if (!dialsOn(s)) {
+      return [h("p", { class: "dial-help" }, `${s.quiz.length ? "Check slides" : "This slide"} keep${s.quiz.length ? "" : "s"} the deck's setting, ${settingName(baseKey())}.`)];
+    }
+    const want = wantedKey(s);
+    const [wa, wd] = want.split("-").map(Number);
+    const reqs = dials().requests?.[s.id] || {};
+    const scope = store.get("dial-scope", "slide");
+    const [ba, bd] = baseKey().split("-").map(Number);
+    const group = (dial, label, cur) => {
+      const names = dials().stops[dial];
+      return h(
+        "div",
+        { class: "dial", role: "radiogroup", "aria-label": label },
+        h("div", { class: "dial-head" }, h("span", { class: "dial-label" }, label), h("span", { class: "dial-name" }, names[cur - 1])),
+        h(
+          "div",
+          { class: "dial-stops" },
+          names.map((name, i) => {
+            const n = i + 1;
+            const key = withKey(want, dial, n);
+            const state = variant(s, key) ? "have" : reqs[key] ? "pending" : "";
+            const isBase = n === (dial === "audience" ? ba : bd);
+            return h(
+              "button",
+              {
+                type: "button",
+                role: "radio",
+                "aria-checked": String(n === cur),
+                class: ["stop", n === cur && "on", state, isBase && "base"].filter(Boolean).join(" "),
+                title: `${label} ${n}: ${name}${isBase ? " (as written)" : ""}${state === "have" ? " · ready" : state === "pending" ? " · being written" : ""}`,
+                onclick: () => n !== cur && chooseSetting(s, dial, n, store.get("dial-scope", "slide")),
+              },
+              String(n),
+            );
+          }),
+        ),
+        h("div", { class: "dial-ends" }, h("span", {}, names[0]), h("span", {}, names[names.length - 1])),
+      );
+    };
+    const scopeBtn = (value, label) =>
+      h("button", { type: "button", "aria-pressed": String(scope === value), onclick: () => (store.set("dial-scope", value), renderSlide({ keepScroll: true })) }, label);
+    const out = [
+      group("audience", "Audience", wa),
+      group("detail", "Detail", wd),
+      h(
+        "div",
+        { class: "dial-scope-row" },
+        h("span", { class: "dial-label" }, "Apply to"),
+        h("div", { class: "dial-scope", role: "group", "aria-label": "A change of setting applies to" }, scopeBtn("slide", "This slide"), scopeBtn("deck", "All slides")),
+      ),
+    ];
+    if (S.confirm) {
+      const n = S.confirm.missing.length;
+      out.push(
+        h(
+          "p",
+          { class: "dial-note", role: "status" },
+          `${plural(n, "slide")} are not written at this setting yet; the ${who()} rewrites them one by one, about half a minute each. `,
+          linkBtn(`Rewrite ${plural(n, "slide")}`, confirmRewrites),
+          " · ",
+          linkBtn("Not now", () => ((S.confirm = null), renderSlide({ keepScroll: true }))),
+        ),
+      );
+    }
+    out.push(
+      h("p", { class: "dial-help" }, `Dashed: as written (${settingName(baseKey())}). A dot under a stop: already written, so it switches at once; the ${who()} writes the others on request.`),
+    );
+    return out;
+  }
+
+  function renderDials() {
+    const btn = $("#dials-btn");
+    if (!btn) return;
+    const on = !!(S.deck && dials());
+    btn.hidden = !on;
+    if (!on) return closeDials();
+    const s = slide();
+    const shown = shownKey(s);
+    const pending = dialsOn(s) && shown !== wantedKey(s);
+    btn.dataset.state = pending ? "pending" : shown && shown !== baseKey() ? "changed" : "";
+    btn.title = dialsOn(s) ? `Audience and detail of this slide: ${settingName(shown)}` : `This slide keeps the deck's setting, ${settingName(baseKey())}`;
+    if (!$("#dials").hidden) $("#dials-body").replaceChildren(...dialsBody(s));
+  }
+
+  function placeDials() {
+    const r = $("#dials-btn").getBoundingClientRect();
+    const pop = $("#dials");
+    pop.style.top = `${r.bottom + 6}px`;
+    // Under the button, but never past either edge of the window.
+    pop.style.right = `${Math.max(16, Math.min(innerWidth - r.right, innerWidth - pop.offsetWidth - 16))}px`;
+  }
+
+  function openDials() {
+    $("#dials").hidden = false;
+    $("#dials-btn").setAttribute("aria-expanded", "true");
+    placeDials();
+    renderDials();
+    $("#dials .stop.on")?.focus();
+  }
+
+  function closeDials() {
+    const pop = $("#dials");
+    if (!pop || pop.hidden) return false;
+    pop.hidden = true;
+    $("#dials-btn").setAttribute("aria-expanded", "false");
+    return true;
+  }
+
+  function initDials() {
+    $("#toc-btn").before(
+      h("button", { type: "button", class: "ghost", id: "dials-btn", hidden: true, "aria-expanded": "false", "aria-controls": "dials", onclick: () => ($("#dials").hidden ? openDials() : closeDials()) },
+        "Level", h("span", { class: "dial-dot", "aria-hidden": "true" })),
+    );
+    $("#toasts").before(
+      h("div", { class: "dials-pop", id: "dials", role: "dialog", "aria-label": "Audience and detail", hidden: true },
+        h("div", { class: "dials-pop-head" }, h("h2", {}, "Audience and detail"), h("button", { type: "button", class: "ghost small", onclick: closeDials }, "Close")),
+        h("div", { id: "dials-body" })),
+    );
+    // Not modal: the slide stays in view; a click elsewhere closes it. The
+    // event's path is taken at dispatch, so a redraw of the popover's own
+    // buttons does not count as a click outside.
+    document.addEventListener("click", (e) => {
+      const path = e.composedPath();
+      if (!path.includes($("#dials")) && !path.includes($("#dials-btn"))) closeDials();
+    });
+    addEventListener("resize", () => !$("#dials").hidden && placeDials());
   }
 
   function skipControls() {
@@ -2130,6 +2208,7 @@
   }
 
   function bindUI() {
+    initDials();
     $("#prev").onclick = () => go(S.idx - 1);
     $("#next").onclick = () => go(S.idx + 1);
     $("#toc-btn").onclick = () => ($("#toc").hidden ? openToc() : closeToc());
@@ -2182,6 +2261,7 @@
       if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
       if (e.key === "Escape") {
         if (!$("#toc").hidden) return closeToc();
+        if (closeDials()) return;
         if (hooks.escape.some((fn) => fn())) return;
         if (S.sel) return clearSel();
         $("#ask").classList.remove("open");

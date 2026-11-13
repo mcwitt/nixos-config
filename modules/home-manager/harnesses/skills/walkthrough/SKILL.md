@@ -58,7 +58,7 @@ This prints a URL with a secret token. The server listens on 127.0.0.1. If the r
 
 A deck directory keeps its URL: later servers reuse its token, port and `serve` options. Running `serve` again prints the URL of the running server. If that server runs another copy of `deck.py`, for example one from before an update, or other options, `serve` restarts it in place, and open pages reconnect and reload.
 
-Give the reader the URL, the goal, the number of slides, and the starting point and setting you assumed, so that they can correct them. Tell them the dials above each content slide rewrite that slide (or every slide) at another audience or detail stop, and that a setting already written switches at once. Tell them they can ask on any slide, quote lines by clicking line numbers (shift-click or drag to extend), and click diagram parts or callouts, or select text, to quote those. Then start listening.
+Give the reader the URL, the goal, the number of slides, and the starting point and setting you assumed, so that they can correct them. Tell them the Level button in the top bar rewrites a content slide (or every one) at another audience or detail stop, and that a setting already written switches at once. Tell them they can ask on any slide, quote lines by clicking line numbers (shift-click or drag to extend), and click diagram parts or callouts, or select text, to quote those. Then start listening.
 
 ## 5. Answer questions
 
