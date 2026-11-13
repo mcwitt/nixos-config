@@ -55,3 +55,12 @@ The engine ends a deck with diffs with two generated slides, Findings and Propos
 ## Coverage
 
 Every changed line must appear in at least one diff excerpt, on a slide or in the appendix. `check` lists each missing span with a block you can paste into a slide or appendix group, for example `{"diff": "src/a.py#2", "range": "rows:5-17"}`.
+
+## Rewriting a slide at another setting
+
+A content slide of a change, rewritten at another audience or detail (see walkthrough's `references/dials.md`), follows the same rules as the slide as written:
+
+- Keep each risk callout of the slide, in one sentence at detail 1 and 2, and the excerpt of the hunk it is about.
+- Keep defects, recommendations, verdicts and judgements of the code's quality ("redundant", "unnecessary", "should") off the slide, at every stop, including detail 4 and 5 where the rewrite reads the sources again. A defect you notice becomes a review finding (`walkthrough_pr.py finding DECK add TEXT --review --severity PN --at PATH:LINE`), as in step 4 of walkthrough-pr.
+- Label diagrams and examples of behavior as before or after the change, and say when an excerpt shows unchanged code for context.
+- Its diff excerpts do not count for coverage: the deck as written carries every changed line.

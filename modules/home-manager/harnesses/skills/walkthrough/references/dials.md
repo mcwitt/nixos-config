@@ -48,17 +48,19 @@ The skill takes `--audience STOP` and `--detail STOP` anywhere in its arguments,
 
 ## Rewriting a slide
 
-The page asks for a content slide at another setting, and `listen` hands you the request. `deck.py variant DECK SLIDE --audience A --detail D --brief` prints the whole brief for one rewrite: these rules, the stops' rows, the deck's outline, the slide as written and the checks that rely on it. Give it as is to a subagent, or follow it yourself. Rewrite the slide at the new setting:
+The page asks for a slide at another setting, and `listen` hands you the request. `variant DECK SLIDE --audience A --detail D --brief` (with the deck's script: `deck.py`, or `walkthrough_pr.py` for a change) prints the whole brief for one rewrite: the rules below, the stops' rows, the deck's outline, the slide as written, and the slides or checks it relates to. Give it as is to a subagent, or follow it yourself. It ends with the `variant … --file FILE` command that validates the rewrite like `check` and stores it; an open page shows it at once. A rewrite stays valid until the slide as written, the lines it quotes, the slides it covers (for a check), `reader` or `goal` change; `variant DECK` lists the stored rewrites.
 
-- **Keep the slide's idea and id.** The title can change. Generated slides (appendix groups, Findings, Proposed actions) keep the deck's setting; a check slide is rewritten as "Rewriting a check" says.
+Do not cold-read a rewrite: the reader asked for it and reads it now, and the reader's questions do the cold reader's work.
+
+### Rules for a rewrite
+
+- **Keep the slide's idea and id.** The title can change. Generated slides (appendix groups, Findings, Proposed actions) keep the deck's setting.
 - **One slide, in place.** Do not add slides. At audience 1 or 2, put the background that a new slide would carry into the slide's first blocks, such as a callout with the definitions.
 - **Change what the stops change.** The two settings must differ visibly: a novice slide defines terms that the specialist slide uses bare, and a concise slide is shorter and keeps the claim. When the sources do not support more detail, say on the slide what is not known rather than padding it.
 - **Read the sources again when you need more.** Do not invent facts that the slide as written did not need.
 - **Quote freely.** Any excerpt or diff range can be used; the deck as written keeps the coverage of a change.
 - **Keep the prompts useful** at the new setting.
 - **Keep the checks answerable.** Each check question whose `see` names the slide must still be settled by the rewrite, at every stop, concise included.
-
-Write the slide object to a file and store it with the deck's script (`deck.py`, or `walkthrough_pr.py` for a change): `variant DECK SLIDE --audience A --detail D --file FILE`. It validates the slide like `check`, and an open page shows it at once. The variant stays valid until the slide as written, the lines it quotes, `reader` or `goal` change; `variant DECK` lists the stored variants, and `variant DECK --prune` deletes the stale ones.
 
 ### Rewriting a check
 
@@ -72,15 +74,3 @@ A check at another setting is a new set of questions for the reader who sees the
 - **Read each question once as a reader without the slides.** No cold or blind reader checks a rewritten check. If the question or its choices give the answer away, rewrite it.
 
 The page keeps the reader's answers per version of a check: answers to the check as written, or at another setting, stay with that version and come back when the reader switches back. Rewording a question starts a new version; changing only a choice's wording or a `why` does not. `listen` reports each check at the version the reader answered last.
-
-### Rewriting a slide of a change
-
-For `walkthrough-pr`, a rewrite follows the same rules as the slide as written:
-
-- Keep each risk callout of the slide, in one sentence at detail 1 and 2, and the excerpt of the hunk it is about.
-- Keep defects, recommendations, verdicts and judgements of the code's quality ("redundant", "unnecessary", "should") off the slide, at every stop, including detail 4 and 5 where the rewrite reads the sources again. A defect you notice becomes a review finding (`walkthrough_pr.py finding DECK add TEXT --review --severity PN --at PATH:LINE`), as in step 4 of walkthrough-pr.
-- Label diagrams and examples of behavior as before or after the change, and say when an excerpt shows unchanged code for context.
-
-### After storing
-
-Do not cold-read a variant: the reader asked for it and reads it now, and the reader's questions do the cold reader's work.
