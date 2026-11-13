@@ -233,7 +233,7 @@ class DeckTest(DeckDirCase):
         self.assertEqual(list(deck.extra["variants"].fresh["what"]), ["4-1"])
         # Generated slides keep the deck's setting.
         self.assertEqual(self.rd.deck_payload(deck, 1)["dials"]["slides"], ["why", "what"])
-        self.assertIn("not a content slide", run("variant", self.dir, "appendix-1", "-a", "1", "-d", "1", "--file", f, check=False).stderr)
+        self.assertIn("generated slides keep one", run("variant", self.dir, "appendix-1", "-a", "1", "-d", "1", "--file", f, check=False).stderr)
         brief = run("variant", self.dir, "what", "-a", "5", "-d", "5", "--brief").stdout
         self.assertIn("## Rewriting a slide of a change", brief)
         self.assertIn("Keep defects, recommendations, verdicts and judgements", brief)

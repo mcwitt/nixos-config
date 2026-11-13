@@ -558,6 +558,11 @@
     return last && variant(s, last) ? last : baseKey();
   }
 
+  // The version of a slide on screen; a rewrite (which carries `setting`) is its own version.
+  const viewOf = (s) => (s.setting || !dialsOn(s) ? s : variant(s, shownKey(s)) || s);
+  // Where a check version's answers are kept.
+  const qkeyOf = (s) => s.qkey || s.id;
+
   function shownSlide(s) {
     const key = shownKey(s);
     if (!key) return s;
@@ -682,9 +687,7 @@
   }
 
   function dialsBody(s) {
-    if (!dialsOn(s)) {
-      return [h("p", { class: "dial-help" }, `${s.quiz.length ? "Check slides" : "This slide"} keep${s.quiz.length ? "" : "s"} the deck's setting, ${settingName(baseKey())}.`)];
-    }
+    if (!dialsOn(s)) return [h("p", { class: "dial-help" }, `This slide keeps the deck's setting, ${settingName(baseKey())}.`)];
     const want = wantedKey(s);
     const [wa, wd] = want.split("-").map(Number);
     const reqs = dials().requests?.[s.id] || {};
@@ -883,18 +886,21 @@
 
   // The reader's choice on question i of check slide s, or null.
   function choiceOf(s, i) {
-    const c = S.quiz[s.id]?.[i];
+    s = viewOf(s);
+    const c = S.quiz[qkeyOf(s)]?.[i];
     return s.quiz[i].kind === "choice" && Number.isInteger(c) && c >= 0 && c < s.quiz[i].choices.length ? c : null;
   }
 
   // The reader's written answer to question i, {text, state, verdict, feedback}, or null.
   function writtenOf(s, i) {
-    const a = S.quiz[s.id]?.[i];
+    s = viewOf(s);
+    const a = S.quiz[qkeyOf(s)]?.[i];
     return s.quiz[i].kind !== "choice" && a && typeof a === "object" ? a : null;
   }
 
   // Where question i stands: null (open), "waiting" (not judged yet), true or false.
   function outcome(s, i) {
+    s = viewOf(s);
     const c = choiceOf(s, i);
     if (c != null) return s.quiz[i].choices[c].correct;
     const a = writtenOf(s, i);
@@ -903,6 +909,7 @@
   }
 
   function score(s) {
+    s = viewOf(s);
     const o = s.quiz.map((q, i) => outcome(s, i));
     const count = (f) => o.filter(f).length;
     return { total: o.length, done: count((x) => typeof x === "boolean"), right: count((x) => x === true), waiting: count((x) => x === "waiting") };
@@ -989,7 +996,7 @@
   function writtenParts(s, i) {
     const q = s.quiz[i];
     const a = writtenOf(s, i);
-    const key = `${s.id}:${i}`;
+    const key = `${qkeyOf(viewOf(s))}:${i}`;
     if (!a || S.revising.has(key)) {
       const value = S.answerDrafts[key] ?? a?.text ?? q.starter ?? "";
       const input = q.kind === "code" ? codeInput(value, q.language) : h("textarea", { class: "answer-input", rows: 4, placeholder: "Answer in your own words" });
@@ -1037,10 +1044,11 @@
   }
 
   async function submitWritten(s, i, text) {
-    const key = `${s.id}:${i}`;
+    s = viewOf(s);
+    const key = `${qkeyOf(viewOf(s))}:${i}`;
     if (!text.trim()) return toast("Write an answer first.");
     try {
-      await post("api/answer", { slide: s.id, question: i, text });
+      await post("api/answer", { slide: s.id, version: s.qkey, question: i, text });
     } catch (e) {
       return toast(`Could not submit the answer: ${e.message}`);
     }
@@ -1092,18 +1100,20 @@
   }
 
   async function record(s, i, choice) {
-    const got = (S.quiz[s.id] ||= {});
+    s = viewOf(s);
+    const got = (S.quiz[qkeyOf(s)] ||= {});
     if (choice == null) delete got[i];
     else got[i] = choice;
     store.set("quiz", S.quiz);
     try {
-      await post("api/answer", { slide: s.id, question: i, choice });
+      await post("api/answer", { slide: s.id, version: s.qkey, question: i, choice });
     } catch (e) {
       toast(`Could not record the answer: ${e.message}`);
     }
   }
 
   function answer(s, i, j) {
+    s = viewOf(s);
     if (choiceOf(s, i) != null) return;
     record(s, i, j);
     renderSlide({ keepScroll: true });
@@ -1118,6 +1128,7 @@
 
   // The server keeps an answer the session is judging, so re-read what it kept.
   async function retake(s) {
+    s = viewOf(s);
     const clearing = [];
     for (let i = 0; i < s.quiz.length; i++) if (outcome(s, i) != null) clearing.push(record(s, i, null));
     render();
@@ -1128,6 +1139,7 @@
 
   // Quote the question, the reader's answer and the key or feedback into the question box.
   function disagree(s, i) {
+    s = viewOf(s);
     const q = s.quiz[i];
     const a = writtenOf(s, i);
     const text = a
@@ -1158,7 +1170,8 @@
     let right = 0;
     const missed = [];
     const open = [];
-    for (const [s, i] of checks) {
+    for (const [base, i] of checks) {
+      const s = viewOf(base);
       const sc = score(s);
       total += sc.total;
       right += sc.right;
@@ -2268,7 +2281,7 @@
         return;
       }
       if (e.target.closest?.("textarea, input, [contenteditable], table.diff, .stepper, .diagram-body")) return;
-      const s = slide();
+      const s = viewOf(slide());
       if (s.quiz.length && /^[1-9]$/.test(e.key) && !e.shiftKey) {
         const i = s.quiz.findIndex((q, k) => q.kind === "choice" && choiceOf(s, k) == null);
         if (i >= 0 && +e.key <= s.quiz[i].choices.length) {

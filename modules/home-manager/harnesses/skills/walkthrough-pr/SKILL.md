@@ -13,7 +13,7 @@ This replaces the base skill's first step; the change is the topic, and the revi
 
 Resolve the requested commit, branch comparison, pull request, or local changes from the user's request and conversation. If the target is materially ambiguous, ask before choosing it. For a branch, compare against its merge base with the base branch. For local changes, account for staged, unstaged and untracked files, and keep them apart.
 
-Set `reader`, `audience` and `detail` in the deck as the base skill describes, from `--audience` and `--detail` in the arguments or from the reader's starting point. Infer the reader when the request does not give it, and do not ask for it. The reader of a change is new to the change itself, and often to the work around it: the earlier pull requests, the discussion, and the names its authors use for things.
+Set `reader`, `audience` and `detail` in the deck as the base skill describes, from `--audience` and `--detail` in the arguments, or inferred from the context, with 3 for a dial the context does not settle. Infer the reader when the request does not give it, and do not ask for it. The reader of a change is new to the change itself, and often to the work around it: the earlier pull requests, the discussion, and the names its authors use for things.
 
 Read the diff and enough surrounding code, callers, configuration and tests to explain its behavior. Use commit messages or the pull request description for stated intent. Distinguish observed behavior, documented intent and inferred rationale; do not invent the author's reasons. If the change is empty or unavailable, say so rather than building a deck.
 

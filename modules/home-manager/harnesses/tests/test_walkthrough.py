@@ -330,7 +330,7 @@ class DialsTest(DeckDirCase):
         v = deck.extra["variants"].fresh["lines"]["1-1"]
         self.assertEqual((v["title"], v["section"], v["setting"]), ("Lines, briefly", "", {"audience": 1, "detail": 1}))
         dials = self.rd.deck_payload(deck, 1)["dials"]
-        self.assertEqual((dials["audience"], dials["detail"], dials["slides"]), (3, 3, ["intro", "lines"]))
+        self.assertEqual((dials["audience"], dials["detail"], dials["slides"]), (3, 3, ["intro", "lines", "final"]))
         self.assertIn('"Two lines."', run("variant", self.dir, "lines", "--show", "-a", "1", "-d", "concise").stdout)
         self.assertIn("lines: 1-1", run("variant", self.dir).stdout)
         text = run("text", self.dir, "-a", "1", "-d", "1")
@@ -350,7 +350,7 @@ class DialsTest(DeckDirCase):
         self.assertEqual(r.returncode, 1)
         self.assertIn("cannot read", r.stdout)
         self.assertFalse((self.dir / "variants" / "lines" / "1-1.json").exists())
-        self.assertIn("not a content slide", self.variant(slide="final", check=False).stderr)
+        self.assertIn("and quiz", self.variant(slide="final", check=False).stderr)
         self.assertIn("deck's own setting", self.variant(a="3", d="3", check=False).stderr)
         self.assertIn("expected 1-5", self.variant(a="7", check=False).stderr)
         # A broken file on disk leaves the deck itself valid.
@@ -378,6 +378,14 @@ class DialsTest(DeckDirCase):
         self.assertIn("2 invalid", run("variant", self.dir).stdout)
         run("variant", self.dir, "--prune")
         self.assertEqual(list((self.dir / "variants").iterdir()), [])
+
+    def test_answers_kept_by_slide_move_to_the_version_as_written(self):
+        self.write(topic_spec(slides=topic_spec()["slides"] + [topic_check()]))
+        (self.dir / "quiz.json").write_text(json.dumps({"version": 1, "answers": {"final": {"0": 0}}}))
+        deck = self.rd.load_deck(self.dir)
+        quiz = self.rd.QuizAnswers(self.dir / "quiz.json")
+        quiz.migrate(deck)
+        self.assertEqual(quiz.snapshot(), {deck.slide("final")["qkey"]: {"0": 0}})
 
     def test_cold_read_brief_states_the_setting(self):
         self.write(topic_spec(audience="newcomer", detail="concise", reader="Knows: Python. New to: the notes."))
@@ -410,7 +418,7 @@ class DialsServerTest(ServerCase):
 
     def test_request_listen_store_and_ask(self):
         with self.assertRaises(urllib.error.HTTPError) as cm:
-            self.post("api/variant", {"slides": ["final"], "audience": 1, "detail": 3})
+            self.post("api/variant", {"slides": ["nope"], "audience": 1, "detail": 3})
         self.assertEqual(cm.exception.code, 400)
         r = self.post("api/variant", {"slides": ["intro", "lines"], "audience": "novice", "detail": 3})
         self.assertEqual(r["queued"], ["intro", "lines"])
@@ -458,6 +466,46 @@ class DialsServerTest(ServerCase):
         out = run("listen", self.dir, "--answer", msg["id"], "--file", self.dir / "a.md", "--timeout", 5).stdout
         self.assertIn("asked for 2 slides at another setting", out)
 
+    def test_checks_take_settings_and_keep_answers_per_version(self):
+        f = self.dir / "c.json"
+        novice = {"title": "Check, for a novice", "quiz": [
+            {"q": "The notes are a text file. What is its second line?", "see": "lines", "choices": [
+                {"text": "first line", "why": "That is line 1."},
+                {"text": "second line", "why": "Line 2.", "correct": True},
+                {"text": "third line", "why": "That is line 3."}]},
+            {"q": "How many lines does the slide quote?", "see": "lines", "choices": [
+                {"text": "Two", "why": "Lines 2 and 3.", "correct": True}, {"text": "Four", "why": "It quotes two."}]}]}
+        f.write_text(json.dumps(novice))
+        brief = run("variant", self.dir, "final", "-a", "1", "-d", "3", "--brief").stdout
+        self.assertIn("## Rewriting a check", brief)
+        self.assertIn("### `lines`: Lines (as written)", brief)
+        run("variant", self.dir, "final", "-a", "1", "-d", "3", "--file", f)
+        deck = self.wait_for(lambda: (d := self.get("api/deck"))["dials"]["variants"].get("final") and d)
+        base_key = next(s["qkey"] for s in deck["slides"] if s["id"] == "final")
+        v_key = deck["dials"]["variants"]["final"]["1-3"]["qkey"]
+        self.assertTrue(v_key.startswith("final@1-3:") and v_key != base_key)
+        # Each version keeps its own answers.
+        self.post("api/answer", {"slide": "final", "version": base_key, "question": 0, "choice": 1})
+        self.post("api/answer", {"slide": "final", "version": v_key, "question": 0, "choice": 1})
+        self.post("api/answer", {"slide": "final", "version": v_key, "question": 1, "choice": 0})
+        self.assertEqual(self.get("api/quiz"), {base_key: {"0": 1}, v_key: {"0": 1, "1": 0}})
+        with self.assertRaises(urllib.error.HTTPError) as cm:
+            self.post("api/answer", {"slide": "final", "version": "final@9-9:00000000", "question": 0, "choice": 0})
+        self.assertEqual(cm.exception.code, 409)
+        # The report counts the version answered last.
+        self.post("api/finish", {})
+        out = run("listen", self.dir, "--timeout", 5).stdout
+        self.assertIn("Checks: 2 of 2 answered correctly.", out)
+        self.post("api/answer", {"slide": "final", "version": base_key, "question": 0, "choice": 1})
+        self.post("api/finish", {})
+        out = run("listen", self.dir, "--timeout", 5).stdout
+        self.assertIn("Checks: 0 of 1 answered correctly.", out)
+        # Editing a slide the check covers retires the rewrite of the check.
+        spec = self.spec()
+        spec["slides"][1]["title"] = "The lines"
+        self.write(spec)
+        self.wait_for(lambda: not self.get("api/deck")["dials"]["variants"].get("final"))
+
     def test_withdraw_a_rewrite_not_started(self):
         self.post("api/variant", {"slides": ["intro", "lines"], "audience": 2, "detail": 2})
         r = self.post("api/variant-withdraw", {"slides": ["intro"], "setting": "2-2"})
@@ -492,7 +540,11 @@ class CoreServerTest(ServerCase):
         return {**topic_spec(), "slides": [*topic_spec()["slides"], topic_check()]}
 
     def quiz(self):
-        return self.get("api/quiz").get("final", {})
+        return self.get("api/quiz").get(self.key(), {})
+
+    def key(self):
+        """The check as written: answers are kept per version of a check."""
+        return next(s["qkey"] for s in self.get("api/deck")["slides"] if s["id"] == "final")
 
     def test_round_trip(self):
         root = self.url.rsplit("/", 2)[0]
@@ -549,8 +601,10 @@ class CoreServerTest(ServerCase):
                 self.post("api/answer", bad)
             self.assertEqual(cm.exception.code, 400)
         self.post("api/answer", {"slide": "final", "question": 0, "choice": 1})
-        self.assertEqual(self.get("api/quiz"), {"final": {"0": 1}})
-        self.assertEqual(json.loads((self.dir / "quiz.json").read_text())["answers"], {"final": {"0": 1}})
+        key = self.key()
+        self.assertRegex(key, r"^final@as-written:[0-9a-f]{8}$")
+        self.assertEqual(self.get("api/quiz"), {key: {"0": 1}})
+        self.assertEqual(json.loads((self.dir / "quiz.json").read_text())["answers"], {key: {"0": 1}})
         self.post("api/finish", {})
         out = run("listen", self.dir, "--timeout", 5).stdout
         self.assertIn("Checks: 0 of 1 answered correctly.", out)
@@ -559,7 +613,7 @@ class CoreServerTest(ServerCase):
         self.assertIn("correct: second line", out)
         self.assertIn("covered on slide 2 of 3: Lines", out)
         self.post("api/answer", {"slide": "final", "question": 0, "choice": None})
-        self.assertEqual(self.get("api/quiz"), {"final": {}})
+        self.assertEqual(self.get("api/quiz"), {key: {}})
         self.post("api/answer", {"slide": "final", "question": 0, "choice": 0})
         self.post("api/finish", {})
         out = run("listen", self.dir, "--timeout", 5).stdout

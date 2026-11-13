@@ -36,8 +36,9 @@ For a change (`walkthrough-pr`), no detail stop drops these, whatever its word c
 
 ## The default setting
 
-- **Audience**: infer it, as step 1 of the skill infers the reader, and choose the stop whose "knows" column fits. A reviewer of a change in their own subsystem is usually at 4.
-- **Detail**: 3. Stop 3 is the skill's normal budget, so a deck without arguments is the deck the skill wrote before the dials existed.
+When the arguments and the request do not set a dial, infer it from the context: the conversation, what you remember of the reader (memory files, earlier decks and their settings) and what the reader asked for before. For audience, choose the stop whose "knows" column fits what you know of the reader; a reviewer of a change in their own subsystem is usually at 4. For detail, look for signs of how much the reader wants, such as a deadline, a quick look, or a request to understand something in full.
+
+When the context does not settle a dial, use 3 for it: practitioner and standard. Stop 3 of detail is the skill's normal budget, so a deck with no arguments and no context is the deck the skill wrote before the dials existed.
 
 Tell the reader the setting with the URL, so that they can correct it.
 
@@ -49,7 +50,7 @@ The skill takes `--audience STOP` and `--detail STOP` anywhere in its arguments,
 
 The page asks for a content slide at another setting, and `listen` hands you the request. `deck.py variant DECK SLIDE --audience A --detail D --brief` prints the whole brief for one rewrite: these rules, the stops' rows, the deck's outline, the slide as written and the checks that rely on it. Give it as is to a subagent, or follow it yourself. Rewrite the slide at the new setting:
 
-- **Keep the slide's idea and id.** The title can change. Check slides and generated slides keep the deck's setting.
+- **Keep the slide's idea and id.** The title can change. Generated slides (appendix groups, Findings, Proposed actions) keep the deck's setting; a check slide is rewritten as "Rewriting a check" says.
 - **One slide, in place.** Do not add slides. At audience 1 or 2, put the background that a new slide would carry into the slide's first blocks, such as a callout with the definitions.
 - **Change what the stops change.** The two settings must differ visibly: a novice slide defines terms that the specialist slide uses bare, and a concise slide is shorter and keeps the claim. When the sources do not support more detail, say on the slide what is not known rather than padding it.
 - **Read the sources again when you need more.** Do not invent facts that the slide as written did not need.
@@ -58,6 +59,19 @@ The page asks for a content slide at another setting, and `listen` hands you the
 - **Keep the checks answerable.** Each check question whose `see` names the slide must still be settled by the rewrite, at every stop, concise included.
 
 Write the slide object to a file and store it with the deck's script (`deck.py`, or `walkthrough_pr.py` for a change): `variant DECK SLIDE --audience A --detail D --file FILE`. It validates the slide like `check`, and an open page shows it at once. The variant stays valid until the slide as written, the lines it quotes, `reader` or `goal` change; `variant DECK` lists the stored variants, and `variant DECK --prune` deletes the stale ones.
+
+### Rewriting a check
+
+A check at another setting is a new set of questions for the reader who sees the deck at that setting. Its questions can change completely: their number, their kind, their wording and what they ask.
+
+- **Keep what the check is for.** The final check spans the goal; a check after a run of slides covers those slides. Point each `see` at the content slide that settles the question; slide ids are the same at every setting.
+- **Write from the slides as the reader sees them at this setting.** The brief gives them, rewritten where they have been. A novice check can rely on what the novice slides define; a concise check asks only what the concise slides say.
+- **Audience sets what a question assumes.** At 1 and 2, define every term in the question itself and ask about the mechanism in plain words. At 4 and 5, use the subsystem's terms bare and ask for predictions on edge cases.
+- **Detail sets the number and depth.** At 1, one or two questions on the main claim. At 3, as many as the check as written. At 5, up to six, with edge cases, and a written answer where choices would let the reader guess.
+- **Follow Checks in `deck.md`.** Each question stands on its own; each wrong choice is a plausible misreading with a `why`; nothing gives the answer away. A written answer needs a rubric; a code question can use a test only from a test directory the deck already has.
+- **Read each question once as a reader without the slides.** No cold or blind reader checks a rewritten check. If the question or its choices give the answer away, rewrite it.
+
+The page keeps the reader's answers per version of a check: answers to the check as written, or at another setting, stay with that version and come back when the reader switches back. Rewording a question starts a new version; changing only a choice's wording or a `why` does not. `listen` reports each check at the version the reader answered last.
 
 ### Rewriting a slide of a change
 
