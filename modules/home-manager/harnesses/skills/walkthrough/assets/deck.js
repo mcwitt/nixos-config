@@ -29,6 +29,8 @@
     agent: "session", // what the page calls whoever answers; an extension may rename it
     answerDrafts: {},
     revising: new Set(),
+    view: { deck: null, slides: {} }, // the setting the reader chose, "A-D", for the deck and per slide
+    lastShown: {}, // per slide, the setting drawn last, kept on screen while another is written
   };
 
   // ---- small helpers ----
@@ -433,7 +435,8 @@
   }
 
   function drawSlide({ keepScroll = false } = {}) {
-    const s = slide();
+    const base = slide();
+    const s = shownSlide(base);
     const el = $("#slide");
     const top = el.scrollTop;
     const inner = h(
@@ -447,6 +450,7 @@
         s.quiz.length ? h("span", { class: "check-tag" }, `Check · ${scoreText(s)}`) : null,
         skipControls(),
       ),
+      dialsEl(base),
       h("h2", { class: "slide-title" }, s.title),
     );
     inner.append(...slideBody(s));
@@ -526,6 +530,133 @@
     if (skip > i + 1) return { to: skip, label: `Skip to ${slides[skip].section || slides[skip].title} ↠`, title: `Skip the rest of ${slides[i].section}` };
     if (skip < 0 && i < n - 2) return { to: n - 1, label: "Skip to the end ↠", title: "Skip to the last slide" };
     return null;
+  }
+
+  // ---- audience and detail ----
+  //
+  // The deck is written at one setting; the session can rewrite a content
+  // slide at another, and the deck carries every rewrite it has stored, so
+  // switching to one draws it without asking the server.
+
+  const dials = () => S.deck.dials;
+  const dialsOn = (s) => !!dials() && dials().slides.includes(s.id);
+  const baseKey = () => `${dials().audience}-${dials().detail}`;
+  const wantedKey = (s) => S.view.slides[s.id] || S.view.deck || baseKey();
+  const variant = (s, key) => (key === baseKey() ? s : dials().variants[s.id]?.[key]);
+  const settingName = (key) => {
+    const [a, d] = key.split("-").map(Number);
+    return `${dials().stops.audience[a - 1]} · ${dials().stops.detail[d - 1]}`;
+  };
+
+  function shownKey(s) {
+    if (!dialsOn(s)) return null;
+    const want = wantedKey(s);
+    if (variant(s, want)) return want;
+    const last = S.lastShown[s.id];
+    return last && variant(s, last) ? last : baseKey();
+  }
+
+  function shownSlide(s) {
+    const key = shownKey(s);
+    if (!key) return s;
+    S.lastShown[s.id] = key;
+    return variant(s, key);
+  }
+
+  function saveView() {
+    store.set("view", S.view);
+  }
+
+  async function chooseSetting(s, dial, n, scope) {
+    const [a0, d0] = wantedKey(s).split("-").map(Number);
+    const key = dial === "both" ? baseKey() : dial === "audience" ? `${n}-${d0}` : `${a0}-${n}`;
+    const ids = scope === "deck" ? dials().slides : [s.id];
+    if (scope === "deck") S.view = { deck: key === baseKey() ? null : key, slides: {} };
+    else if (key === (S.view.deck || baseKey())) delete S.view.slides[s.id];
+    else S.view.slides[s.id] = key;
+    saveView();
+    renderSlide({ keepScroll: true });
+    renderTrack();
+    const missing = ids.filter((id) => !variant(S.deck.slides[slideIndex(id)], key));
+    if (!missing.length) return;
+    const [a, d] = key.split("-").map(Number);
+    try {
+      const r = await post("api/variant", { slides: missing, audience: a, detail: d });
+      dials().requests = r.requests;
+      renderSlide({ keepScroll: true });
+    } catch (err) {
+      toast(err.message);
+    }
+  }
+
+  function dialsEl(s) {
+    if (!dialsOn(s)) return null;
+    const want = wantedKey(s);
+    const shown = shownKey(s);
+    const [wa, wd] = want.split("-").map(Number);
+    const reqs = dials().requests?.[s.id] || {};
+    const scope = store.get("dial-scope", "slide");
+    const group = (dial, label, cur) => {
+      const names = dials().stops[dial];
+      const [ba, bd] = baseKey().split("-").map(Number);
+      return h(
+        "div",
+        { class: "dial", role: "radiogroup", "aria-label": label },
+        h("span", { class: "dial-label" }, label),
+        h("span", { class: "dial-end" }, names[0]),
+        names.map((name, i) => {
+          const n = i + 1;
+          const key = dial === "audience" ? `${n}-${wd}` : `${wa}-${n}`;
+          const state = variant(s, key) ? "have" : reqs[key] ? "pending" : "";
+          const isBase = n === (dial === "audience" ? ba : bd);
+          return h(
+            "button",
+            {
+              type: "button",
+              role: "radio",
+              "aria-checked": String(n === cur),
+              class: ["stop", n === cur && "on", state, isBase && "base"].filter(Boolean).join(" "),
+              title: `${label} ${n}: ${name}${isBase ? " (as written)" : ""}${state === "have" ? " · ready" : state === "pending" ? " · being written" : ""}`,
+              onclick: () => n !== cur && chooseSetting(s, dial, n, store.get("dial-scope", "slide")),
+            },
+            String(n),
+          );
+        }),
+        h("span", { class: "dial-end" }, names[names.length - 1]),
+      );
+    };
+    const scopeBtn = h(
+      "button",
+      {
+        type: "button",
+        class: "ghost small dial-scope",
+        title: "Whether a change applies to this slide or to every content slide",
+        onclick: () => {
+          store.set("dial-scope", scope === "slide" ? "deck" : "slide");
+          renderSlide({ keepScroll: true });
+        },
+      },
+      scope === "slide" ? "This slide" : "All slides",
+    );
+    let note = null;
+    if (shown !== want) {
+      const state = reqs[want];
+      const away = S.status.session === "away";
+      const text = away
+        ? `Not written at ${settingName(want)} yet. The ${who()} is away; the request waits for it. Settings already written switch at once.`
+        : state === "claimed"
+          ? `The ${who()} is rewriting this slide at ${settingName(want)}…`
+          : `Asked for ${settingName(want)}; the ${who()} picks it up next.`;
+      note = h("p", { class: "dial-note", role: "status" }, text, ` Showing ${settingName(shown)}.`);
+    } else if (shown !== baseKey()) {
+      note = h(
+        "p",
+        { class: "dial-note quiet" },
+        `Rewritten at ${settingName(shown)}. `,
+        h("button", { type: "button", class: "linkish", onclick: () => chooseSetting(s, "both", 0, "slide") }, "Show as written"),
+      );
+    }
+    return h("div", { class: "dials" }, h("div", { class: "dial-row" }, group("audience", "Audience", wa), group("detail", "Detail", wd), scopeBtn), note);
   }
 
   function skipControls() {
@@ -1632,7 +1763,8 @@
     if (!text && !S.refs.length) return;
     $("#send").disabled = true;
     try {
-      const { message } = await post("api/ask", { slide: s.id, text, refs: S.refs });
+      const view = shownKey(s);
+      const { message } = await post("api/ask", { slide: s.id, text, refs: S.refs, view: view && view !== baseKey() ? view : null });
       (S.threads[s.id] ||= { messages: [] }).messages.push(message);
       $("#question").value = "";
       S.refs = [];
@@ -1840,6 +1972,8 @@
 
   async function refreshDeck() {
     const id = S.deck && slide()?.id;
+    const before = S.deck && JSON.stringify(S.deck.slides);
+    const shownBefore = S.deck && dialsOn(slide()) ? JSON.stringify(shownSlide(slide())) : null;
     try {
       await loadDeck();
     } catch (e) {
@@ -1848,6 +1982,15 @@
     banner("deck", null);
     const i = slideIndex(id);
     S.idx = i >= 0 ? i : Math.min(S.idx, S.deck.slides.length - 1);
+    if (before === JSON.stringify(S.deck.slides)) {
+      // Only rewrites at other settings arrived: redraw this slide if it now shows one.
+      const now = dialsOn(slide()) ? JSON.stringify(shownSlide(slide())) : null;
+      if (now !== shownBefore) renderSlide();
+      else renderSlide({ keepScroll: true });
+      renderTrack();
+      scheduleAudit();
+      return;
+    }
     loadDraft();
     render();
     toast(`The ${who()} updated the deck.`);
@@ -1893,6 +2036,11 @@
     es.addEventListener("deck-error", (e) =>
       banner("deck", `The ${who()}'s latest edit to the slides does not check yet, so this page shows them as they were.`, JSON.parse(e.data).errors),
     );
+    es.addEventListener("variants", (e) => {
+      if (!dials()) return;
+      dials().requests = JSON.parse(e.data).requests;
+      if (dialsOn(slide())) renderSlide({ keepScroll: true });
+    });
     es.addEventListener("thread", threadsChanged);
     es.addEventListener("quiz", quizChanged);
     for (const [event, fn] of Object.entries(hooks.events)) es.addEventListener(event, fn);
@@ -2012,6 +2160,7 @@
     S.drafts = store.get("drafts", {});
     S.answerDrafts = store.get("answer-drafts", {});
     S.visited = new Set(store.get("visited", []));
+    S.view = { deck: null, slides: {}, ...store.get("view", {}) };
     bindUI();
     try {
       await loadDeck();
