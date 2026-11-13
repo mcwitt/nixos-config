@@ -322,6 +322,144 @@ VERDICTS = {"correct": "Correct", "partial": "Partly right", "incorrect": "Not y
 TRIVIAL = 3  # content slides a deck may have without a final check
 
 
+# --------------------------------------------------------------------------
+# Dials: audience and detail
+#
+# A deck is written at one audience and one detail stop (deck.json's
+# `audience` and `detail`). The reader can ask for a content slide at another
+# setting; the session rewrites it in place and stores it as
+# variants/SLIDE/A-D.json. A variant records the key of the slide it was
+# written from, so an edit to that slide, or to the lines it quotes, retires
+# it. references/dials.md defines the stops.
+
+AUDIENCE = ("novice", "newcomer", "practitioner", "specialist", "expert")
+DETAIL = ("concise", "focused", "standard", "thorough", "complete")
+DIALS = {"audience": AUDIENCE, "detail": DETAIL}
+DIALS_DOC = SCRIPT.parent.parent / "references" / "dials.md"
+VARIANT_NAME = re.compile(r"^([1-5])-([1-5])\.json$")
+
+
+def parse_stop(value, dial: str) -> int:
+    """A stop given as 1-5 or by name."""
+    names = DIALS[dial]
+    v = str(value).strip().lower()
+    if v.isdigit() and 1 <= int(v) <= len(names):
+        return int(v)
+    if v in names:
+        return names.index(v) + 1
+    raise ValueError(f"{dial}: expected 1-5 or one of {', '.join(names)}, not {value!r}")
+
+
+def stop_name(dial: str, n: int) -> str:
+    return f"{n} ({DIALS[dial][n - 1]})"
+
+
+def setting_text(a: int, d: int) -> str:
+    return f"audience {stop_name('audience', a)}, detail {stop_name('detail', d)}"
+
+
+def stop_definition(dial: str, n: int) -> str:
+    """The row for one stop in references/dials.md, as "name: definition"."""
+    try:
+        doc = DIALS_DOC.read_text()
+    except OSError:
+        return DIALS[dial][n - 1]
+    m = re.search(rf"^\| {n} \| {DIALS[dial][n - 1]} \|(.*)\|\s*$", doc.split(f"## {dial.title()}", 1)[-1], re.M)
+    cells = [c.strip() for c in m[1].split("|")] if m else []
+    return f"{DIALS[dial][n - 1]}: " + " ".join(cells) if cells else DIALS[dial][n - 1]
+
+
+def _setting(spec: dict, errors: list[str]) -> tuple[int, int] | None:
+    """The deck's own setting; a deck that gives neither has none, and the page shows no dials."""
+    if spec.get("audience") is None and spec.get("detail") is None:
+        return None
+    out = []
+    for dial, default in (("audience", None), ("detail", 3)):
+        v = spec.get(dial, default)
+        try:
+            if v is None:
+                raise ValueError(f"{dial}: required beside {'detail' if dial == 'audience' else 'audience'}; "
+                                 f"1-5 or one of {', '.join(DIALS[dial])}")
+            out.append(parse_stop(v, dial))
+        except ValueError as e:
+            errors.append(str(e))
+            out.append(3)
+    return out[0], out[1]
+
+
+@dataclass
+class Variants:
+    """The variants on disk: fresh ones by slide and setting, and what is wrong with the rest."""
+    fresh: dict[str, dict[str, dict]] = field(default_factory=dict)  # slide id -> "A-D" -> slide
+    stale: list[Path] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
+    keys: dict[str, str] = field(default_factory=dict)  # slide id -> its current key
+
+
+def slide_key(slide: dict, hunks: dict[str, Hunk], spec: dict) -> str:
+    """What a variant was written from: the slide as written, the lines it quotes, and the reader and goal."""
+    lines = []
+    for b in slide["blocks"]:
+        for blk in [b, *b.get("blocks", [])]:
+            for p in blk.get("pieces", []):
+                h = hunks[p["hunk"]]
+                lines.append([[r.kind, r.text] for r in h.rows[p["lo"]:p["hi"] + 1]])
+    body = {"slide": slide, "lines": lines, "reader": spec.get("reader"), "goal": spec.get("goal")}
+    return hashlib.sha256(json.dumps(body, sort_keys=True).encode()).hexdigest()[:16]
+
+
+def variant_dials(slide: dict) -> bool:
+    """Whether a slide takes variants: authored content slides, not checks or generated slides."""
+    return not slide["quiz"] and not slide.get("generated") and not any(ext.reserves(slide["id"]) for ext in EXTENSIONS)
+
+
+def _load_variants(load: Loading, slides: list[dict], content, setting) -> Variants:
+    """Read DECK/variants/: parse each variant like a slide, and set aside stale and invalid ones."""
+    out = Variants()
+    vdir = load.dir / "variants"
+    load.sources.append(vdir)
+    if setting is None:
+        return out
+    by_id = {s["id"]: s for s in slides if variant_dials(s)}
+    for sid, s in by_id.items():
+        out.keys[sid] = slide_key(s, load.hunks, load.spec)
+    if not vdir.is_dir():
+        return out
+    for sub in sorted(p for p in vdir.iterdir() if p.is_dir()):
+        load.sources.append(sub)
+        for path in sorted(sub.glob("*.json")):
+            load.sources.append(path)
+            m = VARIANT_NAME.match(path.name)
+            base = by_id.get(sub.name)
+            where = f"variants/{sub.name}/{path.name}"
+            if not m or base is None:
+                out.errors.append(f"{where}: no content slide {sub.name!r}, or not named A-D.json")
+                continue
+            try:
+                rec = json.loads(path.read_text())
+            except (OSError, ValueError) as e:
+                out.errors.append(f"{where}: {e}")
+                continue
+            if rec.get("key") != out.keys[sub.name]:
+                out.stale.append(path)
+                continue
+            raw = rec.get("slide") if isinstance(rec.get("slide"), dict) else {}
+            errs: list[str] = []
+            load.errors, outer = errs, load.errors  # an extension's blocks report to load.errors
+            v = {"id": base["id"], "title": _str(raw.get("title", base["title"]), f"{where}.title", errs, True),
+                 "section": base["section"], "prompts": [], "blocks": [], "quiz": [],
+                 "setting": {"audience": int(m[1]), "detail": int(m[2])}}
+            try:
+                content(raw, where, v, errs)
+            finally:
+                load.errors = outer
+            if errs:
+                out.errors.extend(errs)
+                continue
+            out.fresh.setdefault(sid := sub.name, {})[f"{m[1]}-{m[2]}"] = v
+    return out
+
+
 class DeckInvalid(Exception):
     def __init__(self, errors: list[str]):
         super().__init__("\n".join(errors))
@@ -551,7 +689,7 @@ def load_deck(deck_dir: Path) -> Deck:
     if not isinstance(spec, dict):
         raise DeckInvalid([f"{spec_path}: expected a JSON object"])
     errors: list[str] = []
-    known = {"title", "subtitle", "scope", "goal", "reader", "root", "source_url", "slides", *(k for e in EXTENSIONS for k in e.spec_keys)}
+    known = {"title", "subtitle", "scope", "goal", "reader", "audience", "detail", "root", "source_url", "slides", *(k for e in EXTENSIONS for k in e.spec_keys)}
     for key in sorted(set(spec) - known):
         errors.append(f"{key}: not a key this script reads (a deck for another skill's script?)")
     load = Loading(deck_dir, spec, errors, [spec_path])
@@ -573,44 +711,14 @@ def load_deck(deck_dir: Path) -> Deck:
         slides_in = []
 
     keys = {"md", "callout", "excerpt", "diagram", *handlers}
-    seen_ids: set[str] = set()
-    slides = load.slides
-    # Checks point at the content slides that settle their questions.
-    content_ids = {s.get("id") for s in slides_in if isinstance(s, dict) and "quiz" not in s}
-    for k, s in enumerate(slides_in):
-        where = f"slides[{k}]"
-        if not isinstance(s, dict):
-            errors.append(f"{where}: expected an object")
-            continue
-        sid = s.get("id")
-        if not isinstance(sid, str) or not SLIDE_ID.match(sid):
-            errors.append(f"{where}.id: expected letters, digits and . _ ~ - (starting with a letter)")
-            sid = f"slide-{k}"
-        elif sid in seen_ids:
-            errors.append(f"{where}.id: duplicate id {sid!r}")
-        elif any(ext.reserves(sid) for ext in EXTENSIONS):
-            errors.append(f"{where}.id: {sid!r} is reserved for a generated slide")
-        seen_ids.add(sid)
-        where = f"slide {sid!r}"
-        out = {
-            "id": sid,
-            "title": _str(s.get("title"), f"{where}.title", errors, True),
-            "section": _str(s.get("section"), f"{where}.section", errors),
-            "prompts": [],
-            "blocks": [],
-            "quiz": [],
-        }
+
+    def content(s: dict, where: str, out: dict, errors: list[str]):
+        """Parse a content slide's prompts and blocks into `out`."""
         prompts = s.get("prompts") or []
         if not isinstance(prompts, list) or not all(isinstance(p, str) for p in prompts):
             errors.append(f"{where}.prompts: expected a list of strings")
         else:
             out["prompts"] = prompts
-        if "quiz" in s:
-            if "blocks" in s:
-                errors.append(f"{where}: a check slide has quiz, not blocks")
-            out["quiz"] = _quiz(s["quiz"], where, sid, content_ids, deck_dir, errors)
-            slides.append(out)
-            continue
         blocks = s.get("blocks")
         if not isinstance(blocks, list) or not blocks:
             errors.append(f"{where}.blocks: expected a non-empty list")
@@ -640,6 +748,45 @@ def load_deck(deck_dir: Path) -> Deck:
                     out["blocks"].append({"type": "excerpt", **ex, "caption": _str(blk.get("caption"), f"{bw}.caption", errors)})
             else:
                 handlers[key].block(load, key, blk, bw, out["blocks"])
+
+    seen_ids: set[str] = set()
+    slides = load.slides
+    # Checks point at the content slides that settle their questions.
+    content_ids = {s.get("id") for s in slides_in if isinstance(s, dict) and "quiz" not in s}
+    for k, s in enumerate(slides_in):
+        where = f"slides[{k}]"
+        if not isinstance(s, dict):
+            errors.append(f"{where}: expected an object")
+            continue
+        sid = s.get("id")
+        if not isinstance(sid, str) or not SLIDE_ID.match(sid):
+            errors.append(f"{where}.id: expected letters, digits and . _ ~ - (starting with a letter)")
+            sid = f"slide-{k}"
+        elif sid in seen_ids:
+            errors.append(f"{where}.id: duplicate id {sid!r}")
+        elif any(ext.reserves(sid) for ext in EXTENSIONS):
+            errors.append(f"{where}.id: {sid!r} is reserved for a generated slide")
+        seen_ids.add(sid)
+        where = f"slide {sid!r}"
+        out = {
+            "id": sid,
+            "title": _str(s.get("title"), f"{where}.title", errors, True),
+            "section": _str(s.get("section"), f"{where}.section", errors),
+            "prompts": [],
+            "blocks": [],
+            "quiz": [],
+        }
+        if "quiz" in s:
+            prompts = s.get("prompts") or []
+            if isinstance(prompts, list) and all(isinstance(p, str) for p in prompts):
+                out["prompts"] = prompts
+            else:
+                errors.append(f"{where}.prompts: expected a list of strings")
+            if "blocks" in s:
+                errors.append(f"{where}: a check slide has quiz, not blocks")
+            out["quiz"] = _quiz(s["quiz"], where, sid, content_ids, deck_dir, errors)
+        else:
+            content(s, where, out, errors)
         slides.append(out)
 
     generated = [g for ext in EXTENSIONS for g in ext.end(load)]
@@ -647,8 +794,11 @@ def load_deck(deck_dir: Path) -> Deck:
     if sum(not s["quiz"] for s in main) > TRIVIAL and not main[-1]["quiz"]:
         errors.append(f"the deck has more than {TRIVIAL} content slides, so the last slide before the appendix "
                       "must be a final check of two to four questions that span the deck")
+    setting = _setting(spec, errors)
+    variants = _load_variants(load, slides, content, setting) if not errors else Variants()
     if errors:
         raise DeckInvalid(errors)
+    load.extra["variants"] = variants
     return Deck(deck_dir, spec, load.files + list(plain.values()), load.hunks, slides + generated, load.sources, load.extra)
 
 
@@ -728,6 +878,11 @@ def deck_payload(deck: Deck, version: int) -> dict:
         "files": [file_payload(f) for f in deck.files],
         "slides": deck.slides,
     }
+    setting = _setting(spec, [])
+    if setting:
+        variants: Variants = deck.extra["variants"]
+        out["dials"] = {"audience": setting[0], "detail": setting[1], "stops": DIALS,
+                        "slides": [s["id"] for s in deck.slides if variant_dials(s)], "variants": variants.fresh}
     for ext in EXTENSIONS:
         out.update(ext.payload(deck))
     return out
@@ -1005,6 +1160,7 @@ class State:
         # Problems a page found drawing this deck version, as (slide, where, message).
         self.audited = 0
         self.issues: set[tuple[str, str, str]] = set()
+        self.variant_requests: dict[str, dict[str, str]] = {}  # slide id -> "A-D" -> queued or claimed
         self.issues_lock = threading.Lock()
         for ext in EXTENSIONS:
             ext.attach(self)
@@ -1013,8 +1169,46 @@ class State:
         return {"session": self.presence}
 
     def payload(self) -> dict:
-        return {**deck_payload(self.deck, self.version), "status": self.status(),
-                "engine": engine(), "audited": self.audited == self.version}
+        out = {**deck_payload(self.deck, self.version), "status": self.status(),
+               "engine": engine(), "audited": self.audited == self.version}
+        if "dials" in out:
+            out["dials"]["requests"] = self.variant_requests
+        return out
+
+    def request_variants(self, slides: list[str], a: int, d: int) -> list[str]:
+        """Queue a rewrite of each slide at a setting it has not been written at; return the ones queued."""
+        setting = _setting(self.deck.spec, [])
+        if setting is None:
+            raise ValueError("this deck has no audience and detail setting")
+        key, fresh = f"{a}-{d}", self.deck.extra["variants"].fresh
+        pending = {(x["slide"], x["setting"]) for x in self.queue.items() if x.get("kind") == "variant"}
+        queued = []
+        for sid in dict.fromkeys(slides):
+            s = self.deck.slide(sid)
+            if s is None or not variant_dials(s):
+                raise ValueError(f"{sid}: not a content slide that takes another setting")
+            if (a, d) == setting or key in fresh.get(sid, {}) or (sid, key) in pending:
+                continue
+            self.queue.add({"id": new_id(), "kind": "variant", "slide": sid, "setting": key, "audience": a, "detail": d,
+                            "where": f"{self.deck.position(s)}: {s['title']}", "at": time.time()})
+            queued.append(sid)
+        self._sync_variant_requests()
+        return queued
+
+    def _sync_variant_requests(self):
+        """Drop requests a stored variant answers, and tell the pages what is queued or being written."""
+        fresh = self.deck.extra["variants"].fresh
+        now: dict[str, dict[str, str]] = {}
+        for x in self.queue.items():
+            if x.get("kind") != "variant":
+                continue
+            if x["setting"] in fresh.get(x["slide"], {}) or not self.deck.slide(x["slide"]):
+                self.queue.remove(x["id"])
+                continue
+            now.setdefault(x["slide"], {})[x["setting"]] = "claimed" if self.queue.claimed(x["id"]) else "queued"
+        if now != self.variant_requests:
+            self.variant_requests = now
+            self.broadcast("variants", {"requests": now})
 
     def hunks(self) -> dict[str, Hunk]:
         """The hunks a reader can quote: the deck's and any an extension adds."""
@@ -1122,6 +1316,8 @@ class State:
         busy = False
         for item in self.queue.items():
             qid = item["id"]
+            if item.get("kind") == "variant":
+                busy |= self.queue.claim_age(qid) < CLAIM_STALE
             if item.get("kind") not in ("question", "answer"):
                 continue
             busy |= self.queue.claim_age(qid) < CLAIM_STALE
@@ -1146,6 +1342,7 @@ class State:
                     self.threads.save()
                     changed.add(slide)
         self.busy = busy
+        self._sync_variant_requests()
         for slide in changed:
             self.broadcast("thread", {"slide": slide})
 
@@ -1310,6 +1507,7 @@ class Handler(BaseHTTPRequestHandler):
             "/api/answer": self._answer,
             "/api/finish": self._finish,
             "/api/issues": self._issues,
+            "/api/variant": self._variant,
         }.get(route)
         if handler is None:
             for ext in EXTENSIONS:
@@ -1332,11 +1530,14 @@ class Handler(BaseHTTPRequestHandler):
         if slide is None or not isinstance(text, str) or not (text.strip() or refs):
             return self._error(400, "expected a slide id and a question")
         qid = new_id()
+        view = body.get("view")
+        view = view if isinstance(view, str) and view in deck.extra["variants"].fresh.get(slide["id"], {}) else None
         msg = {"id": qid, "role": "user", "text": text.strip()[:20_000], "refs": refs,
-               "at": time.time(), "state": "queued"}
+               "at": time.time(), "state": "queued", **({"view": view} if view else {})}
         item = {
             "id": qid,
             "kind": "question",
+            "view": view,
             "slide": slide["id"],
             "where": f"{deck.position(slide)}: {slide['title']}",
             "text": msg["text"],
@@ -1349,6 +1550,18 @@ class Handler(BaseHTTPRequestHandler):
             st.queue.add(item)
         st.broadcast("thread", {"slide": slide["id"]})
         self._json({"message": msg})
+
+    def _variant(self, body: dict):
+        """The reader asked for slides at another setting."""
+        slides = body.get("slides")
+        try:
+            a, d = parse_stop(body.get("audience"), "audience"), parse_stop(body.get("detail"), "detail")
+            if not isinstance(slides, list) or not slides or not all(isinstance(x, str) for x in slides):
+                raise ValueError("expected a list of slide ids")
+            queued = self.state.request_variants(slides, a, d)
+        except ValueError as e:
+            return self._error(400, str(e))
+        self._json({"queued": queued, "requests": self.state.variant_requests})
 
     def _withdraw(self, body: dict):
         st = self.state
@@ -1502,7 +1715,7 @@ does not explain. Your report shows the author where a new reader stops understa
 ## The reader you stand in for
 
 {reader}
-
+{setting}
 - Do not report what this reader knows.
 - Read as a person who does not know the subjects this reader is new to. You possibly know a term from those
   subjects yourself. If the deck uses the term and does not explain it, report it.
@@ -1641,13 +1854,26 @@ def quiz_text(s: dict, key: bool) -> str:
     return "\n\n".join(out)
 
 
-def deck_text(deck: Deck, appendix: bool = False, key: bool = False, checks_only: bool = False) -> str:
+def at_setting(deck: Deck, a: int, d: int) -> tuple[list[dict], list[str]]:
+    """The slides with each one that has a fresh variant at this setting replaced by it, and the ids still as written."""
+    fresh = deck.extra["variants"].fresh
+    slides, missing = [], []
+    for s in deck.slides:
+        v = fresh.get(s["id"], {}).get(f"{a}-{d}")
+        if v is None and variant_dials(s) and (a, d) != _setting(deck.spec, []):
+            missing.append(s["id"])
+        slides.append(v or s)
+    return slides, missing
+
+
+def deck_text(deck: Deck, appendix: bool = False, key: bool = False, checks_only: bool = False,
+              slides: list[dict] | None = None) -> str:
     spec = deck.spec
     out = [f"# {spec['title']}"]
     if not checks_only:
         out += [f"{label}{spec[k]}" for k, label in (("subtitle", ""), ("scope", "Sources: "), ("goal", "Goal: "), ("reader", "Reader: "))
                 if spec.get(k)]
-    slides = [s for s in deck.slides if not s.get("generated")]
+    slides = [s for s in (slides or deck.slides) if not s.get("generated")]
     shown = [s for s in slides if appendix or s["section"] != "Appendix"]
     skipped = [s["title"] for s in slides if s not in shown]
     for n, s in enumerate(shown, 1):
@@ -1672,8 +1898,33 @@ def cmd_text(args):
     elif args.brief:
         if not deck.spec.get("reader"):
             sys.exit("error: reader: say in deck.json what the reader knows and is new to, so the cold reader can stand in for them")
-        brief = COLD_READ.format(reader=deck.spec["reader"])
-    print(brief + deck_text(deck, args.appendix, args.key, args.checks_only), end="")
+        brief = COLD_READ.format(reader=deck.spec["reader"], setting=setting_brief(deck, args))
+    slides = None
+    if args.audience or args.detail:
+        base = _setting(deck.spec, [])
+        if base is None:
+            sys.exit("error: the deck has no audience and detail setting")
+        try:
+            a = parse_stop(args.audience or base[0], "audience")
+            d = parse_stop(args.detail or base[1], "detail")
+        except ValueError as e:
+            sys.exit(f"error: {e}")
+        slides, missing = at_setting(deck, a, d)
+        if missing:
+            print(f"note: not written at {setting_text(a, d)}, shown as written: {', '.join(missing)}", file=sys.stderr)
+    print(brief + deck_text(deck, args.appendix, args.key, args.checks_only, slides), end="")
+
+
+def setting_brief(deck: Deck, args) -> str:
+    """For the cold reader: the setting the deck is written at, so that it does not report what the setting leaves out."""
+    base = _setting(deck.spec, [])
+    if base is None:
+        return ""
+    a = parse_stop(args.audience or base[0], "audience")
+    d = parse_stop(args.detail or base[1], "detail")
+    return (f"\nThe deck is written for this reader at a set audience and detail level:\n\n"
+            f"- Audience {stop_definition('audience', a)}\n- Detail {stop_definition('detail', d)}\n\n"
+            "Report a gap that this detail level leaves out by design only when the slide cannot be followed without it.\n")
 
 
 def server_info(deck_dir: Path) -> dict | None:
@@ -1918,6 +2169,8 @@ def cmd_listen(args):
         if rest:
             print(f"({rest} more waiting.)")
         return
+    if item.get("kind") == "variant":
+        return listen_variants(deck_dir, q, [x for x in pending if x.get("kind") == "variant"], ctx, wait)
     if any(ext.listen(item, ctx) for ext in EXTENSIONS):
         return
     if item.get("kind") == "finished":
@@ -1947,6 +2200,10 @@ def cmd_listen(args):
             print(f"({rest} more waiting.)")
         return
     print(f"Question {item['id']} on slide {item['slide']} ({item['where']}):\n")
+    if item.get("view"):
+        a, d = map(int, item["view"].split("-"))
+        print(f"The reader sees this slide at {setting_text(a, d)}, not as written: "
+              f"{deck_dir / 'variants' / item['slide'] / (item['view'] + '.json')}\n")
     if item.get("refs"):
         print(item["refs"] + "\n")
     print(item["text"] or "(No text; the reader wants the selection explained.)")
@@ -1961,6 +2218,117 @@ def cmd_listen(args):
     )
     if rest:
         print(f"({rest} more waiting.)")
+
+
+def listen_variants(deck_dir: Path, q: Queue, items: list[dict], ctx: Listening, wait: str):
+    """Hand the session every waiting request for a slide at another setting, at once."""
+    deck = load_deck(deck_dir)
+    a0, d0 = _setting(deck.spec, [])
+    for x in items:
+        write_atomic(q.file(x["id"], ".claimed"), json.dumps({"pid": os.getpid(), "at": time.time()}))
+    settings = sorted({(x["audience"], x["detail"]) for x in items})
+    print(f"The reader asked for {plural(len(items), 'slide')} at another setting. The deck is written at "
+          f"{setting_text(a0, d0)}.\n")
+    for x in items:
+        print(f"  - {x['slide']} ({x['where']}) at {setting_text(x['audience'], x['detail'])}")
+    print("\nThe stops asked for (references/dials.md has all of them):")
+    for dial, n in sorted({("audience", a) for a, _ in settings} | {("detail", d) for _, d in settings}):
+        print(f"  {dial} {n}: {stop_definition(dial, n)}")
+    print(f"\nRewrite each slide in place, as \"Rewriting a slide\" in references/dials.md says: the same idea and id, "
+          f"one slide, no new checks. Print a slide as written with:\n  python3 {ctx.me} variant {ctx.deck_arg} SLIDE --show\n"
+          f"Write the rewritten slide object (title, prompts and blocks, as in deck.json) to a file and store it; "
+          f"the page shows it at once:\n"
+          f"  python3 {ctx.me} variant {ctx.deck_arg} SLIDE --audience A --detail D --file SLIDE.json\n"
+          f"With several slides, rewrite them in parallel if your harness has subagents. Then keep listening with:\n"
+          f"  {ctx.again}")
+
+
+def plural(n: int, one: str) -> str:
+    return f"{n} {one}" if n == 1 else f"{n} {one}s"
+
+
+def cmd_variant(args):
+    """Store, show, list or prune variants."""
+    deck_dir = Path(args.deck).resolve()
+    deck = load_or_exit(deck_dir)
+    setting = _setting(deck.spec, [])
+    variants: Variants = deck.extra["variants"]
+    vdir = deck_dir / "variants"
+    if setting is None:
+        sys.exit("error: the deck has no setting; give deck.json `audience` and `detail` (see references/dials.md)")
+    if args.prune:
+        for p in variants.stale:
+            p.unlink()
+        print(f"Removed {plural(len(variants.stale), 'stale variant')}.")
+        return
+    if not args.slide:
+        dials = [s for s in deck.slides if variant_dials(s)]
+        print(f"Written at {setting_text(*setting)}. Variants by slide (A-D; * stale):")
+        stale = defaultdict(list)
+        for p in variants.stale:
+            stale[p.parent.name].append(p.stem + "*")
+        size = sum(p.stat().st_size for p in vdir.rglob("*.json")) if vdir.is_dir() else 0
+        for s in dials:
+            have = sorted(variants.fresh.get(s["id"], {})) + stale[s["id"]]
+            print(f"  {s['id']}: {' '.join(have) or '-'}")
+        n = sum(len(v) for v in variants.fresh.values())
+        print(f"{n} fresh, {len(variants.stale)} stale, {size / 1024:.0f} KiB on disk")
+        for e in variants.errors:
+            print(f"error: {e}")
+        return
+    base = deck.slide(args.slide)
+    if base is None or not variant_dials(base):
+        sys.exit(f"error: {args.slide}: not a content slide (checks and generated slides keep one setting)")
+    raw_base = next(s for s in deck.spec["slides"] if s.get("id") == args.slide)
+    try:
+        a = parse_stop(args.audience, "audience") if args.audience is not None else None
+        d = parse_stop(args.detail, "detail") if args.detail is not None else None
+    except ValueError as e:
+        sys.exit(f"error: {e}")
+    path = vdir / args.slide / f"{a}-{d}.json"
+    if args.show:
+        if a is None and d is None or (a, d) == setting:
+            print(json.dumps(raw_base, indent=1))
+        elif a is None or d is None:
+            sys.exit("error: give both --audience and --detail, or neither for the slide as written")
+        elif f"{a}-{d}" in variants.fresh.get(args.slide, {}):
+            print(json.dumps(json.loads(path.read_text())["slide"], indent=1))
+        else:
+            sys.exit(f"error: {args.slide} has no fresh variant at {setting_text(a, d)}")
+        return
+    if a is None or d is None or not args.file:
+        sys.exit("error: storing a variant takes --audience, --detail and --file")
+    if (a, d) == setting:
+        sys.exit("error: that is the deck's own setting; edit the slide in deck.json instead")
+    try:
+        raw = json.loads(Path(args.file).read_text())
+    except (OSError, ValueError) as e:
+        sys.exit(f"error: {args.file}: {e}")
+    if not isinstance(raw, dict) or raw.get("id", args.slide) != args.slide or "quiz" in raw:
+        sys.exit(f"error: {args.file}: expected one content slide object with id {args.slide!r} (or none)")
+    raw = {k: v for k, v in raw.items() if k in ("title", "prompts", "blocks")}
+    rec = {"key": variants.keys[args.slide], "slide": raw, "at": time.time()}
+    for k in ("seconds", "tokens"):
+        if getattr(args, k) is not None:
+            rec[k] = getattr(args, k)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    old = path.read_text() if path.exists() else None
+    write_atomic(path, json.dumps(rec, indent=1))
+    deck = load_or_exit(deck_dir)
+    errors = [e for e in deck.extra["variants"].errors if f"variants/{args.slide}/{a}-{d}.json" in e]
+    if errors:
+        if old is None:
+            path.unlink()
+        else:
+            write_atomic(path, old)
+        for e in errors:
+            print(f"error: {e}")
+        sys.exit(1)
+    q = Queue(deck_dir)
+    for x in q.items():
+        if x.get("kind") == "variant" and x["slide"] == args.slide and x["setting"] == f"{a}-{d}":
+            q.remove(x["id"])
+    print(f"Stored {args.slide} at {setting_text(a, d)}. An open page shows it now.")
 
 
 def fenced(text: str, lang: str = "") -> str:
@@ -2082,9 +2450,29 @@ def main(argv=None, entry: str | None = None, description: str | None = None):
     x.add_argument("--appendix", action="store_true", help="also print the appendix slides (default: their titles)")
     x.add_argument("--key", action="store_true", help="also print each check question's answer, for grading")
     x.add_argument("--checks-only", action="store_true", help="print the check slides alone")
+    x.add_argument("--audience", "-a", help="print each slide at this audience stop where it has been written at it")
+    x.add_argument("--detail", "-d", help="print each slide at this detail stop where it has been written at it")
     x.add_argument("--brief", action="store_true", help="start with the instructions for a cold reader "
                    "(with --checks-only: for a reader who answers the checks without the deck)")
     x.set_defaults(func=cmd_text)
+
+    v = sub.add_parser(
+        "variant",
+        help="store, show or list slides rewritten at another audience and detail setting",
+        description="With SLIDE, --audience, --detail and --file: store a slide rewritten at that setting. "
+        "With --show: print the slide as written, or at a setting. Without SLIDE: list the variants. "
+        "Stops are 1-5 or their names; see references/dials.md.",
+    )
+    v.add_argument("deck")
+    v.add_argument("slide", nargs="?")
+    v.add_argument("--audience", "-a", help="1-5 or " + "|".join(AUDIENCE))
+    v.add_argument("--detail", "-d", help="1-5 or " + "|".join(DETAIL))
+    v.add_argument("--file", help="the rewritten slide, as a deck.json slide object")
+    v.add_argument("--show", action="store_true", help="print the slide's JSON instead of storing one")
+    v.add_argument("--prune", action="store_true", help="delete variants written from an older version of their slide")
+    v.add_argument("--seconds", type=float, help=argparse.SUPPRESS)
+    v.add_argument("--tokens", type=int, help=argparse.SUPPRESS)
+    v.set_defaults(func=cmd_variant)
 
     for ext in EXTENSIONS:
         ext.commands(sub)

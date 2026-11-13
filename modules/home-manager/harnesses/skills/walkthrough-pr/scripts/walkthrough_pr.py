@@ -1653,15 +1653,15 @@ class Shown:
 
 
 def diff_excerpt(load: Loading, blk: dict, where: str, blocks: list[dict]):
-    """Add a diff excerpt to `blocks` and record the lines it shows."""
+    """Add a diff excerpt to `blocks` and record the lines it shows; a variant's lines do not count for coverage."""
     files = {f.key: f for f in load.files}
     ex = _excerpt(blk, where, files, load.hunks, load.errors)
     if not ex:
         return
-    shown: Shown = load.extra["review"]
-    for p in ex["pieces"]:
+    shown: Shown | None = load.extra.get("review")
+    for p in ex["pieces"] if shown else ():
         shown.rows[p["hunk"]].update(range(p["lo"], p["hi"] + 1))
-    if not ex["pieces"]:
+    if shown and not ex["pieces"]:
         shown.files.add(ex["file"])
     blocks.append({"type": "excerpt", **ex, "caption": _str(blk.get("caption"), f"{where}.caption", load.errors)})
 
