@@ -382,10 +382,24 @@ class DialsTest(DeckDirCase):
     def test_cold_read_brief_states_the_setting(self):
         self.write(topic_spec(audience="newcomer", detail="concise", reader="Knows: Python. New to: the notes."))
         brief = run("text", self.dir, "--brief").stdout
-        self.assertIn("- Audience newcomer:", brief)
-        self.assertIn("- Detail concise:", brief)
+        # The cold reader gets the detail stop; `reader` alone says what the reader knows.
+        self.assertIn("a set level of detail, concise: The point", brief)
+        self.assertNotIn("newcomer", brief)
         r = run("text", self.dir, "--brief", "--audience", "beginner", check=False)
+        self.assertEqual((r.returncode, "is not cold-read" in r.stderr), (1, True))
+        r = run("text", self.dir, "--audience", "beginner", check=False)
         self.assertEqual((r.returncode, r.stderr.strip()[:16]), (1, "error: audience:"))
+
+    def test_rewrite_brief(self):
+        self.write(topic_spec(audience=3, detail=3, reader="Knows: Python. New to: the notes.",
+                              slides=topic_spec()["slides"] + [topic_check()]))
+        brief = run("variant", self.dir, "lines", "-a", "1", "-d", "1", "--brief").stdout
+        for part in ("- Audience novice:", "- Detail concise:", "**Keep the slide's idea and id.**",
+                     "Slides in order:\n- intro: Intro", "The rewrite must still settle each of these:\n\n- final: What is on line 2?",
+                     '"id": "lines"', "variant", "--audience 1 --detail 1 --file FILE"):
+            self.assertIn(part, brief)
+        self.assertNotIn("Rewriting a slide of a change", brief)
+        self.assertIn("other than the deck's own", run("variant", self.dir, "lines", "-a", "3", "-d", "3", "--brief", check=False).stderr)
 
 
 class DialsServerTest(ServerCase):
@@ -423,12 +437,33 @@ class DialsServerTest(ServerCase):
         out = run("listen", self.dir, "--timeout", 5).stdout
         self.assertIn("sees this slide at audience 1 (novice), detail 3 (standard)", out)
         self.assertIn("variants/lines/1-3.json", out)
-        self.assertIn("Answer at audience 1 (novice), detail 3 (standard), unless", out)
+        self.assertIn("Answer for audience 1 (novice), detail 3 (standard), unless", out)
+        self.assertIn("upper bound on length, never a target", out)
+        self.assertIn("  audience novice:", out)
         (self.dir / "a.md").write_text("Because.")
         self.post("api/ask", {"slide": "intro", "text": "And this?"})
         out = run("listen", self.dir, "--answer", msg["id"], "--file", self.dir / "a.md", "--timeout", 5).stdout
-        self.assertIn("Answer at audience 4 (specialist), detail 3 (standard), unless", out)
-        self.assertIn("  detail standard: ", out)
+        self.assertIn("Answer for audience 4 (specialist), detail 3 (standard), unless", out)
+        self.assertNotIn("  audience specialist:", out)
+
+    def test_current_slide_first_then_questions_then_the_batch(self):
+        self.post("api/variant", {"slides": ["intro"], "audience": 2, "detail": 2})
+        msg = self.post("api/ask", {"slide": "intro", "text": "Next?"})["message"]
+        self.post("api/variant", {"slides": ["intro", "lines"], "audience": 1, "detail": 1, "current": "lines"})
+        out = run("listen", self.dir, "--timeout", 5).stdout
+        self.assertIn("asked for 1 slide at another setting", out)
+        self.assertIn("- lines (", out)
+        self.assertIn(f"Question {msg['id']}", run("listen", self.dir, "--timeout", 5).stdout)
+        (self.dir / "a.md").write_text("Because.")
+        out = run("listen", self.dir, "--answer", msg["id"], "--file", self.dir / "a.md", "--timeout", 5).stdout
+        self.assertIn("asked for 2 slides at another setting", out)
+
+    def test_withdraw_a_rewrite_not_started(self):
+        self.post("api/variant", {"slides": ["intro", "lines"], "audience": 2, "detail": 2})
+        r = self.post("api/variant-withdraw", {"slides": ["intro"], "setting": "2-2"})
+        self.assertEqual((r["withdrawn"], list(r["requests"])), (["intro"], ["lines"]))
+        run("listen", self.dir, "--timeout", 5)
+        self.assertEqual(self.post("api/variant-withdraw", {"slides": ["lines"], "setting": "2-2"})["withdrawn"], [])
 
     def test_claimed_and_unstorable_requests_do_not_block_questions(self):
         self.post("api/variant", {"slides": ["intro", "lines"], "audience": 2, "detail": 2})

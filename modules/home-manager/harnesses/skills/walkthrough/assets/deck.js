@@ -567,26 +567,73 @@
     store.set("view", S.view);
   }
 
-  async function chooseSetting(s, dial, n, scope) {
-    const [a0, d0] = wantedKey(s).split("-").map(Number);
-    const key = dial === "both" ? baseKey() : dial === "audience" ? `${n}-${d0}` : `${a0}-${n}`;
-    const ids = scope === "deck" ? dials().slides : [s.id];
-    if (scope === "deck") S.view = { deck: key === baseKey() ? null : key, slides: {} };
-    else if (key === (S.view.deck || baseKey())) delete S.view.slides[s.id];
-    else S.view.slides[s.id] = key;
-    saveView();
-    renderSlide({ keepScroll: true });
-    renderTrack();
-    const missing = ids.filter((id) => !variant(S.deck.slides[slideIndex(id)], key));
-    if (!missing.length) return;
+  const withKey = (key, dial, n) => {
     const [a, d] = key.split("-").map(Number);
+    return dial === "audience" ? `${n}-${d}` : `${a}-${n}`;
+  };
+
+  function setWanted(id, key) {
+    if (key === baseKey()) delete S.view.slides[id];
+    else S.view.slides[id] = key;
+  }
+
+  async function withdrawRewrites(ids, key) {
+    const reqs = dials().requests || {};
+    const queued = ids.filter((id) => reqs[id]?.[key] === "queued");
+    if (!queued.length) return;
     try {
-      const r = await post("api/variant", { slides: missing, audience: a, detail: d });
-      dials().requests = r.requests;
-      renderSlide({ keepScroll: true });
+      dials().requests = (await post("api/variant-withdraw", { slides: queued, setting: key })).requests;
     } catch (err) {
       toast(err.message);
     }
+  }
+
+  async function requestRewrites(ids, key) {
+    const missing = ids.filter((id) => !variant(S.deck.slides[slideIndex(id)], key) && !dials().requests?.[id]?.[key]);
+    if (!missing.length) return;
+    const [a, d] = key.split("-").map(Number);
+    try {
+      const r = await post("api/variant", { slides: missing, audience: a, detail: d, current: slide().id });
+      dials().requests = r.requests;
+    } catch (err) {
+      toast(err.message);
+    }
+    renderSlide({ keepScroll: true });
+  }
+
+  // `dial` is "audience" or "detail", or "both" to go back to the slide as written.
+  async function chooseSetting(s, dial, n, scope) {
+    S.confirm = null;
+    if (scope !== "deck") {
+      const prev = wantedKey(s);
+      const key = dial === "both" ? baseKey() : withKey(prev, dial, n);
+      setWanted(s.id, key);
+      saveView();
+      renderSlide({ keepScroll: true });
+      renderTrack();
+      if (prev !== key) await withdrawRewrites([s.id], prev);
+      return requestRewrites([s.id], key);
+    }
+    // Every slide keeps its other dial; only the one clicked changes.
+    const ids = dials().slides;
+    const want = {};
+    for (const id of ids) want[id] = withKey(wantedKey(S.deck.slides[slideIndex(id)]), dial, n);
+    for (const id of ids) setWanted(id, want[id]);
+    S.view.deck = null;
+    saveView();
+    const missing = ids.filter((id) => !variant(S.deck.slides[slideIndex(id)], want[id]) && !dials().requests?.[id]?.[want[id]]);
+    if (missing.length > 1) S.confirm = { missing, want };
+    renderSlide({ keepScroll: true });
+    renderTrack();
+    if (missing.length === 1) requestRewrites(missing, want[missing[0]]);
+  }
+
+  async function confirmRewrites() {
+    const { missing, want } = S.confirm;
+    S.confirm = null;
+    const byKey = {};
+    for (const id of missing) (byKey[want[id]] ||= []).push(id);
+    for (const [key, ids] of Object.entries(byKey)) await requestRewrites(ids, key);
   }
 
   function dialsEl(s) {
@@ -606,7 +653,7 @@
         h("span", { class: "dial-end" }, names[0]),
         names.map((name, i) => {
           const n = i + 1;
-          const key = dial === "audience" ? `${n}-${wd}` : `${wa}-${n}`;
+          const key = withKey(want, dial, n);
           const state = variant(s, key) ? "have" : reqs[key] ? "pending" : "";
           const isBase = n === (dial === "audience" ? ba : bd);
           return h(
@@ -625,39 +672,58 @@
         h("span", { class: "dial-end" }, names[names.length - 1]),
       );
     };
-    const scopeBtn = h(
-      "button",
-      {
-        type: "button",
-        class: "ghost small dial-scope",
-        title: "Whether a change applies to this slide or to every content slide",
-        onclick: () => {
-          store.set("dial-scope", scope === "slide" ? "deck" : "slide");
-          renderSlide({ keepScroll: true });
+    const scopeBtn = (value, label) =>
+      h(
+        "button",
+        {
+          type: "button",
+          "aria-pressed": String(scope === value),
+          onclick: () => (store.set("dial-scope", value), renderSlide({ keepScroll: true })),
         },
-      },
-      scope === "slide" ? "This slide" : "All slides",
+        label,
+      );
+    const scopeEl = h(
+      "div",
+      { class: "dial-scope", role: "group", "aria-label": "A change of setting applies to" },
+      scopeBtn("slide", "This slide"),
+      scopeBtn("deck", "All slides"),
     );
+    const btn = (label, onclick) => h("button", { type: "button", class: "linkish", onclick }, label);
     let note = null;
-    if (shown !== want) {
-      const state = reqs[want];
-      const away = S.status.session === "away";
-      const text =
-        state === "claimed"
-          ? `The ${who()} is rewriting this slide at ${settingName(want)}…`
-          : away
-            ? `Not written at ${settingName(want)} yet. The ${who()} is away; the request waits for it. Settings already written switch at once.`
-            : `Asked for ${settingName(want)}; the ${who()} picks it up next.`;
-      note = h("p", { class: "dial-note", role: "status" }, text, ` Showing ${settingName(shown)}.`);
-    } else if (shown !== baseKey()) {
+    if (S.confirm) {
+      const n = S.confirm.missing.length;
       note = h(
         "p",
-        { class: "dial-note quiet" },
-        `Rewritten at ${settingName(shown)}. `,
-        h("button", { type: "button", class: "linkish", onclick: () => chooseSetting(s, "both", 0, "slide") }, "Show as written"),
+        { class: "dial-note", role: "status" },
+        `${plural(n, "slide")} are not written at this setting yet; the ${who()} rewrites them one by one, about half a minute each. `,
+        btn(`Rewrite ${plural(n, "slide")}`, confirmRewrites),
+        " · ",
+        btn("Not now", () => ((S.confirm = null), renderSlide({ keepScroll: true }))),
       );
+    } else if (shown !== want) {
+      const state = reqs[want];
+      const away = S.status.session === "away";
+      const parts =
+        state === "claimed"
+          ? [`The ${who()} is rewriting this slide at ${settingName(want)}…`]
+          : state === "queued"
+            ? [
+                away
+                  ? `Asked for ${settingName(want)}. The ${who()} is away; the request waits for it. Settings already written switch at once. `
+                  : `Asked for ${settingName(want)}; the ${who()} picks it up next. `,
+                btn("Cancel", () => chooseSetting(s, "both", 0, "slide")),
+              ]
+            : [
+                `Not written at ${settingName(want)}, or this slide changed since it was. `,
+                btn(`Rewrite at ${settingName(want)}`, () => requestRewrites([s.id], want)),
+                " · ",
+                btn("Show as written", () => chooseSetting(s, "both", 0, "slide")),
+              ];
+      note = h("p", { class: "dial-note", role: "status" }, ...parts, ` Showing ${settingName(shown)}.`);
+    } else if (shown !== baseKey()) {
+      note = h("p", { class: "dial-note quiet" }, `Rewritten at ${settingName(shown)}. `, btn("Show as written", () => chooseSetting(s, "both", 0, "slide")));
     }
-    return h("div", { class: "dials" }, h("div", { class: "dial-row" }, group("audience", "Audience", wa), group("detail", "Detail", wd), scopeBtn), note);
+    return h("div", { class: "dials" }, h("div", { class: "dial-row" }, group("audience", "Audience", wa), group("detail", "Detail", wd), scopeEl), note);
   }
 
   function skipControls() {
@@ -1687,7 +1753,7 @@
     return h(
       "div",
       { class: `msg msg-q ${m.state || ""}` },
-      h("div", { class: "who" }, `You · ${clock(m.at)}`),
+      h("div", { class: "who" }, `You · ${clock(m.at)}`, m.view && dials() ? ` · seen at ${settingName(m.view)}` : ""),
       m.refs?.length
         ? h("div", { class: "chips" }, m.refs.map((r) => h("span", { class: "chip static", title: r.text || r.label, onclick: () => flashRef(r) }, chipLabel(r))))
         : null,

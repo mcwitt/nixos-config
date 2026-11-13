@@ -1201,7 +1201,7 @@ class State:
             out["dials"]["requests"] = self.variant_requests
         return out
 
-    def request_variants(self, slides: list[str], a: int, d: int) -> list[str]:
+    def request_variants(self, slides: list[str], a: int, d: int, current: str | None = None) -> list[str]:
         """Queue a rewrite of each slide at a setting it has not been written at; return the ones queued."""
         setting = _setting(self.deck.spec, [])
         if setting is None:
@@ -1218,6 +1218,7 @@ class State:
             if (a, d) == setting or key in fresh.get(sid, {}) or (sid, key) in pending:
                 continue
             self.queue.add({"id": new_id(), "kind": "variant", "slide": sid, "setting": key, "audience": a, "detail": d,
+                            "current": sid == current,
                             "where": f"{self.deck.position(s)}: {s['title']}", "at": time.time()})
             queued.append(sid)
         self._sync_variant_requests(self.queue.items())
@@ -1541,6 +1542,7 @@ class Handler(BaseHTTPRequestHandler):
             "/api/finish": self._finish,
             "/api/issues": self._issues,
             "/api/variant": self._variant,
+            "/api/variant-withdraw": self._variant_withdraw,
         }.get(route)
         if handler is None:
             for ext in EXTENSIONS:
@@ -1591,10 +1593,25 @@ class Handler(BaseHTTPRequestHandler):
             a, d = parse_stop(body.get("audience"), "audience"), parse_stop(body.get("detail"), "detail")
             if not isinstance(slides, list) or not slides or not all(isinstance(x, str) for x in slides):
                 raise ValueError("expected a list of slide ids")
-            queued = self.state.request_variants(slides, a, d)
+            current = body.get("current") if isinstance(body.get("current"), str) else None
+            queued = self.state.request_variants(slides, a, d, current)
         except ValueError as e:
             return self._error(400, str(e))
         self._json({"queued": queued, "requests": self.state.variant_requests})
+
+    def _variant_withdraw(self, body: dict):
+        """The reader no longer wants a rewrite that the session has not started."""
+        st = self.state
+        slides, setting = body.get("slides"), body.get("setting")
+        if not isinstance(slides, list) or not isinstance(setting, str):
+            return self._error(400, "expected slide ids and a setting")
+        removed = []
+        for x in st.queue.items():
+            if x.get("kind") == "variant" and x["slide"] in slides and x["setting"] == setting and not st.queue.claimed(x["id"]):
+                st.queue.remove(x["id"])
+                removed.append(x["slide"])
+        st._sync_variant_requests(st.queue.items())
+        self._json({"withdrawn": removed, "requests": st.variant_requests})
 
     def _withdraw(self, body: dict):
         st = self.state
@@ -1933,6 +1950,8 @@ def cmd_text(args):
             sys.exit("error: reader: say in deck.json what the reader knows and is new to, so the cold reader can stand in for them")
     base = _setting(deck.spec, [])
     a, d = base or (None, None)
+    if args.brief and (args.audience or args.detail):
+        sys.exit("error: --brief is for the deck as written; a slide rewritten at another setting is not cold-read")
     if args.audience or args.detail:
         if base is None:
             sys.exit("error: the deck has no audience and detail setting")
@@ -1953,9 +1972,9 @@ def cmd_text(args):
 
 def setting_brief(a: int, d: int) -> str:
     """For the cold reader: the setting the deck is written at, so that it does not report what the setting leaves out."""
-    return (f"\nThe deck is written for this reader at a set audience and detail level:\n\n"
-            f"- Audience {stop_definition('audience', a)}\n- Detail {stop_definition('detail', d)}\n\n"
-            "Report a gap that this detail level leaves out by design only when the slide cannot be followed without it.\n")
+    return (f"\nThe deck is written at a set level of detail, {stop_definition('detail', d)}\n\n"
+            "Report a gap that this level of detail leaves out by design only when the slide cannot be followed "
+            "without it. The statement above, not the level of detail, says what the reader knows.\n")
 
 
 def server_info(deck_dir: Path) -> dict | None:
@@ -2167,7 +2186,9 @@ def cmd_listen(args):
             pending = [x for x in q.items() if x["id"] != args.answer and not q.answered(x["id"])
                        and not (x.get("kind") == "variant" and q.claim_age(x["id"]) < CLAIM_STALE)
                        and not any(ext.skip(q, x) for ext in EXTENSIONS)]
-            pending.sort(key=lambda x: (not q.claimed(x["id"]), x.get("at", 0)))
+            # The rewrite of the slide the reader is on first, then questions, then the rest of a batch of rewrites.
+            pending.sort(key=lambda x: (not q.claimed(x["id"]), 0 if x.get("current") else 2 if x.get("kind") == "variant" else 1,
+                                        x.get("at", 0)))
             if pending:
                 item = pending[0]
                 break
@@ -2203,7 +2224,8 @@ def cmd_listen(args):
             print(f"({rest} more waiting.)")
         return
     if item.get("kind") == "variant":
-        return listen_variants(deck_dir, q, [x for x in pending if x.get("kind") == "variant"], ctx)
+        batch = [x for x in pending if x.get("kind") == "variant" and (x.get("current") or not item.get("current"))]
+        return listen_variants(deck_dir, q, batch, ctx)
     if any(ext.listen(item, ctx) for ext in EXTENSIONS):
         return
     if item.get("kind") == "finished":
@@ -2241,8 +2263,13 @@ def cmd_listen(args):
     elif setting:
         a, d = setting
     if setting:
-        print(f"Answer at {setting_text(a, d)}, unless the question asks for another level:\n"
-              f"  audience {stop_definition('audience', a)}\n  detail {stop_definition('detail', d)}\n")
+        print(f"Answer for {setting_text(a, d)}, unless the question asks for another level: define the terms that "
+              f"audience needs, and treat the detail stop as an upper bound on length, never a target.")
+        if (a, d) != setting:
+            print(f"  audience {stop_definition('audience', a)}")
+            print(f"  To change this slide as the reader sees it, store it again with `variant`; a factual "
+                  f"correction also goes into deck.json, which retires the rewrites of that slide.")
+        print()
     if item.get("refs"):
         print(item["refs"] + "\n")
     print(item["text"] or "(No text; the reader wants the selection explained.)")
@@ -2284,14 +2311,57 @@ def listen_variants(deck_dir: Path, q: Queue, items: list[dict], ctx: Listening)
     print("\nThe stops asked for (references/dials.md has all of them):")
     for dial, n in sorted({("audience", a) for a, _ in settings} | {("detail", d) for _, d in settings}):
         print(f"  {dial} {n}: {stop_definition(dial, n)}")
-    print(f"\nRewrite each slide in place, as \"Rewriting a slide\" in references/dials.md says: the same idea and id, "
-          f"one slide, no new checks. Print a slide as written with:\n  python3 {ctx.me} variant {ctx.deck_arg} SLIDE --show\n"
-          f"Write the rewritten slide object (title, prompts and blocks, as in deck.json) to a file and store it; "
-          f"the page shows it at once:\n"
-          f"  python3 {ctx.me} variant {ctx.deck_arg} SLIDE --audience A --detail D --file SLIDE.json\n"
-          f"With several slides, rewrite them in parallel if your harness has subagents. `listen` does not hand these "
-          f"requests out again unless they wait for {CLAIM_STALE // 60} minutes. Then keep listening with:\n"
-          f"  {ctx.again}")
+    rules = "\"Rewriting a slide\"" + (" and \"Rewriting a slide of a change\"" if "coverage" in deck.extra else "")
+    print(f"\nRewrite each slide in place as {rules} in references/dials.md say: the same idea and id, one slide, "
+          f"no new checks, and every check question that relies on the slide still settled. This prints the full brief "
+          f"for one slide (the rules, the deck's outline, the slide as written and the checks on it); give it as is to "
+          f"a subagent, or follow it yourself:\n"
+          f"  python3 {ctx.me} variant {ctx.deck_arg} SLIDE --audience A --detail D --brief\n"
+          f"Each rewrite is stored with `variant ... --file`, and the page shows it at once. With several slides, "
+          f"rewrite them in parallel if your harness has subagents. `listen` does not hand these requests out again "
+          f"unless they wait for {CLAIM_STALE // 60} minutes. Then keep listening with:\n  {ctx.again}")
+
+
+def dials_section(title: str) -> str:
+    """A `## ` or `### ` section of references/dials.md, without its heading."""
+    try:
+        doc = DIALS_DOC.read_text()
+    except OSError:
+        return ""
+    m = re.search(rf"^(#+) {re.escape(title)}\n(.*?)(?=^#{{1,3}} |\Z)", doc, re.M | re.S)
+    return m[2].strip() if m else ""
+
+
+def variant_brief(deck: Deck, sid: str, a: int, d: int) -> str:
+    """Everything a fresh agent needs to rewrite one slide at a setting: the rules, the deck around it,
+    the slide as written, the checks that rely on it, and how to store the result."""
+    spec = deck.spec
+    a0, d0 = _setting(spec, [])
+    raw = next(x for x in spec["slides"] if x.get("id") == sid)
+    checks = [f"- {c['id']}: {q['q']}" for c in deck.checks() for q in c["quiz"]
+              if q["see"] == sid or any(ch["see"] == sid for ch in q.get("choices", []))]
+    outline = "\n".join(f"- {x['id']}: {x['title']}" for x in deck.slides if not x.get("generated"))
+    change = dials_section("Rewriting a slide of a change") if "coverage" in deck.extra else ""
+    parts = [
+        f"Rewrite one slide of the walkthrough deck below at {setting_text(a, d)}. The deck is written at "
+        f"{setting_text(a0, d0)}.",
+        f"## The stops\n\n- Audience {stop_definition('audience', a)}\n- Detail {stop_definition('detail', d)}",
+        # The section's first paragraph tells the session how to get this brief; the rest are the rules.
+        f"## Rewriting a slide\n\n{dials_section('Rewriting a slide').split(chr(10) * 2, 1)[-1]}",
+        f"## Rewriting a slide of a change\n\n{change}" if change else "",
+        "## The deck\n\n" + "\n".join(f"{k.title()}: {spec[k]}" for k in ("title", "goal", "reader") if spec.get(k))
+        + f"\n\nSlides in order:\n{outline}",
+        "## Checks that rely on this slide\n\nThe rewrite must still settle each of these:\n\n" + "\n".join(checks) if checks else "",
+        f"## The slide as written\n\n{fenced(json.dumps(raw, indent=1, ensure_ascii=False), 'json')}",
+        "## Sources and storing\n\n"
+        + (f"Quoted paths resolve against {(deck.dir / spec['root']).resolve()}. " if spec.get("root") else "")
+        + f"The deck directory is {deck.dir}. The block format is in {SCRIPT.parent.parent / 'references' / 'deck.md'}"
+        + (" and walkthrough-pr's references/diffs.md; `hunks DECK` lists the diff's hunks." if "coverage" in deck.extra else ".")
+        + f" Change no file but the one you write. Write the slide object (title, prompts, blocks) to a file, then store it, "
+        f"fixing what it reports until it stores:\n\n  python3 {shlex_path(ENTRY)} variant {shlex_path(deck.dir)} {sid} "
+        f"--audience {a} --detail {d} --file FILE",
+    ]
+    return "\n\n".join(p for p in parts if p) + "\n"
 
 
 def plural(n: int, one: str) -> str:
@@ -2340,6 +2410,11 @@ def cmd_variant(args):
     except ValueError as e:
         sys.exit(f"error: {e}")
     path = vdir / args.slide / f"{a}-{d}.json"
+    if args.brief:
+        if a is None or d is None or (a, d) == setting:
+            sys.exit("error: --brief takes --audience and --detail other than the deck's own setting")
+        print(variant_brief(deck, args.slide, a, d), end="")
+        return
     if args.show:
         if a is None and d is None or (a, d) == setting:
             print(json.dumps(raw_base, indent=1))
@@ -2527,6 +2602,7 @@ def main(argv=None, entry: str | None = None, description: str | None = None):
     v.add_argument("--detail", "-d", help="1-5 or " + "|".join(DETAIL))
     v.add_argument("--file", help="the rewritten slide, as a deck.json slide object")
     v.add_argument("--show", action="store_true", help="print the slide's JSON instead of storing one")
+    v.add_argument("--brief", action="store_true", help="print the brief for an agent that rewrites the slide at a setting")
     v.add_argument("--prune", action="store_true", help="delete stale variants and variant files that do not load")
     v.add_argument("--seconds", type=float, help=argparse.SUPPRESS)
     v.add_argument("--tokens", type=int, help=argparse.SUPPRESS)

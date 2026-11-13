@@ -797,12 +797,15 @@ body[data-resizing="y"] { cursor: row-resize; }
 .dial .stop.base { border-style: dashed; border-color: var(--ink-3); }
 .dial .stop.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 /* A dot marks a setting already written, which switches at once; a pulsing one, a setting being written. */
-.dial .stop.have::after, .dial .stop.pending::after, .dial .stop.base::after {
+.dial .stop.have::after, .dial .stop.pending::after {
   content: ""; position: absolute; left: 50%; bottom: -0.4rem; width: 0.3rem; height: 0.3rem;
   margin-left: -0.15rem; border-radius: 50%; background: var(--ok);
 }
 .dial .stop.pending::after { background: var(--warn); animation: pulse 1.2s ease-in-out infinite; }
-.dial-scope { margin-left: auto; }
+.dial-scope { margin-left: auto; display: inline-flex; border: 1px solid var(--rule); border-radius: 0.35rem; overflow: hidden; }
+.dial-scope button { border: 0; background: var(--panel); color: var(--ink-2); padding: 0.2rem 0.55rem; font: inherit; cursor: pointer; }
+.dial-scope button + button { border-left: 1px solid var(--rule); }
+.dial-scope button[aria-pressed="true"] { background: var(--accent-wash); color: var(--accent); font-weight: 600; }
 .dial-note { margin: 0.55rem 0 0; color: var(--warn); }
 .dial-note.quiet { color: var(--ink-3); }
 .linkish { border: 0; background: none; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font: inherit; }
