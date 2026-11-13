@@ -406,7 +406,7 @@
         h("button", {
           type: "button",
           class: cls.join(" "),
-          title: `${i + 1}. ${s.title}${s.section ? ` (${s.section})` : ""}${s.quiz.length ? ` · check, ${scoreText(s)}` : ""}`,
+          title: `${i + 1}. ${s.title}${s.section ? ` (${s.section})` : ""}${s.quiz.length ? ` · check, ${scoreText(viewOf(s))}` : ""}`,
           "aria-label": `Slide ${i + 1}: ${s.title}`,
           "aria-current": i === S.idx ? "step" : null,
           onclick: () => go(i),
@@ -559,6 +559,8 @@
   }
 
   // The version of a slide on screen; a rewrite (which carries `setting`) is its own version.
+  // The check helpers below take the version they are given: callers that hold a slide as
+  // written (the progress bar, contents, tally and keys) pass viewOf(s).
   const viewOf = (s) => (s.setting || !dialsOn(s) ? s : variant(s, shownKey(s)) || s);
   // Where a check version's answers are kept.
   const qkeyOf = (s) => s.qkey || s.id;
@@ -886,21 +888,18 @@
 
   // The reader's choice on question i of check slide s, or null.
   function choiceOf(s, i) {
-    s = viewOf(s);
     const c = S.quiz[qkeyOf(s)]?.[i];
     return s.quiz[i].kind === "choice" && Number.isInteger(c) && c >= 0 && c < s.quiz[i].choices.length ? c : null;
   }
 
   // The reader's written answer to question i, {text, state, verdict, feedback}, or null.
   function writtenOf(s, i) {
-    s = viewOf(s);
     const a = S.quiz[qkeyOf(s)]?.[i];
     return s.quiz[i].kind !== "choice" && a && typeof a === "object" ? a : null;
   }
 
   // Where question i stands: null (open), "waiting" (not judged yet), true or false.
   function outcome(s, i) {
-    s = viewOf(s);
     const c = choiceOf(s, i);
     if (c != null) return s.quiz[i].choices[c].correct;
     const a = writtenOf(s, i);
@@ -909,7 +908,6 @@
   }
 
   function score(s) {
-    s = viewOf(s);
     const o = s.quiz.map((q, i) => outcome(s, i));
     const count = (f) => o.filter(f).length;
     return { total: o.length, done: count((x) => typeof x === "boolean"), right: count((x) => x === true), waiting: count((x) => x === "waiting") };
@@ -996,7 +994,7 @@
   function writtenParts(s, i) {
     const q = s.quiz[i];
     const a = writtenOf(s, i);
-    const key = `${qkeyOf(viewOf(s))}:${i}`;
+    const key = `${qkeyOf(s)}:${i}`;
     if (!a || S.revising.has(key)) {
       const value = S.answerDrafts[key] ?? a?.text ?? q.starter ?? "";
       const input = q.kind === "code" ? codeInput(value, q.language) : h("textarea", { class: "answer-input", rows: 4, placeholder: "Answer in your own words" });
@@ -1044,8 +1042,7 @@
   }
 
   async function submitWritten(s, i, text) {
-    s = viewOf(s);
-    const key = `${qkeyOf(viewOf(s))}:${i}`;
+    const key = `${qkeyOf(s)}:${i}`;
     if (!text.trim()) return toast("Write an answer first.");
     try {
       await post("api/answer", { slide: s.id, version: s.qkey, question: i, text });
@@ -1100,7 +1097,6 @@
   }
 
   async function record(s, i, choice) {
-    s = viewOf(s);
     const got = (S.quiz[qkeyOf(s)] ||= {});
     if (choice == null) delete got[i];
     else got[i] = choice;
@@ -1113,7 +1109,6 @@
   }
 
   function answer(s, i, j) {
-    s = viewOf(s);
     if (choiceOf(s, i) != null) return;
     record(s, i, j);
     renderSlide({ keepScroll: true });
@@ -1128,7 +1123,6 @@
 
   // The server keeps an answer the session is judging, so re-read what it kept.
   async function retake(s) {
-    s = viewOf(s);
     const clearing = [];
     for (let i = 0; i < s.quiz.length; i++) if (outcome(s, i) != null) clearing.push(record(s, i, null));
     render();
@@ -1139,7 +1133,6 @@
 
   // Quote the question, the reader's answer and the key or feedback into the question box.
   function disagree(s, i) {
-    s = viewOf(s);
     const q = s.quiz[i];
     const a = writtenOf(s, i);
     const text = a
@@ -1980,7 +1973,7 @@
       if (s.section && s.section !== label) list.append(h("li", { class: "toc-sec" }, s.section));
       label = s.section;
       const q = messages(s.id).filter((m) => m.role === "user").length;
-      const sc = s.quiz.length ? score(s) : null;
+      const sc = s.quiz.length ? score(viewOf(s)) : null;
       list.append(
         h(
           "li",
