@@ -15,6 +15,10 @@
     flake-utils.url = "github:numtide/flake-utils";
     home-manager.url = "github:nix-community/home-manager/release-26.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    janestreet-agent-skills = {
+      url = "github:janestreet/agent_skills";
+      flake = false;
+    };
     # Keep llm-agents on its tested nixpkgs-unstable pin for compatibility and
     # binary-cache reuse; our stable nixpkgs lacks helpers its packages require.
     llm-agents.url = "github:numtide/llm-agents.nix";

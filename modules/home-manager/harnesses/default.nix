@@ -70,6 +70,11 @@ in
       learning = ./skills/learning;
       nixify = ./skills/nixify;
       prose-review = ./skills/prose-review;
+      # Upstream keeps its MIT licence at the repository root; ship it with the skill.
+      socratic-tutor = pkgs.runCommandLocal "socratic-tutor-skill" { } ''
+        mkdir $out
+        cp ${inputs.janestreet-agent-skills}/socratic-tutor/SKILL.md ${inputs.janestreet-agent-skills}/LICENSE.md $out/
+      '';
       # One store copy for both, so walkthrough_pr.py finds walkthrough's deck.py
       # beside it wherever a harness links the skill.
       walkthrough = "${./skills}/walkthrough";
