@@ -642,11 +642,12 @@
     if (shown !== want) {
       const state = reqs[want];
       const away = S.status.session === "away";
-      const text = away
-        ? `Not written at ${settingName(want)} yet. The ${who()} is away; the request waits for it. Settings already written switch at once.`
-        : state === "claimed"
+      const text =
+        state === "claimed"
           ? `The ${who()} is rewriting this slide at ${settingName(want)}…`
-          : `Asked for ${settingName(want)}; the ${who()} picks it up next.`;
+          : away
+            ? `Not written at ${settingName(want)} yet. The ${who()} is away; the request waits for it. Settings already written switch at once.`
+            : `Asked for ${settingName(want)}; the ${who()} picks it up next.`;
       note = h("p", { class: "dial-note", role: "status" }, text, ` Showing ${settingName(shown)}.`);
     } else if (shown !== baseKey()) {
       note = h(
@@ -1943,7 +1944,8 @@
     pill.title = PRESENCE[st.session][1]();
     if (changed && S.deck) {
       renderThread();
-      if (slide()?.generated) renderSlide({ keepScroll: true }); // generated slides may say whether the session listens
+      // Generated slides, and a slide waiting for a rewrite, may say whether the session listens.
+      if (slide()?.generated || (dialsOn(slide()) && shownKey(slide()) !== wantedKey(slide()))) renderSlide({ keepScroll: true });
     }
   }
 
