@@ -75,6 +75,6 @@ A check at another setting is a new set of questions for the reader who sees the
 - **Audience sets what a question assumes.** At 1 and 2, define every term in the question itself and ask about the mechanism in plain words. At 4 and 5, use the subsystem's terms bare and ask for predictions on edge cases.
 - **Detail sets the number and depth.** At 1, one or two questions on the main claim. At 3, as many as the check as written. At 5, up to six, with edge cases, and a written answer where choices would let the reader guess.
 - **Follow Checks in `deck.md`.** Each question stands on its own; each wrong choice is a plausible misreading with a `why`; nothing gives the answer away. A written answer needs a rubric; a code question can use a test only from a test directory the deck already has.
-- **Read each question once as a reader without the slides.** No cold or blind reader checks a rewritten check. If the question or its choices give the answer away, rewrite it.
+- **Read each question once as a reader without the slides**, before the cold and blind readers see it. If the question or its choices give the answer away, rewrite it.
 
 The page keeps the reader's answers per version of a check: answers to the check as written, or at another setting, stay with that version and come back when the reader switches back. Rewording a question starts a new version; changing only a choice's wording or a `why` does not. `listen` reports each check at the version the reader answered last.

@@ -706,7 +706,7 @@
         h(
           "p",
           { class: "dial-note", role: "status" },
-          `${plural(missing.length, "slide")} are not written at the settings you chose; the ${who()} rewrites them one by one, about half a minute each. `,
+          `${plural(missing.length, "slide")} are not written at the settings you chose; the ${who()} rewrites them, about a minute or two, longer for many slides. `,
           linkBtn(`Rewrite ${plural(missing.length, "slide")}`, () => requestRewrites(missing)),
         ),
       );
@@ -1697,16 +1697,20 @@
     document.body.append(box);
     const found = [];
     try {
-      for (const s of S.deck.slides) {
+      // Every slide as written, then every stored rewrite of it, named by its setting.
+      const drawn = S.deck.slides.filter((s) => !s.generated).flatMap((s) => [
+        [s, ""],
+        ...(dialsOn(s) ? Object.entries(dials().variants[s.id] || {}).map(([key, v]) => [{ ...v, id: s.id }, `at ${key}, `]) : []),
+      ]);
+      for (const [s, at] of drawn) {
         if (S.deck.version !== version) return;
-        if (s.generated) continue;
         const drawing = [];
         const extra = s.quiz.flatMap((q) => [...q.choices.map((c) => c.why), q.kind === "prose" ? q.model : ""]).filter(Boolean);
         const quiz = s.quiz.length ? [h("div", { "data-where": "quiz" }, extra.map((t) => mdEl(t)))] : [];
         box.replaceChildren(...slideBody(s, { audit: drawing }), ...quiz, h("div", { "data-where": "prompts" }, s.prompts.map((t) => mdEl(t))));
         await Promise.all(drawing);
         await document.fonts.ready;
-        for (const [where, message] of drawingIssues(box)) found.push({ slide: s.id, where, message });
+        for (const [where, message] of drawingIssues(box)) found.push({ slide: s.id, where: at + where, message });
       }
     } finally {
       box.remove();

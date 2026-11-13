@@ -4,10 +4,12 @@
 `check` validates a deck and reports which slides its checks cover. `serve`
 publishes the deck as a local web page with a chat panel on every slide.
 `listen` hands the reader's questions to the session and posts its answers
-back; `stop` ends a detached server.
+back; `stop` ends a detached server. `variant` writes, cold-reads and stores
+a slide rewritten at another audience or detail setting (references/dials.md).
 
 A deck directory holds `deck.json` and any text it saved for excerpts. The
-server writes `threads.json` (the chat history), `quiz.json` (check answers),
+session stores rewrites in `variants/SLIDE/A-D.json`; the server writes
+`threads.json` (the chat history), `quiz.json` (check answers),
 `server.json` (the running server), `.server-address` (the token, port and
 options a restart reuses), `server.log` and a `queue/` directory next to them.
 Questions, answers and the page's reports cross between the server and
@@ -492,7 +494,7 @@ def _load_variants(load: Loading, slides: list[dict], body, plain: dict) -> Vari
             except (OSError, ValueError) as e:
                 out.errors.append(f"{where}: {e}")
                 continue
-            if rec.get("key") != out.keys[sub.name]:
+            if not isinstance(rec, dict) or rec.get("key") != out.keys[sub.name]:
                 out.stale.append(path)
                 continue
             raw = rec.get("slide") if isinstance(rec.get("slide"), dict) else {}
@@ -1460,7 +1462,8 @@ class State:
     def _sync_answer(self, item: dict):
         """Mark a written answer as being judged, or record the session's verdict."""
         qid, slide, question = item["id"], item["slide"], item["question"]
-        key = item["qkey"]
+        # An answer queued by a server from before versioned checks has no qkey: take the version shown now.
+        key = item.get("qkey") or (self.deck.slide(slide) or {}).get("qkey", "")
         if self.queue.answered(qid):
             verdict = self.queue.file(qid, ".verdict")
             verdict = verdict.read_text().strip() if verdict.exists() else ""
@@ -1676,7 +1679,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"withdrawn": self.state.withdraw_variants(slides, key)})
         current = body.get("current") if isinstance(body.get("current"), str) else None
         # What the reader sees on each slide, for the cold read of the rewrite.
-        view = {k: v for k, v in (body.get("view") or {}).items() if isinstance(k, str) and isinstance(v, str) and SETTING.match(v)}
+        view = body.get("view") if isinstance(body.get("view"), dict) else {}
+        view = {k: v for k, v in view.items() if isinstance(k, str) and isinstance(v, str) and SETTING.match(v)}
         try:
             self._json({"queued": self.state.request_variants(slides, key, current, view)})
         except ValueError as e:
@@ -2022,7 +2026,8 @@ def persona(spec: dict, audience: int | None) -> str:
     """Who the cold reader is, in the second person: the deck's `reader` statement, and the audience stop's
     background. At an audience other than the deck's, `reader` describes someone else, so only the stop speaks."""
     general = stop_cells("audience", audience)[0] if audience else ""
-    deck_audience = split_setting(_setting(spec, []))[0] if _setting(spec, []) else None
+    setting = _setting(spec, [])
+    deck_audience = split_setting(setting)[0] if setting else None
     reader = spec.get("reader", "") if audience in (None, deck_audience) else ""
     m = READER_RE.match(reader)
     lines = []
@@ -2332,8 +2337,8 @@ def cmd_listen(args):
               f"audience needs, and treat the detail stop as an upper bound on length, never a target.")
         if view != setting:
             print(f"  audience {stop_definition('audience', split_setting(view)[0])}")
-            print(f"  To change this slide as the reader sees it, store it again with `variant`; a factual "
-                  f"correction also goes into deck.json, which retires the rewrites of that slide.")
+            print(f"  To change this slide as the reader sees it, store it again with `variant`. A factual "
+                  f"correction goes into deck.json first, which retires the rewrites of that slide; then store the rewrite.")
         print()
     if item.get("refs"):
         print(item["refs"] + "\n")
@@ -2365,13 +2370,16 @@ def listen_variants(deck_dir: Path, q: Queue, items: list[dict], ctx: Listening)
           f"{setting_text(deck.setting)}.\n")
     for x in items:
         print(f"  - {x['slide']} ({x['where']}) at {setting_text(x['setting'])}")
-    cands = " ".join(f"--candidate {x['slide']} {x['setting']} FILE" for x in items)
+    by_setting: dict[str, list[str]] = {}
+    for x in items:
+        by_setting.setdefault(x["setting"], []).append(f"--candidate {x['slide']} {x['setting']} FILE")
+    cold = "\n".join(f"  python3 {ctx.me} variant {ctx.deck_arg} --cold-read {' '.join(c)}" for c in by_setting.values())
     print(f"\nRewrite them as a deck is written, and as \"Rewriting a slide\" in references/dials.md says:\n"
           f"1. Write: print each slide's brief and give it as is to a subagent (in parallel for several), or follow it "
           f"yourself. It ends with a draft file, validated and not stored:\n"
           f"  python3 {ctx.me} variant {ctx.deck_arg} SLIDE --audience A --detail D --brief\n"
-          f"2. Cold-read the drafts together, as references/cold-read.md says (with --blind as well for a check):\n"
-          f"  python3 {ctx.me} variant {ctx.deck_arg} --cold-read {cands}\n"
+          f"2. Cold-read the drafts at each setting together, as references/cold-read.md says (with --blind as well "
+          f"for a check):\n{cold}\n"
           f"3. Fix the drafts, then store each; the page shows it at once:\n"
           f"  python3 {ctx.me} variant {ctx.deck_arg} SLIDE --audience A --detail D --file FILE\n"
           f"`listen` does not hand these requests out again unless they wait for {CLAIM_STALE // 60} minutes. "
@@ -2431,6 +2439,8 @@ def rewrite_cold_read(deck: Deck, candidates: list[list[str]], blind: bool) -> s
     rewritten checks."""
     if not candidates:
         sys.exit("error: give each rewrite with --candidate SLIDE A-D FILE")
+    if len({key for _, key, _ in candidates}) > 1:
+        sys.exit("error: the cold reader reads at one setting; cold-read the rewrites at each setting separately")
     drafts = {}
     for sid, key, file in candidates:
         base = deck.slide(sid)
@@ -2521,7 +2531,6 @@ def cmd_variant(args):
     path = deck_dir / "variants" / args.slide / f"{key}.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     write_atomic(path, json.dumps({"key": variants.keys[args.slide], "lines": v["lines"], "slide": raw, "at": time.time()}, indent=1))
-    Queue(deck_dir).remove(variant_request_id(args.slide, key))
     print(f"Stored {args.slide} at {setting_text(key)}. An open page shows it now.")
 
 
@@ -2650,10 +2659,12 @@ def main(argv=None, entry: str | None = None, description: str | None = None):
 
     v = sub.add_parser(
         "variant",
-        help="store or list slides rewritten at another audience and detail setting",
-        description="With SLIDE, --audience, --detail and --file: store a slide rewritten at that setting. "
-        "With --brief in place of --file: print the brief for an agent that rewrites it. Without SLIDE: list "
-        "the variants. Stops are 1-5 or their names; see references/dials.md.",
+        help="write, cold-read, store or list slides rewritten at another audience and detail setting",
+        description="With SLIDE, --audience, --detail and --file: store a slide rewritten at that setting "
+        "(with --check: validate it only). With --brief in place of --file: print the brief for an agent that "
+        "rewrites it. With --cold-read and --candidate: print the cold-read brief for drafts at one setting "
+        "(--blind: the blind reader's, for checks). Without SLIDE: list the variants. Stops are 1-5 or their "
+        "names; see references/dials.md.",
     )
     v.add_argument("deck")
     v.add_argument("slide", nargs="?")

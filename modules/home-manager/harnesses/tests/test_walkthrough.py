@@ -534,6 +534,16 @@ class DialsServerTest(ServerCase):
         blind = run("variant", self.dir, "--cold-read", "--blind", "--candidate", "final", "1-3", c).stdout
         self.assertIn("Which line is second?", blind)
         self.assertNotIn("What is on line 2?", blind)
+        # One cold reader reads at one setting.
+        mixed = run("variant", self.dir, "--cold-read", "--candidate", "lines", "1-3", f, "--candidate", "final", "5-3", c, check=False)
+        self.assertIn("at each setting separately", mixed.stderr)
+
+    def test_listen_prints_a_cold_read_per_setting(self):
+        self.ask_for(["intro"], "2-2")
+        self.ask_for(["lines"], "1-3")
+        out = run("listen", self.dir, "--timeout", 5).stdout
+        self.assertIn(" --cold-read --candidate intro 2-2 FILE\n", out)
+        self.assertIn(" --cold-read --candidate lines 1-3 FILE\n", out)
 
     def test_withdraw_a_rewrite_not_started(self):
         self.ask_for(["intro", "lines"], "2-2")
