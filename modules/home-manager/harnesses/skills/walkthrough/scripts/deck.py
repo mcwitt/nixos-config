@@ -380,11 +380,15 @@ def md_section(path: Path, title: str) -> str:
 
 
 @functools.cache
+def stop_cells(dial: str, n: int) -> tuple[str, ...]:
+    """The cells after the name in one stop's row of references/dials.md."""
+    m = re.search(rf"^\| {n} \| {DIALS[dial][n - 1]} \|(.*)\|\s*$", md_section(DIALS_DOC, dial.title()), re.M)
+    return tuple(c.strip() for c in m[1].split("|")) if m else ("",)
+
+
 def stop_definition(dial: str, n: int) -> str:
-    """The row for one stop in references/dials.md, as "name: definition"."""
-    name = DIALS[dial][n - 1]
-    m = re.search(rf"^\| {n} \| {name} \|(.*)\|\s*$", md_section(DIALS_DOC, dial.title()), re.M)
-    return f"{name}: " + " ".join(c.strip() for c in m[1].split("|")) if m else name
+    """One stop's row of references/dials.md, as "name: definition"."""
+    return f"{DIALS[dial][n - 1]}: " + " ".join(stop_cells(dial, n))
 
 
 def _setting(spec: dict, errors: list[str]) -> str | None:
@@ -1268,7 +1272,7 @@ class State:
             out["dials"]["requests"] = self.variant_requests
         return out
 
-    def request_variants(self, slides: list[str], key: str, current: str | None = None) -> list[str]:
+    def request_variants(self, slides: list[str], key: str, current: str | None = None, view: dict | None = None) -> list[str]:
         """Queue a rewrite of each slide at a setting it has not been written at; return the ones queued."""
         if not self.deck.setting:
             raise ValueError("this deck has no audience and detail setting")
@@ -1282,6 +1286,7 @@ class State:
             if key == self.deck.setting or key in self.deck.variants.fresh.get(t["id"], {}) or self.queue.file(qid).exists():
                 continue
             self.queue.add({"id": qid, "kind": "variant", "slide": t["id"], "setting": key, "current": t["id"] == current,
+                            "view": view or {},
                             "where": f"{self.deck.position(t)}: {t['title']}", "at": time.time()})
             queued.append(t["id"])
         self._sync_variant_requests(self.queue.items())
@@ -1670,8 +1675,10 @@ class Handler(BaseHTTPRequestHandler):
         if withdraw:
             return self._json({"withdrawn": self.state.withdraw_variants(slides, key)})
         current = body.get("current") if isinstance(body.get("current"), str) else None
+        # What the reader sees on each slide, for the cold read of the rewrite.
+        view = {k: v for k, v in (body.get("view") or {}).items() if isinstance(k, str) and isinstance(v, str) and SETTING.match(v)}
         try:
-            self._json({"queued": self.state.request_variants(slides, key, current)})
+            self._json({"queued": self.state.request_variants(slides, key, current, view)})
         except ValueError as e:
             self._error(400, str(e))
 
@@ -1825,18 +1832,19 @@ def cmd_check(args):
 # It leaves out the answers to the checks unless asked for the key.
 
 COLD_READ = """\
-You are a test reader for the slide deck below. Its author knows the subject too well to see what the deck
-does not explain. Your report shows the author where a new reader stops understanding.
+You are the person this slide deck was written for, reading it to learn its subject. Its author knows the
+subject too well to see what the deck does not explain. Your report shows the author where you stop
+understanding.
 
-## The reader you stand in for
+## Who you are
 
-{reader}
-{setting}
-- Do not report what this reader knows.
-- Read as a person who does not know the subjects this reader is new to. You possibly know a term from those
-  subjects yourself. If the deck uses the term and does not explain it, report it.
-- The reader sees only the deck. The reader did not see its sources, or the work and the discussions behind it.
+{persona}
 
+- Do not report what you know.
+- You are a model standing in for this person, so you possibly know a term from the subjects you are new to.
+  If the deck uses such a term and does not explain it, report it.
+- You see only the deck: not its sources, nor the work and the discussions behind it.
+{setting}{focus}
 ## Rules
 
 - Use only the text below. Do not open files, search, or run commands.
@@ -1970,13 +1978,14 @@ def quiz_text(s: dict, key: bool) -> str:
     return "\n\n".join(out)
 
 
-def deck_text(deck: Deck, appendix: bool = False, key: bool = False, checks_only: bool = False) -> str:
+def deck_text(deck: Deck, appendix: bool = False, key: bool = False, checks_only: bool = False,
+              slides: list[dict] | None = None) -> str:
     spec = deck.spec
     out = [f"# {spec['title']}"]
     if not checks_only:
-        out += [f"{label}{spec[k]}" for k, label in (("subtitle", ""), ("scope", "Sources: "), ("goal", "Goal: "), ("reader", "Reader: "))
+        out += [f"{label}{spec[k]}" for k, label in (("subtitle", ""), ("scope", "Sources: "), ("goal", "Goal: "))
                 if spec.get(k)]
-    slides = [s for s in deck.slides if not s.get("generated")]
+    slides = [s for s in (deck.slides if slides is None else slides) if not s.get("generated")]
     shown = [s for s in slides if appendix or s["section"] != "Appendix"]
     skipped = [s["title"] for s in slides if s not in shown]
     for n, s in enumerate(shown, 1):
@@ -2001,15 +2010,37 @@ def cmd_text(args):
     elif args.brief:
         if not deck.spec.get("reader"):
             sys.exit("error: reader: say in deck.json what the reader knows and is new to, so the cold reader can stand in for them")
-        brief = COLD_READ.format(reader=deck.spec["reader"], setting=setting_brief(deck.setting) if deck.setting else "")
+        a, d = split_setting(deck.setting) if deck.setting else (None, None)
+        brief = COLD_READ.format(persona=persona(deck.spec, a), setting=setting_brief(d) if d else "", focus="")
     print(brief + deck_text(deck, args.appendix, args.key, args.checks_only), end="")
 
 
-def setting_brief(key: str) -> str:
-    """For the cold reader: the deck's level of detail, so that it does not report what that level leaves out."""
-    return (f"\nThe deck is written at a set level of detail, {stop_definition('detail', split_setting(key)[1])}\n\n"
-            "Report a gap that this level of detail leaves out by design only when the slide cannot be followed "
-            "without it. The statement above, not the level of detail, says what the reader knows.\n")
+READER_RE = re.compile(r"^\s*Knows:?\s*(.*?)\s*New to:?\s*(.*?)\s*$", re.S)
+
+
+def persona(spec: dict, audience: int | None) -> str:
+    """Who the cold reader is, in the second person: the deck's `reader` statement, and the audience stop's
+    background. At an audience other than the deck's, `reader` describes someone else, so only the stop speaks."""
+    general = stop_cells("audience", audience)[0] if audience else ""
+    deck_audience = split_setting(_setting(spec, []))[0] if _setting(spec, []) else None
+    reader = spec.get("reader", "") if audience in (None, deck_audience) else ""
+    m = READER_RE.match(reader)
+    lines = []
+    if m:
+        lines += [f"You know: {m[1]}", f"You are new to: {m[2]}"]
+    elif reader:
+        lines.append(f"This describes you: {reader}")
+    if general:
+        lines.append(f"{'In general, you know' if lines else 'You know'}: {general[0].lower() + general[1:]}")
+    if not m:
+        lines.append(f"You are new to the subject of this deck: {spec.get('goal') or spec.get('title')}")
+    return "\n".join(lines)
+
+
+def setting_brief(detail: int) -> str:
+    """For the cold reader: the level of detail, so that it does not report what that level leaves out."""
+    return (f"- The deck is written at a set level of detail, {stop_definition('detail', detail)} Report a gap that "
+            "this level leaves out by design only when the slide cannot be followed without it.\n")
 
 
 def server_info(deck_dir: Path) -> dict | None:
@@ -2334,10 +2365,15 @@ def listen_variants(deck_dir: Path, q: Queue, items: list[dict], ctx: Listening)
           f"{setting_text(deck.setting)}.\n")
     for x in items:
         print(f"  - {x['slide']} ({x['where']}) at {setting_text(x['setting'])}")
-    print(f"\nFor each, print its brief: the rules, the stops, the deck's outline, the slide as written, and the slides "
-          f"or checks it relates to. Give it as is to a subagent, in parallel if there are several, or follow it "
-          f"yourself; it ends with the command that stores the rewrite, and the page shows it at once:\n"
+    cands = " ".join(f"--candidate {x['slide']} {x['setting']} FILE" for x in items)
+    print(f"\nRewrite them as a deck is written, and as \"Rewriting a slide\" in references/dials.md says:\n"
+          f"1. Write: print each slide's brief and give it as is to a subagent (in parallel for several), or follow it "
+          f"yourself. It ends with a draft file, validated and not stored:\n"
           f"  python3 {ctx.me} variant {ctx.deck_arg} SLIDE --audience A --detail D --brief\n"
+          f"2. Cold-read the drafts together, as references/cold-read.md says (with --blind as well for a check):\n"
+          f"  python3 {ctx.me} variant {ctx.deck_arg} --cold-read {cands}\n"
+          f"3. Fix the drafts, then store each; the page shows it at once:\n"
+          f"  python3 {ctx.me} variant {ctx.deck_arg} SLIDE --audience A --detail D --file FILE\n"
           f"`listen` does not hand these requests out again unless they wait for {CLAIM_STALE // 60} minutes. "
           f"Then keep listening with:\n  {ctx.again}")
 
@@ -2374,18 +2410,59 @@ def variant_brief(deck: Deck, sid: str, key: str) -> str:
         + f"\n\nSlides in order:\n{outline}",
         related,
         f"## The slide as written\n\n{fenced(json.dumps(raw, indent=1, ensure_ascii=False), 'json')}",
-        "## Sources and storing\n\n"
+        "## Sources, and handing the rewrite back\n\n"
         + (f"Quoted paths resolve against {(deck.dir / spec['root']).resolve()}. " if spec.get("root") else "")
         + f"The deck directory is {deck.dir}. The block format is in {SCRIPT.parent.parent / 'references' / 'deck.md'}. "
         f"Change no file but the one you write. Write the slide object (title, prompts, {'quiz' if base['quiz'] else 'blocks'}) "
-        f"to a file, then store it, fixing what it reports until it stores:\n\n  python3 {shlex_path(ENTRY)} variant "
-        f"{shlex_path(deck.dir)} {sid} --audience {a} --detail {d} --file FILE",
+        f"to a file, and validate it until it passes:\n\n  python3 {shlex_path(ENTRY)} variant {shlex_path(deck.dir)} {sid} "
+        f"--audience {a} --detail {d} --file FILE --check\n\nDo not store it: a cold reader reads it first. Hand back the "
+        f"file's path.",
     ]
     return "\n\n".join(p for p in parts if p) + "\n"
 
 
 def plural(n: int, one: str) -> str:
     return f"{n} {one}" if n == 1 else f"{n} {one}s"
+
+
+def rewrite_cold_read(deck: Deck, candidates: list[list[str]], blind: bool) -> str:
+    """The cold-read brief for rewrites not stored yet: the slides before them as the reader saw them, then
+    the rewrites, with the report on the rewrites only. With `blind`, the blind reader's brief for the
+    rewritten checks."""
+    if not candidates:
+        sys.exit("error: give each rewrite with --candidate SLIDE A-D FILE")
+    drafts = {}
+    for sid, key, file in candidates:
+        base = deck.slide(sid)
+        if base is None or not variant_dials(base) or not SETTING.match(key):
+            sys.exit(f"error: {sid} at {key}: not a slide that takes another setting, or not A-D")
+        try:
+            raw = json.loads(Path(file).read_text())
+        except (OSError, ValueError) as e:
+            sys.exit(f"error: {file}: {e}")
+        v, errors, commit = deck.parse_variant(base, {k: x for k, x in raw.items() if k in ("title", "prompts", "quiz", "blocks")}, key, file)
+        if errors:
+            sys.exit("error: " + "\nerror: ".join(errors))
+        commit()  # its excerpts' lines, for the text below
+        drafts[sid] = v
+    if blind:
+        checks = [v for v in drafts.values() if v["quiz"]]
+        if not checks:
+            sys.exit("error: none of the rewrites is a check")
+        return BLIND_CHECKS + "\n\n".join(f"## {v['title']}\n\n{quiz_text(v, False)}" for v in checks) + "\n"
+    # What the reader saw on each other slide, from the requests; the slide as written where unknown.
+    q, view = Queue(deck.dir), {}
+    for sid, key, _ in candidates:
+        view.update(read_json(q.file(variant_request_id(sid, key))).get("view", {}))
+    last = max(i for i, s in enumerate(deck.slides) if s["id"] in drafts)
+    slides = [drafts.get(s["id"]) or deck.variants.fresh.get(s["id"], {}).get(view.get(s["id"], "")) or s
+              for s in deck.slides[:last + 1]]
+    a, d = split_setting(candidates[0][1])
+    ids = ", ".join(f"`{sid}`" for sid in drafts)
+    focus = (f"\nYou have read this deck before, up to the slides that were just rewritten for you: {ids}. Read the "
+             "slides before them again as what you already know, and report on the rewritten slides only: their "
+             "summaries, their gaps and, for a rewritten check, its answers.\n")
+    return COLD_READ.format(persona=persona(deck.spec, a), setting=setting_brief(d), focus=focus) + deck_text(deck, slides=slides)
 
 
 def cmd_variant(args):
@@ -2395,6 +2472,8 @@ def cmd_variant(args):
     if not deck.setting:
         sys.exit("error: the deck has no setting; give deck.json `audience` and `detail` (see references/dials.md)")
     variants = deck.variants
+    if args.cold_read:
+        return print(rewrite_cold_read(deck, args.candidate or [], args.blind), end="")
     if not args.slide:
         print(f"Written at {setting_text(deck.setting)}. Variants by slide (A-D; * stale):")
         stale = defaultdict(list)
@@ -2437,6 +2516,8 @@ def cmd_variant(args):
         for e in errors:
             print(f"error: {e}")
         sys.exit(1)
+    if args.check:
+        return print(f"{args.file} is a valid rewrite of {args.slide} at {setting_text(key)}; not stored.")
     path = deck_dir / "variants" / args.slide / f"{key}.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     write_atomic(path, json.dumps({"key": variants.keys[args.slide], "lines": v["lines"], "slide": raw, "at": time.time()}, indent=1))
@@ -2580,6 +2661,11 @@ def main(argv=None, entry: str | None = None, description: str | None = None):
     v.add_argument("--detail", "-d", help="1-5 or " + "|".join(DETAIL))
     v.add_argument("--file", help="the rewritten slide, as a deck.json slide object")
     v.add_argument("--brief", action="store_true", help="print the brief for an agent that rewrites the slide at a setting")
+    v.add_argument("--check", action="store_true", help="with --file: validate the rewrite without storing it")
+    v.add_argument("--cold-read", action="store_true", help="print the cold-read brief for the rewrites given with --candidate")
+    v.add_argument("--candidate", action="append", nargs=3, metavar=("SLIDE", "A-D", "FILE"),
+                   help="with --cold-read: a rewrite not stored yet; repeat for a batch")
+    v.add_argument("--blind", action="store_true", help="with --cold-read: the blind reader's brief for rewritten checks")
     v.set_defaults(func=cmd_variant)
 
     for ext in EXTENSIONS:

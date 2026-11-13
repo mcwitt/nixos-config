@@ -48,9 +48,13 @@ The skill takes `--audience STOP` and `--detail STOP` anywhere in its arguments,
 
 ## Rewriting a slide
 
-The page asks for a slide at another setting, and `listen` hands you the request. `variant DECK SLIDE --audience A --detail D --brief` (with the deck's script: `deck.py`, or `walkthrough_pr.py` for a change) prints the whole brief for one rewrite: the rules below, the stops' rows, the deck's outline, the slide as written, and the slides or checks it relates to. Give it as is to a subagent, or follow it yourself. It ends with the `variant … --file FILE` command that validates the rewrite like `check` and stores it; an open page shows it at once. A rewrite stays valid until the slide as written, the lines it quotes, the slides it covers (for a check), `reader` or `goal` change; `variant DECK` lists the stored rewrites.
+The page asks for a slide at another setting, and `listen` hands you the request. A rewrite takes the path the deck took, write, cold-read, fix, and only then reaches the reader. Run the deck's script (`deck.py`, or `walkthrough_pr.py` for a change):
 
-Do not cold-read a rewrite: the reader asked for it and reads it now, and the reader's questions do the cold reader's work.
+1. **Write.** `variant DECK SLIDE --audience A --detail D --brief` prints the whole brief for one rewrite: the rules below, the stops' rows, the deck's outline, the slide as written, and the slides or checks it relates to. Give it as is to a subagent, in parallel for several slides, or follow it yourself. The writer validates its draft with `--file FILE --check` and hands back the file; it does not store it.
+2. **Cold-read.** `variant DECK --cold-read --candidate SLIDE A-D FILE …` prints the brief for a cold reader, who is the reader at the new setting: it reads the slides before the drafts as the reader saw them, then the drafts, and reports on the drafts only. Give several drafts of one request together. For a rewritten check, also run the blind reader with `--blind`. Run the readers as `cold-read.md` says, and fix the drafts as it says; one round, no second read.
+3. **Store.** `variant DECK SLIDE --audience A --detail D --file FILE` validates the draft like `check` and stores it; an open page shows it at once.
+
+The reader waits on the slide through all three steps, about a minute or two, so start the cold read as soon as the drafts pass `--check`, and answer questions that arrive meanwhile. A rewrite stays valid until the slide as written, the lines it quotes, the slides it covers (for a check), `reader` or `goal` change; `variant DECK` lists the stored rewrites.
 
 ### Rules for a rewrite
 

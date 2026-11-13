@@ -583,7 +583,9 @@
     for (const id of ids) (byKey[wantedKey(S.deck.slides[slideIndex(id)])] ||= []).push(id);
     for (const [setting, slides] of Object.entries(byKey)) {
       try {
-        await post("api/variant", { slides, setting, current: slide().id });
+        // What the reader sees on each slide: the cold reader of the rewrite reads the deck that way.
+        const view = Object.fromEntries(dials().slides.map((id) => [id, shownKey(S.deck.slides[slideIndex(id)])]));
+        await post("api/variant", { slides, setting, current: slide().id, view });
       } catch (err) {
         toast(err.message);
       }

@@ -242,7 +242,7 @@ class DeckTest(DeckDirCase):
     def test_text_prints_diff_excerpts_and_appendix_groups(self):
         self.write(deck_spec(reader="Knows the app."))
         out = run("text", self.dir).stdout
-        self.assertIn("# Sample change\n\nReader: Knows the app.\n", out)
+        self.assertIn("# Sample change\n\n## Slide 1", out)
         self.assertIn("## Slide 2 of 2 `what`: What\n\n[Diff excerpt]\n```diff\nsrc/app.py  @@", out)
         self.assertRegex(out, r"(?m)^ +\d+ \+.*return 0")
         # The generated review slides are not content, and the appendix is listed by title.

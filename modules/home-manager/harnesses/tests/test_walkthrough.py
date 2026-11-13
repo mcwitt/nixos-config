@@ -176,7 +176,7 @@ class TopicDeckTest(DeckDirCase):
         self.assertIn("reader: Knows files. New to line numbers.", run("check", self.dir).stdout)
         out = run("text", self.dir).stdout
         for needle in (
-            "# Sample topic\n\nGoal: Explain what the notes say.\n\nReader: Knows files. New to line numbers.\n",
+            "# Sample topic\n\nGoal: Explain what the notes say.\n\n## Slide 1 of 3",
             "## Slide 1 of 3 `intro`: Intro\n\nHello.\n\n[Callout: risk] Lines start at 1.",
             "[Diagram (svg)] Flow\nDescription: Two boxes\nLabels: read & print | loop | the reader loop",
             "[Diagram (html)]\nText: Step one",
@@ -196,8 +196,8 @@ class TopicDeckTest(DeckDirCase):
         self.assertIn("## Slide 4 of 4 `extra` (Appendix): Extra\n\nBeyond the goal.", key)
         # The brief puts the cold reader's instructions and the stated reader before the deck.
         brief = run("text", self.dir, "--brief").stdout
-        self.assertTrue(brief.startswith("You are a test reader"))
-        self.assertIn("stand in for\n\nKnows files. New to line numbers.\n", brief)
+        self.assertTrue(brief.startswith("You are the person this slide deck was written for"))
+        self.assertIn("## Who you are\n\nYou know: files.\nYou are new to: line numbers.\n", brief)
         self.assertTrue(brief.endswith(out))
         blind = run("text", self.dir, "--brief", "--checks-only").stdout
         self.assertIn("without the deck", blind)
@@ -387,7 +387,10 @@ class DialsTest(DeckDirCase):
         brief = run("text", self.dir, "--brief").stdout
         # The cold reader gets the detail stop; `reader` alone says what the reader knows.
         self.assertIn("a set level of detail, concise: The point", brief)
+        # The reader in the second person, and the audience stop's background; not what the deck supplies.
+        self.assertIn("You know: Python.\nYou are new to: the notes.\nIn general, you know: programming, and the field", brief)
         self.assertNotIn("newcomer", brief)
+        self.assertNotIn("Definitions of the project's terms", brief)
 
     def test_rewrite_brief(self):
         self.write(topic_spec(audience=3, detail=3, reader="Knows: Python. New to: the notes.",
@@ -504,6 +507,33 @@ class DialsServerTest(ServerCase):
         spec["slides"][1]["title"] = "The lines"
         self.write(spec)
         self.wait_for(lambda: not self.get("api/deck")["dials"]["variants"].get("final"))
+
+    def test_rewrites_are_cold_read_before_they_are_stored(self):
+        # The reader sees `intro` rewritten at 2-2 and asks for `lines` at 1-3.
+        f = self.dir / "v.json"
+        f.write_text(json.dumps({"blocks": [{"md": "Intro, for a newcomer."}]}))
+        run("variant", self.dir, "intro", "-a", "2", "-d", "2", "--file", f)
+        self.wait_for(lambda: self.get("api/deck")["dials"]["variants"].get("intro"))
+        self.ask_for(["lines"], "1-3", view={"intro": "2-2", "lines": "4-3", "bad": "9-9"})
+        out = run("listen", self.dir, "--timeout", 5).stdout
+        self.assertIn(" --cold-read --candidate lines 1-3 FILE", out)
+        f.write_text(json.dumps({"title": "Lines, for a novice", "blocks": [{"md": "A file has lines; these are two."}]}))
+        self.assertIn("not stored", run("variant", self.dir, "lines", "-a", "1", "-d", "3", "--file", f, "--check").stdout)
+        self.assertFalse((self.dir / "variants" / "lines").exists())
+        brief = run("variant", self.dir, "--cold-read", "--candidate", "lines", "1-3", f).stdout
+        # The reader at the new setting, the slides before as the reader saw them, then the draft.
+        self.assertIn("## Who you are\n\nYou know: programming in general", brief)
+        self.assertIn("rewritten for you: `lines`", brief)
+        self.assertIn("Intro, for a newcomer.", brief)
+        self.assertIn("## Slide 2 of 2 `lines`: Lines, for a novice\n\nA file has lines; these are two.", brief)
+        self.assertNotIn("Check", brief.split("---", 1)[1])
+        self.assertIn("none of the rewrites is a check", run("variant", self.dir, "--cold-read", "--blind", "--candidate", "lines", "1-3", f, check=False).stderr)
+        c = self.dir / "c.json"
+        c.write_text(json.dumps({"quiz": [{"q": "Which line is second?", "see": "lines", "choices": [
+            {"text": "second line", "why": "Yes.", "correct": True}, {"text": "first line", "why": "No."}]}]}))
+        blind = run("variant", self.dir, "--cold-read", "--blind", "--candidate", "final", "1-3", c).stdout
+        self.assertIn("Which line is second?", blind)
+        self.assertNotIn("What is on line 2?", blind)
 
     def test_withdraw_a_rewrite_not_started(self):
         self.ask_for(["intro", "lines"], "2-2")

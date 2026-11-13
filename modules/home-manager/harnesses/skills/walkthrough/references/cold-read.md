@@ -13,7 +13,7 @@ Set `reader` in `deck.json` from the starting point you settled in step 1, as tw
 - **Knows** stops the cold reader from asking about the reader's own field. Name the project's parts the reader works with, with a few words on each, because the cold reader does not know the project either. Add the people and teams the reader works with when the deck names them.
 - **New to** matters as much. The cold reader is a model, and it possibly knows a subject that the reader does not. It reports an unexplained term from a subject only when the statement says that the reader is new to that subject.
 - Write only what the reader knew before this deck's subject existed. A term you learned from the sources does not belong in either sentence.
-- Match the audience stop (see `dials.md`): "Knows" covers the layers the stop names. `text --brief` gives the cold reader the deck's audience and detail stops, so that it does not report what the detail stop leaves out by design.
+- Match the audience stop (see `dials.md`): "Knows" covers the layers the stop names. `text --brief` tells the cold reader, in the second person, what it knows (your `reader` statement, and the background of the audience stop) and what it is new to, and gives it the detail stop, so that it does not report what that stop leaves out by design. Write `reader` so that it reads well as "You know: …" and "You are new to: …".
 
 ## 2. Run the two readers
 
@@ -80,7 +80,7 @@ Run `check` again after the edits.
 
 One round is the default. Run a second cold read, with a new reader, only when you added, removed or reordered slides, or rewrote most of one. The first reader is no longer cold, so do not send it the new deck. Do not run a third.
 
-Skip the cold read when the deck has three content slides or fewer, when the user asks for the deck now, or when you revise a deck during the walkthrough: there, the reader's own questions do this work.
+Skip the cold read when the deck has three content slides or fewer, when the user asks for the deck now, or when you revise a deck during the walkthrough at the reader's request: there, the reader's own questions do this work. A slide rewritten at another setting is the exception: it gets a cold read of its own (`dials.md`, "Rewriting a slide"), because the reader has not seen it yet.
 
 When you give the reader the URL, say in one sentence what the cold read changed.
 
