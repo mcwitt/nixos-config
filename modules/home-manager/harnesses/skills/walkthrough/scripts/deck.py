@@ -2287,7 +2287,8 @@ def cmd_listen(args):
     rest = len(pending) - 1
     if item.get("kind") == "issues":
         q.remove(item["id"])
-        print("The page found problems drawing the deck. Fix them in deck.json; the page reloads it:")
+        print("The page found problems drawing the deck. Fix them in deck.json, or for one marked `at A-D` store "
+              "that rewrite again with `variant`; the page reloads it:")
         for i in item["issues"]:
             print(f"  {i['where']}: " + i["message"].replace("\n", "\n    "))
         print(f"\nThen keep listening with:\n  {again}")
