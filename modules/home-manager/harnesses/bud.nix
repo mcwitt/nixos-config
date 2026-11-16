@@ -34,6 +34,7 @@ in
         hooks = [ context ];
       }
     ];
+    harnesses.pi.extensions."bud-context.ts" = pkgs.replaceVars ./bud-context.ts { inherit bud; };
 
     # display-popup does not expand formats in its command; run-shell does.
     programs.tmux.extraConfig = ''
