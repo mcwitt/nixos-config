@@ -71,5 +71,8 @@ in
     home.file.".pi/agent/AGENTS.md" = lib.mkIf (config.harnesses.enable or false) {
       text = instructions;
     };
+    harnesses.pi.extensions = lib.mkIf (config.harnesses.enable or false) {
+      "agent-gh-guard.ts" = pkgs.replaceVars ./guard.ts { guard = lib.getExe guard; };
+    };
   };
 }
