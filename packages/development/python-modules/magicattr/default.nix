@@ -8,14 +8,14 @@
 
 buildPythonPackage rec {
   pname = "magicattr";
-  version = "0.1.6";
+  version = "0.1.7";
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "frmdstryr";
     repo = "magicattr";
     rev = "v${version}";
-    hash = "sha256-hV425AnXoYL3oSYMhbXaF8VRe/B1s5f5noAZYz4MMwc=";
+    hash = "sha256-tS9ZOKS+iSDJOArnf3Fop2nPYwQifDY6PXuqcZ0Cvcs=";
   };
 
   nativeBuildInputs = [
