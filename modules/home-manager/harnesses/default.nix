@@ -62,6 +62,7 @@ in
     programs.claude-code.context = context;
     programs.codex.context = context;
     programs.opencode.context = context;
+    home.file.".pi/agent/AGENTS.md".text = context;
 
     harnesses.skills = gwsSkills // {
       asd-ste100 = "${inputs.asd-ste100}";
