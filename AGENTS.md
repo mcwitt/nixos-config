@@ -112,6 +112,13 @@ nix store prefetch-file --json --hash-type sha256 "https://files.pythonhosted.or
 
 `bud` (`packages/development/misc/bud`) builds every harness command line itself, in `src/adapter.rs`. When a harness bump renames or drops a launch, resume, model or effort flag, `bud launch` fails with the harness's own error: fix the adapter, not the skill. After bumping a harness, run the "Checking a harness by hand" list in `modules/home-manager/harnesses/skills/bud/reference.md`; the flake check uses stub agents and cannot catch flag changes.
 
+### Vendored pi packages
+
+`modules/home-manager/harnesses/pi/packages.nix` pins third-party pi packages as store paths instead of `pi install`ing them. Bump each by hand, and check the result loads in `pi` (a broken extension shows a load error at startup):
+
+- **pi-automode** (`czottmann/pi-automode`): pinned to a release tag. Check `gh release list --repo czottmann/pi-automode --limit 1`. When bumping, compare the `unbash` version in its `package.json` with the vendored tarball, and update both.
+- **pi-claude-code** (`earendil-works/pi-claude-code`): no releases yet, so pinned to a `main` commit. It drives `claude -p` through Claude Code's internal stream-json protocol, so a Claude Code bump can break it; recheck it after updating `claude-code`. It keeps Claude usage on the subscription only while Anthropic counts `claude -p` against plan limits; check that policy before relying on it.
+
 ### TODO audit
 
 ```bash

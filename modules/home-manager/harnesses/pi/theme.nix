@@ -78,22 +78,6 @@ in
 {
   config = lib.mkIf (config.harnesses.enable && haveStylix) {
     home.file.".pi/agent/themes/stylix.json".source = jsonFormat.generate "pi-stylix-theme.json" theme;
-
-    # Pi rewrites settings.json on interactive /settings changes. The pinned
-    # home-manager has no Pi module, so merge the theme into a writable file,
-    # preserving runtime settings. Revisit when home-manager gains Pi support.
-    home.activation.piStylixTheme = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      PI_SETTINGS="${config.home.homeDirectory}/.pi/agent/settings.json"
-      run mkdir -p "$(dirname "$PI_SETTINGS")"
-      if [ -e "$PI_SETTINGS" ]; then
-        _pi_settings="$(${lib.getExe pkgs.jq} '.theme = "stylix"' "$PI_SETTINGS")"
-      else
-        _pi_settings='{"theme":"stylix"}'
-      fi
-      _pi_tmp="$(${lib.getExe' pkgs.coreutils "mktemp"})"
-      printf '%s\n' "$_pi_settings" > "$_pi_tmp"
-      run install -m644 "$_pi_tmp" "$PI_SETTINGS"
-      rm -f "$_pi_tmp"
-    '';
+    harnesses.pi.settings.theme = "stylix";
   };
 }
