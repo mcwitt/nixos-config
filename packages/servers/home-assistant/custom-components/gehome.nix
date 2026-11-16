@@ -18,6 +18,12 @@ buildHomeAssistantComponent rec {
     hash = "sha256-6PsZcLqa7csEGIg810arAiVpyiIUSgOgKcqqDhuhjIU=";
   };
 
+  # The 0.1.7 patch preserves the API and fixes Python's removed AST aliases.
+  postPatch = ''
+    substituteInPlace custom_components/ge_home/manifest.json \
+      --replace-fail 'magicattr==0.1.6' 'magicattr==${magicattr.version}'
+  '';
+
   propagatedBuildInputs = [
     gehomesdk
     magicattr
