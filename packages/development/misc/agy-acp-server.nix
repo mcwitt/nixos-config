@@ -12,23 +12,23 @@ let
   sources = {
     x86_64-linux = {
       platform = "linux/agy-acp-server-${version}-linux-x86_64";
-      hash = "sha256-+7LVTdlPuJeEUwjTtrRhh8Yn8cYAeN7YGt7q+LkMXXo=";
+      hash = "sha256-NvNz6JSO3xcns5x9YrVyLWpEdL39crBK09be9XGAjJ8=";
     };
     aarch64-linux = {
       platform = "linux/agy-acp-server-${version}-linux-arm64";
-      hash = "sha256-PcQ6IfVAKyOk26ezIKZ0Xp2/S26tkSzp/HYBHqOgin4=";
+      hash = "sha256-HhhPQ5R3tUE46URABWsmp4wKgHWo/S/9pjfsMSZ8ZFk=";
     };
     x86_64-darwin = {
       platform = "macos/agy-acp-server-${version}-darwin-x86_64";
-      hash = "sha256-QHtrjvFnuyB9Hv/b1Ii6z2O6fasrR9SkfY6jcQqMD1U=";
+      hash = "sha256-hqlOM7JdSjj/MFJq2ERUaGCqntmGmEmNnofTDreUQm4=";
     };
     aarch64-darwin = {
       platform = "macos/agy-acp-server-${version}-darwin-arm64";
-      hash = "sha256-IaMu6rhbOUpRVRDIRTm9pLJQS/KRfgogH1xBMLE1gaU=";
+      hash = "sha256-yC7LTvR2v8NcvlsnRc3d74c7mcn1vX/RHlyh/BZno/w=";
     };
   };
 
-  version = "1.4.0";
+  version = "1.5.0";
 
   source =
     sources.${stdenvNoCC.hostPlatform.system}
