@@ -272,6 +272,21 @@ class ServerTest(unittest.TestCase):
         self.assertNotEqual(json.loads((self.dir / "server.json").read_text())["pid"], info["pid"])
         self.assertEqual(self.get("api/doc")["engine"], info["engine"])
 
+    def test_restart_keeps_serve_options(self):
+        port = self.url.split(":")[2].split("/")[0]
+        out = run("serve", self.dir, "--detach", "--public-host", "reader.test").stdout
+        self.assertIn("restarted the server: new options", out)
+        url = out.strip().splitlines()[-1]
+        self.assertEqual(url, self.url.replace("127.0.0.1", "reader.test"))
+        # A restart of an out-of-date server, without flags, keeps them and the URL.
+        info = json.loads((self.dir / "server.json").read_text())
+        (self.dir / "server.json").write_text(json.dumps({**info, "engine": "0" * 12}))
+        out = run("serve", self.dir, "--detach").stdout
+        self.assertEqual(out.strip().splitlines()[-1], url)
+        self.assertEqual(run("serve", self.dir, "--detach").stdout.strip(), f"already serving: {url}")
+        self.assertEqual(json.loads((self.dir / "server.json").read_text())["options"]["public_host"], "reader.test")
+        self.assertIn(f":{port}/", url)
+
     def test_listen_times_out_and_reports_presence(self):
         out = run("listen", self.dir, "--timeout", 1).stdout
         self.assertIn("No questions in the last 1 s", out)

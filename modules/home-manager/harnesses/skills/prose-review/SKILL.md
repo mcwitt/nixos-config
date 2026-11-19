@@ -39,7 +39,7 @@ python3 <skill-dir>/scripts/prose_review.py serve REVIEW --detach
 
 This prints a URL with a secret token. The server listens on 127.0.0.1. If the reader's browser runs on another machine, either pass `--host` with an address that machine can reach, or have them forward the port (`ssh -L PORT:127.0.0.1:PORT HOST`). If your harness sandboxes commands, the server needs permission to listen on a port.
 
-A review directory keeps its URL: a later server reuses its token and port. Running `serve` again prints the URL of the running server. If that server runs another copy of `prose_review.py` or its page, for example one from before an update, `serve` restarts it in place, and open pages reconnect and reload.
+A review directory keeps its URL: later servers reuse its token, port and `serve` options. Running `serve` again prints the URL of the running server. If that server runs another copy of `prose_review.py` or its page, for example one from before an update, or other options, `serve` restarts it in place, and open pages reconnect and reload.
 
 Give the reader the URL and a one-sentence summary of the document and the review's focus. Tell them they can select any text to quote it, then ask about it or ask for a change; that edits you make appear in the page with a mark beside each edited passage, which opens to show what it replaced, and that the "edits" button in the header clears the marks; and that "Finish" tells you they are done. Then start listening.
 

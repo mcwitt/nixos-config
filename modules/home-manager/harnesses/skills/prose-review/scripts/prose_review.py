@@ -63,7 +63,7 @@ VERSIONS_KEPT = 50
 @functools.cache
 def asset_files() -> dict[str, Path]:
     """The page's files by name: this skill's and the chrome it shares with walkthrough."""
-    files = {p.name: p for p in sorted(ASSETS.iterdir()) if p.is_file()}
+    files = {p.name: p for p in sorted(ASSETS.iterdir()) if p.is_file() and not p.name.startswith(".")}
     return {**files, **{n: CORE / "assets" / n for n in SHARED_ASSETS}}
 
 
@@ -614,10 +614,23 @@ def stop_server(review_dir: Path, info: dict):
     sys.exit("the server did not stop")
 
 
+# Options a review directory keeps between servers, with their defaults.
+SERVE_OPTIONS = {"host": "127.0.0.1", "port": 0, "public_host": None, "idle_hours": 12.0}
+
+
+def serve_options(args, saved: dict) -> dict:
+    """The saved options, overridden by the flags given on this command line."""
+    given = {k: getattr(args, k) for k in SERVE_OPTIONS if getattr(args, k) is not None}
+    return {**SERVE_OPTIONS, **saved, **given}
+
+
 def cmd_serve(args):
     review_dir = Path(args.review).resolve()
+    saved = review_dir / ".server-address"
+    address = read_json(saved)
+    opts = serve_options(args, address.get("options", {}))
     running = server_info(review_dir)
-    if running and not stale_reason(running):
+    if running and not stale_reason(running) and running.get("options") == opts:
         print(f"already serving: {running['url']}")
         return
     if running:
@@ -627,7 +640,7 @@ def cmd_serve(args):
         except ReviewInvalid as e:
             sys.exit("\n".join(f"error: {err}" for err in e.errors))
         stop_server(review_dir, running)
-        print(f"restarted the server: {stale_reason(running)}")
+        print(f"restarted the server: {stale_reason(running) or 'new options'}")
     if args.detach:
         argv = [a for a in sys.argv[1:] if a != "--detach"]
         with open(review_dir / "server.log", "ab") as logf:
@@ -650,11 +663,7 @@ def cmd_serve(args):
 
     # Reuse the previous token and port, so a restarted server keeps the URL
     # and open pages reconnect on their own.
-    saved = review_dir / ".server-address"
-    try:
-        token, port = json.loads(saved.read_text()).values()
-    except (OSError, ValueError):
-        token, port = secrets.token_urlsafe(18), 0
+    token = address.get("token") or secrets.token_urlsafe(18)
     try:
         state = State(review_dir, token)
     except ReviewInvalid as e:
@@ -663,16 +672,16 @@ def cmd_serve(args):
         sys.exit(1)
     Handler.state = state
     try:
-        httpd = ThreadingHTTPServer((args.host, args.port or port), Handler)
+        httpd = ThreadingHTTPServer((opts["host"], opts["port"] or address.get("port", 0)), Handler)
     except OSError:
-        httpd = ThreadingHTTPServer((args.host, args.port), Handler)
+        httpd = ThreadingHTTPServer((opts["host"], opts["port"]), Handler)
     httpd.daemon_threads = True
     host, port = httpd.server_address[:2]
-    shown = args.public_host or (socket.gethostname() if host in ("0.0.0.0", "::") else host)
+    shown = opts["public_host"] or (socket.gethostname() if host in ("0.0.0.0", "::") else host)
     url = f"http://{shown}:{port}/{state.token}/"
-    info = {"pid": os.getpid(), "url": url, "port": port, "engine": engine(), "script": str(SCRIPT)}
+    info = {"pid": os.getpid(), "url": url, "port": port, "engine": engine(), "script": str(SCRIPT), "options": opts}
     write_atomic(review_dir / "server.json", json.dumps(info), 0o600)
-    write_atomic(saved, json.dumps({"token": state.token, "port": port}), 0o600)
+    write_atomic(saved, json.dumps({"token": state.token, "port": port, "options": opts}), 0o600)
     state.pages_changed()
     print_report(state.review)
     log(f"serving {url} (pid {os.getpid()}, engine {engine()})")
@@ -683,7 +692,7 @@ def cmd_serve(args):
             time.sleep(60)
             with state.listeners_lock:
                 open_pages = len(state.listeners)
-            if not open_pages and time.monotonic() - state.last_activity > args.idle_hours * 3600:
+            if not open_pages and time.monotonic() - state.last_activity > opts["idle_hours"] * 3600:
                 log("idle; shutting down")
                 httpd.shutdown()
                 return
@@ -810,10 +819,11 @@ def main(argv=None):
 
     s = sub.add_parser("serve", help="serve the document as a local web page")
     s.add_argument("review")
-    s.add_argument("--host", default="127.0.0.1", help="address to listen on (default 127.0.0.1)")
-    s.add_argument("--port", type=int, default=0, help="port (default: any free port)")
+    # Options left out keep the values of the review's last server.
+    s.add_argument("--host", help="address to listen on (default 127.0.0.1)")
+    s.add_argument("--port", type=int, help="port (default: the last server's, else any free port)")
     s.add_argument("--public-host", help="host name to print in the URL")
-    s.add_argument("--idle-hours", type=float, default=12, help="exit after this long unused")
+    s.add_argument("--idle-hours", type=float, help="exit after this long unused (default 12)")
     s.add_argument("--detach", action="store_true", help="run in the background; print the URL")
     s.set_defaults(func=cmd_serve)
 
