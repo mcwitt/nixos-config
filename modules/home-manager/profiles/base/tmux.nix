@@ -85,6 +85,9 @@ in
         # Preserve clipboard writes from terminal Emacs and nested tmux.
         # Applications inside tmux can therefore also write the clipboard.
         set -s set-clipboard on
+        # tmux's own copies send an empty OSC 52 selection, which mosh drops;
+        # always name the clipboard.
+        set -as terminal-overrides ',xterm*:Ms=\E]52;c%p1%.0s;%p2%s\007'
 
         # Keep new panes/windows in the active pane's project or worktree.
         bind c new-window -c '#{pane_current_path}'
