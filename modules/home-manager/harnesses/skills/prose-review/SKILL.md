@@ -7,7 +7,7 @@ description: Go over a Markdown document with a human in their browser, rendered
 
 Work through a Markdown document with its reader. Serve it from this machine as a rendered page with a question panel: the reader selects a passage to ask about it or to ask for a change, you answer from the session and make the edits in the file, and the page reloads with the edited passages marked. Leave Git state alone unless the user asks you to commit.
 
-The bundled script `scripts/prose_review.py` (Python ≥ 3.11, standard library only) checks the review, serves the page and passes questions to you.
+The bundled script `scripts/prose_review.py` (Python ≥ 3.11, standard library only) checks the review, serves the page and passes questions to you. It uses the page chrome and question queue of the `walkthrough` skill, which must be installed beside this one.
 
 ## 1. Establish the document
 

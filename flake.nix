@@ -386,6 +386,10 @@
           (harnesses + /skills/walkthrough)
           (harnesses + /skills/walkthrough-pr)
         ];
+        proseSkills = deckFiles (harnesses + /skills) [
+          (harnesses + /skills/walkthrough)
+          (harnesses + /skills/prose-review)
+        ];
       in
       {
 
@@ -428,6 +432,8 @@
               ormolu.enable = true;
             };
           };
+          # prose-review's script imports walkthrough's deck.py and serves its
+          # ui.js and ui.css, so it runs from a store copy of both.
           prose-review =
             pkgs.runCommand "prose-review-check"
               {
@@ -435,7 +441,7 @@
               }
               ''
                 python3 ${./modules/home-manager/harnesses/tests/test_prose_review.py} \
-                  ${./modules/home-manager/harnesses/skills/prose-review}/scripts/prose_review.py
+                  ${proseSkills}/prose-review/scripts/prose_review.py
                 touch $out
               '';
           walkthrough =

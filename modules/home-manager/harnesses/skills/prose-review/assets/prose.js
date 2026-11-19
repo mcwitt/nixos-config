@@ -1,14 +1,13 @@
 "use strict";
 // Prose review. The server (scripts/prose_review.py) serves the Markdown
 // document as JSON, relays questions to the review session and pushes
-// updates over server-sent events. The panel, chips and chrome are shared
-// with the walkthrough-pr deck; the document view replaces its slides.
+// updates over server-sent events. The chrome and the question panel's
+// parts come from walkthrough's ui.js, loaded first; the document view
+// takes the place of the deck's slides.
 (() => {
-  const MERMAID = {
-    src: "https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.15.0/mermaid.min.js",
-    integrity: "sha384-yQ4mmBBT+vhTAwjFH0toJXNYJ6O4usWnt6EPIdWwrRvx2V/n5lXuDZQwQFeSFydF",
-  };
-  const KEY = "prose-review:" + location.pathname;
+  const { $, esc, h, debounce, clock, narrow, getJSON, post, toast, banner } = UI;
+  const store = UI.storage("prose-review:" + location.pathname);
+  const WHO = "review session";
 
   const S = {
     doc: null,
@@ -17,79 +16,7 @@
     refs: [],
     seen: null, // the document version the reader last marked read
     changes: 0,
-    banners: new Map(),
-    askW: null,
   };
-
-  // ---- small helpers ----
-
-  const $ = (sel, el = document) => el.querySelector(sel);
-  const esc = (s) =>
-    String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-
-  function h(tag, attrs, ...kids) {
-    const el = document.createElement(tag);
-    for (const [k, v] of Object.entries(attrs || {})) {
-      if (v == null || v === false) continue;
-      if (k === "class") el.className = v;
-      else if (k === "html") el.innerHTML = v;
-      else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
-      else el.setAttribute(k, v === true ? "" : v);
-    }
-    for (const kid of kids.flat()) {
-      if (kid == null || kid === false) continue;
-      el.append(kid instanceof Node ? kid : String(kid));
-    }
-    return el;
-  }
-
-  const store = {
-    get(k, d) {
-      try {
-        const v = localStorage.getItem(KEY + ":" + k);
-        return v === null ? d : JSON.parse(v);
-      } catch {
-        return d;
-      }
-    },
-    set(k, v) {
-      try {
-        localStorage.setItem(KEY + ":" + k, JSON.stringify(v));
-      } catch {}
-    },
-  };
-
-  const debounce = (fn, ms) => {
-    let t;
-    return (...a) => {
-      clearTimeout(t);
-      t = setTimeout(() => fn(...a), ms);
-    };
-  };
-
-  const clock = (ts) => new Date(ts * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  const isDark = () => {
-    const t = document.documentElement.dataset.theme;
-    return t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
-  };
-  const narrow = () => matchMedia("(max-width: 960px)").matches;
-
-  async function getJSON(path) {
-    const r = await fetch(path, { cache: "no-store" });
-    if (!r.ok) throw new Error(`${path}: ${r.status}`);
-    return r.json();
-  }
-
-  async function post(path, body) {
-    const r = await fetch(path, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body || {}),
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data.error || r.statusText);
-    return data;
-  }
 
   // ---- markdown and highlighting ----
 
@@ -148,86 +75,12 @@
 
   // ---- diagrams (```mermaid fences) ----
 
-  let mermaidReady = null;
-  let mermaidN = 0;
-
-  function loadMermaid() {
-    mermaidReady ||= new Promise((resolve, reject) => {
-      const s = document.createElement("script");
-      Object.assign(s, { src: MERMAID.src, integrity: MERMAID.integrity, crossOrigin: "anonymous" });
-      s.onload = () => resolve(window.mermaid);
-      s.onerror = () => reject(new Error("could not load the diagram library"));
-      document.head.append(s);
-    });
-    return mermaidReady;
-  }
-
-  async function mermaidInto(el, src) {
-    el.replaceChildren(h("span", { class: "thread-empty" }, "Drawing the diagram…"));
-    try {
-      const m = await loadMermaid();
-      const css = getComputedStyle(document.documentElement);
-      const v = (name) => css.getPropertyValue(name).trim();
-      m.initialize({
-        startOnLoad: false,
-        securityLevel: "strict",
-        theme: "base",
-        darkMode: isDark(),
-        fontFamily: getComputedStyle(document.body).fontFamily,
-        sequence: { width: 120, actorMargin: 36, boxMargin: 8, messageMargin: 32, mirrorActors: false },
-        themeVariables: {
-          background: v("--panel"),
-          primaryColor: v("--panel"),
-          primaryTextColor: v("--ink"),
-          primaryBorderColor: v("--ink-3"),
-          secondaryColor: v("--accent-wash"),
-          secondaryBorderColor: v("--accent"),
-          tertiaryColor: v("--sunk"),
-          tertiaryBorderColor: v("--rule"),
-          lineColor: v("--ink-3"),
-          textColor: v("--ink"),
-          mainBkg: v("--panel"),
-          nodeBorder: v("--ink-3"),
-          clusterBkg: v("--sunk"),
-          clusterBorder: v("--rule"),
-          edgeLabelBackground: v("--panel"),
-          noteBkgColor: v("--sel-row"),
-          noteBorderColor: v("--sel-edge"),
-          noteTextColor: v("--ink"),
-          actorBkg: v("--panel"),
-          actorBorder: v("--ink-3"),
-          signalColor: v("--ink-2"),
-          fontSize: "15px",
-        },
-      });
-      const { svg } = await m.render(`mmd-${++mermaidN}`, src);
-      el.innerHTML = svg;
-      fitDiagram(el.querySelector("svg"), el);
-    } catch (e) {
-      el.replaceChildren(h("pre", { class: "diagram-error" }, `The diagram failed to draw: ${e.message || e}\n\n${src}`));
-    }
-  }
-
-  // Mermaid scales a diagram down to the column, which can leave its text
-  // unreadably small. Shrink to at most MIN_SCALE; wider diagrams scroll.
-  const MIN_SCALE = 0.9;
-  function fitDiagram(svg, box) {
-    if (!svg) return;
-    const natural = parseFloat(svg.style.maxWidth) || svg.viewBox?.baseVal?.width;
-    if (!natural || !box.clientWidth) return;
-    const scale = Math.max(MIN_SCALE, Math.min(1, box.clientWidth / natural));
-    svg.style.maxWidth = "none";
-    svg.setAttribute("width", Math.round(natural * scale));
-    svg.removeAttribute("height");
-    if (natural * scale > box.clientWidth) box.style.justifyItems = "start";
-  }
-
   function drawDiagrams(root) {
     for (const code of root.querySelectorAll("pre > code.language-mermaid")) {
       const body = h("div", { class: "diagram-body" });
       const fig = h("figure", { class: "diagram", "data-line": code.dataset.line, "data-end": code.dataset.end }, body);
       code.parentElement.replaceWith(fig);
-      mermaidInto(body, code.textContent);
+      UI.mermaidInto(body, code.textContent);
     }
   }
 
@@ -625,15 +478,8 @@
     $("#clear-btn").hidden = !msgs.length || msgs.some(pending);
     const t = $("#thread");
     t.replaceChildren();
-    if (S.status.session === "away") {
-      t.append(
-        h(
-          "p",
-          { class: "offline-note" },
-          "The review session is not listening right now. Questions wait until it is; to resume, ask it in the terminal to keep listening.",
-        ),
-      );
-    }
+    const note = UI.presenceNote(S.status, WHO);
+    if (note) t.append(note);
     if (!msgs.length) {
       t.append(
         h(
@@ -652,32 +498,20 @@
   }
 
   function questionEl(m) {
-    const state = {
-      queued: [h("span", {}, "Waiting for the review session · ", h("span", { "data-since": m.at })), h("button", { type: "button", class: "ghost small", onclick: () => withdraw(m) }, "Withdraw")],
-      claimed: [h("span", { class: "dots" }, "The review session is answering"), h("span", { "data-since": m.at })],
-      withdrawn: [h("span", {}, "Withdrawn")],
-    }[m.state];
     return h(
       "div",
       { class: `msg msg-q ${m.state || ""}` },
       h("div", { class: "who" }, `You · ${clock(m.at)}`),
       m.refs?.length
-        ? h("div", { class: "chips" }, m.refs.map((r) => h("span", { class: "chip static", title: r.text || r.label, onclick: () => flashRef(r) }, h("span", {}, r.label))))
+        ? h("div", { class: "chips" }, m.refs.map((r) => h("span", { class: "chip static", title: r.text || r.label, onclick: () => flashRef(r) }, h("span", { class: "chip-label" }, r.label))))
         : null,
       m.text ? h("div", { class: "text" }, m.text) : null,
-      state ? h("div", { class: "msg-state" }, state) : null,
+      UI.questionState(m, WHO, withdraw),
     );
   }
 
   function answerEl(m) {
     return h("div", { class: "msg msg-a" }, h("div", { class: "who" }, `Review session · ${clock(m.at)}`), mdEl(m.text, "body prose"));
-  }
-
-  function tickElapsed() {
-    for (const el of document.querySelectorAll("[data-since]")) {
-      const s = Math.max(0, Math.round(Date.now() / 1000 - +el.dataset.since));
-      el.textContent = s < 60 ? `${s} s` : `${Math.floor(s / 60)} min`;
-    }
   }
 
   async function withdraw(m) {
@@ -695,7 +529,7 @@
         h(
           "span",
           { class: "chip", title: r.text || r.label },
-          h("span", {}, r.label),
+          h("span", { class: "chip-label" }, r.label),
           h("button", {
             type: "button",
             "aria-label": `Remove ${r.label}`,
@@ -757,104 +591,12 @@
     $("#toc-btn").setAttribute("aria-expanded", "false");
   }
 
-  const THEMES = ["system", "light", "dark"];
-  function applyTheme(t) {
-    if (t === "system") delete document.documentElement.dataset.theme;
-    else document.documentElement.dataset.theme = t;
-    $("#theme-btn").title = `Theme: ${t}`;
-    store.set("theme", t);
-  }
-
-  // ---- question panel width ----
-
-  // The docked panel's width lives in --ask-w; the stylesheet's default
-  // applies until the reader drags the handle. Null means "use the default".
-  const ASK_MIN = 280;
-  const askMax = () => Math.max(ASK_MIN, Math.min(innerWidth - 480, 900));
-  const askWidth = () => $("#ask").getBoundingClientRect().width;
-
-  function setAskWidth(w, { save = true } = {}) {
-    S.askW = w == null ? null : Math.round(Math.max(ASK_MIN, Math.min(askMax(), w)));
-    const root = document.documentElement.style;
-    if (S.askW == null) root.removeProperty("--ask-w");
-    else root.setProperty("--ask-w", `${S.askW}px`);
-    const grip = $("#ask-grip");
-    grip.setAttribute("aria-valuemin", ASK_MIN);
-    grip.setAttribute("aria-valuemax", askMax());
-    grip.setAttribute("aria-valuenow", Math.round(askWidth()));
-    if (save) store.set("ask-width", S.askW);
-  }
-
-  function bindAskGrip() {
-    const grip = $("#ask-grip");
-    let resize = null;
-    const end = () => {
-      if (!resize) return;
-      resize = null;
-      document.body.classList.remove("resizing");
-      store.set("ask-width", S.askW);
-    };
-    grip.addEventListener("pointerdown", (e) => {
-      if (e.button !== 0) return;
-      e.preventDefault();
-      resize = { x: e.clientX, w: askWidth() };
-      grip.setPointerCapture(e.pointerId);
-      document.body.classList.add("resizing");
-    });
-    grip.addEventListener("pointermove", (e) => resize && setAskWidth(resize.w + resize.x - e.clientX, { save: false }));
-    grip.addEventListener("pointerup", end);
-    grip.addEventListener("pointercancel", end);
-    grip.addEventListener("dblclick", () => setAskWidth(null));
-    grip.addEventListener("keydown", (e) => {
-      if (e.altKey || e.ctrlKey || e.metaKey) return;
-      const step = e.shiftKey ? 64 : 16;
-      const cur = askWidth();
-      const next = { ArrowLeft: cur + step, ArrowRight: cur - step, Home: askMax(), End: ASK_MIN, Enter: null }[e.key];
-      if (next === undefined) return;
-      e.preventDefault();
-      setAskWidth(next);
-    });
-    window.addEventListener(
-      "resize",
-      debounce(() => S.askW != null && setAskWidth(S.askW, { save: false }), 100),
-    );
-  }
-
-  const PRESENCE = {
-    listening: ["Listening", "The review session is waiting for questions."],
-    answering: ["Answering", "The review session is answering a question; new ones wait their turn."],
-    away: ["Not listening", "The review session is not waiting for questions; they are queued until it is."],
-  };
-
   function setStatus(st) {
-    if (!st || !PRESENCE[st.session]) return;
+    if (!UI.knownPresence(st)) return;
     const changed = st.session !== S.status.session;
     S.status = st;
-    const pill = $("#listen-pill");
-    pill.dataset.on = String(st.session !== "away");
-    [pill.textContent, pill.title] = PRESENCE[st.session];
+    UI.showPresence(st, WHO);
     if (changed && S.doc) renderThread();
-  }
-
-  function banner(key, text, details) {
-    if (text) S.banners.set(key, { text, details });
-    else S.banners.delete(key);
-    const el = $("#banner");
-    el.hidden = !S.banners.size;
-    el.replaceChildren(
-      ...[...S.banners.values()].map((b) => h("div", {}, b.text, b.details?.length ? h("pre", {}, b.details.join("\n")) : null)),
-    );
-  }
-
-  function toast(text, action) {
-    const el = h(
-      "div",
-      { class: "toast" },
-      h("span", {}, text),
-      action ? h("button", { type: "button", class: "small", onclick: () => (action.run(), el.remove()) }, action.label) : null,
-    );
-    $("#toasts").append(el);
-    setTimeout(() => el.remove(), action ? 9000 : 4500);
   }
 
   async function refreshDoc() {
@@ -888,7 +630,7 @@
     });
     es.addEventListener("doc", () => refreshDoc());
     es.addEventListener("doc-error", (e) =>
-      banner("doc", "The document cannot be read right now, so this page still shows the previous version.", JSON.parse(e.data).errors),
+      banner("doc", "The document cannot be read right now, so this page shows it as it was.", JSON.parse(e.data).errors),
     );
     es.addEventListener("thread", threadsChanged);
     es.addEventListener("status", (e) => setStatus(JSON.parse(e.data)));
@@ -924,8 +666,7 @@
     $("#doc-scope").onclick = openToc;
     $("#toc").addEventListener("click", (e) => e.target.id === "toc" && closeToc());
     $("#theme-btn").onclick = () => {
-      const cur = store.get("theme", "system");
-      applyTheme(THEMES[(THEMES.indexOf(cur) + 1) % THEMES.length]);
+      UI.nextTheme(store);
       if (S.doc) renderDoc();
     };
     $("#changes-btn").onclick = markRead;
@@ -935,7 +676,7 @@
     });
     $("#ask-open").onclick = () => $("#ask").classList.add("open");
     $("#ask-close").onclick = () => $("#ask").classList.remove("open");
-    bindAskGrip();
+    UI.bindResizers(store);
     confirmable($("#clear-btn"), "Clear", "Clear these questions?", async () => {
       await post("api/clear", {});
       S.threads = {};
@@ -970,8 +711,7 @@
   }
 
   async function boot() {
-    applyTheme(store.get("theme", "system"));
-    setAskWidth(store.get("ask-width", null), { save: false });
+    UI.applyTheme(store, store.get("theme", "system"));
     bindUI();
     try {
       await loadDoc();
@@ -988,7 +728,7 @@
     renderThread();
     setStatus(S.status);
     connect();
-    setInterval(tickElapsed, 1000);
+    setInterval(UI.tickElapsed, 1000);
   }
 
   boot();

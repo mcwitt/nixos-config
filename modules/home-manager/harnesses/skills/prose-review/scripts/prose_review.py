@@ -13,13 +13,15 @@ review; the file itself stays where it is. The server writes `threads.json`
 to it, and re-reads the document whenever it changes, so edits made in the
 session appear in the open page and are marked as changed. Questions and
 answers cross between the server and `listen` only as files in `queue/`, so
-`listen` needs no network access. Requires Python >= 3.11; uses only the
-standard library.
+`listen` needs no network access. The page chrome (ui.js, ui.css) and the
+question queue come from walkthrough, installed beside this skill. Requires
+Python >= 3.11; uses only the standard library.
 """
 
 from __future__ import annotations
 
 import argparse
+import functools
 import json
 import os
 import queue
@@ -38,6 +40,13 @@ from urllib.parse import urlsplit
 
 ASSETS = Path(__file__).resolve().parent.parent / "assets"
 SCRIPT = Path(__file__).resolve()
+# walkthrough's deck.py, from the skill installed beside this one.
+CORE = SCRIPT.parent.parent.parent / "walkthrough"
+if str(CORE / "scripts") not in sys.path:
+    sys.path.insert(0, str(CORE / "scripts"))
+from deck import Queue, Threads, pid_alive, read_json, write_atomic  # noqa: E402
+
+SHARED_ASSETS = ("ui.css", "ui.js")  # walkthrough's, shared with its deck page
 QUESTION_ID = re.compile(r"^q-[0-9a-z-]+$")
 HEADING_RE = re.compile(r"^ {0,3}(#{1,6})\s+(.*?)\s*#*\s*$")
 FENCE_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})")
@@ -48,6 +57,13 @@ HEARTBEAT = 15.0
 LISTEN_GRACE = 90.0
 CLAIM_STALE = 20 * 60
 VERSIONS_KEPT = 50
+
+
+@functools.cache
+def asset_files() -> dict[str, Path]:
+    """The page's files by name: this skill's and the chrome it shares with walkthrough."""
+    files = {p.name: p for p in sorted(ASSETS.iterdir()) if p.is_file()}
+    return {**files, **{n: CORE / "assets" / n for n in SHARED_ASSETS}}
 
 
 # --------------------------------------------------------------------------
@@ -188,97 +204,8 @@ def refs_text(review: Review, refs: list[dict]) -> str:
     return "\n\n".join(out)
 
 
-def write_atomic(path: Path, text: str, mode: int = 0o644):
-    tmp = path.with_name(f".{path.name}.{os.getpid()}.{threading.get_ident()}.tmp")
-    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, mode)
-    with os.fdopen(fd, "w") as f:
-        f.write(text)
-    tmp.replace(path)
-
-
-def pid_alive(pid) -> bool:
-    try:
-        os.kill(int(pid), 0)
-        return True
-    except (OSError, ValueError, TypeError):
-        return False
-
-
-class Queue:
-    def __init__(self, review_dir: Path):
-        self.dir = review_dir / "queue"
-
-    def file(self, qid: str, suffix: str = ".json") -> Path:
-        return self.dir / f"{qid}{suffix}"
-
-    def add(self, item: dict):
-        self.dir.mkdir(exist_ok=True)
-        write_atomic(self.file(item["id"]), json.dumps(item, indent=1))
-
-    def items(self) -> list[dict]:
-        out = []
-        for p in self.dir.glob("q-*.json"):
-            try:
-                out.append(json.loads(p.read_text()))
-            except (OSError, ValueError):
-                continue
-        return sorted(out, key=lambda x: x.get("at", 0))
-
-    def claimed(self, qid: str) -> bool:
-        return self.file(qid, ".claimed").exists()
-
-    def answered(self, qid: str) -> bool:
-        return self.file(qid, ".answer.md").exists()
-
-    def remove(self, qid: str):
-        for suffix in (".json", ".claimed", ".answer.md"):
-            self.file(qid, suffix).unlink(missing_ok=True)
-
-    def listener(self) -> dict | None:
-        try:
-            info = json.loads((self.dir / "listening.json").read_text())
-        except (OSError, ValueError):
-            return None
-        return info if pid_alive(info.get("pid")) and info.get("until", 0) > time.time() else None
-
-    def pages(self) -> dict:
-        try:
-            return json.loads((self.dir / "pages.json").read_text())
-        except (OSError, ValueError):
-            return {}
-
-
 # --------------------------------------------------------------------------
 # Server
-
-
-class Threads:
-    """Chat history, persisted to threads.json. Only the server writes it."""
-
-    def __init__(self, path: Path):
-        self.path = path
-        self.lock = threading.Lock()
-        try:
-            self.data = json.loads(path.read_text()).get("threads", {})
-        except (OSError, ValueError):
-            self.data = {}
-
-    def save(self):
-        write_atomic(self.path, json.dumps({"version": 1, "threads": self.data}, indent=1))
-
-    def messages(self, thread: str = THREAD) -> list[dict]:
-        return self.data.setdefault(thread, {"messages": []})["messages"]
-
-    def find(self, qid: str) -> tuple[str, dict] | tuple[None, None]:
-        for thread, t in self.data.items():
-            for m in t["messages"]:
-                if m.get("id") == qid and m["role"] == "user":
-                    return thread, m
-        return None, None
-
-    def snapshot(self) -> dict:
-        with self.lock:
-            return json.loads(json.dumps({k: v for k, v in self.data.items() if v["messages"]}))
 
 
 class State:
@@ -489,15 +416,14 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"text": text})
         if route == "/api/events":
             return self._events()
-        name = route.lstrip("/")
-        if "/" not in name and not name.startswith(".") and (ASSETS / name).is_file():
-            return self._static(name)
+        if route.lstrip("/") in asset_files():
+            return self._static(route.lstrip("/"))
         self._error(404, "not found")
 
     def _static(self, name: str):
         types = {".html": "text/html", ".css": "text/css", ".js": "text/javascript"}
         ctype = types.get(Path(name).suffix, "application/octet-stream") + "; charset=utf-8"
-        self._send(200, (ASSETS / name).read_bytes(), ctype)
+        self._send(200, asset_files()[name].read_bytes(), ctype)
 
     def _events(self):
         q: queue.Queue = queue.Queue()
@@ -588,7 +514,7 @@ class Handler(BaseHTTPRequestHandler):
             "at": msg["at"],
         }
         with st.threads.lock:
-            st.threads.messages().append(msg)
+            st.threads.messages(THREAD).append(msg)
             st.threads.save()
             st.queue.add(item)
         st.broadcast("thread", {})
@@ -651,10 +577,7 @@ def cmd_check(args):
 
 
 def server_info(review_dir: Path) -> dict | None:
-    try:
-        info = json.loads((review_dir / "server.json").read_text())
-    except (OSError, ValueError):
-        return None
+    info = read_json(review_dir / "server.json")
     return info if pid_alive(info.get("pid")) else None
 
 

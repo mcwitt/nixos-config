@@ -150,7 +150,17 @@ class ServerTest(unittest.TestCase):
             urllib.request.urlopen(root + "/wrong-token/api/doc", timeout=5)
         self.assertEqual(cm.exception.code, 404)
         with urllib.request.urlopen(self.url, timeout=5) as r:
-            self.assertIn(b"prose.js", r.read())
+            page = r.read()
+        self.assertIn(b'<script src="ui.js" defer></script>\n<script src="prose.js" defer></script>', page)
+        # The chrome shared with walkthrough comes from that skill, installed beside this one.
+        with urllib.request.urlopen(self.url + "ui.js", timeout=5) as r:
+            self.assertIn(b"window.UI", r.read())
+        with urllib.request.urlopen(self.url + "ui.css", timeout=5) as r:
+            self.assertIn(b".question-grip", r.read())
+        for name in ("deck.js", "../scripts/prose_review.py", ".server-address"):
+            with self.assertRaises(urllib.error.HTTPError, msg=name) as cm:
+                urllib.request.urlopen(self.url + name, timeout=5)
+            self.assertEqual(cm.exception.code, 404)
 
         doc = self.get("api/doc")
         self.assertEqual(doc["title"], "Guide")
