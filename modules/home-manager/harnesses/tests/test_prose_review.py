@@ -272,6 +272,14 @@ class ServerTest(unittest.TestCase):
         self.assertNotEqual(json.loads((self.dir / "server.json").read_text())["pid"], info["pid"])
         self.assertEqual(self.get("api/doc")["engine"], info["engine"])
 
+    def test_serve_replaces_a_server_that_recorded_no_script(self):
+        # Servers from before the restart in place recorded only their pid, URL and port.
+        info = json.loads((self.dir / "server.json").read_text())
+        (self.dir / "server.json").write_text(json.dumps({k: info[k] for k in ("pid", "url", "port")}))
+        out = run("serve", self.dir, "--detach").stdout
+        self.assertIn("restarted the server", out)
+        self.assertNotEqual(json.loads((self.dir / "server.json").read_text())["pid"], info["pid"])
+
     def test_restart_keeps_serve_options(self):
         port = self.url.split(":")[2].split("/")[0]
         out = run("serve", self.dir, "--detach", "--public-host", "reader.test").stdout

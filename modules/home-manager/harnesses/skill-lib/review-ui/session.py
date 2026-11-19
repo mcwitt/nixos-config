@@ -297,11 +297,12 @@ class State:
                 self.pages_changed()
             if tick % 2 == 0 and self._mtimes() != self.mtimes:
                 time.sleep(0.3)  # let a multi-file edit settle
-                self.mtimes = self._mtimes()
                 try:
                     self.reload()
                 except Exception as e:  # the content shown stands; the log says what failed
                     log(f"reload: {e!r}")
+                # After the reload: it may have changed the list of sources.
+                self.mtimes = self._mtimes()
 
     def sync_queue(self):
         changed = set()
@@ -592,8 +593,8 @@ def print_address(info: dict):
 
 def stop_server(directory: Path, info: dict):
     try:
-        # A server runs the script that started it.
-        script = Path(info.get("script") or "server.py").name
+        # A server runs the script that started it; one from before `script` was recorded ran this one.
+        script = Path(info.get("script") or sys.argv[0]).name
         if not script.endswith(".py") or script.encode() not in Path(f"/proc/{info['pid']}/cmdline").read_bytes():
             sys.exit(f"pid {info['pid']} is not a {script} server; remove {directory / 'server.json'}")
     except OSError:

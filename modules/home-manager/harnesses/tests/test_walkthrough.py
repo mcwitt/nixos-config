@@ -668,6 +668,15 @@ class CoreServerTest(ServerCase):
         deck = self.get("api/deck")
         self.assertEqual((deck["title"], deck["version"]), ("Renamed", version))
 
+    def test_an_edit_that_adds_a_source_reloads_once(self):
+        (self.dir / "more.txt").write_text("one\ntwo\n")
+        spec = self.spec()
+        spec["slides"][0]["blocks"].append({"excerpt": "more.txt"})
+        self.write(spec)
+        self.wait_for(lambda: self.get("api/deck")["version"] == 2)
+        time.sleep(2.5)
+        self.assertEqual(self.get("api/deck")["version"], 2)
+
     def test_restart_keeps_url(self):
         self.assertEqual(run("serve", self.dir, "--detach").stdout, f"already serving:\n{self.url}\n")
         run("stop", self.dir)
