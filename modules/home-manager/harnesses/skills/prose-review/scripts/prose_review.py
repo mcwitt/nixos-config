@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import functools
+import hashlib
 import json
 import os
 import queue
@@ -64,6 +65,15 @@ def asset_files() -> dict[str, Path]:
     """The page's files by name: this skill's and the chrome it shares with walkthrough."""
     files = {p.name: p for p in sorted(ASSETS.iterdir()) if p.is_file()}
     return {**files, **{n: CORE / "assets" / n for n in SHARED_ASSETS}}
+
+
+@functools.cache
+def engine() -> str:
+    """A digest of the scripts and page assets: a deploy changes it."""
+    h = hashlib.sha256()
+    for p in [SCRIPT, CORE / "scripts" / "deck.py", *asset_files().values()]:
+        h.update(p.name.encode() + b"\0" + p.read_bytes())
+    return h.hexdigest()[:12]
 
 
 # --------------------------------------------------------------------------
@@ -232,7 +242,7 @@ class State:
         return {"session": self.presence}
 
     def payload(self) -> dict:
-        return {**payload(self.review, self.version, min(self.versions)), "status": self.status()}
+        return {**payload(self.review, self.version, min(self.versions)), "status": self.status(), "engine": engine()}
 
     def _mtimes(self) -> dict[Path, int]:
         out = {}
@@ -436,7 +446,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Type", "text/event-stream")
             self.send_header("Cache-Control", "no-store")
             self.end_headers()
-            self._sse("hello", {"version": st.version, "status": st.status()})
+            self._sse("hello", {"version": st.version, "status": st.status(), "engine": engine()})
             if st.errors:
                 self._sse("doc-error", {"errors": st.errors})
             while True:
@@ -581,12 +591,43 @@ def server_info(review_dir: Path) -> dict | None:
     return info if pid_alive(info.get("pid")) else None
 
 
+def stale_reason(info: dict) -> str | None:
+    """Why a running server is not this script with these page assets, if it is not."""
+    if info.get("engine") == engine():
+        return None
+    return f"{SCRIPT.name} or its page changed since it started"
+
+
+def stop_server(review_dir: Path, info: dict):
+    try:
+        if b"prose_review" not in Path(f"/proc/{info['pid']}/cmdline").read_bytes():
+            sys.exit(f"pid {info['pid']} is not a review server; remove {review_dir / 'server.json'}")
+    except OSError:
+        pass  # no /proc (macOS); trust server.json
+    os.kill(info["pid"], signal.SIGTERM)
+    # Wait for the process to exit, not just for server.json to go, so a restart can bind the port.
+    for _ in range(50):
+        time.sleep(0.1)
+        if not pid_alive(info["pid"]):
+            (review_dir / "server.json").unlink(missing_ok=True)
+            return
+    sys.exit("the server did not stop")
+
+
 def cmd_serve(args):
     review_dir = Path(args.review).resolve()
     running = server_info(review_dir)
-    if running:
+    if running and not stale_reason(running):
         print(f"already serving: {running['url']}")
         return
+    if running:
+        # Restart in place: the token and port carry over, so open pages reconnect and reload.
+        try:
+            load_review(review_dir)  # a review that does not load keeps the running server
+        except ReviewInvalid as e:
+            sys.exit("\n".join(f"error: {err}" for err in e.errors))
+        stop_server(review_dir, running)
+        print(f"restarted the server: {stale_reason(running)}")
     if args.detach:
         argv = [a for a in sys.argv[1:] if a != "--detach"]
         with open(review_dir / "server.log", "ab") as logf:
@@ -629,11 +670,12 @@ def cmd_serve(args):
     host, port = httpd.server_address[:2]
     shown = args.public_host or (socket.gethostname() if host in ("0.0.0.0", "::") else host)
     url = f"http://{shown}:{port}/{state.token}/"
-    write_atomic(review_dir / "server.json", json.dumps({"pid": os.getpid(), "url": url, "port": port}), 0o600)
+    info = {"pid": os.getpid(), "url": url, "port": port, "engine": engine(), "script": str(SCRIPT)}
+    write_atomic(review_dir / "server.json", json.dumps(info), 0o600)
     write_atomic(saved, json.dumps({"token": state.token, "port": port}), 0o600)
     state.pages_changed()
     print_report(state.review)
-    log(f"serving {url}")
+    log(f"serving {url} (pid {os.getpid()}, engine {engine()})")
     threading.Thread(target=state.watch, daemon=True).start()
 
     def idle():
@@ -653,6 +695,8 @@ def cmd_serve(args):
     except KeyboardInterrupt:
         pass
     finally:
+        # Free the port before a restart can see server.json gone and bind it.
+        httpd.server_close()
         (review_dir / "server.json").unlink(missing_ok=True)
 
 
@@ -663,18 +707,8 @@ def cmd_stop(args):
         (review_dir / "server.json").unlink(missing_ok=True)
         print("not running")
         return
-    try:
-        if b"prose_review" not in Path(f"/proc/{info['pid']}/cmdline").read_bytes():
-            sys.exit(f"pid {info['pid']} is not a review server; remove {review_dir / 'server.json'}")
-    except OSError:
-        pass  # no /proc (macOS); trust server.json
-    os.kill(info["pid"], signal.SIGTERM)
-    for _ in range(50):
-        time.sleep(0.1)
-        if not server_info(review_dir):
-            print("stopped")
-            return
-    sys.exit("the server did not stop")
+    stop_server(review_dir, info)
+    print("stopped")
 
 
 def _ago(ts: float) -> str:
@@ -695,8 +729,13 @@ def cmd_listen(args):
             sys.exit("the answer is empty")
         write_atomic(q.file(args.answer, ".answer.md"), text)
         print(f"Posted the answer to {args.answer}.")
-    if not server_info(review_dir):
-        sys.exit(f"No server is running for this review. Start it with:\n  python3 {me} serve {review_arg} --detach")
+    info = server_info(review_dir)
+    serve = f"python3 {me} serve {review_arg} --detach"
+    if not info:
+        sys.exit(f"No server is running for this review. Start it with:\n  {serve}")
+    if stale_reason(info):
+        print(f"The server is out of date: {stale_reason(info)}. "
+              f"Restart it in place; the URL stays the same and open pages reload:\n  {serve}\n")
 
     q.dir.mkdir(exist_ok=True)
     marker = q.dir / "listening.json"

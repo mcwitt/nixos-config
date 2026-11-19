@@ -626,6 +626,8 @@
       }
       failures = 0;
       setStatus(d.status);
+      // A server restarted from another prose_review.py serves other page assets.
+      if (S.doc && d.engine !== S.doc.engine) return location.reload();
       if (S.doc && d.version !== S.doc.version) refreshDoc();
     });
     es.addEventListener("doc", () => refreshDoc());

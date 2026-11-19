@@ -169,6 +169,7 @@ class ServerTest(unittest.TestCase):
         self.assertEqual(doc["path"], str(self.doc))
         self.assertTrue(doc["sourceUrl"].endswith("#L{line}-L{end}"))
         self.assertEqual(doc["status"], {"session": "away"})
+        self.assertRegex(doc["engine"], r"^[0-9a-f]{12}$")
 
         msg = self.post(
             "api/ask",
@@ -258,6 +259,18 @@ class ServerTest(unittest.TestCase):
         self.assertEqual(self.get("api/doc")["title"], "Guide")
         for name in ("server.json", ".server-address"):
             self.assertEqual((self.dir / name).stat().st_mode & 0o777, 0o600)
+
+    def test_serve_restarts_a_stale_server_in_place(self):
+        info = json.loads((self.dir / "server.json").read_text())
+        self.assertEqual(run("serve", self.dir, "--detach").stdout.strip(), f"already serving: {self.url}")
+        # A server started from other code or page assets says so to listen and is replaced by serve.
+        (self.dir / "server.json").write_text(json.dumps({**info, "engine": "0" * 12}))
+        self.assertIn("The server is out of date", run("listen", self.dir, "--timeout", 0.1).stdout)
+        out = run("serve", self.dir, "--detach").stdout
+        self.assertIn("restarted the server", out)
+        self.assertEqual(out.strip().splitlines()[-1], self.url)
+        self.assertNotEqual(json.loads((self.dir / "server.json").read_text())["pid"], info["pid"])
+        self.assertEqual(self.get("api/doc")["engine"], info["engine"])
 
     def test_listen_times_out_and_reports_presence(self):
         out = run("listen", self.dir, "--timeout", 1).stdout

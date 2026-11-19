@@ -39,6 +39,8 @@ python3 <skill-dir>/scripts/prose_review.py serve REVIEW --detach
 
 This prints a URL with a secret token. The server listens on 127.0.0.1. If the reader's browser runs on another machine, either pass `--host` with an address that machine can reach, or have them forward the port (`ssh -L PORT:127.0.0.1:PORT HOST`). If your harness sandboxes commands, the server needs permission to listen on a port.
 
+A review directory keeps its URL: a later server reuses its token and port. Running `serve` again prints the URL of the running server. If that server runs another copy of `prose_review.py` or its page, for example one from before an update, `serve` restarts it in place, and open pages reconnect and reload.
+
 Give the reader the URL and a one-sentence summary of the document and the review's focus. Tell them they can select any text to quote it, then ask about it or ask for a change; that edits you make appear in the page with a mark beside each edited passage, which opens to show what it replaced, and that the "edits" button in the header clears the marks; and that "Finish" tells you they are done. Then start listening.
 
 ## 4. Answer questions and make edits
@@ -61,6 +63,7 @@ Every `listen` run prints the exact command to run next. Questions and answers p
 - When the reader asks for a change, edit the file in place with your usual editing tools: the smallest edit that does what was asked, in the document's own conventions. Do not reflow, reformat or "tidy" text you were not asked to change; every changed block is marked for the reader, and noise hides the real edit. The page reloads on save. Say in the answer what you changed and where (a heading, or line numbers), and anything you deliberately left as it was.
 - Propose, do not make, changes nobody asked for. If you notice an error elsewhere in the document, raise it in an answer with its location and let the reader decide.
 - If `listen` hands you a question you already claimed, you lost track of it; answer it now.
+- If `listen` says the server is out of date, run `serve` again to restart it.
 
 The page shows the reader whether you are listening, answering or away. Questions asked while you are away wait in the queue.
 
