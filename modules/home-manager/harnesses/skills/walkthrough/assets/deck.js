@@ -1,14 +1,12 @@
 "use strict";
 // Teaching slideshow. The server (scripts/deck.py) serves the deck as JSON,
 // relays questions to the session and pushes updates over server-sent events.
-// An extension's script, loaded after this one, adds to the page through
+// The chrome it shares with prose-review is in ui.js, loaded first. An
+// extension's script, loaded after this one, adds to the page through
 // window.Deck (see "extensions" below).
 (() => {
-  const MERMAID = {
-    src: "https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.15.0/mermaid.min.js",
-    integrity: "sha384-yQ4mmBBT+vhTAwjFH0toJXNYJ6O4usWnt6EPIdWwrRvx2V/n5lXuDZQwQFeSFydF",
-  };
-  const KEY = "walkthrough:" + location.pathname;
+  const { $, esc, h, debounce, clock, isDark, narrow, getJSON, post, toast, banner } = UI;
+  const store = UI.storage("walkthrough:" + location.pathname);
 
   const S = {
     deck: null,
@@ -25,7 +23,6 @@
     drafts: {},
     visited: new Set(),
     cleanups: [],
-    banners: new Map(),
     agent: "session", // what the page calls whoever answers; an extension may rename it
     answerDrafts: {},
     revising: new Set(),
@@ -35,76 +32,8 @@
 
   // ---- small helpers ----
 
-  const $ = (sel, el = document) => el.querySelector(sel);
-  const esc = (s) =>
-    String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-
   const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
   const inAppendix = (s) => s.section === "Appendix";
-
-  function h(tag, attrs, ...kids) {
-    const el = document.createElement(tag);
-    for (const [k, v] of Object.entries(attrs || {})) {
-      if (v == null || v === false) continue;
-      if (k === "class") el.className = v;
-      else if (k === "html") el.innerHTML = v;
-      else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
-      else el.setAttribute(k, v === true ? "" : v);
-    }
-    for (const kid of kids.flat()) {
-      if (kid == null || kid === false) continue;
-      el.append(kid instanceof Node ? kid : String(kid));
-    }
-    return el;
-  }
-
-  const store = {
-    get(k, d) {
-      try {
-        const v = localStorage.getItem(KEY + ":" + k);
-        return v === null ? d : JSON.parse(v);
-      } catch {
-        return d;
-      }
-    },
-    set(k, v) {
-      try {
-        localStorage.setItem(KEY + ":" + k, JSON.stringify(v));
-      } catch {}
-    },
-  };
-
-  const debounce = (fn, ms) => {
-    let t;
-    return (...a) => {
-      clearTimeout(t);
-      t = setTimeout(() => fn(...a), ms);
-    };
-  };
-
-  const clock = (ts) => new Date(ts * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  const isDark = () => {
-    const t = document.documentElement.dataset.theme;
-    return t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
-  };
-  const narrow = () => matchMedia("(max-width: 960px)").matches;
-
-  async function getJSON(path) {
-    const r = await fetch(path, { cache: "no-store" });
-    if (!r.ok) throw new Error(`${path}: ${r.status}`);
-    return r.json();
-  }
-
-  async function post(path, body) {
-    const r = await fetch(path, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body || {}),
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data.error || r.statusText);
-    return data;
-  }
 
   // ---- markdown and highlighting ----
 
@@ -1377,87 +1306,7 @@
 
   // ---- diagrams ----
 
-  let mermaidReady = null;
-  let mermaidN = 0;
-  const LOAD_FAILED = "could not load the diagram library";
-
-  function loadMermaid() {
-    mermaidReady ||= new Promise((resolve, reject) => {
-      const s = document.createElement("script");
-      Object.assign(s, { src: MERMAID.src, integrity: MERMAID.integrity, crossOrigin: "anonymous" });
-      s.onload = () => resolve(window.mermaid);
-      s.onerror = () => reject(new Error(LOAD_FAILED));
-      document.head.append(s);
-    });
-    return mermaidReady;
-  }
-
-  async function mermaidInto(el, src) {
-    let id = null;
-    el.replaceChildren(h("span", { class: "thread-empty" }, "Drawing the diagram…"));
-    try {
-      const m = await loadMermaid();
-      const css = getComputedStyle(document.documentElement);
-      const v = (name) => css.getPropertyValue(name).trim();
-      m.initialize({
-        startOnLoad: false,
-        securityLevel: "strict",
-        theme: "base",
-        darkMode: isDark(),
-        fontFamily: getComputedStyle(document.body).fontFamily,
-        sequence: { width: 120, actorMargin: 36, boxMargin: 8, messageMargin: 32, mirrorActors: false },
-        themeVariables: {
-          background: v("--panel"),
-          primaryColor: v("--panel"),
-          primaryTextColor: v("--ink"),
-          primaryBorderColor: v("--ink-3"),
-          secondaryColor: v("--accent-wash"),
-          secondaryBorderColor: v("--accent"),
-          tertiaryColor: v("--sunk"),
-          tertiaryBorderColor: v("--rule"),
-          lineColor: v("--ink-3"),
-          textColor: v("--ink"),
-          mainBkg: v("--panel"),
-          nodeBorder: v("--ink-3"),
-          clusterBkg: v("--sunk"),
-          clusterBorder: v("--rule"),
-          edgeLabelBackground: v("--panel"),
-          noteBkgColor: v("--sel-row"),
-          noteBorderColor: v("--sel-edge"),
-          noteTextColor: v("--ink"),
-          actorBkg: v("--panel"),
-          actorBorder: v("--ink-3"),
-          signalColor: v("--ink-2"),
-          fontSize: "15px",
-        },
-      });
-      id = `mmd-${++mermaidN}`;
-      const { svg } = await m.render(id, src);
-      el.innerHTML = svg;
-      fitDiagram(el.querySelector("svg"), el);
-      markMermaid(el);
-    } catch (e) {
-      // Only a diagram the library rejects is the author's to fix, not a library that failed to load.
-      // A failed render leaves Mermaid's error graphic at the end of the page.
-      if (id) for (const junk of [document.getElementById(id), document.getElementById(`d${id}`)]) junk?.remove();
-      const issue = e.message === LOAD_FAILED ? null : `Mermaid: ${e.message || e}`;
-      el.replaceChildren(h("pre", { class: "diagram-error", "data-issue": issue }, `The diagram failed to draw: ${e.message || e}\n\n${src}`));
-    }
-  }
-
-  // Mermaid scales a diagram down to the column, which can leave its text
-  // unreadably small. Shrink to at most MIN_SCALE; wider diagrams scroll.
-  const MIN_SCALE = 0.9;
-  function fitDiagram(svg, box) {
-    if (!svg) return;
-    const natural = parseFloat(svg.style.maxWidth) || svg.viewBox?.baseVal?.width;
-    if (!natural || !box.clientWidth) return;
-    const scale = Math.max(MIN_SCALE, Math.min(1, box.clientWidth / natural));
-    svg.style.maxWidth = "none";
-    svg.setAttribute("width", Math.round(natural * scale));
-    svg.removeAttribute("height");
-    if (natural * scale > box.clientWidth) box.style.justifyItems = "start";
-  }
+  const mermaidInto = (el, src) => UI.mermaidInto(el, src, markMermaid);
 
   // A hand-drawn SVG shows at a fixed scale of its viewBox, shrinking to
   // fit the column but never growing past that, so its text stays near the
@@ -1765,17 +1614,8 @@
     $("#clear-btn").hidden = !msgs.length || msgs.some(pending);
     const t = $("#thread");
     t.replaceChildren();
-    if (S.status.session === "away") {
-      t.append(
-        h(
-          "p",
-          { class: "offline-note" },
-          `The ${who()} is not listening right now. Questions wait until it is; to resume, ask it in the terminal to keep listening.`,
-        ),
-      );
-    } else if (S.status.session === "working") {
-      t.append(h("p", { class: "offline-note" }, `The ${who()} is working on something you asked for here. Questions wait until it listens again.`));
-    }
+    const note = UI.presenceNote(S.status, who());
+    if (note) t.append(note);
     if (!msgs.length) {
       const empty = h("div", { class: "thread-empty" }, h("p", {}, `No questions on this slide yet. The ${who()} that wrote the deck answers here.`));
       if (s.prompts.length) {
@@ -1799,11 +1639,6 @@
   }
 
   function questionEl(m) {
-    const state = {
-      queued: [h("span", {}, `Waiting for the ${who()} · `, h("span", { "data-since": m.at })), h("button", { type: "button", class: "ghost small", onclick: () => withdraw(m) }, "Withdraw")],
-      claimed: [h("span", { class: "ellipsis" }, `The ${who()} is answering`), h("span", { "data-since": m.at })],
-      withdrawn: [h("span", {}, "Withdrawn")],
-    }[m.state];
     return h(
       "div",
       { class: `msg msg-q ${m.state || ""}` },
@@ -1812,19 +1647,12 @@
         ? h("div", { class: "chips" }, m.refs.map((r) => h("span", { class: "chip static", title: r.text || r.label, onclick: () => flashRef(r) }, chipLabel(r))))
         : null,
       m.text ? h("div", { class: "text", html: mathText(m.text) }) : null,
-      state ? h("div", { class: "msg-state" }, state) : null,
+      UI.questionState(m, who(), withdraw),
     );
   }
 
   function answerEl(m) {
     return h("div", { class: "msg msg-a" }, h("div", { class: "who" }, `${who()[0].toUpperCase()}${who().slice(1)} · ${clock(m.at)}`), mdEl(m.text, "body prose"));
-  }
-
-  function tickElapsed() {
-    for (const el of document.querySelectorAll("[data-since]")) {
-      const s = Math.max(0, Math.round(Date.now() / 1000 - +el.dataset.since));
-      el.textContent = s < 60 ? `${s} s` : `${Math.floor(s / 60)} min`;
-    }
   }
 
   async function withdraw(m) {
@@ -1968,128 +1796,16 @@
     $("#toc-btn").setAttribute("aria-expanded", "false");
   }
 
-  const THEMES = ["system", "light", "dark"];
-  function applyTheme(t) {
-    if (t === "system") delete document.documentElement.dataset.theme;
-    else document.documentElement.dataset.theme = t;
-    $("#theme-btn").title = `Theme: ${t}`;
-    store.set("theme", t);
-  }
-
-  // ---- resizing ----
-
-  // A drag handle for the question panel's width or the question box's
-  // height. Both grow away from the edge they sit on, leftward or upward;
-  // arrow keys step, Home and End jump, Enter or a double click restores
-  // the stylesheet's size. The size is remembered per deck.
-  function resizable({ grip, key, axis, min, max, current, apply }) {
-    let value = null;
-    const set = (v, save = true) => {
-      value = v == null ? null : Math.round(Math.max(min(), Math.min(max(), v)));
-      apply(value);
-      grip.setAttribute("aria-valuemin", min());
-      grip.setAttribute("aria-valuemax", max());
-      grip.setAttribute("aria-valuenow", Math.round(current()));
-      if (save) store.set(key, value);
-    };
-    const away = (e) => -(axis === "x" ? e.clientX : e.clientY);
-    let drag = null;
-    const end = () => {
-      if (!drag) return;
-      drag = null;
-      delete document.body.dataset.resizing;
-      store.set(key, value);
-    };
-    grip.addEventListener("pointerdown", (e) => {
-      if (e.button !== 0) return;
-      e.preventDefault();
-      drag = { from: away(e), size: current() };
-      grip.setPointerCapture(e.pointerId);
-      document.body.dataset.resizing = axis;
-    });
-    grip.addEventListener("pointermove", (e) => drag && set(drag.size + away(e) - drag.from, false));
-    grip.addEventListener("pointerup", end);
-    grip.addEventListener("pointercancel", end);
-    grip.addEventListener("dblclick", () => set(null));
-    const [grow, shrink] = axis === "x" ? ["ArrowLeft", "ArrowRight"] : ["ArrowUp", "ArrowDown"];
-    grip.addEventListener("keydown", (e) => {
-      if (e.altKey || e.ctrlKey || e.metaKey) return;
-      const step = e.shiftKey ? 64 : 16;
-      const next = { [grow]: current() + step, [shrink]: current() - step, Home: max(), End: min(), Enter: null }[e.key];
-      if (next === undefined) return;
-      e.preventDefault();
-      set(next);
-    });
-    window.addEventListener("resize", debounce(() => value != null && set(value, false), 100));
-    set(store.get(key, null), false);
-  }
-
-  function bindResizers() {
-    const root = document.documentElement.style;
-    resizable({
-      grip: $("#ask-grip"),
-      key: "ask-width",
-      axis: "x",
-      min: () => 280,
-      max: () => Math.max(280, Math.min(innerWidth - 480, 900)),
-      current: () => $("#ask").getBoundingClientRect().width,
-      apply: (w) => (w == null ? root.removeProperty("--ask-w") : root.setProperty("--ask-w", `${w}px`)),
-    });
-    const q = $("#question");
-    resizable({
-      grip: $("#question-grip"),
-      key: "question-height",
-      axis: "y",
-      min: () => 64,
-      max: () => Math.round(innerHeight * 0.6),
-      current: () => q.getBoundingClientRect().height,
-      apply: (px) => (q.style.height = px == null ? "" : `${px}px`),
-    });
-  }
-
-  const PRESENCE = {
-    listening: ["Listening", () => `The ${who()} is waiting for questions.`],
-    answering: ["Answering", () => `The ${who()} is answering a question; new ones wait their turn.`],
-    working: ["Working", () => `The ${who()} is working on something you asked for here; questions are queued until it listens again.`],
-    away: ["Not listening", () => `The ${who()} is not waiting for questions; they are queued until it is.`],
-  };
-
   function setStatus(st) {
-    if (!st || !PRESENCE[st.session]) return;
+    if (!UI.knownPresence(st)) return;
     const changed = st.session !== S.status.session;
     S.status = st;
-    const pill = $("#listen-pill");
-    pill.dataset.on = String(st.session !== "away");
-    pill.textContent = PRESENCE[st.session][0];
-    pill.title = PRESENCE[st.session][1]();
+    UI.showPresence(st, who());
     if (changed && S.deck) {
       renderThread();
       // Generated slides, and a slide waiting for a rewrite, may say whether the session listens.
       if (slide()?.generated || (dialsOn(slide()) && shownKey(slide()) !== wantedKey(slide()))) renderSlide({ keepScroll: true });
     }
-  }
-
-  function banner(key, text, details) {
-    if (text) S.banners.set(key, { text, details });
-    else S.banners.delete(key);
-    const el = $("#banner");
-    el.hidden = !S.banners.size;
-    el.replaceChildren(
-      ...[...S.banners.values()].map((b) =>
-        h("div", {}, b.text, b.details?.length ? h("details", {}, h("summary", {}, "Details"), h("pre", {}, b.details.join("\n"))) : null),
-      ),
-    );
-  }
-
-  function toast(text, action) {
-    const el = h(
-      "div",
-      { class: "toast" },
-      h("span", {}, text),
-      action ? h("button", { type: "button", class: "small", onclick: () => (action.run(), el.remove()) }, action.label) : null,
-    );
-    $("#toasts").append(el);
-    setTimeout(() => el.remove(), action ? 9000 : 4500);
   }
 
   async function refreshDeck() {
@@ -2182,13 +1898,12 @@
     $("#deck-scope").onclick = openToc;
     $("#toc").addEventListener("click", (e) => e.target.id === "toc" && closeToc());
     $("#theme-btn").onclick = () => {
-      const cur = store.get("theme", "system");
-      applyTheme(THEMES[(THEMES.indexOf(cur) + 1) % THEMES.length]);
+      UI.nextTheme(store);
       if (S.deck) renderSlide();
     };
     $("#ask-open").onclick = () => $("#ask").classList.add("open");
     $("#ask-close").onclick = () => $("#ask").classList.remove("open");
-    bindResizers();
+    UI.bindResizers(store);
     $("#clear-btn").onclick = async (e) => {
       const btn = e.currentTarget;
       if (btn.dataset.confirm !== "1") {
@@ -2279,7 +1994,7 @@
       await new Promise((r) => ["DOMContentLoaded", "load"].forEach((e) => addEventListener(e, r, { once: true })));
     }
     for (const fn of hooks.init) fn();
-    applyTheme(store.get("theme", "system"));
+    UI.applyTheme(store, store.get("theme", "system"));
     S.drafts = store.get("drafts", {});
     S.answerDrafts = store.get("answer-drafts", {});
     S.visited = new Set(store.get("visited", []));
@@ -2300,7 +2015,7 @@
     setStatus(S.status);
     connect();
     scheduleAudit();
-    setInterval(tickElapsed, 1000);
+    setInterval(UI.tickElapsed, 1000);
   }
 
   // ---- extensions ----
