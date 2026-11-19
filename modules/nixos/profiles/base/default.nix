@@ -39,6 +39,8 @@
       pstree
       rsync
       time
+      # Codex looks for tmux only in system directories, not per-user profiles.
+      tmux
       tree
       unzip
       vim
