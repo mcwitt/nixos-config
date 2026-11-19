@@ -368,28 +368,18 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        # Only the files a deck check uses, so unrelated edits do not rerun it.
         harnesses = ./modules/home-manager/harnesses;
-        deckFiles =
-          root: files:
-          pkgs.lib.fileset.toSource {
-            inherit root;
-            fileset = pkgs.lib.fileset.unions files;
-          };
+        # The skills as installed, and only the test files a check uses, so unrelated edits do not rerun it.
+        reviewSkills = pkgs.callPackage (harnesses + /review-skills.nix) { };
         deckTests =
           test:
-          deckFiles (harnesses + /tests) [
-            (harnesses + /tests/walkthrough_testing.py)
-            (harnesses + "/tests/${test}")
-          ];
-        deckSkills = deckFiles (harnesses + /skills) [
-          (harnesses + /skills/walkthrough)
-          (harnesses + /skills/walkthrough-pr)
-        ];
-        proseSkills = deckFiles (harnesses + /skills) [
-          (harnesses + /skills/walkthrough)
-          (harnesses + /skills/prose-review)
-        ];
+          pkgs.lib.fileset.toSource {
+            root = harnesses + /tests;
+            fileset = pkgs.lib.fileset.unions [
+              (harnesses + /tests/walkthrough_testing.py)
+              (harnesses + "/tests/${test}")
+            ];
+          };
       in
       {
 
@@ -432,8 +422,6 @@
               ormolu.enable = true;
             };
           };
-          # prose-review's script imports walkthrough's deck.py and serves its
-          # ui.js and ui.css, so it runs from a store copy of both.
           prose-review =
             pkgs.runCommand "prose-review-check"
               {
@@ -441,7 +429,7 @@
               }
               ''
                 python3 ${./modules/home-manager/harnesses/tests/test_prose_review.py} \
-                  ${proseSkills}/prose-review/scripts/prose_review.py
+                  ${reviewSkills}/prose-review/scripts/prose_review.py
                 touch $out
               '';
           walkthrough =
@@ -451,11 +439,9 @@
               }
               ''
                 python3 ${deckTests "test_walkthrough.py"}/test_walkthrough.py \
-                  ${./modules/home-manager/harnesses/skills/walkthrough}/scripts/deck.py
+                  ${reviewSkills}/walkthrough/scripts/deck.py
                 touch $out
               '';
-          # walkthrough-pr's script imports walkthrough's deck.py from beside
-          # it, so it runs from the store copy of both that the harnesses deploy.
           walkthrough-pr =
             pkgs.runCommand "walkthrough-pr-check"
               {
@@ -463,7 +449,7 @@
               }
               ''
                 python3 ${deckTests "test_walkthrough_pr.py"}/test_walkthrough_pr.py \
-                  ${deckSkills}/walkthrough-pr/scripts/walkthrough_pr.py
+                  ${reviewSkills}/walkthrough-pr/scripts/walkthrough_pr.py
                 touch $out
               '';
         };

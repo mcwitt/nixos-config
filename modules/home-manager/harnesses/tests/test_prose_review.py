@@ -157,7 +157,7 @@ class ServerTest(unittest.TestCase):
             self.assertIn(b"window.UI", r.read())
         with urllib.request.urlopen(self.url + "ui.css", timeout=5) as r:
             self.assertIn(b".question-grip", r.read())
-        for name in ("deck.js", "../scripts/prose_review.py", ".server-address"):
+        for name in ("deck.js", "session.py", "../scripts/prose_review.py", ".server-address"):
             with self.assertRaises(urllib.error.HTTPError, msg=name) as cm:
                 urllib.request.urlopen(self.url + name, timeout=5)
             self.assertEqual(cm.exception.code, 404)
@@ -262,7 +262,7 @@ class ServerTest(unittest.TestCase):
 
     def test_serve_restarts_a_stale_server_in_place(self):
         info = json.loads((self.dir / "server.json").read_text())
-        self.assertEqual(run("serve", self.dir, "--detach").stdout.strip(), f"already serving: {self.url}")
+        self.assertEqual(run("serve", self.dir, "--detach").stdout, f"already serving:\n{self.url}\n")
         # A server started from other code or page assets says so to listen and is replaced by serve.
         (self.dir / "server.json").write_text(json.dumps({**info, "engine": "0" * 12}))
         self.assertIn("The server is out of date", run("listen", self.dir, "--timeout", 0.1).stdout)
@@ -283,9 +283,16 @@ class ServerTest(unittest.TestCase):
         (self.dir / "server.json").write_text(json.dumps({**info, "engine": "0" * 12}))
         out = run("serve", self.dir, "--detach").stdout
         self.assertEqual(out.strip().splitlines()[-1], url)
-        self.assertEqual(run("serve", self.dir, "--detach").stdout.strip(), f"already serving: {url}")
+        self.assertEqual(run("serve", self.dir, "--detach").stdout, f"already serving:\n{url}\n")
         self.assertEqual(json.loads((self.dir / "server.json").read_text())["options"]["public_host"], "reader.test")
         self.assertIn(f":{port}/", url)
+
+    def test_tunnel_prints_the_ssh_command(self):
+        out = run("serve", self.dir, "--detach", "--tunnel", "me@box").stdout
+        port = self.url.split(":")[2].split("/")[0]
+        self.assertIn(f"forward the port first: ssh -N -L {port}:127.0.0.1:{port} me@box", out)
+        self.assertIn("--tunnel forwards a loopback port",
+                      run("serve", self.dir, "--host", "0.0.0.0", check=False).stderr)
 
     def test_listen_times_out_and_reports_presence(self):
         out = run("listen", self.dir, "--timeout", 1).stdout

@@ -7,6 +7,7 @@
 }:
 let
   cfg = config.harnesses;
+  reviewSkills = pkgs.callPackage ./review-skills.nix { };
   gwsServices = [
     "shared"
     "calendar"
@@ -75,12 +76,9 @@ in
         mkdir $out
         cp ${inputs.janestreet-agent-skills}/socratic-tutor/SKILL.md ${inputs.janestreet-agent-skills}/LICENSE.md $out/
       '';
-      # One store copy for all three, so walkthrough-pr and prose-review find
-      # walkthrough's deck.py and page chrome beside them wherever a harness
-      # links the skill.
-      prose-review = "${./skills}/prose-review";
-      walkthrough = "${./skills}/walkthrough";
-      walkthrough-pr = "${./skills}/walkthrough-pr";
+      prose-review = "${reviewSkills}/prose-review";
+      walkthrough = "${reviewSkills}/walkthrough";
+      walkthrough-pr = "${reviewSkills}/walkthrough-pr";
       worktrunk = "${pkgs.worktrunk.src}/skills/worktrunk";
     };
 

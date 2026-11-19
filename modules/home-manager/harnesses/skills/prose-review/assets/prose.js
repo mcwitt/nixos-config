@@ -2,8 +2,8 @@
 // Prose review. The server (scripts/prose_review.py) serves the Markdown
 // document as JSON, relays questions to the review session and pushes
 // updates over server-sent events. The chrome and the question panel's
-// parts come from walkthrough's ui.js, loaded first; the document view
-// takes the place of the deck's slides.
+// parts come from ui.js (lib/assets, shared with walkthrough), loaded first;
+// the document view takes the place of the deck's slides.
 (() => {
   const { $, esc, h, debounce, clock, narrow, getJSON, post, toast, banner } = UI;
   const store = UI.storage("prose-review:" + location.pathname);

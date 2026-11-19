@@ -7,7 +7,7 @@ description: Go over a Markdown document with a human in their browser, rendered
 
 Work through a Markdown document with its reader. Serve it from this machine as a rendered page with a question panel: the reader selects a passage to ask about it or to ask for a change, you answer from the session and make the edits in the file, and the page reloads with the edited passages marked. Leave Git state alone unless the user asks you to commit.
 
-The bundled script `scripts/prose_review.py` (Python ≥ 3.11, standard library only) checks the review, serves the page and passes questions to you. It uses the page chrome and question queue of the `walkthrough` skill, which must be installed beside this one.
+The bundled script `scripts/prose_review.py` (Python ≥ 3.11, standard library only) checks the review, serves the page and passes questions to you.
 
 ## 1. Establish the document
 
@@ -37,7 +37,7 @@ Run `python3 <skill-dir>/scripts/prose_review.py check REVIEW`. It validates the
 python3 <skill-dir>/scripts/prose_review.py serve REVIEW --detach
 ```
 
-This prints a URL with a secret token. The server listens on 127.0.0.1. If the reader's browser runs on another machine, either pass `--host` with an address that machine can reach, or have them forward the port (`ssh -L PORT:127.0.0.1:PORT HOST`). If your harness sandboxes commands, the server needs permission to listen on a port.
+This prints a URL with a secret token. The server listens on 127.0.0.1. If the reader's browser runs on another machine, add `--tunnel` (`--tunnel USER@HOST` when the reader reaches this machine under another name): `serve` then also prints the ssh command that forwards the port, and the reader needs both. Alternatively, pass `--host` with an address that machine can reach. If your harness sandboxes commands, the server needs permission to listen on a port.
 
 A review directory keeps its URL: later servers reuse its token, port and `serve` options. Running `serve` again prints the URL of the running server. If that server runs another copy of `prose_review.py` or its page, for example one from before an update, or other options, `serve` restarts it in place, and open pages reconnect and reload.
 
