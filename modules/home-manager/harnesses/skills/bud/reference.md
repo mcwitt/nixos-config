@@ -22,7 +22,7 @@ Check for leftovers after a close, and at least once a day: `bud strays` lists p
 
 ## The tree in tmux
 
-`prefix S` opens a picker with the whole tree; Enter switches to the chosen session. In `prefix s`, a child's row shows `↳ <parent>`.
+`prefix S` opens a picker with the whole tree; Enter switches to the chosen session. `ctrl-/` shows or hides a preview of the session under the cursor: its state, harness, directory and the start of its brief, then the live end of its screen, read again each second. `shift-↑`/`shift-↓` and `alt-↑`/`alt-↓` scroll the preview back (which holds it still until the cursor moves) and `alt-w` wraps long lines. In `prefix s`, a child's row shows `↳ <parent>`.
 
 ## When the shell tool is unavailable
 
