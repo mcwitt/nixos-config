@@ -87,6 +87,15 @@ class Watcher(unittest.TestCase):
         self.write(report("done", msg="b2s=") + report("idle"))
         self.expect(["done", "working", "done"])
 
+    def test_drops_a_report_made_while_exiting(self):
+        self.write(report("working"))
+        self.expect(["working"])
+        self.write(report("idle"))
+        self.agent.kill()
+        self.agent.wait()
+        self.expect_cleanup()
+        self.assertEqual(self.states(), ["working"])
+
     def test_report_split_across_reads(self):
         data = report("working")
         for part in (data[:3], data[3:12], data[12:]):
@@ -103,8 +112,10 @@ class Watcher(unittest.TestCase):
         self.expect(["done"])
         self.expect(["done", "input"])
 
-    def test_other_blocks_are_immediate(self):
-        self.write(report("working") + report("blocked", kind="permission", msg="eA=="))
+    def test_other_blocks_are_prompt(self):
+        self.write(report("working"))
+        self.expect(["working"])
+        self.write(report("blocked", kind="permission", msg="eA=="))
         time.sleep(0.5)
         self.assertEqual(self.states(), ["working", "input"])
         self.write(report("working"))

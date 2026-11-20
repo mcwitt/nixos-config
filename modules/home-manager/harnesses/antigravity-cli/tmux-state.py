@@ -20,6 +20,10 @@ STATES = {"working": "working", "blocked": "input", "done": "done", "idle": "don
 # The CLI reports `blocked:kind=auth` for a moment while it loads its sign-in
 # at startup, so that kind counts only once it has lasted this long.
 AUTH_DELAY = 1.0
+# Every other report waits this long, and counts only if `agy` is still
+# running then: it reports `idle` as it exits, and publishing that could
+# overwrite the state of the pane's next program.
+SETTLE = 0.1
 POLL = 0.2
 # The pane option that names the `agy` whose watcher owns the pane's state;
 # see ../tmux-state.nix.
@@ -33,12 +37,6 @@ def main():
     env = dict(os.environ, TMUX=f"{socket},0,0", TMUX_PANE=pane, AGENT_STATE_OWNER=str(pid))
     published = None
 
-    def publish(state):
-        nonlocal published
-        if state != published:
-            subprocess.run([publisher, state], env=env, stdin=subprocess.DEVNULL)
-            published = state
-
     def alive():
         try:
             os.kill(pid, 0)
@@ -48,14 +46,20 @@ def main():
             pass
         return True
 
+    def publish(state):
+        nonlocal published
+        if state != published:
+            subprocess.run([publisher, state], env=env, stdin=subprocess.DEVNULL)
+            published = state
+
     buf = b""
-    block_at = None
+    pending = due = None
     while alive():
         now = time.monotonic()
-        if block_at is not None and now >= block_at:
-            publish("input")
-            block_at = None
-        wait = POLL if block_at is None else min(POLL, block_at - now)
+        if pending and now >= due:
+            publish(pending)
+            pending = None
+        wait = min(POLL, due - now) if pending else POLL
         if not select.select([0], [], [], wait)[0]:
             continue
         data = os.read(0, 65536)
@@ -75,12 +79,10 @@ def main():
             if fields.get("app") != "antigravity":
                 continue
             state = STATES.get(fields.get("state"))
-            if state == "input" and fields.get("kind") == "auth":
-                if block_at is None and published != "input":
-                    block_at = time.monotonic() + AUTH_DELAY
-            elif state:
-                block_at = None
-                publish(state)
+            if state and state != pending:
+                auth = state == "input" and fields.get("kind") == "auth"
+                pending = state
+                due = time.monotonic() + (AUTH_DELAY if auth else SETTLE)
         # Keep a report that is still arriving, or a split start marker.
         buf = buf[end:]
         start = buf.rfind(START)
