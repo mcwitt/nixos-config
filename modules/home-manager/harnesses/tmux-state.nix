@@ -6,7 +6,9 @@
 #
 # Each harness runs this from its own hooks, plugin or extension: Claude Code
 # (claude-code/tmux-state.nix), Codex (codex/tmux-state.nix), OpenCode
-# (opencode/tmux-state.ts) and pi (pi/tmux-state.ts).
+# (opencode/tmux-state.ts) and pi (pi/tmux-state.ts). Antigravity has no hook
+# for a permission prompt, so a watcher of its terminal status reports runs
+# this instead (antigravity-cli/tmux-state.nix).
 #
 # States:
 #   working     the agent is busy.

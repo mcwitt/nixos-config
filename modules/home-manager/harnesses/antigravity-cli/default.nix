@@ -12,7 +12,10 @@ in
   config = lib.mkIf cfg.enable {
     programs.antigravity-cli = {
       enable = true;
-      package = pkgs.llm-agents.antigravity-cli;
+      package = import ./tmux-state.nix {
+        inherit config pkgs;
+        package = pkgs.llm-agents.antigravity-cli;
+      };
       enableMcpIntegration = true;
 
       # Never spend separately purchased AI credits without an explicit opt-in.

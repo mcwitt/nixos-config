@@ -112,6 +112,10 @@ nix store prefetch-file --json --hash-type sha256 "https://files.pythonhosted.or
 
 `bud` (`packages/development/misc/bud`) builds every harness command line itself, in `src/adapter.rs`. When a harness bump renames or drops a launch, resume, model or effort flag, `bud launch` fails with the harness's own error: fix the adapter, not the skill. After bumping a harness, run the "Checking a harness by hand" list in `modules/home-manager/harnesses/skills/bud/reference.md`; the flake check uses stub agents and cannot catch flag changes.
 
+### Antigravity tmux state
+
+`modules/home-manager/harnesses/antigravity-cli/tmux-state.nix` reads `agy`'s terminal status reports (OSC 7501, forced on with `AGY_CLI_OSC7501=on`) to set `@agent_state`; the flake check feeds the watcher synthetic reports and cannot catch a change in the CLI. After bumping `agy`, start it in tmux and check that `tmux show -pv @agent_state` in its pane follows a turn and a permission prompt. Drop the watcher for hooks if `agy` gains one for permission prompts (see `/hooks` and the changelog).
+
 ### Vendored pi packages
 
 `modules/home-manager/harnesses/pi/packages.nix` pins third-party pi packages as store paths instead of `pi install`ing them. Bump each by hand, and check the result loads in `pi` (a broken extension shows a load error at startup):

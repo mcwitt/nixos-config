@@ -399,6 +399,16 @@
                   ${./modules/home-manager/profiles/agent-identity/guard.sh}
                 touch $out
               '';
+          agy-tmux-state =
+            pkgs.runCommand "agy-tmux-state-check"
+              {
+                nativeBuildInputs = [ pkgs.python3 ];
+              }
+              ''
+                python3 ${./modules/home-manager/harnesses/tests/test_agy_tmux_state.py} \
+                  ${./modules/home-manager/harnesses/antigravity-cli/tmux-state.py}
+                touch $out
+              '';
           branch-cleanup =
             pkgs.runCommand "branch-cleanup-check"
               {
