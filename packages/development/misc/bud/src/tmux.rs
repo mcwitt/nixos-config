@@ -151,6 +151,50 @@ pub fn capture(pane: &str, lines: usize) -> Vec<String> {
     all[all.len().saturating_sub(lines)..].to_vec()
 }
 
+/// A pane's screen and the last `history` lines above it, with colours,
+/// without the blank lines at the end. Reading only.
+pub fn screen(pane: &str, history: usize) -> Vec<String> {
+    let start = format!("-{history}");
+    let text = run(&["capture-pane", "-p", "-e", "-t", pane, "-S", &start]).unwrap_or_default();
+    let mut lines: Vec<String> = text.lines().map(String::from).collect();
+    while lines.last().is_some_and(|l| plain(l).trim().is_empty()) {
+        lines.pop();
+    }
+    lines
+}
+
+/// `s` without its escape sequences.
+pub fn plain(s: &str) -> String {
+    let mut out = String::new();
+    let mut chars = s.chars().peekable();
+    while let Some(c) = chars.next() {
+        if c != '\x1b' {
+            out.push(c);
+            continue;
+        }
+        match chars.next() {
+            // CSI: parameters, then one final byte.
+            Some('[') => {
+                for c in chars.by_ref() {
+                    if ('\x40'..='\x7e').contains(&c) {
+                        break;
+                    }
+                }
+            }
+            // OSC: to BEL or ST.
+            Some(']') => {
+                while let Some(c) = chars.next() {
+                    if c == '\x07' || (c == '\x1b' && chars.next_if_eq(&'\\').is_some()) {
+                        break;
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+    out
+}
+
 /// Startup and confirmation screens seen in agent TUIs. Typed text or Enter
 /// there picks a choice instead of reaching the agent. A miss only means
 /// `send` cannot refuse on that screen.

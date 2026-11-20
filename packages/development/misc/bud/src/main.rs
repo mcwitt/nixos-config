@@ -113,6 +113,9 @@ enum Cmd {
         #[arg(long)]
         rows: bool,
     },
+    /// The picker's preview of one row
+    #[command(name = "_preview", hide = true)]
+    Preview { name: String },
 }
 
 #[derive(clap::Args)]
@@ -181,6 +184,7 @@ fn dispatch(cmd: Cmd) -> Result<i32> {
             Ok(0)
         }
         Cmd::PickInner { client, rows } => pick_inner(&client, rows),
+        Cmd::Preview { name } => preview(&name),
     }
 }
 
@@ -950,6 +954,91 @@ fn pick(client: &str) -> Result<i32> {
     Ok(0)
 }
 
+/// The lines that stay at the top of the preview.
+const PREVIEW_HEADER: usize = 3;
+/// Lines of history above the screen that the preview can scroll to.
+const PREVIEW_HISTORY: usize = 200;
+
+/// What the picker shows for a row: three lines about the session, then
+/// the end of its screen, or its record if it is gone. It reads only: no
+/// record is saved and no tmux command changes a session.
+fn preview_text(name: &str) -> String {
+    let world = World::read();
+    let t = now();
+    let rec = world.recs.get(name);
+    let s = world.snap.sessions.get(name);
+    if rec.is_none() && s.is_none() {
+        return format!("no session {name}\n");
+    }
+    let state = world.state(name);
+    let mut top = vec![format!("{} \x1b[1m{name}\x1b[0m  {state}", glyph(&state))];
+    let agent = [rec.and_then(|r| r.harness.clone()), rec.and_then(|r| r.model.clone())];
+    top.extend(agent.into_iter().flatten());
+    if let Some(s) = s {
+        if s.attached {
+            top.push("attached".into());
+        }
+        top.push(format!("idle {}", age(t.saturating_sub(s.activity))));
+    }
+    let started = rec.map(|r| r.launched_at).filter(|l| *l > 0).or(s.map(|s| s.created));
+    top.extend(started.map(|l| format!("age {}", age(t.saturating_sub(l)))));
+    let dir = tilde(&rec.map(|r| r.dir.clone()).or(s.map(|s| s.path.clone())).unwrap_or_default());
+    let branch = rec.and_then(|r| r.worktree.as_ref()).map(|w| format!("  [{}]", w.branch)).unwrap_or_default();
+    let brief = match rec.filter(|r| !r.adopted).and_then(|r| r.brief.as_deref()) {
+        Some(b) => first_line(b, 300).chars().map(|c| if c.is_control() { ' ' } else { c }).collect(),
+        None => "(not launched by bud)".to_string(),
+    };
+    let mut out = format!("{}\n{dir}{branch}\n\x1b[2m{brief}\x1b[0m\n", top.join("  "));
+    let mut body = Vec::new();
+    if s.is_none() {
+        // Gone: the record stands in for the screen.
+        let rec = rec.unwrap();
+        if let Some(c) = rec.closed_at {
+            body.push(format!("closed {}", clock(c)));
+        }
+        body.push(format!("`bud resume {name}` starts it again"));
+        body.push(String::new());
+        body.extend(rec.brief.as_deref().unwrap_or("").lines().map(String::from));
+    } else {
+        let pane = match world.agent_pane(name) {
+            Some(p) => p.id.clone(),
+            None => {
+                body.push("\x1b[2m(the recorded agent pane is not in this session; this is its active pane)\x1b[0m".into());
+                format!("={name}:")
+            }
+        };
+        body.extend(tmux::screen(&pane, PREVIEW_HISTORY));
+    }
+    for l in body {
+        out.push_str(&l);
+        out.push_str("\x1b[0m\n");
+    }
+    out
+}
+
+fn preview(name: &str) -> Result<i32> {
+    print!("{}", preview_text(name));
+    Ok(0)
+}
+
+/// The key that the picker's timer presses, through fzf's socket, to run
+/// the preview again. Nothing else should send it.
+const REFRESH_KEY: &str = "f12";
+
+/// Every second, ask the fzf that listens on `socket` to press REFRESH_KEY.
+/// The thread ends with the process.
+fn refresh_previews(socket: PathBuf) {
+    let every = Duration::from_secs_f64(env_secs("BUD_PREVIEW_SECS", 1.0).max(0.05));
+    std::thread::spawn(move || loop {
+        std::thread::sleep(every);
+        if let Ok(mut s) = std::os::unix::net::UnixStream::connect(&socket) {
+            let body = format!("trigger({REFRESH_KEY})");
+            let _ = write!(s, "POST / HTTP/1.1\r\nHost: fzf\r\nConnection: close\r\nContent-Length: {}\r\n\r\n{body}", body.len());
+            let _ = s.read_to_end(&mut Vec::new());
+        }
+    });
+}
+
 fn glyph(state: &str) -> &'static str {
     match state {
         "input" => "\x1b[1;31m!\x1b[0m",
@@ -991,9 +1080,27 @@ fn pick_inner(client: &str, rows_only: bool) -> Result<i32> {
         rows.iter().for_each(|r| println!("{r}"));
         return Ok(0);
     }
+    // fzf quotes {1}; the path is quoted here. sh, because $SHELL can be any shell.
+    let exe = std::env::current_exe()?.display().to_string().replace('\'', "'\\''");
+    let socket = std::env::temp_dir().join(format!("bud-pick-{}.sock", std::process::id()));
+    // A preview run again starts at its end, so scrolling stops the refresh
+    // until the cursor moves.
+    let scroll = |key: &str, action: &str| format!("{key}:unbind({REFRESH_KEY})+{action}");
     let mut child = Command::new("fzf")
         .args(["--delimiter", "\t", "--with-nth", "2..", "--accept-nth", "1", "--ansi", "--no-sort", "--exact"])
         .args(["--layout", "reverse", "--sync", "--bind", &format!("start:pos({pos})")])
+        .args(["--with-shell", "/bin/sh -c", "--preview", &format!("'{exe}' _preview -- {{1}}")])
+        // Hidden until asked for. Beside the list, or below it where that
+        // would leave the preview under 72 columns: a popup under 120.
+        .args(["--preview-window", &format!("hidden,right,60%,follow,~{PREVIEW_HEADER},<72(hidden,down,55%,follow,~{PREVIEW_HEADER})")])
+        .args(["--preview-label", " ctrl-/ hide · shift-↑↓ alt-↑↓ scroll · alt-w wrap "])
+        .args(["--bind", "ctrl-/:toggle-preview,ctrl-_:toggle-preview,alt-w:toggle-preview-wrap"])
+        .arg("--listen")
+        .arg(&socket)
+        .args(["--bind", &format!("{REFRESH_KEY}:refresh-preview,focus:rebind({REFRESH_KEY})")])
+        .args(["--bind", &scroll("shift-up", "preview-up"), "--bind", &scroll("shift-down", "preview-down")])
+        .args(["--bind", &scroll("alt-up", "preview-half-page-up"), "--bind", &scroll("alt-down", "preview-half-page-down")])
+        .env_remove("FZF_API_KEY")
         .env_remove("FZF_DEFAULT_OPTS")
         .env_remove("FZF_DEFAULT_OPTS_FILE")
         .stdin(Stdio::piped())
@@ -1001,7 +1108,9 @@ fn pick_inner(client: &str, rows_only: bool) -> Result<i32> {
         .spawn()
         .context("running fzf")?;
     child.stdin.take().unwrap().write_all((rows.join("\n") + "\n").as_bytes())?;
+    refresh_previews(socket.clone());
     let out = child.wait_with_output()?;
+    let _ = std::fs::remove_file(&socket);
     let target = String::from_utf8_lossy(&out.stdout).trim().to_string();
     if !out.status.success() || target.is_empty() {
         return Ok(0); // Esc, or nothing chosen

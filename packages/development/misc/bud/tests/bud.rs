@@ -574,6 +574,46 @@ fn closed_hook_changes_only_the_session_that_closed() {
 }
 
 #[test]
+fn preview_shows_context_and_the_screen_and_only_reads() {
+    let env = Env::new();
+    env.root("main");
+    ok(&env.bud_in("main", &["launch", "a", "--brief", &env.brief("first line\nsecond line"), "--harness", "claude"]));
+    let file = env.dir.join("state/sessions/a.json");
+    let before = std::fs::read(&file).unwrap();
+    let out = ok(&env.bud(&["_preview", "a"]));
+    let lines: Vec<&str> = out.lines().collect();
+    for want in ["a", "done", "claude", "idle", "age"] {
+        assert!(lines[0].contains(want), "{want} in {}", lines[0]);
+    }
+    assert!(lines[1].ends_with("/work"), "{}", lines[1]);
+    assert!(lines[2].contains("first line") && !lines[2].contains("second"), "{}", lines[2]);
+    assert!(lines[3..].iter().any(|l| l.starts_with('>')), "the prompt on the screen: {out}");
+    assert_eq!(std::fs::read(&file).unwrap(), before);
+
+    // A session without a record, with colours and with blank lines below.
+    env.tmux(&["new-session", "-d", "-s", "paint", "printf '\\033[31mred\\033[0m\\n'; sleep 1000"]);
+    env.wait_for(|| ok(&env.bud(&["_preview", "paint"])).contains("red"));
+    let out = ok(&env.bud(&["_preview", "paint"]));
+    let lines: Vec<&str> = out.lines().collect();
+    assert!(lines[2].contains("(not launched by bud)"), "{out}");
+    assert!(lines.len() == 4 && lines[3].contains("\x1b[31mred"), "{out:?}");
+}
+
+#[test]
+fn preview_of_a_session_that_is_gone_shows_its_record() {
+    let env = Env::new();
+    env.root("main");
+    ok(&env.bud_in("main", &["launch", "a", "--brief", &env.brief("first line\nsecond line"), "--harness", "claude"]));
+    ok(&env.bud_in("main", &["close", "a"]));
+    let out = ok(&env.bud(&["_preview", "a"]));
+    assert!(out.lines().next().unwrap().contains("closed"), "{out}");
+    for want in ["bud resume a", "second line"] {
+        assert!(out.contains(want), "{want} in {out}");
+    }
+    assert_eq!(ok(&env.bud(&["_preview", "nosuch"])), "no session nosuch\n");
+}
+
+#[test]
 fn picker_rows_in_tree_order() {
     let mut env = Env::new();
     env.root("main");
