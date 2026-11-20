@@ -17,10 +17,12 @@ REPORT = re.compile(rb"\x1b\]7501;([^\x07\x1b]*)(?:\x07|\x1b\\)")
 START = b"\x1b]7501;"
 # `idle` is the prompt before the first turn, and after a key press there.
 STATES = {"working": "working", "blocked": "input", "done": "done", "idle": "done"}
-# The CLI reports `blocked` for a moment while it loads its sign-in at
-# startup, so a block counts only once it has lasted this long.
-BLOCK_DELAY = 1.0
-POLL = 1.0
+# The CLI reports `blocked:kind=auth` for a moment while it loads its sign-in
+# at startup, so that kind counts only once it has lasted this long.
+AUTH_DELAY = 1.0
+POLL = 0.2
+# The pane option that names the `agy` whose watcher owns the pane's state.
+OWNER = "@agy_state_pid"
 
 
 def main():
@@ -68,10 +70,13 @@ def main():
                 for field in report.group(1).decode("ascii", "replace").split(":")
                 if "=" in field
             )
+            # The pane's other programs may write reports of their own.
+            if fields.get("app") != "antigravity":
+                continue
             state = STATES.get(fields.get("state"))
-            if state == "input":
+            if state == "input" and fields.get("kind") == "auth":
                 if block_at is None and published != "input":
-                    block_at = time.monotonic() + BLOCK_DELAY
+                    block_at = time.monotonic() + AUTH_DELAY
             elif state:
                 block_at = None
                 publish(state)
@@ -82,13 +87,20 @@ def main():
         if len(buf) > 1 << 20:
             buf = b""
 
-    publish("off")
-    if not alive():
-        subprocess.run(
-            [tmux, "-S", socket, "pipe-pane", "-t", pane],
-            stdin=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
+    # Clean up only what is still this watcher's, in one tmux command so that
+    # nothing changes between the checks and the changes: a later `agy` in the
+    # pane takes the option over, and another program may have taken the pipe.
+    mine = f"#{{==:#{{{OWNER}}},{pid}}}"
+    my_pipe = f"#{{==:#{{pane_pipe_pid}},{os.getpid()}}}"
+    clear = (
+        f"set -pu -t {pane} {OWNER} ; set -pu -t {pane} @agent_state ; "
+        f"if -t {pane} -F '{my_pipe}' 'pipe-pane -t {pane}'"
+    )
+    subprocess.run(
+        [tmux, "-S", socket, "if", "-t", pane, "-F", mine, clear],
+        stdin=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
 
 
 if __name__ == "__main__":

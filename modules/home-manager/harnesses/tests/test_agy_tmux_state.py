@@ -14,27 +14,40 @@ from pathlib import Path
 SCRIPT = Path(sys.argv.pop(1)).resolve() if len(sys.argv) > 1 else None
 
 
-def report(state, **fields):
+def report(state, app="antigravity", **fields):
     body = ":".join([f"state={state}", *(f"{k}={v}" for k, v in fields.items())])
-    return f"\x1b]7501;{body}:app=antigravity\x07".encode()
+    return f"\x1b]7501;{body}:app={app}\x07".encode()
 
 
 class Watcher(unittest.TestCase):
     def setUp(self):
-        self.dir = Path(tempfile.mkdtemp())
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.dir = Path(tmp.name)
         self.log = self.dir / "states"
-        self.log.touch()
-        # Stands for both agent-tmux-state and tmux: logs its first argument.
-        publisher = self.dir / "publish"
-        publisher.write_text(f'#!/bin/sh\necho "$1" >> {self.log}\n')
-        publisher.chmod(0o755)
+        self.tmux_log = self.dir / "commands"
+        for name, log in (("publish", self.log), ("tmux", self.tmux_log)):
+            log.touch()
+            script = self.dir / name
+            script.write_text(f'#!/bin/sh\necho "$@" >> {log}\n')
+            script.chmod(0o755)
         self.agent = subprocess.Popen(["sleep", "60"])
         self.watcher = subprocess.Popen(
-            [sys.executable, SCRIPT, publisher, publisher, "socket", "%1", str(self.agent.pid)],
+            [
+                sys.executable,
+                SCRIPT,
+                self.dir / "publish",
+                self.dir / "tmux",
+                "socket",
+                "%1",
+                str(self.agent.pid),
+            ],
             stdin=subprocess.PIPE,
         )
 
     def tearDown(self):
+        if not self.watcher.stdin.closed:
+            self.watcher.stdin.close()
         for p in (self.watcher, self.agent):
             p.kill()
             p.wait()
@@ -52,6 +65,20 @@ class Watcher(unittest.TestCase):
             time.sleep(0.05)
         self.assertEqual(self.states(), states)
 
+    def expect_cleanup(self):
+        """One tmux command, conditional on this watcher still owning the pane."""
+        self.assertEqual(self.watcher.wait(timeout=5), 0)
+        lines = self.tmux_log.read_text().splitlines()
+        self.assertEqual(len(lines), 1, lines)
+        command = lines[0]
+        owner = f"#{{==:#{{@agy_state_pid}},{self.agent.pid}}}"
+        pipe = f"#{{==:#{{pane_pipe_pid}},{self.watcher.pid}}}"
+        self.assertEqual(
+            command,
+            f"-S socket if -t %1 -F {owner} set -pu -t %1 @agy_state_pid ; "
+            f"set -pu -t %1 @agent_state ; if -t %1 -F '{pipe}' 'pipe-pane -t %1'",
+        )
+
     def test_turn(self):
         self.write(b"text" + report("idle") + b"more")
         self.expect(["done"])
@@ -67,29 +94,38 @@ class Watcher(unittest.TestCase):
             time.sleep(0.1)
         self.expect(["working"])
 
-    def test_block_must_last(self):
+    def test_sign_in_block_must_last(self):
         self.write(report("blocked", kind="auth") + report("idle"))
         time.sleep(1.5)
         self.expect(["done"])
-        self.write(report("working") + report("blocked", kind="permission", msg="eA=="))
-        self.expect(["done", "working", "input"])
-        self.write(report("working"))
-        self.expect(["done", "working", "input", "working"])
+        self.write(report("blocked", kind="auth"))
+        time.sleep(0.5)
+        self.expect(["done"])
+        self.expect(["done", "input"])
 
-    def test_clears_when_the_agent_exits(self):
+    def test_other_blocks_are_immediate(self):
+        self.write(report("working") + report("blocked", kind="permission", msg="eA=="))
+        self.expect(["working", "input"])
+        self.write(report("working"))
+        self.expect(["working", "input", "working"])
+
+    def test_ignores_other_programs(self):
+        self.write(report("working") + report("blocked", app="other") + b"\x1b]7501;state=done\x07")
+        time.sleep(0.5)
+        self.expect(["working"])
+
+    def test_cleans_up_when_the_agent_exits(self):
         self.write(report("working"))
         self.expect(["working"])
         self.agent.kill()
         self.agent.wait()
-        # "off" to agent-tmux-state, then "-S" to tmux, to close the pipe.
-        self.expect(["working", "off", "-S"])
-        self.assertEqual(self.watcher.wait(timeout=5), 0)
+        self.expect_cleanup()
 
-    def test_clears_when_the_pipe_closes(self):
+    def test_cleans_up_when_the_pipe_closes(self):
         self.write(report("working"))
         self.expect(["working"])
         self.watcher.stdin.close()
-        self.expect(["working", "off"])
+        self.expect_cleanup()
 
 
 if __name__ == "__main__":
