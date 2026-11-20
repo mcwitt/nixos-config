@@ -37,9 +37,10 @@ let
       if [[ "$tty" == "$(${pkgs.coreutils}/bin/tty)" ]] && free; then
         # tmux does not answer the CLI's check for support.
         export AGY_CLI_OSC7501=on
-        # Take the pipe only if it is still as seen, and with it the state,
-        # dropping what an earlier agent left.
-        ${tmux} if -t "$TMUX_PANE" -F "#{==:#{pane_tty} #{pane_pipe} #{pane_pipe_pid},$seen}" "
+        # Take the pipe only if it is free by now or still the one seen, and
+        # with it the state, dropping what an earlier agent left.
+        ${tmux} if -t "$TMUX_PANE" \
+          -F "#{||:#{==:#{pane_pipe},0},#{==:#{pane_tty} #{pane_pipe} #{pane_pipe_pid},$seen}}" "
           set -pqu -t $TMUX_PANE @agent_state
           set -p -t $TMUX_PANE @agent_state_owner $$
           pipe-pane -t $TMUX_PANE \"exec ${watcher} ${shared} ${tmux} #{q:socket_path} #{q:pane_id} $$\"

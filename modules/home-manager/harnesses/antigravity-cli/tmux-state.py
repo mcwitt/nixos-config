@@ -90,7 +90,8 @@ def main():
 
     # Clean up only what is still this watcher's, each checked by tmux in the
     # command that changes it: another publisher or a later `agy` takes the
-    # state over, and another program may have taken the pipe.
+    # state over, until this `agy` next reports, and another program may have
+    # taken the pipe.
     mine = f"#{{==:#{{{OWNER}}},{pid}}}"
     my_pipe = f"#{{==:#{{pane_pipe_pid}},{os.getpid()}}}"
     clear = f"set -pu -t {pane} {OWNER} ; set -pu -t {pane} @agent_state"
