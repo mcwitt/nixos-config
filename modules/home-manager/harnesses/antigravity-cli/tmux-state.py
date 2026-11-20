@@ -57,7 +57,7 @@ def main():
     while alive():
         now = time.monotonic()
         if pending and now >= due:
-            publish(pending)
+            publish(pending[0])
             pending = None
         wait = min(POLL, due - now) if pending else POLL
         if not select.select([0], [], [], wait)[0]:
@@ -79,9 +79,10 @@ def main():
             if fields.get("app") != "antigravity":
                 continue
             state = STATES.get(fields.get("state"))
-            if state and state != pending:
-                auth = state == "input" and fields.get("kind") == "auth"
-                pending = state
+            auth = state == "input" and fields.get("kind") == "auth"
+            # A repeat of the waiting report keeps its time.
+            if state and (state, auth) != pending:
+                pending = (state, auth)
                 due = time.monotonic() + (AUTH_DELAY if auth else SETTLE)
         # Keep a report that is still arriving, or a split start marker.
         buf = buf[end:]

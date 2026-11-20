@@ -121,6 +121,22 @@ class Watcher(unittest.TestCase):
         self.write(report("working"))
         self.expect(["working", "input", "working"])
 
+    def test_a_block_after_the_sign_in_block_is_prompt(self):
+        self.write(report("working"))
+        self.expect(["working"])
+        self.write(report("blocked", kind="auth") + report("blocked", kind="permission"))
+        time.sleep(0.5)
+        self.assertEqual(self.states(), ["working", "input"])
+
+    def test_a_sign_in_block_after_another_block_must_last(self):
+        self.write(report("working"))
+        self.expect(["working"])
+        self.write(report("blocked", kind="permission") + report("blocked", kind="auth"))
+        time.sleep(0.5)
+        self.assertEqual(self.states(), ["working"])
+        self.write(report("blocked", kind="auth"))
+        self.expect(["working", "input"])
+
     def test_ignores_other_programs(self):
         self.write(report("working") + report("blocked", app="other") + b"\x1b]7501;state=done\x07")
         time.sleep(0.5)
