@@ -1009,10 +1009,9 @@ fn preview_text(name: &str) -> String {
         };
         body.extend(tmux::screen(&pane, PREVIEW_HISTORY));
     }
-    for l in body {
-        out.push_str(&l);
-        out.push_str("\x1b[0m\n");
-    }
+    // As captured: tmux ends each line's colours itself.
+    out.push_str(&body.join("\n"));
+    out.push_str("\x1b[0m\n");
     out
 }
 
@@ -1080,26 +1079,32 @@ fn pick_inner(client: &str, rows_only: bool) -> Result<i32> {
         rows.iter().for_each(|r| println!("{r}"));
         return Ok(0);
     }
-    // fzf quotes {1}; the path is quoted here. sh, because $SHELL can be any shell.
-    let exe = std::env::current_exe()?.display().to_string().replace('\'', "'\\''");
-    let socket = std::env::temp_dir().join(format!("bud-pick-{}.sock", std::process::id()));
+    // fzf expands braces anywhere in a command, so the path of this program
+    // goes through the environment. {s1} is the name as it is, quoted by
+    // fzf. sh, because $SHELL can be any shell.
+    let preview = "\"$BUD_EXE\" _preview -- {s1}";
+    // A Unix socket's path is short. Without the socket, no refresh.
+    let unique = format!("pick-{}-{}.sock", std::process::id(), UNIX_EPOCH.elapsed().map_or(0, |d| d.subsec_nanos()));
+    let dir = record::state_dir();
+    let socket = Some(dir.join(unique)).filter(|p| p.as_os_str().len() < 100 && std::fs::create_dir_all(&dir).is_ok());
     // A preview run again starts at its end, so scrolling stops the refresh
     // until the cursor moves.
     let scroll = |key: &str, action: &str| format!("{key}:unbind({REFRESH_KEY})+{action}");
     let mut child = Command::new("fzf")
         .args(["--delimiter", "\t", "--with-nth", "2..", "--accept-nth", "1", "--ansi", "--no-sort", "--exact"])
         .args(["--layout", "reverse", "--sync", "--bind", &format!("start:pos({pos})")])
-        .args(["--with-shell", "/bin/sh -c", "--preview", &format!("'{exe}' _preview -- {{1}}")])
+        .args(["--with-shell", "/bin/sh -c", "--preview", preview])
         // Hidden until asked for. Beside the list, or below it where that
         // would leave the preview under 72 columns: a popup under 120.
         .args(["--preview-window", &format!("hidden,right,60%,follow,~{PREVIEW_HEADER},<72(hidden,down,55%,follow,~{PREVIEW_HEADER})")])
         .args(["--preview-label", " ctrl-/ hide · shift-↑↓ alt-↑↓ scroll · alt-w wrap "])
         .args(["--bind", "ctrl-/:toggle-preview,ctrl-_:toggle-preview,alt-w:toggle-preview-wrap"])
-        .arg("--listen")
-        .arg(&socket)
         .args(["--bind", &format!("{REFRESH_KEY}:refresh-preview,focus:rebind({REFRESH_KEY})")])
         .args(["--bind", &scroll("shift-up", "preview-up"), "--bind", &scroll("shift-down", "preview-down")])
         .args(["--bind", &scroll("alt-up", "preview-half-page-up"), "--bind", &scroll("alt-down", "preview-half-page-down")])
+        .args(["--bind", &scroll("preview-scroll-up", "preview-up"), "--bind", &scroll("preview-scroll-down", "preview-down")])
+        .args(socket.iter().flat_map(|p| [std::ffi::OsStr::new("--listen"), p.as_os_str()]))
+        .env("BUD_EXE", std::env::current_exe()?)
         .env_remove("FZF_API_KEY")
         .env_remove("FZF_DEFAULT_OPTS")
         .env_remove("FZF_DEFAULT_OPTS_FILE")
@@ -1108,9 +1113,9 @@ fn pick_inner(client: &str, rows_only: bool) -> Result<i32> {
         .spawn()
         .context("running fzf")?;
     child.stdin.take().unwrap().write_all((rows.join("\n") + "\n").as_bytes())?;
-    refresh_previews(socket.clone());
+    socket.clone().map(refresh_previews);
     let out = child.wait_with_output()?;
-    let _ = std::fs::remove_file(&socket);
+    socket.map(std::fs::remove_file);
     let target = String::from_utf8_lossy(&out.stdout).trim().to_string();
     if !out.status.success() || target.is_empty() {
         return Ok(0); // Esc, or nothing chosen

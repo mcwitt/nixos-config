@@ -591,12 +591,12 @@ fn preview_shows_context_and_the_screen_and_only_reads() {
     assert_eq!(std::fs::read(&file).unwrap(), before);
 
     // A session without a record, with colours and with blank lines below.
-    env.tmux(&["new-session", "-d", "-s", "paint", "printf '\\033[31mred\\033[0m\\n'; sleep 1000"]);
-    env.wait_for(|| ok(&env.bud(&["_preview", "paint"])).contains("red"));
+    env.tmux(&["new-session", "-d", "-s", "paint", "printf '\\033[31mred\\nstill red\\033[0m\\n'; sleep 1000"]);
+    env.wait_for(|| ok(&env.bud(&["_preview", "paint"])).contains("still red"));
     let out = ok(&env.bud(&["_preview", "paint"]));
     let lines: Vec<&str> = out.lines().collect();
     assert!(lines[2].contains("(not launched by bud)"), "{out}");
-    assert!(lines.len() == 4 && lines[3].contains("\x1b[31mred"), "{out:?}");
+    assert!(lines.len() == 5 && lines[3].contains("\x1b[31mred") && lines[4].contains("\x1b[31mstill red"), "{out:?}");
 }
 
 #[test]
