@@ -343,13 +343,13 @@ fn start(mut rec: Record, ad: &Adapter, wait: Option<f64>, fresh: bool) -> Resul
     rec.pane = Some(pane.clone());
     record::save(&rec)?;
 
-    let wait = wait.unwrap_or(if ad.reports_state { 15.0 } else { 8.0 });
+    let wait = wait.unwrap_or(15.0);
     let deadline = Instant::now() + Duration::from_secs_f64(wait);
     while Instant::now() < deadline {
         std::thread::sleep(Duration::from_millis(250));
         let Some(info) = tmux::display(&pane, &format!("#{{pane_dead}}{}#{{@agent_state}}", tmux::SEP)) else { break };
         let (dead, state) = info.split_once(tmux::SEP).unwrap_or((&info, ""));
-        if dead == "1" || (ad.reports_state && !state.is_empty()) {
+        if dead == "1" || !state.is_empty() {
             break;
         }
     }

@@ -8,11 +8,10 @@ use std::time::{Duration, Instant};
 const BUD: &str = env!("CARGO_BIN_EXE_bud");
 
 // Installed under every harness name. Records its argv, cwd and environment;
-// reports a state the way the harness hooks do (except as agy); then logs
+// reports a state the way the harnesses do; then logs
 // every line typed into the pane.
 const STUB: &str = r#"#!/bin/sh
 log="$STUB_LOG/${TMUX_PANE#%}"
-prog=$(basename "$0")
 : > "$log.argv"
 for a in "$@"; do printf '%s\0' "$a" >> "$log.argv"; done
 pwd > "$log.cwd"
@@ -21,7 +20,7 @@ case "$*" in *"EXIT 3"*) exit 3 ;; esac
 case "$*" in *SPAWN*) setsid sleep 300 </dev/null >/dev/null 2>&1 & echo $! > "$log.spawned" ;; esac
 case "$*" in *DIALOG*) printf ' Yes, I trust this folder\n Enter to confirm · Esc to cancel\n' ;; esac
 sleep 0.3
-[ "$prog" = agy ] || tmux set -p -t "$TMUX_PANE" @agent_state done
+tmux set -p -t "$TMUX_PANE" @agent_state done
 printf '\033[?2004h> '
 while IFS= read -r line; do printf '%s\n' "$line" >> "$log.typed"; done
 "#;

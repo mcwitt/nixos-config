@@ -11,8 +11,6 @@ pub struct Adapter {
     pub program: &'static str,
     /// The harness accepts a conversation ID at launch.
     pub id_at_launch: bool,
-    /// The harness publishes @agent_state through its hooks.
-    pub reports_state: bool,
     /// Variables that make the harness refuse to start or misbehave when it
     /// inherits them from another agent's process.
     pub nesting_env: &'static [&'static str],
@@ -23,35 +21,30 @@ pub const ADAPTERS: &[Adapter] = &[
         name: "claude",
         program: "claude",
         id_at_launch: true,
-        reports_state: true,
         nesting_env: &["CLAUDECODE", "CLAUDE_CODE_ENTRYPOINT"],
     },
     Adapter {
         name: "codex",
         program: "codex",
         id_at_launch: false,
-        reports_state: true,
         nesting_env: &[],
     },
     Adapter {
         name: "pi",
         program: "pi",
         id_at_launch: true,
-        reports_state: true,
         nesting_env: &[],
     },
     Adapter {
         name: "opencode",
         program: "opencode",
         id_at_launch: false,
-        reports_state: true,
         nesting_env: &[],
     },
     Adapter {
         name: "agy",
         program: "agy",
         id_at_launch: false,
-        reports_state: false,
         nesting_env: &[],
     },
 ];
