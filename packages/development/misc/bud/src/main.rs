@@ -1083,10 +1083,12 @@ fn pick_inner(client: &str, rows_only: bool) -> Result<i32> {
     // goes through the environment. {s1} is the name as it is, quoted by
     // fzf. sh, because $SHELL can be any shell.
     let preview = "\"$BUD_EXE\" _preview -- {s1}";
-    // A Unix socket's path is short. Without the socket, no refresh.
-    let unique = format!("pick-{}-{}.sock", std::process::id(), UNIX_EPOCH.elapsed().map_or(0, |d| d.subsec_nanos()));
-    let dir = record::state_dir();
-    let socket = Some(dir.join(unique)).filter(|p| p.as_os_str().len() < 100 && std::fs::create_dir_all(&dir).is_ok());
+    // The socket, in a directory that only this picker uses. A Unix
+    // socket's path is short. Without the socket, no refresh.
+    let unique = format!("pick-{}-{}", std::process::id(), UNIX_EPOCH.elapsed().map_or(0, |d| d.subsec_nanos()));
+    let dir = record::state_dir().join(unique);
+    let _ = std::fs::create_dir_all(record::state_dir());
+    let socket = Some(dir.join("fzf.sock")).filter(|p| p.as_os_str().len() < 100 && std::fs::create_dir(&dir).is_ok());
     // A preview run again starts at its end, so scrolling stops the refresh
     // until the cursor moves.
     let scroll = |key: &str, action: &str| format!("{key}:unbind({REFRESH_KEY})+{action}");
@@ -1115,7 +1117,9 @@ fn pick_inner(client: &str, rows_only: bool) -> Result<i32> {
     child.stdin.take().unwrap().write_all((rows.join("\n") + "\n").as_bytes())?;
     socket.clone().map(refresh_previews);
     let out = child.wait_with_output()?;
-    socket.map(std::fs::remove_file);
+    if socket.is_some() {
+        let _ = std::fs::remove_dir_all(&dir);
+    }
     let target = String::from_utf8_lossy(&out.stdout).trim().to_string();
     if !out.status.success() || target.is_empty() {
         return Ok(0); // Esc, or nothing chosen
