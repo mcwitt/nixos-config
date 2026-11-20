@@ -1049,6 +1049,15 @@ fn glyph(state: &str) -> &'static str {
     }
 }
 
+/// Removes a directory when dropped, so on every way out of a function.
+struct RemoveDir(PathBuf);
+
+impl Drop for RemoveDir {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.0);
+    }
+}
+
 fn pick_inner(client: &str, rows_only: bool) -> Result<i32> {
     let world = World::read();
     let nodes: HashSet<String> = world.snap.sessions.keys().cloned().collect();
@@ -1089,6 +1098,7 @@ fn pick_inner(client: &str, rows_only: bool) -> Result<i32> {
     let dir = record::state_dir().join(unique);
     let _ = std::fs::create_dir_all(record::state_dir());
     let socket = Some(dir.join("fzf.sock")).filter(|p| p.as_os_str().len() < 100 && std::fs::create_dir(&dir).is_ok());
+    let _cleanup = socket.as_ref().map(|_| RemoveDir(dir));
     // A preview run again starts at its end, so scrolling stops the refresh
     // until the cursor moves.
     let scroll = |key: &str, action: &str| format!("{key}:unbind({REFRESH_KEY})+{action}");
@@ -1117,9 +1127,6 @@ fn pick_inner(client: &str, rows_only: bool) -> Result<i32> {
     child.stdin.take().unwrap().write_all((rows.join("\n") + "\n").as_bytes())?;
     socket.clone().map(refresh_previews);
     let out = child.wait_with_output()?;
-    if socket.is_some() {
-        let _ = std::fs::remove_dir_all(&dir);
-    }
     let target = String::from_utf8_lossy(&out.stdout).trim().to_string();
     if !out.status.success() || target.is_empty() {
         return Ok(0); // Esc, or nothing chosen
