@@ -71,12 +71,12 @@ class Watcher(unittest.TestCase):
         lines = self.tmux_log.read_text().splitlines()
         self.assertEqual(len(lines), 1, lines)
         command = lines[0]
-        owner = f"#{{==:#{{@agy_state_pid}},{self.agent.pid}}}"
+        owner = f"#{{==:#{{@agent_state_owner}},{self.agent.pid}}}"
         pipe = f"#{{==:#{{pane_pipe_pid}},{self.watcher.pid}}}"
         self.assertEqual(
             command,
-            f"-S socket if -t %1 -F {owner} set -pu -t %1 @agy_state_pid ; "
-            f"set -pu -t %1 @agent_state ; if -t %1 -F '{pipe}' 'pipe-pane -t %1'",
+            f"-S socket if -t %1 -F {owner} set -pu -t %1 @agent_state_owner ; "
+            f"set -pu -t %1 @agent_state ; if -t %1 -F {pipe} pipe-pane -t %1",
         )
 
     def test_turn(self):
@@ -105,7 +105,8 @@ class Watcher(unittest.TestCase):
 
     def test_other_blocks_are_immediate(self):
         self.write(report("working") + report("blocked", kind="permission", msg="eA=="))
-        self.expect(["working", "input"])
+        time.sleep(0.5)
+        self.assertEqual(self.states(), ["working", "input"])
         self.write(report("working"))
         self.expect(["working", "input", "working"])
 

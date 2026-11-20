@@ -21,15 +21,16 @@ STATES = {"working": "working", "blocked": "input", "done": "done", "idle": "don
 # at startup, so that kind counts only once it has lasted this long.
 AUTH_DELAY = 1.0
 POLL = 0.2
-# The pane option that names the `agy` whose watcher owns the pane's state.
-OWNER = "@agy_state_pid"
+# The pane option that names the `agy` whose watcher owns the pane's state;
+# see ../tmux-state.nix.
+OWNER = "@agent_state_owner"
 
 
 def main():
     publisher, tmux, socket, pane, pid = sys.argv[1:6]
     pid = int(pid)
     # pipe-pane commands do not inherit these from the pane.
-    env = dict(os.environ, TMUX=f"{socket},0,0", TMUX_PANE=pane)
+    env = dict(os.environ, TMUX=f"{socket},0,0", TMUX_PANE=pane, AGENT_STATE_OWNER=str(pid))
     published = None
 
     def publish(state):
@@ -87,17 +88,17 @@ def main():
         if len(buf) > 1 << 20:
             buf = b""
 
-    # Clean up only what is still this watcher's, in one tmux command so that
-    # nothing changes between the checks and the changes: a later `agy` in the
-    # pane takes the option over, and another program may have taken the pipe.
+    # Clean up only what is still this watcher's, each checked by tmux in the
+    # command that changes it: another publisher or a later `agy` takes the
+    # state over, and another program may have taken the pipe.
     mine = f"#{{==:#{{{OWNER}}},{pid}}}"
     my_pipe = f"#{{==:#{{pane_pipe_pid}},{os.getpid()}}}"
-    clear = (
-        f"set -pu -t {pane} {OWNER} ; set -pu -t {pane} @agent_state ; "
-        f"if -t {pane} -F '{my_pipe}' 'pipe-pane -t {pane}'"
-    )
+    clear = f"set -pu -t {pane} {OWNER} ; set -pu -t {pane} @agent_state"
+    close = f"pipe-pane -t {pane}"
     subprocess.run(
-        [tmux, "-S", socket, "if", "-t", pane, "-F", mine, clear],
+        [tmux, "-S", socket]
+        + ["if", "-t", pane, "-F", mine, clear, ";"]
+        + ["if", "-t", pane, "-F", my_pipe, close],
         stdin=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )

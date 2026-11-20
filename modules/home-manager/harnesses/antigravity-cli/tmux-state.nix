@@ -5,8 +5,7 @@
 # prompt, a question or the folder-trust dialog. Its terminal status reports
 # (OSC 7501) cover all of them, so the wrapper turns them on and has tmux pipe
 # the pane's output to ./tmux-state.py, which publishes each report and clears
-# the state when `agy` exits. tmux itself discards the reports. The pane
-# option @agy_state_pid names the `agy` whose watcher owns the state.
+# the state when `agy` exits. tmux itself discards the reports.
 {
   config,
   pkgs,
@@ -33,14 +32,18 @@ let
       [[ "$args" == *"${watcher} "* ]] && ! kill -0 "''${args##* }" 2>/dev/null
     }
     if [[ -n "''${TMUX:-}" && -n "''${TMUX_PANE:-}" && -t 0 && -t 1 && "''${AGY_CLI_OSC7501:-}" != off ]]; then
-      read -r tty piped pipe_pid < <(
-        ${tmux} display -p -t "$TMUX_PANE" '#{pane_tty} #{pane_pipe} #{pane_pipe_pid}' 2>/dev/null
-      )
+      seen=$(${tmux} display -p -t "$TMUX_PANE" '#{pane_tty} #{pane_pipe} #{pane_pipe_pid}' 2>/dev/null)
+      read -r tty piped pipe_pid <<<"$seen"
       if [[ "$tty" == "$(${pkgs.coreutils}/bin/tty)" ]] && free; then
         # tmux does not answer the CLI's check for support.
         export AGY_CLI_OSC7501=on
-        ${tmux} set -p -t "$TMUX_PANE" @agy_state_pid $$ \; pipe-pane -t "$TMUX_PANE" \
-          "exec ${watcher} ${shared} ${tmux} #{q:socket_path} #{q:pane_id} $$"
+        # Take the pipe only if it is still as seen, and with it the state,
+        # dropping what an earlier agent left.
+        ${tmux} if -t "$TMUX_PANE" -F "#{==:#{pane_tty} #{pane_pipe} #{pane_pipe_pid},$seen}" "
+          set -pqu -t $TMUX_PANE @agent_state
+          set -p -t $TMUX_PANE @agent_state_owner $$
+          pipe-pane -t $TMUX_PANE \"exec ${watcher} ${shared} ${tmux} #{q:socket_path} #{q:pane_id} $$\"
+        "
       fi
     fi
     exec ${package}/bin/agy "$@"

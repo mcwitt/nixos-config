@@ -16,6 +16,11 @@
 #   done        idle at the prompt.
 #   background  the turn ended but background tasks are still running.
 #   off         the session ended; unsets the option.
+#
+# A publisher outside the agent, which must clear the state itself when the
+# agent exits, names the agent in @agent_state_owner and in
+# $AGENT_STATE_OWNER when it runs this. Any other publisher's update removes
+# the option, so that the first one does not clear a state that is not its own.
 { config, pkgs }:
 let
   tmux = "${config.programs.tmux.package}/bin/tmux";
@@ -27,9 +32,12 @@ pkgs.writeShellScript "agent-tmux-state" ''
   [[ -n "''${TMUX_PANE:-}" ]] || exit 0
 
   state=$1
+  disown=()
+  [[ -n "''${AGENT_STATE_OWNER:-}" ]] ||
+    disown=(';' set -pqu -t "$TMUX_PANE" @agent_state_owner)
   case "$state" in
-    off) ${tmux} set -pu -t "$TMUX_PANE" @agent_state ;;
-    *) ${tmux} set -p -t "$TMUX_PANE" @agent_state "$state" ;;
+    off) ${tmux} set -pu -t "$TMUX_PANE" @agent_state "''${disown[@]}" ;;
+    *) ${tmux} set -p -t "$TMUX_PANE" @agent_state "$state" "''${disown[@]}" ;;
   esac
 
   # Ring the pane's bell for a blocking request: tmux then raises its own
