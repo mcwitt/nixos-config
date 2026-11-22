@@ -35,6 +35,8 @@ in
 
   bud = callPackage ../packages/development/misc/bud { };
 
+  design-doc-tools = callPackage ../packages/development/misc/design-doc-tools { };
+
   # MCP profiles are mutable state, but nixpkgs points PLAYWRIGHT_BROWSERS_PATH
   # at the read-only store. Keep the browser binaries there and use Playwright's
   # normal per-user cache for profiles, preserving its per-project names.

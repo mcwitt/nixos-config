@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# design-doc-wc <doc.org>: print the number of words in a design doc, outside
+# its Decisions subtree and outside source blocks, and the limit.
+set -euo pipefail
+
+limit=2000
+
+if [ $# -ne 1 ]; then
+  echo "usage: design-doc-wc <doc.org>" >&2
+  exit 2
+fi
+if [ ! -r "$1" ]; then
+  echo "design-doc-wc: cannot read $1" >&2
+  exit 2
+fi
+
+awk -v limit="$limit" '
+  # A top-level headline starts or ends the Decisions subtree.
+  /^\* / {
+    title = $0
+    sub(/^\* +/, "", title)
+    sub(/[ \t]+:[A-Za-z0-9_@#%:]+:[ \t]*$/, "", title)
+    decisions = (title == "Decisions")
+  }
+  tolower($0) ~ /^[ \t]*#\+begin_src/ { src = 1; next }
+  tolower($0) ~ /^[ \t]*#\+end_src/ { src = 0; next }
+  decisions || src { next }
+  { words += NF }
+  END { printf "%d words, limit %d\n", words, limit }
+' "$1"

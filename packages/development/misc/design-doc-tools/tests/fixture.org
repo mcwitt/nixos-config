@@ -1,0 +1,31 @@
+#+title: A fixed file for design-doc-wc
+#+todo: PROPOSED TODO DOING BLOCKED | DONE DROPPED
+
+- Status :: fixed.
+- Owner session :: ~fixture-owner~ (a test).
+
+* Goal
+
+One two three four five.
+
+* Design
+
+Six seven.
+
+#+begin_src python :file fixture/plot.svg
+these words are in a source block and are not counted
+#+end_src
+
+Eight.
+
+* Decisions
+
+- 2026-11-22: these words are in the decisions log and are not counted.
+
+** A headline inside Decisions
+
+Nor are these.
+
+* Gates
+
+** DONE G1 Nine ten :user:

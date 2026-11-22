@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# design-doc-signal: run from a post-commit hook in the docs repository.
+# For each .org file that the new commit changed, tell the session named in
+# the doc's head. A commit made in that session's own agent pane is skipped.
+# The send is detached and every failure is ignored: a commit is never
+# delayed or failed by this command.
+
+bud=${DESIGN_DOC_SIGNAL_BUD:-bud}
+
+main() {
+  command -v "$bud" >/dev/null 2>&1 || return 0
+  local top sha subject
+  top=$(git rev-parse --show-toplevel 2>/dev/null) || return 0
+  sha=$(git rev-parse --short HEAD 2>/dev/null) || return 0
+  subject=$(git log -1 --format=%s 2>/dev/null)
+
+  local file owner pane
+  while IFS= read -r -d '' file; do
+    [ -f "$top/$file" ] || continue
+    owner=$(owner_of "$top/$file")
+    [ -n "$owner" ] || continue
+    if [ -n "${TMUX:-}" ] && [ -n "${TMUX_PANE:-}" ]; then
+      pane=$("$bud" show "$owner" --json 2>/dev/null | jq -r '.pane // empty' 2>/dev/null)
+      [ "$pane" = "$TMUX_PANE" ] && continue
+    fi
+    detach "$bud" send "$owner" "design-doc-signal: $sha changed $file: $subject"
+  done < <(git diff-tree --root --no-commit-id --name-only -r -z HEAD -- '*.org' 2>/dev/null)
+}
+
+# The first code span on the line that starts "- Owner session ::".
+owner_of() {
+  sed -n '1,40{
+    /^- Owner session :: /{
+      s/^- Owner session :: [^~=]*[~=]\([^~=]*\)[~=].*/\1/p
+      q
+    }
+  }' "$1"
+}
+
+detach() {
+  if command -v setsid >/dev/null 2>&1; then
+    setsid -f "$@" >/dev/null 2>&1 </dev/null
+  else
+    nohup "$@" >/dev/null 2>&1 </dev/null &
+  fi
+}
+
+main
+exit 0

@@ -1,0 +1,36 @@
+#+title: <the task, in a few words>
+#+todo: PROPOSED TODO DOING BLOCKED | DONE DROPPED
+
+- Status :: <where the task stands, in a line>
+- Owner session :: ~<session>~
+- Needs <user's name> :: <what the user must do now, or "nothing">
+- Links :: <parent doc, repository and branch, pull request>
+
+* Goal
+
+<What this is for, and why.>
+
+* Requirements
+
+- *R1.* <What must be true of the result.>
+
+Out of scope: <what is not part of this task>.
+
+* Design
+
+<How, to the level of detail the user cares about. Leave this part out while it is empty.>
+
+* Decisions
+
+- <date>: <what was decided> (<who decided>).
+  Rejected: <the alternative, and why>.
+
+* Open questions
+
+- *Q1.* <The question, and your proposal. Leave this part out while it is empty.>
+
+* Gates
+
+** PROPOSED G1 <An outcome, in the present tense, that can be checked as it stands> :user:
+** PROPOSED G2 <Another outcome> :agent:
+<Optional: how to check it when that is not obvious, a note, or what was found.>

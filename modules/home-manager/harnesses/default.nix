@@ -33,6 +33,7 @@ in
     ./claude-code
     ./codex
     ./bud.nix
+    ./design-doc-defaults.nix
     ./memex.nix
     ./opencode
     ./pi
