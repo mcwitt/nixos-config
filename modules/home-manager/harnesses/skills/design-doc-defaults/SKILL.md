@@ -87,5 +87,5 @@ Find out whether the repository is public: `gh repo view --json visibility -q .v
 Before you post a summary:
 
 1. Read it for private repositories, people, hosts, employers and their projects.
-2. Write it to a file and run `grep -inFf ~/projects/design-docs/.private-terms <file>`. Any line it prints holds a private term; remove the term and run it again.
+2. Write it to a file and run `grep -inFf ~/projects/design-docs/.private-terms <file>`. Any line it prints holds a private term; remove the term and run it again. The terms file has one term per line and no blank lines. If it is missing, tell the user that this check did not run.
 3. Show the summary to the user, unless they have already said to open the pull request.
