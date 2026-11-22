@@ -30,7 +30,6 @@
           "(org-mode . flyspell-mode)"
           "(org-mode . turn-on-visual-line-mode)"
           "(org-mode . variable-pitch-mode)"
-          "(org-mode . org-appear-mode)"
           "(org-capture-mode . evil-insert-state)"
         ];
 
@@ -38,11 +37,6 @@
           "C-c l" = "org-store-link";
           "C-c a" = "org-agenda";
           "C-c c" = "org-capture";
-        };
-
-        bindLocal.org-agenda-mode-map = {
-          j = "evil-next-line";
-          k = "evil-previous-line";
         };
 
         config = ''
@@ -113,52 +107,25 @@
 
           (font-lock-add-keywords 'org-mode '((my/org-fontify-line-starts)) t)
 
+          ;; Frames named "org-capture-dedicated" and "org-agenda-dedicated" (the
+          ;; xmonad scratchpads) show only that buffer and are deleted with it.
 
-          ;; The following is used to treat frames named "org-capture"
-          ;; as dedicated capture frames, meaning they will
-          ;;
-          ;; 1. only display the capture buffer, and
-          ;; 2. be deleted when the capture is finalized.
-          ;;
-          ;; This is useful for launching a dedicated capture frame with a command like
-          ;;
-          ;;     emacsclient -c -n -F '((name . "org-capture-dedicated"))' -e '(org-capture nil "t")'
-          ;;
-          ;; TODO: Is there a cleaner way to accomplish this?
+          (defun my/org-dedicated-frame-p (kind)
+            "Return whether the selected frame is the dedicated org KIND frame."
+            (equal (frame-parameter nil 'name) (format "org-%s-dedicated" kind)))
 
-          (defun my/dedicated-org-capture-frame-p ()
-            "Return whether the current frame is a dedicated capture frame."
-            (equal (frame-parameter nil 'name) "org-capture-dedicated"))
-
-          (defun my/dedicated-org-capture-frame-delete-other-windows ()
-            "Delete other windows if the current frame is a dedicated capture frame."
-            (when (my/dedicated-org-capture-frame-p) (delete-other-windows)))
-
-          (add-hook 'org-capture-mode-hook #'my/dedicated-org-capture-frame-delete-other-windows)
-
-          (defun my/dedicated-org-capture-frame-cleanup ()
-            "Delete the frame if it is a dedicated capture frame."
-            (when (my/dedicated-org-capture-frame-p) (delete-frame)))
-
-          (add-hook 'org-capture-after-finalize-hook #'my/dedicated-org-capture-frame-cleanup)
-
-
-          ;; Delete dedicated org-agenda frames upon quitting the agenda
-
-          (defun my/dedicated-org-agenda-frame-p ()
-            "Return whether the current frame is a dedicated agenda frame."
-            (equal (frame-parameter nil 'name) "org-agenda-dedicated"))
-
-          (defun my/dedicated-org-agenda-frame-cleanup ()
-            "Delete the frame if it is a dedicated agenda frame."
-            (when (my/dedicated-org-agenda-frame-p) (delete-frame)))
-
-          (advice-add 'org-agenda-quit :after #'my/dedicated-org-agenda-frame-cleanup)
+          (add-hook 'org-capture-mode-hook
+                    (lambda () (when (my/org-dedicated-frame-p "capture") (delete-other-windows))))
+          (add-hook 'org-capture-after-finalize-hook
+                    (lambda () (when (my/org-dedicated-frame-p "capture") (delete-frame))))
+          (advice-add 'org-agenda-quit :after
+                      (lambda () (when (my/org-dedicated-frame-p "agenda") (delete-frame))))
         '';
       };
 
       org-appear = {
         enable = true;
+        hook = [ "(org-mode . org-appear-mode)" ];
         config = ''
           (setopt org-appear-autoemphasis t
                   org-appear-autolinks t
