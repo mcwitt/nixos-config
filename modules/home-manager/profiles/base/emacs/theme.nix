@@ -17,6 +17,9 @@
                               nil
                               :family "${fonts.monospace.name}"
                               :height ${toString (fonts.sizes.applications * 10)})
+          (set-face-attribute 'fixed-pitch
+                              nil
+                              :family "${fonts.monospace.name}")
           (set-face-attribute 'variable-pitch
                               nil
                               :family "${fonts.serif.name}")
@@ -28,6 +31,9 @@
         bind."<f5>" = "ef-themes-toggle";
         config = ''
           (setopt ef-themes-to-toggle '(ef-melissa-light ef-melissa-dark))
+
+          ;; Keep tables, code and the like fixed pitch under `variable-pitch-mode'.
+          (setopt modus-themes-mixed-fonts t)
 
           ;; Heading sizes; 0 is the org document title.
           (setopt modus-themes-headings '((0 . (bold 1.8))

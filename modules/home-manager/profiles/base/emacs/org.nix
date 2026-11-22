@@ -23,18 +23,13 @@
 
       htmlize.enable = true;
 
-      mixed-pitch = {
-        enable = true;
-        hook = [ "(org-mode . mixed-pitch-mode)" ];
-        diminish = [ "mixed-pitch-mode" ];
-      };
-
       org = {
         enable = true;
 
         hook = [
           "(org-mode . flyspell-mode)"
           "(org-mode . turn-on-visual-line-mode)"
+          "(org-mode . variable-pitch-mode)"
           "(org-mode . org-appear-mode)"
           "(org-capture-mode . evil-insert-state)"
         ];
