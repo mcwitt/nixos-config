@@ -86,13 +86,19 @@
           (defun my/org-fontify-line-starts (limit)
             "Keep indentation and list bullets fixed pitch up to LIMIT.
           Wrapped lines continue at the column where the text starts, so that
-          hard-wrapped and soft-wrapped lines align in a proportional font."
+          hard-wrapped and soft-wrapped lines align in a proportional font.
+          Also add space above headings, without blank lines in the file."
             (while (< (point) limit)
               (let ((bol (point))
                     (end (if (looking-at (org-item-re))
                              (match-end 0)
                            (skip-chars-forward " \t")
                            (point))))
+                (unless (bobp)
+                  ;; The newline before a heading is visible even when folded.
+                  (if (looking-at-p org-outline-regexp)
+                      (put-text-property (1- bol) bol 'line-spacing 0.5)
+                    (remove-text-properties (1- bol) bol '(line-spacing nil))))
                 (unless (bound-and-true-p org-indent-mode) ; sets its own prefixes
                   (if (= end bol)
                       (remove-text-properties bol (pos-eol) '(wrap-prefix nil))
