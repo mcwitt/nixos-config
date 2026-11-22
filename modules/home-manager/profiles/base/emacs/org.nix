@@ -83,6 +83,30 @@
                   org-refile-targets '(("gtd.org" :maxlevel . 3));
                   org-stuck-projects '("+LEVEL=2+PROJECT/-DONE" ("NEXT") nil ""))
 
+          (defun my/org-fontify-line-starts (limit)
+            "Keep indentation and list bullets fixed pitch up to LIMIT.
+          Wrapped lines continue at the column where the text starts, so that
+          hard-wrapped and soft-wrapped lines align in a proportional font."
+            (while (< (point) limit)
+              (let ((bol (point))
+                    (end (if (looking-at (org-item-re))
+                             (match-end 0)
+                           (skip-chars-forward " \t")
+                           (point))))
+                (unless (bound-and-true-p org-indent-mode) ; sets its own prefixes
+                  (if (= end bol)
+                      (remove-text-properties bol (pos-eol) '(wrap-prefix nil))
+                    (add-face-text-property bol end 'fixed-pitch)
+                    (goto-char end)
+                    (put-text-property
+                     bol (pos-eol) 'wrap-prefix
+                     (propertize (make-string (current-column) ?\s)
+                                 'face 'fixed-pitch)))))
+              (forward-line))
+            nil)
+
+          (font-lock-add-keywords 'org-mode '((my/org-fontify-line-starts)) t)
+
 
           ;; The following is used to treat frames named "org-capture"
           ;; as dedicated capture frames, meaning they will
