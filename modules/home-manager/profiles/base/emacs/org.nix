@@ -80,7 +80,7 @@
                                           ("m" "meeting" entry (file+headline "tickler.org" "Meetings")
                                            "* Meeting with %^{Person}\n%^{When}T\n** Prep\n%?\n** Notes\n\n** Actions\n"))
 
-                  org-refile-targets '(("gtd.org" :maxlevel . 3));
+                  org-refile-targets `((,(expand-file-name "gtd.org" org-directory) :maxlevel . 3))
                   org-stuck-projects '("+LEVEL=2+PROJECT/-DONE" ("NEXT") nil ""))
 
           (defun my/org-fontify-line-starts (limit)
