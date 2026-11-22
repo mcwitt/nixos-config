@@ -68,6 +68,7 @@ in
     harnesses.skills = gwsSkills // {
       asd-ste100 = "${inputs.asd-ste100}";
       branch-cleanup = ./skills/branch-cleanup;
+      design-doc = ./skills/design-doc;
       catch-me-up = ./skills/catch-me-up;
       explanatory = ./skills/explanatory;
       learning = ./skills/learning;
