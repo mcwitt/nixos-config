@@ -33,6 +33,8 @@ These are the settings that the `design-doc` skill leaves open. What the user sa
 
 - A comment is an Org comment line (`# ...`) on the line above the sentence it is about. Find them with `grep -nE '^[[:space:]]*# ' <doc>`.
 - A `# ` line inside a source or example block is part of the block, not a comment to you.
+- When a comment asks a question, or asks for a change that you disagree with, remove the comment and add an entry `Qn` under `Open questions`. The entry names the passage and the question, and holds your answer or your proposal. In the session, say only which entry it is.
+- The user replies by editing the entry or by commenting on it. When the question is settled, put the outcome into the text or `Decisions` and remove the entry.
 
 ## Length
 
