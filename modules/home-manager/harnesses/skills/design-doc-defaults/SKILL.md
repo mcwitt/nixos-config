@@ -58,7 +58,7 @@ Run `git push` after each of your commits. If it fails, say so and go on.
 
 ## Opening the doc
 
-When the first draft is committed, run `design-doc-open <doc>` and tell the user what it printed. The first line is the doc's path. The second says what was done: the doc is in a new Emacs frame on the user's display, or in a background window of this tmux session, or it was not opened and why. Run the command again only when the user asks.
+When the first draft is committed, run `design-doc-open <doc>` and tell the user what it printed. The first line is the doc's path. The second says what was done: the doc is in a terminal Emacs frame in a background window of this tmux session, or it was not opened and why. Run the command again only when the user asks.
 
 ## The commit signal
 

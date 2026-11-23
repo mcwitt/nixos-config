@@ -100,15 +100,12 @@ check "signal: a commit succeeds when bud is missing" "proj/task: no bud" \
   "$(git -C "$repo" log -1 --format=%s)"
 
 # --- design-doc-open -----------------------------------------------------
-# The stub tmux answers `list-clients` with $STUB_CLIENTS, a variable of a
-# session from the file $STUB_ENV/<session>, and logs `new-window`. The stub
+# The stub tmux names this session "own" and logs `new-window`. The stub
 # emacsclient answers `-e` with $STUB_SHOWN, or fails when $STUB_NO_SERVER is
-# set, and logs every other call.
+# set.
 printf '#!%s\n' "$BASH" >"$work/tmux"
 cat >>"$work/tmux" <<'EOF'
 case "$1" in
-  list-clients) printf '%s\n' "${STUB_CLIENTS:-}" | grep . || true ;;
-  show-environment) grep -E "^-?$4(=|\$)" "$STUB_ENV/$3" ;;
   display-message) echo own ;;
   new-window) printf 'tmux %s\n' "$*" >>"$STUB_LOG"; echo 2 ;;
 esac
@@ -117,17 +114,11 @@ printf '#!%s\n' "$BASH" >"$work/emacsclient"
 cat >>"$work/emacsclient" <<'EOF'
 case "$1" in
   -e) [ -z "${STUB_NO_SERVER:-}" ] || exit 1; echo "${STUB_SHOWN:-nil}" ;;
-  *) printf 'emacsclient %s\n' "$*" >>"$STUB_LOG" ;;
 esac
 EOF
 chmod +x "$work/tmux" "$work/emacsclient"
-mkdir "$work/env"
-printf -- '-SSH_CONNECTION\nDISPLAY=:0\n' >"$work/env/at-display"
-printf 'SSH_CONNECTION=192.0.2.1 1 192.0.2.2 22\n-DISPLAY\n' >"$work/env/over-ssh"
 export DESIGN_DOC_OPEN_TMUX="$work/tmux" DESIGN_DOC_OPEN_EMACSCLIENT="$work/emacsclient"
-export STUB_ENV="$work/env"
 doc=$(realpath "$repo/proj/task.org")
-frame="emacsclient -c -n -d :0 -F ((name . \"design-doc\")) -- $doc"
 window="tmux new-window -d -P -F #{window_index} -t own: -n task -- $(command -v env) -u ALTERNATE_EDITOR $work/emacsclient -t -- $doc"
 
 open() { # open <arguments of env>...: what the command says, then what it ran
@@ -135,33 +126,19 @@ open() { # open <arguments of env>...: what the command says, then what it ran
   env "$@" "$tools/design-doc-open" "$doc" | sed -n 2p
   cat "$STUB_LOG"
 }
-# What a pane says when it was made over SSH, and when it was made at the display.
-old_ssh=(-u DISPLAY -u WAYLAND_DISPLAY TMUX=x TMUX_PANE=%7 SSH_CONNECTION=old)
-old_display=(-u SSH_CONNECTION -u WAYLAND_DISPLAY TMUX=x TMUX_PANE=%7 DISPLAY=:9)
-no_tmux=(-u TMUX -u TMUX_PANE -u WAYLAND_DISPLAY)
+in_tmux=(TMUX=x TMUX_PANE=%7)
 
 check "open: prints the doc's path first" "$doc" \
   "$("$tools/design-doc-open" "$repo/proj/../proj/task.org" | sed -n 1p)"
-check "open: at the display, a graphical frame, whatever the pane says" \
-  "opened in a new Emacs frame on display :0"$'\n'"$frame" \
-  "$(open "${old_ssh[@]}" STUB_CLIENTS=$'100 over-ssh\n200 at-display')"
-check "open: over SSH, a background tmux window, whatever the pane says" \
+check "open: in tmux, a terminal frame in a background window of the session" \
   "opened in window 2 (task) of this tmux session, in the background"$'\n'"$window" \
-  "$(open "${old_display[@]}" STUB_CLIENTS=$'300 over-ssh\n200 at-display')"
-check "open: in tmux with no client, nothing" \
-  "not opened: no tmux client is attached" "$(open "${old_display[@]}" STUB_CLIENTS=)"
-check "open: outside tmux at the display, a graphical frame" \
-  "opened in a new Emacs frame on display :0"$'\n'"$frame" \
-  "$(open "${no_tmux[@]}" -u SSH_CONNECTION DISPLAY=:0)"
-check "open: outside tmux over SSH, nothing" \
-  "not opened: no local display, and this session is outside tmux" \
-  "$(open "${no_tmux[@]}" SSH_CONNECTION=old DISPLAY=:0)"
+  "$(open "${in_tmux[@]}")"
+check "open: outside tmux, nothing" \
+  "not opened: this session is outside tmux" "$(open -u TMUX -u TMUX_PANE)"
 check "open: without an Emacs server, nothing" \
-  "not opened: no Emacs server answers" \
-  "$(open "${no_tmux[@]}" -u SSH_CONNECTION DISPLAY=:0 STUB_NO_SERVER=1)"
+  "not opened: no Emacs server answers" "$(open "${in_tmux[@]}" STUB_NO_SERVER=1)"
 check "open: a doc that a window already shows is not opened again" \
-  "not opened: an Emacs window already shows it" \
-  "$(open "${no_tmux[@]}" -u SSH_CONNECTION DISPLAY=:0 STUB_SHOWN=t)"
+  "not opened: an Emacs window already shows it" "$(open "${in_tmux[@]}" STUB_SHOWN=t)"
 
 if [ "$fails" -gt 0 ]; then
   echo "$fails failed"
