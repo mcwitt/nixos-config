@@ -27,7 +27,7 @@ Out of scope: <what is not part of this task>.
 
 * Open questions
 
-- *Q1.* <A question that is not settled, with a proposal.>
+- *Q1.* <A question for the user, with a proposal; the user answers it by editing the doc.>
 
 * Gates
 

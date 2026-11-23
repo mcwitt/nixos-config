@@ -10,7 +10,7 @@ These are the settings that the `design-doc` skill leaves open. What the user sa
 ## Where docs live
 
 - The docs repository is the private GitHub repository `mcwitt/design-docs`, cloned at `~/projects/design-docs`. If the clone is missing, say so and ask; do not create the repository.
-- A doc is `<project>/<task>.org`. `<project>` is the name of the code repository, or a name the user gives when there is none. `<task>` is a short slug; name the owner session the same where you can.
+- A doc is `<project>/<task>.org`. `<project>` is the name of the code repository. When there is none, use a name the user gave, or choose a short one. `<task>` is a short slug that you choose; name the owner session the same where you can. Say which names you chose.
 - A child doc sits beside its parent. A link between docs is a plain relative link.
 
 ## Format
