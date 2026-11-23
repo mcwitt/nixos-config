@@ -30,7 +30,7 @@ Whatever is chosen must give five things: you can read and write the doc; each w
 
 The aim is that the code could be built again from the doc into something that the user would accept. Do not record implementation details that the user does not care about: they are one possible realization, and a later implementer may find a better one.
 
-The level of detail follows the user and the project, from a few paragraphs about an idea to a spec with interfaces and constraints. Infer the level from the request. Ask if you are not sure.
+The level of detail follows the user and the project, from a few paragraphs about an idea to a spec with interfaces and constraints. Infer the level from the request.
 
 The first draft carries about as much detail as the request. With no description, write the outline alone. From one sentence, write a title and a line or two in each part. From several paragraphs, write a nearly complete draft. Do not fill the gaps with requirements or design of your own: leave them open, or record an open question.
 
