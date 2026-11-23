@@ -42,9 +42,11 @@ Infer the size from the task, and tell the user which one you took:
 2. **One doc.** The usual case.
 3. **A doc with child docs.** For a project or a major feature whose subtasks are large enough for their own session and doc.
 
-## Before the first draft
+## The first draft
 
-Read what the request points to: the code, existing docs, linked issues. Then ask only the questions that this reading does not answer and whose answers change the shape of the design. Do not ask what you can find by reading.
+Read what the request points to: the code, existing docs, linked issues. Then write the first draft. Do not hold a dialog in the session first: the user wants to work on the doc, not in the session.
+
+Put your questions in the doc as open questions, and only those that this reading does not answer and whose answers change the shape of the design. The user answers by editing the doc. Do not ask what you can find by reading.
 
 ## Structure
 
