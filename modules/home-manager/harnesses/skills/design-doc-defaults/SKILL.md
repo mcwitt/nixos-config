@@ -15,7 +15,8 @@ These are the settings that the `design-doc` skill leaves open. What the user sa
 
 ## Format
 
-- Org, one sentence per line. Start from `template.org` in this skill's directory.
+- Org, one sentence per line.
+- Start from `template.org` in this skill's directory. Each part of it holds a reminder, in angle brackets, of what the part is for. When the request has no description, the first draft is the template as it stands, with only the head filled in. Otherwise replace each reminder with content, and leave out `Design`, `Decisions` and `Open questions` while they have none.
 - The head is a description list directly under the title, with the terms `Status`, `Owner session`, `Needs <user's name>` and `Links`.
 - A program reads the owner line, so keep its form: the session's name is the first code span on the line that starts `- Owner session ::`.
 - Number requirements `R1`, open questions `Q1` and gates `G1`. Never reuse a number.

@@ -18,19 +18,19 @@ Out of scope: <what is not part of this task>.
 
 * Design
 
-<How, to the level of detail the user cares about. Leave this part out while it is empty.>
+<How, to the level of detail the user cares about.>
 
 * Decisions
 
-- <date>: <what was decided> (<who decided>).
+- <date>: <What was decided, and who decided it.>
   Rejected: <the alternative, and why>.
 
 * Open questions
 
-- *Q1.* <The question, and your proposal. Leave this part out while it is empty.>
+- *Q1.* <A question that is not settled, with a proposal.>
 
 * Gates
 
-** PROPOSED G1 <An outcome, in the present tense, that can be checked as it stands> :user:
-** PROPOSED G2 <Another outcome> :agent:
+** PROPOSED G1 <An outcome that can be checked as it stands, in the present tense> :user:
 <Optional: how to check it when that is not obvious, a note, or what was found.>
+** PROPOSED G2 <Another outcome, which the agent can pass> :agent:
