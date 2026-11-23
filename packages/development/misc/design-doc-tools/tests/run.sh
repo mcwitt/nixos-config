@@ -99,6 +99,14 @@ echo "Last." >>"$repo/proj/task.org"
 check "signal: a commit succeeds when bud is missing" "proj/task: no bud" \
   "$(git -C "$repo" log -1 --format=%s)"
 
+# 6. A commit from Magit signals the owner. Magit runs git with
+# --literal-pathspecs, which the hook inherits as GIT_LITERAL_PATHSPECS=1.
+: >"$STUB_LOG"
+echo "From Magit." >>"$repo/proj/task.org"
+(unset TMUX TMUX_PANE; GIT_LITERAL_PATHSPECS=1 commit "proj/task: from Magit" proj/task.org)
+check "signal: a commit with literal pathspecs tells the owner" \
+  "fixture-owner design-doc-signal: $(sha) changed proj/task.org: proj/task: from Magit" "$(sent)"
+
 # --- design-doc-open -----------------------------------------------------
 # The stub tmux names this session "own" and logs `new-window`. The stub
 # emacsclient answers `-e` with $STUB_SHOWN, or fails when $STUB_NO_SERVER is

@@ -15,7 +15,11 @@ main() {
   subject=$(git log -1 --format=%s 2>/dev/null)
 
   local file owner pane
+  # The names are matched here and not by a git pathspec: Magit runs git with
+  # --literal-pathspecs, which the hook inherits, and a pattern then matches
+  # nothing.
   while IFS= read -r -d '' file; do
+    case $file in *.org) ;; *) continue ;; esac
     [ -f "$top/$file" ] || continue
     owner=$(owner_of "$top/$file")
     [ -n "$owner" ] || continue
@@ -24,7 +28,7 @@ main() {
       [ "$pane" = "$TMUX_PANE" ] && continue
     fi
     detach "$bud" send "$owner" "design-doc-signal: $sha changed $file: $subject"
-  done < <(git diff-tree --root --no-commit-id --name-only -r -z HEAD -- '*.org' 2>/dev/null)
+  done < <(git diff-tree --root --no-commit-id --name-only -r -z HEAD 2>/dev/null)
 }
 
 # The first code span on the line that starts "- Owner session ::".
