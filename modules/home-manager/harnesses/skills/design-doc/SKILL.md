@@ -18,7 +18,7 @@ This skill names no file format, no place to keep docs and no tool to launch ses
 3. A defaults skill. At the start, look in your list of skills for one named exactly `design-doc-defaults`. If it is there, load it and say so in one line.
 4. Ask the user, once.
 
-A defaults skill may set: the layout of the head and of a gate; the format and its comment syntax; where docs live; the length limit and its check; how figures are written and viewed; the session tool; how the turn is passed and any signal on top of the check at the start of a turn; where iteration happens; the summary for public places and its check.
+A defaults skill may set: the layout of the head and of a gate; the format and its comment syntax; where docs live; the length limit and its check; how figures are written and viewed; the session tool; how the turn is passed and any signal on top of the check at the start of a turn; where iteration happens; how a ready doc is opened for the user; the summary for public places and its check.
 
 A defaults skill may not change the rules below that are marked **fixed**. If it contradicts one, follow this skill and tell the user.
 
