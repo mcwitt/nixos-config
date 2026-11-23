@@ -1,5 +1,5 @@
 # design-doc-defaults: one user's settings for the design-doc skill, and the
-# two commands that the skill uses. The skill is a default: a profile replaces
+# commands that the skill uses. The skill is a default: a profile replaces
 # it by defining `harnesses.skills.design-doc-defaults`, and removes it with
 # `harnesses.designDoc.defaults.enable = false`.
 {

@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+# design-doc-open <doc>: print the doc's path, and show the doc in the running
+# Emacs, where the user is:
+#   - at the machine's display: a new graphical frame named "design-doc";
+#   - connected over SSH, with this session in tmux: a terminal frame in a new
+#     background window of this tmux session;
+#   - otherwise: nothing.
+# The second line of output says what was done. The exit status is 0 unless
+# the arguments are wrong.
+set -u
+
+emacsclient=${DESIGN_DOC_OPEN_EMACSCLIENT:-emacsclient}
+tmux=${DESIGN_DOC_OPEN_TMUX:-tmux}
+# With this set, emacsclient starts another editor when no server answers.
+unset ALTERNATE_EDITOR
+
+if [ $# -ne 1 ]; then
+  echo "usage: design-doc-open <doc>" >&2
+  exit 2
+fi
+if [ ! -f "$1" ]; then
+  echo "design-doc-open: no such file: $1" >&2
+  exit 2
+fi
+file=$(realpath -- "$1")
+echo "$file"
+
+# A variable of a tmux session's environment; empty when tmux has removed it.
+session_var() { # session_var <session> <name>
+  local line
+  line=$("$tmux" show-environment -t "$1" "$2" 2>/dev/null) || return 0
+  case $line in
+    "$2="*) printf '%s' "${line#*=}" ;;
+  esac
+}
+
+# Where the user is. A pane's own environment is as old as the pane, and so
+# is the environment of a session that the user has not visited. tmux renews
+# a session's environment when a client attaches to it, so in tmux the answer
+# comes from the session of the client that was active last.
+in_tmux=no
+if [ -n "${TMUX:-}" ] && [ -n "${TMUX_PANE:-}" ]; then
+  in_tmux=yes
+  seen=$("$tmux" list-clients -F '#{client_activity} #{session_id}' 2>/dev/null |
+    sort -n | tail -n 1 | cut -d ' ' -f 2)
+  if [ -z "$seen" ]; then
+    echo "not opened: no tmux client is attached"
+    exit 0
+  fi
+  ssh=$(session_var "$seen" SSH_CONNECTION)
+  display=$(session_var "$seen" DISPLAY)
+  [ -n "$display" ] || display=$(session_var "$seen" WAYLAND_DISPLAY)
+else
+  ssh=${SSH_CONNECTION:-}
+  display=${DISPLAY:-${WAYLAND_DISPLAY:-}}
+fi
+
+# Ask the server whether a window already shows the doc. No answer means
+# that no server runs.
+lisp_file=${file//\\/\\\\}
+lisp_file=${lisp_file//\"/\\\"}
+shown=$(timeout 5 "$emacsclient" -e \
+  "(let ((b (find-buffer-visiting \"$lisp_file\"))) (and b (get-buffer-window b t) t))" \
+  2>/dev/null) || {
+  echo "not opened: no Emacs server answers"
+  exit 0
+}
+if [ "$shown" = t ]; then
+  echo "not opened: an Emacs window already shows it"
+  exit 0
+fi
+
+if [ -z "$ssh" ] && [ -n "$display" ]; then
+  if "$emacsclient" -c -n -d "$display" -F '((name . "design-doc"))' -- "$file" \
+    >/dev/null 2>&1; then
+    echo "opened in a new Emacs frame on display $display"
+  else
+    echo "not opened: Emacs made no frame on display $display"
+  fi
+elif [ "$in_tmux" = yes ]; then
+  name=$(basename -- "$file" .org)
+  session=$("$tmux" display-message -p -t "$TMUX_PANE" '#{session_id}' 2>/dev/null)
+  # Several arguments, so that tmux runs the command without a shell.
+  if window=$("$tmux" new-window -d -P -F '#{window_index}' -t "$session:" -n "$name" -- \
+    "$(command -v env)" -u ALTERNATE_EDITOR "$(command -v "$emacsclient")" -t -- "$file" \
+    2>/dev/null); then
+    echo "opened in window $window ($name) of this tmux session, in the background"
+  else
+    echo "not opened: tmux made no window"
+  fi
+else
+  echo "not opened: no local display, and this session is outside tmux"
+fi
+exit 0

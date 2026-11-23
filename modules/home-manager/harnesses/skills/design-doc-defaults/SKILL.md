@@ -1,6 +1,6 @@
 ---
 name: design-doc-defaults
-description: One user's settings for the design-doc skill - where design docs live, their format and layout, the length check, figures, the session tool, the commit signal and the summary for public pull requests. The design-doc skill loads this skill; it is not used by itself.
+description: One user's settings for the design-doc skill - where design docs live, their format and layout, the length check, figures, how a doc is opened, the session tool, the commit signal and the summary for public pull requests. The design-doc skill loads this skill; it is not used by itself.
 ---
 
 # design-doc-defaults
@@ -55,6 +55,10 @@ Every doc is committed on `main`, in the one checkout. Other sessions and the us
 To find the user's changes, read your doc's log since the last commit you saw: `git log <last>..HEAD -- <doc>`.
 
 Run `git push` after each of your commits. If it fails, say so and go on.
+
+## Opening the doc
+
+When the first draft is committed, run `design-doc-open <doc>` and tell the user what it printed. The first line is the doc's path. The second says what was done: the doc is in a new Emacs frame on the user's display, or in a background window of this tmux session, or it was not opened and why. Run the command again only when the user asks.
 
 ## The commit signal
 
