@@ -71,6 +71,7 @@ in
       branch-cleanup = ./skills/branch-cleanup;
       design-doc = ./skills/design-doc;
       catch-me-up = ./skills/catch-me-up;
+      collab-edit = ./skills/collab-edit;
       explanatory = ./skills/explanatory;
       learning = ./skills/learning;
       nixify = ./skills/nixify;
@@ -79,13 +80,13 @@ in
         mkdir $out
         cp ${inputs.janestreet-agent-skills}/socratic-tutor/SKILL.md ${inputs.janestreet-agent-skills}/LICENSE.md $out/
       '';
-      prose-review = "${reviewSkills}/prose-review";
       walkthrough = "${reviewSkills}/walkthrough";
       walkthrough-pr = "${reviewSkills}/walkthrough-pr";
       worktrunk = "${pkgs.worktrunk.src}/skills/worktrunk";
     };
 
     home.packages = [
+      pkgs.collab-edit
       pkgs.gws
     ];
 
