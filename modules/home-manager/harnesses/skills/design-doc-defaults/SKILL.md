@@ -1,6 +1,6 @@
 ---
 name: design-doc-defaults
-description: One user's settings for the design-doc skill - where design docs live, their format and layout, the length check, figures, how a doc is opened, the session tool, the commit signal and the summary for public pull requests. The design-doc skill loads this skill; it is not used by itself.
+description: One user's settings for the design-doc skill - where design docs live, their format and layout, the length check, figures, editing with the user through collab-edit, the session tool and the summary for public pull requests. The design-doc skill loads this skill; it is not used by itself.
 ---
 
 # design-doc-defaults
@@ -18,9 +18,9 @@ These are the settings that the `design-doc` skill leaves open. What the user sa
 - Org, one sentence per line.
 - Start from `template.org` in this skill's directory. Each part of it holds a reminder, in angle brackets, of what the part is for. When the request has no description, the first draft is the template as it stands, with only the head filled in. Otherwise replace each reminder with content, and leave out `Design`, `Decisions` and `Open questions` while they have none.
 - The head is a description list directly under the title, with the terms `Status`, `Owner session`, `Needs <user's name>` and `Links`.
-- A program reads the owner line, so keep its form: the session's name is the first code span on the line that starts `- Owner session ::`.
+- The owner line names the owner session in its first code span: `- Owner session :: ~<session>~`.
 - Number requirements `R1`, open questions `Q1` and gates `G1`. Never reuse a number.
-- A decision has a date and says what was rejected. Record it in the one commit that carries it out, and state the decision in that commit's subject. A commit that decides nothing gets no entry.
+- A decision has a date and says what was rejected. Record it in the change that carries it out, and state the decision in that commit's message. A change that decides nothing gets no entry.
 
 ## Gates
 
@@ -29,12 +29,11 @@ These are the settings that the `design-doc` skill leaves open. What the user sa
 - A body is optional. Use it for a way to check the outcome that is not obvious, for a note, and, when you pass a gate, for what you found.
 - The line `#+todo: PROPOSED TODO DOING BLOCKED | DONE DROPPED` under the title sets the six statuses for the file.
 
-## Comments from the user
+## Editing with the user
 
-- A comment is an Org comment line (`# ...`) on the line above the sentence it is about. Find them with `grep -nE '^[[:space:]]*# ' <doc>`.
-- A `# ` line inside a source or example block is part of the block, not a comment to you.
-- When a comment asks a question, or asks for a change that you disagree with, remove the comment and add an entry `Qn` under `Open questions`. The entry names the passage and the question, and holds your answer or your proposal. In the session, say only which entry it is.
-- The user replies by editing the entry or by commenting on it. When the question is settled, put the outcome into the text or `Decisions` and remove the entry.
+Edit the doc with the user through the `collab-edit` skill; load it. Start an editing session on the doc when its first draft is committed, and whenever the user wants to work on it with you; open it as that skill says. A comment's question is answered in its thread there.
+
+End the editing session, with the user's consent, before you change gate statuses or report to a parent. Its end is one commit in the docs checkout: give it a message whose subject starts `<project>/<task>:` and states the decisions that it carries, then push. Outside an editing session, edit the doc in the checkout as below.
 
 ## Length
 
@@ -55,24 +54,9 @@ Every doc is committed on `main`, in the one checkout. Other sessions and the us
 2. Commit only those paths: `git commit -m "<subject>" -- <paths>`. Never run a command that acts on the whole tree, such as `git add -A`, `git commit -a`, `git stash`, `git reset` or `git checkout .`.
 3. Start each commit subject with `<project>/<task>:`.
 
-To find the user's changes, read your doc's log since the last commit you saw: `git log <last>..HEAD -- <doc>`.
+Outside an editing session, find the user's changes in your doc's log since the last commit you saw: `git log <last>..HEAD -- <doc>`. Read it at the start of every turn.
 
 Run `git push` after each of your commits. If it fails, say so and go on.
-
-## Opening the doc
-
-When the first draft is committed, run `design-doc-open <doc>` and tell the user what it printed. The first line is the doc's path. The second says what was done: the doc is in a terminal Emacs frame in a background window of this tmux session, or it was not opened and why. Run the command again only when the user asks.
-
-## The commit signal
-
-The checkout has a `post-commit` hook that runs `design-doc-signal`. If `.git/hooks/post-commit` is missing, create it with these two lines and make it executable:
-
-```sh
-#!/bin/sh
-exec design-doc-signal
-```
-
-After a commit that changes your doc and that you did not make, you get a message that starts `design-doc-signal:` and names the doc, the commit and its subject. Then read your doc's log, as above. The message can be lost (your session shows a prompt, or is closed), so still check the log at the start of every turn.
 
 ## Sessions
 
