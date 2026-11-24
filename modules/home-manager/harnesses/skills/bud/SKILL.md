@@ -51,7 +51,6 @@ The new session knows nothing of this conversation. The brief must be self-conta
 - **Who the user is**, where it matters: their name, handles and accounts, as you know them from this session's context.
 - **Tools and identity**: which CLIs, wrappers and skills to use, as the user's instructions require (for example the GitHub CLI wrapper for the agent account).
 - **Reporting back**, when the parent needs the result: "when done, report with `bud send .. "<summary>"`".
-- **Fan-out**: allow subagents explicitly when wanted ("you may fan out up to 5 subagents").
 
 ## Supervising children
 
