@@ -1,5 +1,5 @@
-/* Shared by walkthrough's deck (deck.css, which walkthrough-pr extends) and
-   prose-review's document (prose.css), each loaded after this: the color
+/* For walkthrough's deck (deck.css, which walkthrough-pr extends), loaded
+   after this: the color
    and type tokens, the top bar, the banner, Markdown, the docked question
    panel whose width (--ask-w) and question box the reader can drag, the
    contents drawer and toasts. Under 960px the panel becomes a bottom sheet. */

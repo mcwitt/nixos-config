@@ -434,16 +434,6 @@
               ormolu.enable = true;
             };
           };
-          prose-review =
-            pkgs.runCommand "prose-review-check"
-              {
-                nativeBuildInputs = [ pkgs.python3 ];
-              }
-              ''
-                python3 ${./modules/home-manager/harnesses/tests/test_prose_review.py} \
-                  ${reviewSkills}/prose-review/scripts/prose_review.py
-                touch $out
-              '';
           walkthrough =
             pkgs.runCommand "walkthrough-check"
               {

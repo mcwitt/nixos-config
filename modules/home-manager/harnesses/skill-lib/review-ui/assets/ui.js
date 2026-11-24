@@ -1,7 +1,6 @@
 "use strict";
-// Page chrome shared by walkthrough's deck (deck.js, which walkthrough-pr
-// extends) and prose-review's document (prose.js): helpers, toasts and
-// banners, the theme, the question panel's drag handles, the session's
+// Page chrome for walkthrough's deck (deck.js, which walkthrough-pr
+// extends): helpers, toasts and banners, the theme, the question panel's drag handles, the session's
 // presence and Mermaid diagrams. Each page loads this script first and
 // reads window.UI; the markup it expects (#banner, #toasts, #theme-btn,
 // #listen-pill, #ask, #ask-grip, #question, #question-grip) is in each

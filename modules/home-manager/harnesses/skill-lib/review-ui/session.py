@@ -1,5 +1,5 @@
-"""The server side of a page that a reader reads beside a chat panel, shared
-by walkthrough's deck.py and prose-review's prose_review.py.
+"""The server side of a page that a reader reads beside a chat panel, used
+by walkthrough's deck.py.
 
 Each skill reaches this directory through its `lib` symlink, which the
 installed skill holds as a real copy. A skill supplies the content: it

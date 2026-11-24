@@ -1,7 +1,7 @@
 "use strict";
 // Teaching slideshow. The server (scripts/deck.py) serves the deck as JSON,
 // relays questions to the session and pushes updates over server-sent events.
-// The chrome it shares with prose-review is in ui.js, loaded first. An
+// The page chrome is in ui.js, loaded first. An
 // extension's script, loaded after this one, adds to the page through
 // window.Deck (see "extensions" below).
 (() => {

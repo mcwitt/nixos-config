@@ -47,7 +47,7 @@ from types import MappingProxyType
 
 ASSETS = Path(__file__).resolve().parent.parent / "assets"
 SCRIPT = Path(__file__).resolve()
-# The server side shared with prose-review: this skill's lib, a symlink to it in the repository.
+# The server side of the page: this skill's lib, a symlink to it in the repository.
 LIB = SCRIPT.parent.parent / "lib"
 if str(LIB) not in sys.path:
     sys.path.insert(0, str(LIB))
