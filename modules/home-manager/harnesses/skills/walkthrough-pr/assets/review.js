@@ -348,10 +348,17 @@
         : !chosen.length && !S.actions.length
           ? h("p", { class: "note" }, "Nothing is chosen yet. ", h("a", { href: "#findings" }, "Choose on the Findings slide"))
           : null;
-    const said = S.review.note ? h("p", { class: "note" }, `${who()[0].toUpperCase()}${who().slice(1)}: ${S.review.note}`) : null;
+    // Kinds of action Carry out cannot do here, said before the reader presses it.
+    const blocked = (a) => S.review.unavailable.includes(a.kind);
+    const cannot = S.review.unavailable.map((k) => ({ comment: "post comments", fix: "apply fixes", check: "run checks" })[k]);
+    const said = !S.review.note
+      ? null
+      : cannot.length
+        ? h("div", { class: "callout risk" }, h("div", { class: "callout-label" }, `Carry out cannot ${cannot.join(" or ")} here`), h("p", {}, S.review.note))
+        : h("p", { class: "note" }, `${who()[0].toUpperCase()}${who().slice(1)}: ${S.review.note}`);
     if (!S.actions.length) return slideEl(intro, said, note);
     // An action the session took goes again only once it has had time to report it: it may have lost the request.
-    const fresh = S.actions.filter((a) => a.include && (a.state === "proposed" || a.state === "failed"));
+    const fresh = S.actions.filter((a) => a.include && !blocked(a) && (a.state === "proposed" || a.state === "failed"));
     const waited = Date.now() / 1000 - S.reviewAt;
     const taken = S.actions.filter((a) => a.state === "running" && a.started);
     const lost = taken.filter((a) => a.include && waited >= a.resend_in);
@@ -360,7 +367,7 @@
     clearTimeout(S.resendTimer);
     if (Number.isFinite(next)) S.resendTimer = setTimeout(renderFindingViews, next * 1000 + 500);
     const runnable = fresh.length ? fresh : lost;
-    const label = fresh.length ? carryLabel(fresh) : lost.length ? "Send again" : "Carry out";
+    const label = fresh.length ? carryLabel(fresh) : lost.length ? "Send again" : cannot.length && S.actions.some((a) => a.include && blocked(a) && a.state !== "done") ? "Carry out unavailable" : "Carry out";
     return slideEl(
       intro,
       said,
@@ -508,7 +515,8 @@
       h("strong", { class: "action-title" }, a.title),
       a.state === "running"
         ? h("span", { class: "action-state running" }, a.started ? [h("span", { class: "spinner", "aria-hidden": "true" }), "running"] : "sent")
-        : a.state !== "proposed" ? h("span", { class: `action-state ${a.state}` }, a.state) : null,
+        : a.state !== "proposed" ? h("span", { class: `action-state ${a.state}` }, a.state)
+          : S.review.unavailable.includes(a.kind) ? h("span", { class: "action-state failed" }, "cannot run here") : null,
       edit,
     );
     const ask = (text) => ({ "data-ask": `Proposed ${a.kind} ${a.id} (${a.title}): ${text}`, "data-ask-source": "action" });

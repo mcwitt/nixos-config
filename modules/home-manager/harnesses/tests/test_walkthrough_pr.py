@@ -601,8 +601,8 @@ class ReviewServerTest(ServerCase):
         sent = self.get("api/review")["log"][-1]
         self.assertEqual((sent["event"], sent["actions"], sent.get("started")), ("sent", [comment["id"], fix["id"]], None))
         out = run("listen", self.dir, "--timeout", 5).stdout
-        self.assertIn("The reader approved these actions.", out)
-        self.assertIn("posts as the reader's account, at src/app.py:2 (new side):\n    > Please drop the unused `json` import.", out)
+        self.assertIn("The reader pressed Carry out to approve these actions.", out)
+        self.assertIn("posts as the reader's own account, at src/app.py:2 (new side):\n    > Please drop the unused `json` import.", out)
         self.assertIn("-import sys, json", out)
         self.assertNotIn("grep -rn json", out)
         self.assertIn("on https://github.com/o/r/pull/7 as review comments", out)
@@ -638,6 +638,33 @@ class ReviewServerTest(ServerCase):
         self.assertEqual({k: self.get("api/review")["actions"][1][k] for k in ("state", "result")},
                          {"state": "done", "result": {"note": "applied by hand"}})
         self.assertEqual(self.get("api/review")["log"][-1]["event"], "done")
+
+    def test_unavailable_actions(self):
+        (self.dir / "deck.json").write_text(json.dumps(deck_spec(pr="https://github.com/o/r/pull/7")))
+        self.wait_for(lambda: self.get("api/deck")["pr"])
+        A = lambda *a, **k: run("action", self.dir, *a, **k)
+        self.assertIn("say why with --note", A("unavailable", "comment", check=False).stderr)
+        self.assertIn("expected some of", A("unavailable", "post", "--note", "x", check=False).stderr)
+        A("unavailable", "comment", "--note", "No GitHub credentials here.")
+        self.assertEqual({k: self.get("api/review")[k] for k in ("unavailable", "proposal")}, {"unavailable": ["comment"], "proposal": "none"})
+        f = self.post("api/review", {"op": "add", "text": "json is unused", "severity": "P2"})["finding"]
+        self.post("api/review", {"op": "set", "id": f["id"], "choices": ["comment"]})
+        out = run("listen", self.dir, "--timeout", 5).stdout
+        self.assertIn("unavailable comment[,fix,check] --note REASON", out)
+        A("add", "comment", "--finding", f["id"])
+        A("add", "check", "--title", "t", "--command", "true")
+        A("ready")  # keeps what it was told before
+        comment, check = self.get("api/review")["actions"]
+        self.assertIn("unavailable: comment (No GitHub credentials here.)", A("list").stdout)
+        with self.assertRaises(urllib.error.HTTPError) as cm:
+            self.post("api/review", {"op": "carry-out", "ids": [comment["id"]]})
+        self.assertIn(b"cannot be carried out here: No GitHub credentials here.", cm.exception.read())
+        self.post("api/review", {"op": "carry-out", "ids": [check["id"]]})
+        out = run("listen", self.dir, "--timeout", 5).stdout
+        self.assertIn("does not stop them", out)
+        A("unavailable", "")
+        self.assertEqual(self.get("api/review")["unavailable"], [])
+        self.post("api/review", {"op": "carry-out", "ids": [comment["id"]]})
 
     def test_actions_follow_merged_findings(self):
         (self.dir / "deck.json").write_text(json.dumps(deck_spec(pr="https://github.com/o/r/pull/7")))
