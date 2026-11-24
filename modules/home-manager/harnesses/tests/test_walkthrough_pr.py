@@ -616,7 +616,7 @@ class ReviewServerTest(ServerCase):
         with self.assertRaises(urllib.error.HTTPError) as cm:
             self.post("api/review", {"op": "carry-out", "ids": [comment["id"]]})
         self.assertIn(b"sent to the session just now", cm.exception.read())
-        self.assertIn("is proposed, not running", A("result", check["id"], "--status", "done", check=False).stderr)
+        self.assertIn("is proposed, not running or failed", A("result", check["id"], "--status", "done", check=False).stderr)
         self.assertIn("is proposed, not running", A("progress", check["id"], "--note", "x", check=False).stderr)
         A("progress", fix["id"], "--note", "applying the patch")
         A("result", comment["id"], "--status", "done", "--link", "https://github.com/o/r/pull/7#discussion_r1")
@@ -628,6 +628,16 @@ class ReviewServerTest(ServerCase):
         with self.assertRaises(urllib.error.HTTPError):
             self.post("api/review", {"op": "carry-out", "ids": [comment["id"]]})
         self.assertIn("[done]", A("list").stdout)
+        # A failed action goes again on Carry out, or is reported done once carried out later.
+        A("result", fix["id"], "--status", "failed", "--note", "not applied")
+        self.assertIn("is failed, not running", A("result", fix["id"], "--status", "failed", check=False).stderr)
+        self.post("api/review", {"op": "carry-out", "ids": [fix["id"]]})
+        self.assertEqual(self.get("api/review")["actions"][1]["state"], "running")
+        A("result", fix["id"], "--status", "failed")
+        A("result", fix["id"], "--status", "done", "--note", "applied by hand")
+        self.assertEqual({k: self.get("api/review")["actions"][1][k] for k in ("state", "result")},
+                         {"state": "done", "result": {"note": "applied by hand"}})
+        self.assertEqual(self.get("api/review")["log"][-1]["event"], "done")
 
     def test_actions_follow_merged_findings(self):
         (self.dir / "deck.json").write_text(json.dumps(deck_spec(pr="https://github.com/o/r/pull/7")))

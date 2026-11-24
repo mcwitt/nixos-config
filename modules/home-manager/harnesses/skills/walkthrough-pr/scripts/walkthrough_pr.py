@@ -350,7 +350,8 @@ class Review:
     diff); for a check, command. A comment's author is whoever wrote its
     current text, "session" or "reader", and decides whose account posts it;
     a comment without a place goes in the review's summary. state goes from
-    proposed to running to done or failed. A newly chosen kind with no draft
+    proposed to running to done or failed, and from failed to running again
+    (Carry out) or to done (carried out later). A newly chosen kind with no draft
     asks the session to draft it; `proposal` is none, requested (drafting) or
     ready.
 
@@ -813,8 +814,9 @@ class Review:
         a = self._action(op.get("id"))
         if op.get("status") not in ("done", "failed"):
             raise ValueError("status: expected done or failed")
-        if a["state"] != "running":
-            raise ValueError(f"action {a['id']} is {a['state']}, not running")
+        # A failed action can be reported done once it is carried out later, such as at the reader's word in the session.
+        if not (a["state"] == "running" or a["state"] == "failed" and op["status"] == "done"):
+            raise ValueError(f"action {a['id']} is {a['state']}, not running" + (" or failed" if op["status"] == "done" else ""))
         a["state"] = op["status"]
         a["result"] = {k: str(op[k])[:20_000] for k in ("link", "note", "output") if op.get(k)}
         self._log(a["state"], action=a["id"], **{k: a["result"][k][:LOG_NOTE] for k in ("note", "link") if k in a["result"]})
