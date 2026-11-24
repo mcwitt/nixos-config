@@ -74,6 +74,7 @@ in
       collab-edit = ./skills/collab-edit;
       explanatory = ./skills/explanatory;
       learning = ./skills/learning;
+      llm-usage = ./skills/llm-usage;
       nixify = ./skills/nixify;
       # Upstream keeps its MIT licence at the repository root; ship it with the skill.
       socratic-tutor = pkgs.runCommandLocal "socratic-tutor-skill" { } ''
