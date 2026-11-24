@@ -19,7 +19,7 @@ Use `--json` and read the fields; the text output is for people. Add `--timeout 
 | Usage, limits, projections and resets per account, on every host | `llm-usage status --json` |
 | Collection health per host | `llm-usage hosts --json` |
 
-`--here` keeps only the accounts that a harness launched from this shell would use: logins on this host in the credential directory your environment selects (for example `$CODEX_HOME`). `usable_here: null` means the server is too old to tell; treat such an entry as unverified.
+`--here` keeps only the accounts that a harness launched from this shell would use: logins on this host in the credential directory your environment selects (for example `$CODEX_HOME`). `usable_here: null` means the login cannot be verified as yours; treat such an entry as unverified. If `options --here` returns nothing, run `llm-usage hosts --json` to see whether this host's credentials are missing or failing, and say so rather than concluding that no subscription is available.
 
 ## Reading `options --json`
 
@@ -28,7 +28,7 @@ A list with one entry per place a session could run:
 - `harness` (`claude`, `codex`, `agy`), `provider`, `account`, `plan`, `usable_here`, `age_seconds`.
 - `pool` and `models`, for Google only. A Google account has one entry per quota pool (for example Gemini, and other vendors' models served through Antigravity). `models` lists the `agy --model` IDs that the backend names for the pool; other models of the same vendor use the same pool.
 - `flags`: facts, not verdicts. `limited` means a window is exhausted. `runs_out_early` means that at the average rate so far, a window runs out before it resets. `session_nearly_full` means a 5h session is at least 90% used. `recent_burst` means the recent rate would run out sooner than the average rate. `stale` means the data is old.
-- `windows` limit every model of the entry. `model_windows` limit only the model that their `scope` names (for example `weekly (Fable)`) and have their own `flags`.
+- `windows` limit every model of the entry. `model_windows` limit only the model that their `scope` names (for example `weekly (<model>)`) and have their own `flags`.
 - Per window: `label`, `used_percent`, `remaining_percent`, `projected_percent` (at reset, at the average rate; null early in a window), `unused_at_reset_percent`, `resets_at_iso`, `seconds_to_reset`, `exhausts_at_iso` and `seconds_to_exhaustion` (only when it runs out before reset), `reset_since_observed`.
 
 `status --json` holds the same windows per account, under `accounts[].windows[]`, with a one-line `summary` and a `status` per account and window: `limited` › `over` (on pace to run out early) › `under` (long window projected to end well below the limit, which is capacity that will go unused) › `ok`.
@@ -49,7 +49,7 @@ Weigh the facts against the task, then launch with explicit flags, for example `
 
 - Lead with the answer, then the numbers behind it: percent used, projection, and reset time in the user's local time and as a duration ("resets Fri 01:00, in 2d13h").
 - "How much is left": `remaining_percent` per account for the window asked about. If no window is named, use the long window (weekly) and mention the 5h session when it limits work.
-- "Which runs out first": compare `exhausts_at` across windows. If none is set, nothing is on pace to run out, and the next reset is the nearest `resets_at`.
+- "Which runs out first": compare `exhausts_at_iso` (or `seconds_to_exhaustion` in `options`) across windows. If none is set, nothing is on pace to run out, and the next reset is the nearest `resets_at_iso`.
 - "Can I start a long job on X": give the room left in both windows and how fast each is being used. Quotas are percentages, not token counts, so do not promise that a job fits.
 - Say when data is `stale`, and treat a window with `reset_since_observed` as reset.
 - Do not post account labels or plan details anywhere public, such as a pull request, an issue or a public repository.
