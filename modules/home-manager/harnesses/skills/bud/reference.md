@@ -14,9 +14,7 @@ Claude Code and pi resume by conversation ID. Codex, OpenCode and Antigravity co
 
 After a restart of the tmux server, every session is closed and `bud resume` starts each one again. A parent that bud did not launch records its pane again the next time it runs any `bud` command; until then, `send` to it refuses and says why.
 
-## Questions across sessions
-
-A parent answers questions that need knowledge of several sessions, such as which sessions serve a browser page and on which port. For walkthrough, walkthrough-pr and prose-review pages, each deck directory's `server.json` holds the PID, port and URL. `pgrep -af deck.py`, `pgrep -af walkthrough_pr.py`, `pgrep -af prose_review.py` and `ss -ltnp` confirm the processes and ports that are still serving.
+## Leftover processes
 
 Check for leftovers after a close, and at least once a day: `bud strays` lists processes whose tmux pane no longer exists. Tell the user about them; do not kill them yourself.
 

@@ -27,10 +27,9 @@ The user can set defaults for launched sessions, such as a harness, a model or a
 
 ## Launching a child
 
-1. **Check the premise cheaply.** Make sure the PR exists and is open, the link is really broken, you have the right issue or repository, and the branch is where the user thinks. If a check contradicts the request, tell the user before launching.
-2. **Choose a name**: a short task slug, such as `review-1028`, `jax-issue` or `fzf-preview`, with letters, digits, `-` and `_`. It becomes the tmux session name and, where the harness takes one, the conversation title.
-3. **Choose the directory.** A child that edits files, checks out a branch or runs builds that write to the tree gets its own worktree: pass `--worktree <branch>` (or `--worktree pr:<N>`), and do not make the worktree by hand. Read-only children may share a checkout: `launch` refuses a checkout that another live session uses unless you pass `--share`, which you pass only when both sessions only read.
-4. **Write the brief** to a file in your scratch directory with the file-writing tool (see *The brief*). Then launch:
+1. **Choose a name**: a short task slug, such as `review-1028`, `jax-issue` or `fzf-preview`, with letters, digits, `-` and `_`. It becomes the tmux session name and, where the harness takes one, the conversation title.
+2. **Choose the directory.** A child that edits files, checks out a branch or runs builds that write to the tree gets its own worktree: pass `--worktree <branch>` (or `--worktree pr:<N>`), and do not make the worktree by hand. Read-only children may share a checkout: `launch` refuses a checkout that another live session uses unless you pass `--share`, which you pass only when both sessions only read.
+3. **Write the brief** to a file in your scratch directory with the file-writing tool (see *The brief*). Then launch:
 
    ```sh
    bud launch <name> --brief <file> [--dir <dir>] [--worktree <branch> [--base <ref>]] [--share] \
@@ -40,7 +39,7 @@ The user can set defaults for launched sessions, such as a harness, a model or a
    The first time this session launches a child, pass `--harness` with the harness you run in (`claude`, `codex`, `pi`, `opencode` or `agy`). `--skill S` starts the brief with skill S in the child harness's own syntax. bud adds a last line to the brief that tells the child who its parent is and how to message it.
 
    `launch` waits for the agent to start, then prints the state, the end of the screen, any startup dialog, the session ID and the attach command. If the agent exits with an error, its pane stays open so that the error stays visible.
-5. **Report**: a one-paragraph recap of the brief, the attach command in a code block (`tmux attach -t <name>`), and the tree from `bud ls`. Say that worktrees and branches are left for the user to clean up; the `branch-cleanup` skill removes them later.
+4. **Report**: a one-paragraph recap of the brief, the attach command in a code block (`tmux attach -t <name>`), and the tree from `bud ls`. Say that worktrees and branches are left for the user to clean up.
 
 ## The brief
 
@@ -48,8 +47,6 @@ The new session knows nothing of this conversation. The brief must be self-conta
 
 - **Task and deliverable**: what to do and what to hand back, such as a draft, a review, a summary or uncommitted changes.
 - **Pointers you already found**: PR and issue numbers, branch names, file paths, links, transcript or document IDs. The child should not have to repeat your search.
-- **Who the user is**, where it matters: their name, handles and accounts, as you know them from this session's context.
-- **Tools and identity**: which CLIs, wrappers and skills to use, as the user's instructions require (for example the GitHub CLI wrapper for the agent account).
 - **Reporting back**, when the parent needs the result: "when done, report with `bud send .. "<summary>"`".
 
 ## Supervising children
@@ -62,6 +59,4 @@ The new session knows nothing of this conversation. The brief must be self-conta
 - `bud resume <name>` starts a closed session again and continues its conversation. `bud resume <name> --fresh` starts a new conversation from the same brief; confirm first that the inputs have not changed (for example that the PR head has not moved), and pass `--force` for a directory with uncommitted changes only when the user agrees.
 - `bud show <name>` prints a session's record: brief, directory, worktree, session ID.
 
-Keep reports short. Give the user what they must do (attach, answer a prompt, review a draft) before the details.
-
-For worktrees and pull requests, startup dialogs, resume details, questions across sessions and the fallback when the shell does not work, read `reference.md` in this skill's directory.
+For worktrees and pull requests, startup dialogs, resume details, leftover processes and the fallback when the shell does not work, read `reference.md` in this skill's directory.
