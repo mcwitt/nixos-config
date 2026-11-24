@@ -19,7 +19,7 @@ Use `--json` and read the fields; the text output is for people. Add `--timeout 
 | Usage, limits, projections and resets per account, on every host | `llm-usage status --json` |
 | Collection health per host | `llm-usage hosts --json` |
 
-`--here` keeps only the accounts this user is signed in to on this host: the only ones that a session launched here can use.
+`--here` keeps only the accounts that a harness launched from this shell would use: logins on this host in the credential directory your environment selects (for example `$CODEX_HOME`). `usable_here: null` means the server is too old to tell; treat such an entry as unverified.
 
 ## Reading `options --json`
 
@@ -41,7 +41,7 @@ Weigh the facts against the task, then launch with explicit flags, for example `
 - Move work away from an option that is `limited`, or that would run out before the task ends. Estimate the task's length; `seconds_to_exhaustion` and `seconds_to_reset` are in seconds.
 - When there is a choice, prefer capacity that would otherwise go unused (high `unused_at_reset_percent`), and keep heavily used windows for work that needs them.
 - If the task needs a particular model, check that model's `model_windows` too, not only `windows`.
-- A Google pool is a short window (5h) with no weekly figure. It suits short or overflow work, and it refills quickly after use.
+- A Google pool has one window per pool. Read its length from the window's `label` and `seconds_to_reset`; when it is a short window (5h), it suits short or overflow work and refills soon after use.
 - Switching harness changes the agent's tools and model family. Do not switch for a small gain when the task depends on a particular harness or model; tell the user the trade-off instead.
 - An explicit choice by the user always wins. Report a concern; do not override the choice.
 
