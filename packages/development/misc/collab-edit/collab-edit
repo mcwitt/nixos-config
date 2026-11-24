@@ -1,0 +1,470 @@
+#!/usr/bin/env bash
+# collab-edit: a session in which an agent and a user edit one document
+# together, taking turns by commits. Every session runs in a fresh Git
+# repository of its own, apart from the document's own repository, and is
+# merged back into the original at its end.
+#
+#   collab-edit start [--comment-only] [--session NAME] <file>
+#   collab-edit open <session>
+#   collab-edit status [<session>]
+#   collab-edit end <session> [-m MESSAGE] [--force]
+#   collab-edit hook pre-commit|post-commit
+#
+# <session> is the session's directory or the original file.
+set -euo pipefail
+
+bud=${COLLAB_EDIT_BUD:-bud}
+tmux=${COLLAB_EDIT_TMUX:-tmux}
+emacsclient=${COLLAB_EDIT_EMACSCLIENT:-emacsclient}
+state=${COLLAB_EDIT_STATE:-${XDG_STATE_HOME:-$HOME/.local/state}/collab-edit}
+# With this set, emacsclient starts another editor when no server answers.
+unset ALTERNATE_EDITOR
+
+die() {
+  echo "collab-edit: $*" >&2
+  exit 1
+}
+usage() {
+  cat >&2 <<'EOF2'
+usage: collab-edit start [--comment-only] [--session NAME] <file>
+       collab-edit open <session>
+       collab-edit status [<session>]
+       collab-edit end <session> [-m MESSAGE] [--force]
+       collab-edit hook pre-commit|post-commit
+<session> is the session's directory or the original file.
+EOF2
+  exit 2
+}
+
+# --- helpers -------------------------------------------------------------
+
+# The comment syntax of a file, by its extension: org, md or tex; empty
+# when collab-edit does not know it.
+format_of() {
+  case ${1##*.} in
+    org) echo org ;;
+    md | markdown) echo md ;;
+    tex) echo tex ;;
+    *) echo "" ;;
+  esac
+}
+
+# The comment lines of a file outside source and example blocks, as
+# "<line>: <text>".
+comment_lines() { # comment_lines <format> <file>
+  case $1 in
+    org) awk '
+      /^[ \t]*#\+[Bb][Ee][Gg][Ii][Nn]_/ { block = 1; next }
+      /^[ \t]*#\+[Ee][Nn][Dd]_/ { block = 0; next }
+      !block && /^[ \t]*#( |$)/ { print NR ": " $0 }' "$2" ;;
+    md) awk '
+      /^[ \t]*(```|~~~)/ { block = !block; next }
+      !block && /^[ \t]*<!--/ { print NR ": " $0 }' "$2" ;;
+    tex) awk '/^[ \t]*%/ { print NR ": " $0 }' "$2" ;;
+  esac
+}
+
+# Whether one line is a comment line or blank, for the comment-only check.
+comment_or_blank() { # comment_or_blank <format> <line>
+  local line=$2
+  [[ $line =~ ^[[:space:]]*$ ]] && return 0
+  case $1 in
+    org) [[ $line =~ ^[[:space:]]*#( |$) ]] ;;
+    md) [[ $line =~ ^[[:space:]]*\<!--.*--\>[[:space:]]*$ ]] ;;
+    tex) [[ $line =~ ^[[:space:]]*% ]] ;;
+    *) return 1 ;;
+  esac
+}
+
+# The session's directory, from a directory or from the original file.
+resolve() { # resolve <session>
+  local arg=$1 dir original
+  if [ -d "$arg" ] && [ -n "$(git -C "$arg" config --get collab-edit.original 2>/dev/null)" ]; then
+    (cd "$arg" && git rev-parse --show-toplevel)
+    return
+  fi
+  if [ -f "$arg" ]; then
+    original=$(realpath -- "$arg")
+    for dir in "$state"/*/; do
+      [ -d "$dir" ] || continue
+      if [ "$(git -C "$dir" config --get collab-edit.original 2>/dev/null)" = "$original" ]; then
+        echo "${dir%/}"
+        return
+      fi
+    done
+  fi
+  die "no session for $arg"
+}
+
+conf() { git -C "$dir" config --get "collab-edit.$1" 2>/dev/null || true; }
+
+# The agent's tmux pane: bud's record of the session, or the pane recorded
+# at the start when bud has none.
+agent_pane() {
+  local session pane=""
+  session=$(conf session)
+  if [ -n "$session" ] && command -v "$bud" >/dev/null 2>&1; then
+    pane=$("$bud" show "$session" --json 2>/dev/null | jq -r '.pane // empty' 2>/dev/null) || pane=""
+  fi
+  [ -n "$pane" ] || pane=$(conf pane)
+  echo "$pane"
+}
+
+# Whether this process runs in the agent's own pane.
+from_agent() {
+  local pane
+  [ -n "${TMUX:-}" ] && [ -n "${TMUX_PANE:-}" ] || return 1
+  pane=$(agent_pane)
+  [ -n "$pane" ] && [ "$pane" = "$TMUX_PANE" ]
+}
+
+lisp_string() { # an Emacs Lisp string literal
+  local s=${1//\\/\\\\}
+  printf '"%s"' "${s//\"/\\\"}"
+}
+
+# Ask the Emacs server; fail when none answers.
+emacs_eval() { timeout 5 "$emacsclient" -e "$1" 2>/dev/null; }
+
+detach() {
+  if command -v setsid >/dev/null 2>&1; then
+    setsid -f "$@" >/dev/null 2>&1 </dev/null
+  else
+    nohup "$@" >/dev/null 2>&1 </dev/null &
+  fi
+}
+
+# --- start ---------------------------------------------------------------
+
+cmd_start() {
+  local comment_only=false session="" file
+  while [ $# -gt 0 ]; do
+    case $1 in
+      --comment-only) comment_only=true ;;
+      --session)
+        [ $# -ge 2 ] || usage
+        session=$2
+        shift
+        ;;
+      -*) usage ;;
+      *) break ;;
+    esac
+    shift
+  done
+  [ $# -eq 1 ] || usage
+  [ -f "$1" ] || die "no such file: $1"
+  file=$(realpath -- "$1")
+
+  local docdir base stem format id
+  docdir=$(dirname -- "$file")
+  base=$(basename -- "$file")
+  stem=${base%.*}
+  format=$(format_of "$base")
+  if $comment_only && [ -z "$format" ]; then
+    die "comment-only mode needs a format whose comments collab-edit knows (org, md, tex)"
+  fi
+
+  if [ -z "$session" ] && [ -n "${TMUX:-}" ] && [ -n "${TMUX_PANE:-}" ]; then
+    session=$("$tmux" display-message -p -t "$TMUX_PANE" '#S' 2>/dev/null) || session=""
+  fi
+
+  id=$(printf '%s' "$file" | sha256sum | cut -c1-8)
+  dir="$state/$stem-$id"
+  if [ -e "$dir" ]; then
+    die "a session is already open on $file: $dir"
+  fi
+  mkdir -p "$state"
+  git init -q "$dir"
+
+  cp -p -- "$file" "$dir/$base"
+  [ -d "$docdir/$stem" ] && cp -a -- "$docdir/$stem" "$dir/$stem"
+
+  # Links to the rest of the document's directory, so that figures and
+  # links to sibling documents resolve. They stay out of Git.
+  local entry name
+  for entry in "$docdir"/* "$docdir"/.*; do
+    name=$(basename -- "$entry")
+    case $name in . | .. | .git | "$base" | "$stem") continue ;; esac
+    [ -e "$entry" ] || [ -L "$entry" ] || continue
+    ln -s -- "$entry" "$dir/$name"
+    printf '/%s\n' "$name" >>"$dir/.git/info/exclude"
+  done
+
+  git -C "$dir" config collab-edit.original "$file"
+  git -C "$dir" config collab-edit.document "$base"
+  git -C "$dir" config collab-edit.figures "$stem"
+  git -C "$dir" config collab-edit.commentOnly "$comment_only"
+  [ -n "$session" ] && git -C "$dir" config collab-edit.session "$session"
+  [ -n "${TMUX_PANE:-}" ] && git -C "$dir" config collab-edit.pane "$TMUX_PANE"
+
+  git -C "$dir" add -- "$base"
+  [ -d "$dir/$stem" ] && git -C "$dir" add -- "$stem"
+  git -C "$dir" commit -q --no-verify -m "collab-edit: start from $file"
+  git -C "$dir" branch original
+
+  # The hooks come after the first commit, which signals nothing.
+  local hook
+  for hook in pre-commit post-commit; do
+    printf '#!/bin/sh\ncommand -v collab-edit >/dev/null 2>&1 || exit 0\nexec collab-edit hook %s\n' \
+      "$hook" >"$dir/.git/hooks/$hook"
+    chmod +x "$dir/.git/hooks/$hook"
+  done
+
+  echo "$dir/$base"
+  echo "session $dir"
+  [ -n "$session" ] || echo "no agent session named: commits will send no signal"
+  $comment_only && echo "comment-only mode"
+  return 0
+}
+
+# --- open ----------------------------------------------------------------
+
+cmd_open() {
+  [ $# -eq 1 ] || usage
+  dir=$(resolve "$1")
+  local file name shown session window
+  file="$dir/$(conf document)"
+  echo "$file"
+
+  if [ -z "${TMUX:-}" ] || [ -z "${TMUX_PANE:-}" ]; then
+    echo "not opened: this session is outside tmux"
+    return 0
+  fi
+  if ! shown=$(emacs_eval "(let ((b (find-buffer-visiting $(lisp_string "$file")))) (and b (get-buffer-window b t) t))"); then
+    echo "not opened: no Emacs server answers"
+    return 0
+  fi
+  if [ "$shown" = t ]; then
+    echo "not opened: an Emacs window already shows it"
+    return 0
+  fi
+  name=$(conf figures)
+  session=$("$tmux" display-message -p -t "$TMUX_PANE" '#{session_id}' 2>/dev/null) || session=""
+  # Several arguments, so that tmux runs the command without a shell.
+  if window=$("$tmux" new-window -d -P -F '#{window_id} #{window_index}' -t "$session:" -n "$name" -- \
+    "$(command -v env)" -u ALTERNATE_EDITOR "$(command -v "$emacsclient")" -t -- "$file" \
+    2>/dev/null); then
+    git -C "$dir" config collab-edit.window "${window%% *}"
+    echo "opened in window ${window#* } ($name) of this tmux session, in the background"
+  else
+    echo "not opened: tmux made no window"
+  fi
+}
+
+# --- status --------------------------------------------------------------
+
+show_one() {
+  local turns
+  turns=$(($(git -C "$dir" rev-list --count HEAD) - 1))
+  printf '%s\n  original %s\n  agent session %s, %s turn commits%s\n' \
+    "$dir" "$(conf original)" "$(conf session)" "$turns" \
+    "$([ "$(conf commentOnly)" = true ] && echo ", comment-only")"
+}
+
+cmd_status() {
+  if [ $# -eq 1 ]; then
+    dir=$(resolve "$1")
+    show_one
+    return
+  fi
+  [ $# -eq 0 ] || usage
+  local any=false
+  for dir in "$state"/*/; do
+    [ -d "$dir/.git" ] || continue
+    dir=${dir%/}
+    show_one
+    any=true
+  done
+  $any || echo "no sessions"
+}
+
+# --- end -----------------------------------------------------------------
+
+cmd_end() {
+  local message="" force=false arg=""
+  while [ $# -gt 0 ]; do
+    case $1 in
+      -m)
+        [ $# -ge 2 ] || usage
+        message=$2
+        shift
+        ;;
+      --force) force=true ;;
+      -*) usage ;;
+      *)
+        [ -z "$arg" ] || usage
+        arg=$1
+        ;;
+    esac
+    shift
+  done
+  [ -n "$arg" ] || usage
+  dir=$(resolve "$arg")
+
+  local original base stem docdir format top="" file
+  original=$(conf original)
+  base=$(conf document)
+  stem=$(conf figures)
+  docdir=$(dirname -- "$original")
+  format=$(format_of "$base")
+  file="$dir/$base"
+  top=$(git -C "$docdir" rev-parse --show-toplevel 2>/dev/null) || top=""
+
+  if [ -n "$top" ] && [ -z "$message" ]; then
+    die "$original is in the repository $top: give the commit's message with -m"
+  fi
+  if [ -n "$(git -C "$dir" status --porcelain)" ]; then
+    die "the session has changes that are not committed; commit them first"
+  fi
+  if git -C "$dir" rev-parse -q --verify MERGE_HEAD >/dev/null; then
+    die "a merge is not finished in $dir; resolve it and commit"
+  fi
+  if [ "$(emacs_eval "(let ((b (find-buffer-visiting $(lisp_string "$file")))) (and b (buffer-modified-p b) t))" || true)" = t ]; then
+    die "Emacs holds unsaved changes to $file; save and commit them first"
+  fi
+  if ! $force; then
+    local left
+    left=$(comment_lines "$format" "$file")
+    if [ -n "$left" ]; then
+      printf 'collab-edit: comments remain in %s (--force ends anyway):\n%s\n' "$file" "$left" >&2
+      exit 1
+    fi
+  fi
+
+  # Bring in a change made to the original meanwhile: commit the original
+  # as it is now on the branch `original`, and merge that branch.
+  local index tree
+  index=$(mktemp)
+  rm -f "$index"
+  (
+    cd "$docdir"
+    export GIT_DIR="$dir/.git" GIT_WORK_TREE=. GIT_INDEX_FILE="$index"
+    git add -f -- "$base"
+    if [ -d "$stem" ]; then git add -f -- "$stem"; fi
+  )
+  tree=$(GIT_INDEX_FILE=$index git -C "$dir" write-tree)
+  rm -f "$index"
+  if [ "$tree" != "$(git -C "$dir" rev-parse 'original^{tree}')" ]; then
+    local commit
+    commit=$(git -C "$dir" commit-tree "$tree" -p original -m "collab-edit: $original as it is now")
+    git -C "$dir" branch -f original "$commit"
+    local out conflicts
+    # --no-ff, since the user's configuration may allow only fast-forwards.
+    if ! out=$(git -C "$dir" merge -q --no-ff --no-edit --no-verify \
+      -m "collab-edit: merge the original's changes" original 2>&1); then
+      conflicts=$(git -C "$dir" diff --name-only --diff-filter=U)
+      [ -n "$conflicts" ] || die "the merge of the original's changes failed: $out"
+      echo "collab-edit: $original changed during the session, and the merge has conflicts in:" >&2
+      echo "$conflicts" >&2
+      echo "Resolve them in $dir, commit, and run end again." >&2
+      exit 1
+    fi
+  fi
+
+  # Write the result back.
+  local status path changed=()
+  while IFS= read -r -d '' status && IFS= read -r -d '' path; do
+    changed+=("$path")
+    case $status in
+      D) rm -f -- "${docdir:?}/$path" ;;
+      *)
+        mkdir -p -- "$(dirname -- "$docdir/$path")"
+        cp -- "$dir/$path" "$docdir/$path"
+        ;;
+    esac
+  done < <(git -C "$dir" diff -z --no-renames --name-status original HEAD -- "$base" "$stem")
+  [ -d "$docdir/$stem" ] && [ -z "$(ls -A -- "$docdir/$stem")" ] && rmdir -- "$docdir/$stem"
+
+  if [ ${#changed[@]} -eq 0 ]; then
+    echo "no change to $original"
+  elif [ -n "$top" ]; then
+    local rel=() p
+    for p in "${changed[@]}"; do rel+=("$(realpath -m --relative-to="$top" -- "$docdir/$p")"); done
+    git -C "$top" add -A -- "${rel[@]}"
+    git -C "$top" commit -q -m "$message" -- "${rel[@]}" ||
+      die "the commit in $top failed; $original is written back, and the session is kept"
+    echo "committed $(git -C "$top" rev-parse --short HEAD) in $top: ${changed[*]}"
+  else
+    echo "wrote back ${changed[*]} into $docdir"
+  fi
+
+  # Close the window and the buffer that showed the session's copy: a
+  # buffer left open would make the file again when it is saved.
+  local window
+  window=$(conf window)
+  if [ -n "$window" ] && "$tmux" list-windows -a -F '#{window_id}' 2>/dev/null | grep -qxF -- "$window"; then
+    "$tmux" kill-window -t "$window" 2>/dev/null || true
+  fi
+  emacs_eval "(let ((b (find-buffer-visiting $(lisp_string "$file")))) (when b (kill-buffer b)))" >/dev/null || true
+
+  rm -rf -- "${dir:?}"
+  echo "ended; removed $dir"
+}
+
+# --- hooks ---------------------------------------------------------------
+
+# In comment-only mode, a commit by the agent changes only comment lines
+# and blank lines of the document, and no other file.
+hook_pre_commit() {
+  dir=$(git rev-parse --show-toplevel)
+  [ "$(conf commentOnly)" = true ] || return 0
+  from_agent || return 0
+  local base format other line bad=()
+  base=$(conf document)
+  format=$(format_of "$base")
+  # Filtered here and not by a pathspec, which Magit's --literal-pathspecs
+  # would break.
+  other=$(git -C "$dir" diff --cached --name-only | grep -vxF -- "$base" || true)
+  [ -z "$other" ] || die "comment-only mode: the agent changes no file but the document ($other)"
+  while IFS= read -r line; do
+    case $line in "+++ "* | "--- "*) continue ;; [+-]*) ;; *) continue ;; esac
+    comment_or_blank "$format" "${line:1}" || bad+=("$line")
+  done < <(git -C "$dir" diff --cached -U0 --no-color -- "$base")
+  if [ ${#bad[@]} -gt 0 ]; then
+    echo "collab-edit: comment-only mode: this commit changes lines that are not comments:" >&2
+    printf '  %s\n' "${bad[@]}" >&2
+    exit 1
+  fi
+}
+
+# Tell the agent's session about a commit that it did not make. The send is
+# detached and every failure is ignored, so a commit is never delayed or
+# failed. No Git pathspec is used: Magit runs git with --literal-pathspecs,
+# which a hook inherits.
+hook_post_commit() {
+  dir=$(git rev-parse --show-toplevel 2>/dev/null) || return 0
+  local session sha subject
+  session=$(conf session)
+  [ -n "$session" ] || return 0
+  command -v "$bud" >/dev/null 2>&1 || return 0
+  from_agent && return 0
+  sha=$(git -C "$dir" rev-parse --short HEAD 2>/dev/null) || return 0
+  subject=$(git -C "$dir" log -1 --format=%s 2>/dev/null)
+  detach "$bud" send "$session" "collab-edit: $sha in $dir: $subject"
+}
+
+cmd_hook() {
+  [ $# -eq 1 ] || usage
+  case $1 in
+    pre-commit) hook_pre_commit ;;
+    post-commit)
+      hook_post_commit || true
+      exit 0
+      ;;
+    *) usage ;;
+  esac
+}
+
+dir=""
+[ $# -ge 1 ] || usage
+cmd=$1
+shift
+case $cmd in
+  start) cmd_start "$@" ;;
+  open) cmd_open "$@" ;;
+  status) cmd_status "$@" ;;
+  end) cmd_end "$@" ;;
+  hook) cmd_hook "$@" ;;
+  -h | --help | help) usage ;;
+  *) usage ;;
+esac

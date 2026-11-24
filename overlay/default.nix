@@ -35,6 +35,8 @@ in
 
   bud = callPackage ../packages/development/misc/bud { };
 
+  collab-edit = callPackage ../packages/development/misc/collab-edit { };
+
   design-doc-tools = callPackage ../packages/development/misc/design-doc-tools { };
 
   # MCP profiles are mutable state, but nixpkgs points PLAYWRIGHT_BROWSERS_PATH

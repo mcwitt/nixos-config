@@ -423,6 +423,7 @@
                 touch $out
               '';
           bud = pkgs.callPackage ./packages/development/misc/bud { };
+          collab-edit = pkgs.callPackage ./packages/development/misc/collab-edit { };
           design-doc-tools = pkgs.callPackage ./packages/development/misc/design-doc-tools { };
           pre-commit-check = pre-commit-hooks.lib.${system}.run {
             src = ./.;
