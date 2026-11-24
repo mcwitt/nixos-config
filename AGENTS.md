@@ -110,7 +110,12 @@ nix store prefetch-file --json --hash-type sha256 "https://files.pythonhosted.or
 
 ### bud harness adapters
 
-`bud` (`packages/development/misc/bud`) builds every harness command line itself, in `src/adapter.rs`. When a harness bump renames or drops a launch, resume, model or effort flag, `bud launch` fails with the harness's own error: fix the adapter, not the skill. After bumping a harness, run the "Checking a harness by hand" list in `modules/home-manager/harnesses/skills/bud/reference.md`; the flake check uses stub agents and cannot catch flag changes.
+`bud` (`packages/development/misc/bud`) builds every harness command line itself, in `src/adapter.rs`. When a harness bump renames or drops a launch, resume, model or effort flag, `bud launch` fails with the harness's own error: fix the adapter, not the skill. After bumping a harness, check it once against the real CLI, in a scratch directory; the flake check uses stub agents and cannot catch flag changes:
+
+1. `bud launch t --harness <h> --brief <file with "say hi">`: the agent starts with the brief, and `bud peek t` shows the answer. `bud ls` shows STATE `working` during the turn and `done` after it.
+2. `--skill <s>`: the brief runs skill `<s>` (for OpenCode, the `/command` is typed after start).
+3. `bud send t "say bye"`, then `bud close t` and `bud resume t`: the conversation continues.
+4. In Claude Code and Codex, `/compact` in a parent: the conversation shows the bud reminder.
 
 ### Antigravity tmux state
 

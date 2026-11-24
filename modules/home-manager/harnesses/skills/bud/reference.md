@@ -37,12 +37,3 @@ If every shell command fails (each one, even `true`, exits 1 with no output) whi
 
    If that fails too, ask the user to run the commands in another terminal or tmux window.
 4. Read the output that the user pastes and continue from it. Try a trivial command now and then (`true`), and go back to running `bud` yourself when the shell works again.
-
-## Checking a harness by hand
-
-The tests use stub agents. After a harness update, check once against the real CLI, in a scratch directory:
-
-1. `bud launch t --harness <h> --brief <file with "say hi">`: the agent starts with the brief, and `bud peek t` shows the answer. `bud ls` shows STATE `working` during the turn and `done` after it.
-2. `--skill <s>`: the brief runs skill `<s>` (for OpenCode, the `/command` is typed after start).
-3. `bud send t "say bye"`, then `bud close t` and `bud resume t`: the conversation continues.
-4. In Claude Code and Codex, `/compact` in a parent: the conversation shows the bud reminder.
