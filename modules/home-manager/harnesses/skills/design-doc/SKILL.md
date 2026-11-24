@@ -11,14 +11,14 @@ Start this skill only when the user asks for it. When a task looks large enough 
 
 ## Settings
 
-This skill names no file format, no place to keep docs and no tool to launch sessions. Settle each of these, and every other setting, in this order:
+This skill names no file format, no place to keep docs, no way to edit a doc together and no tool to launch sessions. Settle each of these, and every other setting, in this order:
 
 1. What the user says in the session.
 2. The repository's own convention, where it already keeps design docs.
 3. A defaults skill. At the start, look in your list of skills for one named exactly `design-doc-defaults`. If it is there, load it and say so in one line.
 4. Ask the user, once.
 
-A defaults skill may set: the layout of the head and of a gate; the format and its comment syntax; where docs live; the length limit and its check; how figures are written and viewed; the session tool; how the turn is passed and any signal on top of the check at the start of a turn; where iteration happens; how a ready doc is opened for the user; where a comment is answered; the summary for public places and its check.
+A defaults skill may set: the layout of the head and of a gate; the format; where docs live; the length limit and its check; how figures are written and viewed; the session tool; how you and the user edit the doc together, within the promises under *Working on the doc with the user*; the summary for public places and its check.
 
 A defaults skill may not change the rules below that are marked **fixed**. If it contradicts one, follow this skill and tell the user.
 
@@ -99,19 +99,15 @@ For sessions you need three things: to start a session with a brief, to message 
 
 ## Working on the doc with the user
 
-**Fixed.** Each writer's changes are kept apart, the end of a turn is signalled, and you check for the user's changes at the start of each of your turns.
+**Fixed.** However you and the user edit the doc together, the method keeps these promises:
 
-- Save your own edits as your own change, with a message that says what changed.
-- Do not write to the doc while it holds changes that are not yours and are not yet saved as the user's change.
-- Remember the last change to the doc that you saw. Every later one that is not yours is the user's. Read it before you do anything else.
-
-The user asks for a change by writing a comment next to the passage, in the format's own comment syntax. Every comment in the doc is a note to you, except one inside a code example.
-
-**Fixed.** Act on each comment, remove it, and list what you did in the message of your change.
-
-Do not answer a question, or a request that you disagree with, in the session. Answer where the defaults skill puts discussion: in the backend's own comment threads where it has them, and otherwise as an entry in the open questions that holds your answer or your proposal. Tell the user in the session only where the answer is.
-
-**Fixed.** The body of the doc holds no discussion. When a thread ends, put its outcome into the text or the decisions, and remove the thread.
+- Each writer's changes are kept apart, and each can be seen separately.
+- The end of a turn is signalled. At the start of each of your turns, read every change of the user's since the last change that you saw, before you do anything else.
+- You do not write to the doc while it holds changes of the user's that are not yet saved.
+- You save your own edits as your own change, with a message that says what changed.
+- The user asks for a change with a comment next to the passage. Every comment is a note to you, except one inside a code example. Act on each comment, remove it, and list what you did in the message of your change.
+- A question, or a request that you disagree with, is answered next to its passage, not in the session. In the session, say only where the answer is.
+- The body of the doc holds no discussion. When a thread ends, its outcome goes into the text or the decisions, and the thread goes.
 
 ## Public places
 
