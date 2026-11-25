@@ -18,8 +18,14 @@ in
       };
       enableMcpIntegration = true;
 
-      # Never spend separately purchased AI credits without an explicit opt-in.
-      settings.useG1Credits = false;
+      settings = {
+        agentMode = "auto";
+        # The terminal sandbox needs the Nix dynamic linker and the tools it
+        # loads. Home Manager's skill symlinks also resolve into the store.
+        permissions.allow = [ "read_file(${builtins.storeDir})" ];
+        # Never spend separately purchased AI credits without an explicit opt-in.
+        useG1Credits = false;
+      };
     };
 
     # home-manager release-26.05 still uses the former
@@ -46,7 +52,11 @@ in
       run mkdir -p "$(dirname "$target")"
       tmp="$(${lib.getExe' pkgs.coreutils "mktemp"})"
       if [ -e "$target" ]; then
-        ${lib.getExe pkgs.jq} -s '.[0] * .[1]' \
+        # Object multiplication replaces arrays. Keep grants saved by /permissions.
+        ${lib.getExe pkgs.jq} -s '
+          .[0] as $saved | .[1] as $managed | ($saved * $managed)
+          | .permissions.allow = (($saved.permissions.allow // []) + $managed.permissions.allow | unique)
+        ' \
           "$target" ${config.home.file.${settingsFile}.source} > "$tmp"
       else
         cp ${config.home.file.${settingsFile}.source} "$tmp"
