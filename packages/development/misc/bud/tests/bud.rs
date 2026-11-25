@@ -478,9 +478,12 @@ fn context_hook_reminds_parents_and_children() {
     let parent: serde_json::Value = serde_json::from_str(&ok(&env.bud_in("main", &["_context"]))).unwrap();
     let text = parent["hookSpecificOutput"]["additionalContext"].as_str().unwrap();
     assert!(text.contains("launched 1 child sessions with bud, 1 of them live"), "{text}");
+    assert!(text.contains("Read the bud skill"), "{text}");
     let child: serde_json::Value = serde_json::from_str(&ok(&env.bud_in("kid", &["_context"]))).unwrap();
     let text = child["hookSpecificOutput"]["additionalContext"].as_str().unwrap();
     assert!(text.contains("its parent is the session `main`"), "{text}");
+    // A leaf child needs only the line above, not the skill.
+    assert!(!text.contains("Read the bud skill"), "{text}");
 }
 
 #[test]

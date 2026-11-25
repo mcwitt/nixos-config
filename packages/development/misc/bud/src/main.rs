@@ -32,7 +32,7 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Cmd {
-    /// Attach to the root session `bud`, or start it here in triage mode
+    /// Attach to the root session `bud`, or start it here delegating by default
     Up {
         #[arg(long, default_value = "claude")]
         harness: String,
@@ -127,7 +127,7 @@ struct LaunchArgs {
     /// Working directory, or with --worktree the repository (default: here)
     #[arg(long)]
     dir: Option<PathBuf>,
-    /// claude, codex, pi, opencode or agy (default: this session's harness)
+    /// claude, codex, pi, opencode or agy (default: this session's recorded harness; required when it has none)
     #[arg(long)]
     harness: Option<String>,
     /// Start the brief with this skill, in the child harness's syntax
@@ -889,10 +889,10 @@ fn context() -> Result<i32> {
         let live = world.children(&me).len();
         parts.push(format!(
             "This session launched {launched} child sessions with bud, {live} of them live (`bud ls`). \
-             If the user turned on triage mode with the bud skill, it is still on."
+             If the user turned on delegate-by-default mode with the bud skill, it is still on. \
+             Read the bud skill before you act on these sessions."
         ));
     }
-    parts.push("Read the bud skill before you act on these sessions.".into());
     let out = serde_json::json!({
         "hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": parts.join(" ")}
     });
