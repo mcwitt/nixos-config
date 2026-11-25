@@ -1,11 +1,11 @@
 ---
 name: llm-usage
-description: Answer questions about LLM subscription usage and limits across accounts (Claude, ChatGPT/Codex, Google AI), and choose the harness and model for a new agent session from current usage, with the `llm-usage` command. Use when asked how much quota is left, which account runs out first, when a limit resets, whether a long job fits on an account or harness, or where to launch a session; also before launching a substantial session when usage could matter. Not for API billing or token counts of the current conversation.
+description: Answer questions about LLM subscription usage and limits across accounts (Claude, ChatGPT/Codex, Google AI) with the `llm-usage` command. Use when asked how much quota is left, which account runs out first, when a limit resets, whether a long job fits on an account or harness, or what capacity is left for a new session. Not for API billing or token counts of the current conversation.
 ---
 
 # llm-usage
 
-`llm-usage` reports quota usage for the user's LLM subscriptions: every account on every host that it monitors, each limit window, and a projection to the window's reset. It reports facts and makes no choice. You choose, because you know the task. Everything about the accounts (names, plans, limits) comes from the command at run time. Do not assume it from memory or from this skill.
+`llm-usage` reports quota usage for the user's LLM subscriptions: every account on every host that it monitors, each limit window, and a projection to the window's reset. It reports facts and makes no choice. Everything about the accounts (names, plans, limits) comes from the command at run time. Do not assume it from memory or from this skill.
 
 If the command is missing, say that usage monitoring is not set up on this host. If it cannot reach its server, say so and offer `llm-usage --local`, which reads only this user's own credentials on this host.
 
@@ -32,18 +32,6 @@ A list with one entry per place a session could run:
 - Per window: `label`, `used_percent`, `remaining_percent`, `projected_percent` (at reset, at the average rate; null early in a window), `unused_at_reset_percent`, `resets_at_iso`, `seconds_to_reset`, `exhausts_at_iso` and `seconds_to_exhaustion` (only when it runs out before reset), `reset_since_observed`.
 
 `status --json` holds the same windows per account, under `accounts[].windows[]`, with a one-line `summary` and a `status` per account and window: `limited` › `over` (on pace to run out early) › `under` (long window projected to end well below the limit, which is capacity that will go unused) › `ok`.
-
-## Choosing where a session runs
-
-Weigh the facts against the task, then launch with explicit flags, for example `bud launch <name> --harness H --model M ...`. Say in one line why you chose it when the choice is not the usual default.
-
-- Keep the usual harness and model when nothing is flagged, or when a flag does not matter for this task: a short task on a window that runs out in 10 hours is fine.
-- Move work away from an option that is `limited`, or that would run out before the task ends. Estimate the task's length; `seconds_to_exhaustion` and `seconds_to_reset` are in seconds.
-- When there is a choice, prefer capacity that would otherwise go unused (high `unused_at_reset_percent`), and keep heavily used windows for work that needs them.
-- If the task needs a particular model, check that model's `model_windows` too, not only `windows`.
-- A Google pool has one window per pool. Read its length from the window's `label` and `seconds_to_reset`; when it is a short window (5h), it suits short or overflow work and refills soon after use.
-- Switching harness changes the agent's tools and model family. Do not switch for a small gain when the task depends on a particular harness or model; tell the user the trade-off instead.
-- An explicit choice by the user always wins. Report a concern; do not override the choice.
 
 ## Answering questions
 
