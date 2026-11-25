@@ -19,6 +19,8 @@ This mode, and defaults the user sets for children (harness, model, effort; pass
 
 Launch with `bud launch <name> --brief <file|->`. A child that edits files or switches branches in a Git checkout that another session uses gets its own `--worktree <branch>` (or `pr:<N>`); pass `--share` only when every session in the checkout only reads. Relay what `launch` prints: the attach command, and any startup dialog (the user must attach to answer it) or error.
 
+Choose the harness and model before you launch. Without a default from the user, load the skill named exactly `bud-defaults` if it is installed, and follow it; otherwise use this session's harness and model. Always pass `--model`: a child launched without it gets its harness's default model, not yours.
+
 Start the brief with the user's request in their words. Add only the context the child needs to understand it (it has none of this conversation, so resolve references such as "that bug") and the constraints of the checkout you chose (for example, a child launched with `--share` must only read). The child can ask its parent for more. If this session needs the result, ask for it; bud tells the child how to reply.
 
 ## Supervising
