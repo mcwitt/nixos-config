@@ -74,7 +74,7 @@ Keep the doc short enough to read in about ten minutes, and the head in under a 
 Who passes a gate is one of:
 
 - **agent**: you record the evidence in the doc and continue.
-- **user**: you stop and wait for the user. The user can mark any gate this way at any time.
+- **user**: you stop and wait for the user. The user can mark any gate this way at any time. The user passes a gate by saying so in your session or by changing the doc. Mark the gate, and record in its body who passed it and when. A change that the user makes to the doc outside an editing session sends you no signal, so look for one at the start of each turn.
 
 The statuses are `proposed` (not yet agreed), `todo`, `doing`, `done`, `blocked` and `dropped`.
 
